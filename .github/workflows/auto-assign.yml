@@ -1,0 +1,58 @@
+name: Auto Label From Title
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened]
+
+jobs:
+  auto:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Add labels from title prefix
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const title =
+              (context.payload.issue?.title || context.payload.pull_request?.title || '')
+                .trim()
+                .toLowerCase();
+
+            const match = title.match(/^\s*\[([^\]]+)\]/i);
+            if (!match) return;
+
+            const allowedLabels = [
+              'fix',
+              'bug',
+              'documentation',
+              'duplicate',
+              'enhancement',
+              'suggestion'
+            ];
+
+            const raw = match[1]
+              .split(',')
+              .map(s => s.trim().toLowerCase())
+              .filter(Boolean);
+
+            const labels = raw.filter(label => allowedLabels.includes(label));
+            if (!labels.length) return;
+
+            const issueNumber =
+              context.payload.issue?.number ||
+              context.payload.pull_request?.number;
+
+            if (!issueNumber) return;
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              labels
+            });
