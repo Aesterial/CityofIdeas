@@ -1,111 +1,189 @@
 create extension if not exists pgcrypto;
 
--- Enums
+-- enums
 create type user_rank as enum ('user', 'staff', 'developer');
 create type event_level as enum ('info', 'warn', 'error', 'critical');
-create type event_result as enum ('success', '-', 'fail');
-
-create type users_email_t as (
-                                 address varchar(255),
-                                 verified boolean
-                             );
-
-create type users_rank_t as (
-                                name user_rank,
-                                expires timestamptz
-                            );
+create type event_result as enum ('success', '-', 'failure');
+create type project_categories as enum ('благоустройство', 'дороги и тротуары', 'освещение', 'детские площадки', 'парки и скверы', 'другое');
+create type project_vote_status as enum ('archived', 'implementing', 'vote in progress', 'closed', 'published');
 
 create type avatar_t as (
-                            content_type varchar(64),
-                            data bytea,
-                            width int,
-                            height int,
-                            size_bytes int,
-                            updated timestamptz
-                        );
+    content_type varchar(64),
+    data bytea,
+    width int,
+    height int,
+    size_bytes int,
+    updated timestamptz
+);
+
+create type project_location_t as (
+    city varchar(64), -- кемерово
+    street varchar(64), -- проспект ленина
+    house varchar(64) -- дом 4 подъезд 4
+);
+
+create type project_info_t as (
+    title varchar(32),
+    description text,
+    photos avatar_t[], -- фотки проекта
+    category project_categories,
+    location project_location_t
+);
+
+create type users_email_t as (
+    address varchar(255),
+    verified boolean
+);
+
+create type users_rank_t as (
+    name user_rank,
+    expires timestamptz
+);
 
 create type user_settings_t as (
-                                   display_name varchar(255),
-                                   avatar avatar_t,
-                                   password varchar(255),
-                                   session_live_time int
-                               );
-
--- Permissions
-create table permissions (
-                             key text primary key,
-                             description text
+    display_name varchar(255),
+    avatar avatar_t,
+    password varchar(255),
+    session_live_time int
 );
 
-create table ranks (
-                       name user_rank primary key,
-                       color int,
-                       description text
-);
-
-create table rank_permissions (
-                                  rank user_rank not null references ranks(name) on delete cascade,
-                                  permission_key text not null references permissions(key) on delete cascade,
-                                  primary key (rank, permission_key)
-);
-
--- Users table with struct columns
+-- users table with struct columns
 create table users (
-                       uid bigint generated always as identity primary key,
-                       username varchar(64) not null,
+    uid bigint generated always as identity primary key,
+    username varchar(64) not null,
 
-                       email users_email_t not null,
-                       settings user_settings_t not null,
-                       rank users_rank_t not null,
+    email users_email_t not null,
+    settings user_settings_t not null,
+    rank users_rank_t not null,
 
-                       joined timestamptz not null default now(),
+    joined timestamptz not null default now(),
 
     -- constraints for struct fields
-                       constraint users_email_address_nn check (((email).address) is not null),
-                       constraint users_email_verified_nn check (((email).verified) is not null),
+    constraint users_email_address_nn check (((email).address) is not null),
+    constraint users_email_verified_nn check (((email).verified) is not null),
 
-                       constraint users_password_nn check (((settings).password) is not null),
-                       constraint users_session_live_time_ok check (((settings).session_live_time) in (7, 30, -1)),
+    constraint users_password_nn check (((settings).password) is not null),
+    constraint users_session_live_time_ok check (((settings).session_live_time) in (7, 30, -1)),
 
-                       constraint users_rank_name_nn check (((rank).name) is not null),
-                       constraint users_rank_expires_ok check (((rank).expires) is null or (rank).expires > joined)
+    constraint users_rank_name_nn check (((rank).name) is not null),
+    constraint users_rank_expires_ok check (((rank).expires) is null or (rank).expires > joined)
 );
 
--- Uniqueness / indexes on nested fields
+-- uniqueness / indexes on nested fields
 create unique index users_username_uq on users (username);
 create unique index users_email_uq on users (lower(((email).address)));
 create index users_rank_name_idx on users (((rank).name));
 create index users_joined_idx on users (joined);
 
--- Bans
+-- projects
+create table projects (
+    id uuid primary key default pg_catalog.gen_random_uuid(),
+    author_uid bigint not null references users(uid) on delete restrict,
+
+    info project_info_t not null,
+    status project_vote_status not null default 'published',
+
+    likes_count int not null default 0 check (likes_count >= 0),
+
+    created_at timestamptz not null default now()
+);
+
+create index project_category_idx on projects (((info).category));
+create index projects_city_idx on projects ((((info).location).city));
+
+create table project_likes (
+    project_id uuid not null references projects(id) on delete cascade,
+    user_uid bigint not null references users(uid) on delete cascade,
+    created_at timestamptz not null default now(),
+
+    primary key (project_id, user_uid)
+);
+
+create index project_likes_user_uid_idx on project_likes (user_uid);
+create index project_likes_project_id_idx on project_likes (project_id);
+
+create or replace function toggle_project_like(p_project_id uuid, p_user_uid bigint)
+    returns boolean
+    language plpgsql
+    as $$
+    declare
+    removed boolean;
+    begin
+    -- если лайк уже есть -> снимаем
+    delete from project_likes
+    where project_id = p_project_id
+    and user_uid = p_user_uid
+    returning true into removed;
+
+    if removed then
+    update projects
+    set likes_count = likes_count - 1
+    where id = p_project_id;
+
+    return false;
+    end if;
+
+    -- иначе ставим лайк
+    insert into project_likes (project_id, user_uid)
+    values (p_project_id, p_user_uid)
+    on conflict do nothing;
+
+    if found then
+    update projects
+    set likes_count = likes_count + 1
+    where id = p_project_id;
+    end if;
+
+    return true;
+end $$;
+
+-- permissions
+create table permissions (
+    key text primary key,
+    description text
+);
+
+create table ranks (
+    name user_rank primary key,
+    color int,
+    description text
+);
+
+create table rank_permissions (
+    rank user_rank not null references ranks(name) on delete cascade,
+    permission_key text not null references permissions(key) on delete cascade,
+    primary key (rank, permission_key)
+);
+
+-- bans
 create table bans (
-                      id uuid primary key default pg_catalog.gen_random_uuid(),
-                      executor bigint not null references users(uid) on delete restrict,
-                      target bigint not null references users(uid) on delete restrict,
-                      reason varchar(255),
-                      at timestamptz not null default now(),
-                      expires timestamptz,
-                      check (expires is null or expires > at),
-                      check (executor <> target)
+    id uuid primary key default pg_catalog.gen_random_uuid(),
+    executor bigint not null references users(uid) on delete restrict,
+    target bigint not null references users(uid) on delete restrict,
+    reason varchar(255),
+    at timestamptz not null default now(),
+    expires timestamptz,
+    check (expires is null or expires > at),
+    check (executor <> target)
 );
 
 create index bans_target_idx on bans(target);
 create index bans_executor_idx on bans(executor);
 
--- Events
+-- events
 create table events (
-                        id uuid primary key default pg_catalog.gen_random_uuid(),
-                        at timestamptz not null default now(),
+    id uuid primary key default pg_catalog.gen_random_uuid(),
+    at timestamptz not null default now(),
 
-                        event_type varchar(255) not null,
-                        level event_level not null,
-                        message text,
+    event_type varchar(255) not null,
+    level event_level not null,
+    message text,
 
-                        actor_type varchar(255) not null,
-                        actor_id bigint,
+    actor_type varchar(255) not null,
+    actor_id bigint,
 
-                        trace_id varchar(255) not null,
-                        result event_result not null
+    trace_id varchar(255) not null,
+    result event_result not null
 );
 
 create index events_at_idx on events(at);
