@@ -1,0 +1,476 @@
+"use client"
+
+import { useState, type CSSProperties, type MouseEvent } from "react"
+import { motion } from "framer-motion"
+import Link from "next/link"
+import Image from "next/image"
+import { Header } from "@/components/header"
+import { GradientButton } from "@/components/gradient-button"
+import { YandexMap } from "@/components/yandex-map"
+import { useLanguage } from "@/components/language-provider"
+import { ArrowRight, MapPin, Users, Lightbulb, Search, Plus } from "lucide-react"
+import type { Variants } from "framer-motion";
+
+
+const art = String.raw`⠀⠀⠀⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣶⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⣿⠛⠻⢷⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠈⠛⠷⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⣿⡄⠀⠀⠈⠻⣦⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠘⣧⠀⢀⣄⡀⠈⠻⢦⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠘⣧⠀⢀⡀⠀⠈⠙⢷⣄⠀⠀⠀⠀⠀⠀⠀⢸⡿⢿⡀⠘⡏⠛⢦⠀⠀⠙⢷⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⢹⣇⢸⡏⠳⣄⠀⢺⡿⣦⡀⣀⣤⡶⠾⠛⠛⠻⡄⠙⠀⣸⡄⠈⠳⡄⠀⠈⠻⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⢻⡄⢳⡀⢈⣷⠀⠻⠀⠉⠁⠀⠀⠀⠀⠀⠀⠀⡄⠀⠀⠉⠳⢤⣻⡀⠀⠀⠹⣧⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠈⣧⠀⣷⠟⠁⠀⠚⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢷⡄⠀⠀⠘⣧⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⢺⣯⣾⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⣧⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⣸⡏⠙⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣆⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⢠⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⣾⠁⢀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⡇⠀⠀⠀⠀
+⠀⠀⠀⣸⡇⠀⢺⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠀⠀
+⢀⣠⣿⢿⡁⠀⠀⢻⣶⣤⣄⣀⣤⣴⡿⠂⠀⠀⠀⠀⠀⠀⢴⣦⣀⠀⠀⠀⢀⣠⣴⡛⠁⠀⠀⠀⠀⢸⡇⠀⠀⠀⠀
+⢸⣍⠙⠓⠉⠀⠀⣸⡆⠈⠉⠉⣻⡄⠀⠀⠀⣶⠦⣤⣄⠀⠀⠉⠙⣿⠛⠛⠉⠁⣠⡇⠀⠀⠀⠀⣤⣿⣧⠀⠀⠀⠀
+⠀⠙⢷⣦⡀⠀⢹⡇⠀⠀⠀⣰⠿⠁⠀⠀⠀⠛⢶⠛⠁⠀⠀⠀⠰⣟⡀⠀⠀⠰⣇⠀⠀⠀⠀⠀⢀⣴⡏⠀⠀⠀⠀
+⠀⠀⠀⠘⢧⣀⡞⠋⠀⠀⠰⡇⠀⠀⠀⠀⠀⣴⠿⠦⠀⠀⠀⠀⠀⣸⠇⠀⠀⢀⡿⠃⠀⠀⢀⣀⣀⣼⠇⠀⠀⠀⠀
+⠀⠀⠀⠀⠈⠻⢧⣀⠠⢤⡾⠛⠀⠀⠀⠀⠀⠀⠀⠀⡞⠛⠳⢦⡈⣧⠀⠀⠀⠘⢦⡀⠀⣠⡾⠛⠋⠁⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠙⠻⢾⣆⡀⠀⠀⠀⠀⠀⠀⠀⠀⣇⠀⠀⠀⠹⣎⣆⠀⢀⣢⣼⡷⠞⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢙⡿⠶⠦⣤⡀⠀⠀⠀⢹⣄⠀⠀⠀⠈⢻⡿⣿⡉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⠏⠀⠀⢀⡆⠀⠀⠀⠀⠀⠹⣆⠀⠀⠀⠀⠹⣮⠻⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⣠⡾⠁⠀⠀⠀⣾⠁⠀⠀⠀⠀⠀⠀⠘⢧⡀⠀⠀⠀⠀⠀⣿⠀⠀⠀⠀⠀⠀⠀⣀⣶⠿⢷⣤
+⠀⠀⠀⠀⠀⠀⠀⠀⡟⠀⠀⣀⣤⢾⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠲⢤⣤⣤⡾⠋⠀⠀⠀⠀⠀⢀⣾⠏⠀⠀⢀⣿
+⠀⠀⠀⠀⠀⠀⠀⠀⠻⠖⠛⠋⠀⣼⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣧⠀⠀⠀⠀⠀⠀⣴⠟⠁⠀⠀⣠⡾⠃
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⠀⠀⠀⢀⣰⠾⠁⠀⣀⣤⠾⠋⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⡦⠶⠾⣛⣁⣤⠶⠟⠋⠁⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⠀⠀⣀⣤⣤⣤⡤⠤⠤⠤⣤⣤⣄⣀⠀⢾⡶⠶⠛⠛⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡏⠀⠀⣸⡏⠀⠀⠀⠀⠀⠀⠀⠀⢷⡀⠀⢸⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣷⠀⢠⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣧⠀⣸⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠻⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⠿⠟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀`;
+
+const lines = art.split("\n");
+const n = Math.max(lines.length - 1, 1);
+
+
+for (let i = 0; i < lines.length; i++) {
+  const hue = Math.round((i / n) * 360);
+  const style = [
+    `color: hsl(${hue} 95% 70%)`,
+    `background: #05060a`,
+    `font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`,
+    `font-size: 12px`,
+    `line-height: 12px`,
+    `white-space: pre`,
+    `text-shadow: 0 0 10px hsla(${hue}, 95%, 70%, .55), 0 0 2px hsla(${hue}, 95%, 70%, .9)`,
+    `padding: 0 6px`
+  ].join("; ");
+  console.log(`%c${lines[i]}`, style);
+}
+
+
+const easeOut: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+export const containerVariants: Variants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.45,
+      ease: easeOut,
+      when: "beforeChildren",
+      staggerChildren: 0.08,
+    },
+  },
+};
+
+
+
+export const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.10,
+      ease: easeOut,
+    },
+  },
+};
+
+const popularIdeas = [
+  { rank: 1, address: "Советский просп., 77" },
+  { rank: 2, address: "ул. 50 лет Октября, 10" },
+  { rank: 3, address: "Весенняя ул., 21" },
+]
+
+const ideasForVoting = [
+  {
+    id: 1,
+    address: "Советский просп., 77",
+    descriptionKey: "leaksFromRoof",
+    satelliteImage: "/aerial-satellite-view-kemerovo-city-block.jpg",
+    buildingImage: "/building-entrance-with-awning-kemerovo.jpg",
+  },
+  {
+    id: 2,
+    address: "Ноградская ул., 5",
+    descriptionKey: "brokenWindow",
+    satelliteImage: "/aerial-satellite-view-residential-kemerovo.jpg",
+    buildingImage: "/pub-building-facade-harats-kemerovo.jpg",
+  },
+  {
+    id: 3,
+    address: "пр-т Ленина, 90",
+    descriptionKey: "noCrosswalk",
+    satelliteImage: "/aerial-view-street-intersection-kemerovo.jpg",
+    buildingImage: "/busy-street-without-crosswalk.jpg",
+  },
+  {
+    id: 4,
+    address: "ул. Соборная, 21",
+    descriptionKey: "brokenWindow",
+    satelliteImage: "/aerial-satellite-view-kemerovo-city-block.jpg",
+    buildingImage: "/building-entrance-with-awning-kemerovo.jpg",
+  },
+]
+
+const cardGlowStyle = {
+  "--x": "50%",
+  "--y": "50%",
+} as CSSProperties
+
+const updateCardGlow = (event: MouseEvent<HTMLDivElement>) => {
+  const rect = event.currentTarget.getBoundingClientRect()
+  const x = event.clientX - rect.left
+  const y = event.clientY - rect.top
+  event.currentTarget.style.setProperty("--x", `${x}px`)
+  event.currentTarget.style.setProperty("--y", `${y}px`)
+}
+
+const resetCardGlow = (event: MouseEvent<HTMLDivElement>) => {
+  event.currentTarget.style.setProperty("--x", "50%")
+  event.currentTarget.style.setProperty("--y", "50%")
+}
+
+export default function HomePage() {
+  const [searchQuery, setSearchQuery] = useState("")
+  const { t } = useLanguage()
+
+  const filteredIdeas = ideasForVoting.filter(
+    (idea) =>
+      idea.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t(idea.descriptionKey).toLowerCase().includes(searchQuery.toLowerCase()),
+  )
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+
+
+      <section className="pt-32 pb-20 px-6">
+        <div className="container mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <motion.div variants={containerVariants} initial="hidden" animate="visible">
+              <motion.h1
+                variants={itemVariants}
+                className="text-5xl lg:text-6xl font-bold leading-tight mb-6 text-balance"
+              >
+                {t("heroTitle")}
+              </motion.h1>
+
+              <motion.p variants={itemVariants} className="text-xl text-muted-foreground mb-8 leading-relaxed">
+                {t("heroSubtitle")}
+              </motion.p>
+
+              <motion.div variants={itemVariants}>
+                <Link href="/voting">
+                  <GradientButton>{t("start")}</GradientButton>
+                </Link>
+              </motion.div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+            >
+              <YandexMap
+                markers={[
+                  {
+                    coordinates: [55.3541, 86.0877],
+                    title: "Центр Кемерово",
+                    description: "Главная площадь города",
+                  },
+                ]}
+              />
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+
+      <section className="py-20 px-6 bg-background">
+        <div className="container mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+
+            <motion.div
+              initial={{ opacity: 0, x: -50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <h2 className="text-5xl lg:text-6xl font-bold mb-12">{t("voting")}</h2>
+
+              <p className="text-muted-foreground italic mb-6">{t("mostPopularIdeas")}</p>
+
+              <motion.div
+                className="bg-card rounded-3xl p-6 mb-8 shadow-sm border border-border"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+              >
+                <div className="space-y-5">
+                  {popularIdeas.map((idea, index) => (
+                    <motion.div
+                      key={idea.rank}
+                      className="flex items-center gap-4 cursor-pointer hover:bg-muted/50 rounded-xl p-3 -mx-3 transition-colors duration-300"
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.3 + index * 0.1 }}
+                      whileHover={{ x: 8 }}
+                    >
+                      <span className="text-2xl font-bold">{idea.rank}.</span>
+                      <span className="text-lg font-semibold">{idea.address}</span>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.5 }}
+              >
+                <Link href="/voting">
+                  <GradientButton>{t("vote")}</GradientButton>
+                </Link>
+              </motion.div>
+            </motion.div>
+
+
+            <motion.div
+              className="flex justify-center"
+              initial={{ opacity: 0, x: 50 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+            >
+              <div className="relative">
+
+                <div className="relative w-72 h-[580px] bg-foreground rounded-[3.5rem] p-3 shadow-2xl">
+
+                  <div className="absolute -right-1 top-28 w-1 h-12 bg-foreground rounded-l-sm" />
+                  <div className="absolute -left-1 top-24 w-1 h-8 bg-foreground rounded-r-sm" />
+                  <div className="absolute -left-1 top-36 w-1 h-16 bg-foreground rounded-r-sm" />
+
+
+                  <div className="bg-background w-full h-full rounded-[3rem] overflow-hidden relative">
+
+                    <div className="absolute top-3 left-1/2 -translate-x-1/2 w-28 h-8 bg-foreground rounded-full" />
+
+
+                    <div className="pt-16 px-4 h-full flex flex-col items-center justify-center">
+                      <motion.div
+                        className="text-center"
+                        animate={{ opacity: [0.5, 1, 0.5] }}
+                        transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
+                      >
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted flex items-center justify-center">
+                          <MapPin className="w-8 h-8 text-muted-foreground" />
+                        </div>
+                        <p className="text-sm text-muted-foreground">{t("ideas")}</p>
+                      </motion.div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+
+      <section className="py-20 px-6 bg-background">
+        <div className="container mx-auto">
+          <motion.div
+            className="flex items-center justify-between mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl lg:text-5xl font-bold">{t("voting")}</h2>
+
+
+            <div className="relative">
+              <input
+                type="text"
+                placeholder={t("searchIdeas")}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-48 lg:w-64 px-4 py-3 pr-12 rounded-2xl border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all duration-300"
+              />
+              <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            </div>
+          </motion.div>
+
+
+          <div className="space-y-8">
+            {filteredIdeas.map((idea, index) => (
+              <motion.div
+                key={idea.id}
+                className="bg-card rounded-3xl p-8 shadow-lg border border-border"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <h3 className="text-2xl font-bold">{idea.address}</h3>
+                  <motion.button
+                    className="w-8 h-8 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:bg-foreground hover:text-background transition-all duration-300"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </motion.button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                  <motion.div
+                    className="relative aspect-square rounded-2xl overflow-hidden shadow-md"
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Image
+                      src={idea.satelliteImage || "/placeholder.svg"}
+                      alt={`Спутниковый снимок ${idea.address}`}
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute bottom-3 left-3 w-6 h-6 rounded-full border-2 border-red-500 flex items-center justify-center">
+                      <div className="w-2 h-2 bg-red-500 rounded-full" />
+                    </div>
+                  </motion.div>
+
+
+                  <motion.div
+                    className="relative aspect-square rounded-2xl overflow-hidden shadow-md"
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Image
+                      src={idea.buildingImage || "/placeholder.svg"}
+                      alt={`Фото здания ${idea.address}`}
+                      fill
+                      className="object-cover"
+                    />
+                    <div className="absolute bottom-3 right-3 w-6 h-6 rounded-full border-2 border-red-500 flex items-center justify-center">
+                      <div className="w-2 h-2 bg-red-500 rounded-full" />
+                    </div>
+                  </motion.div>
+
+
+                  <motion.div
+                    className="relative aspect-square rounded-2xl bg-muted flex items-center justify-center p-6 shadow-md"
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <span className="absolute top-4 left-4 text-4xl text-muted-foreground/50">"</span>
+                    <p className="text-xl font-bold text-center">{t(idea.descriptionKey)}</p>
+                    <span className="absolute bottom-4 right-4 text-4xl text-muted-foreground/50">"</span>
+                  </motion.div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {filteredIdeas.length === 0 && (
+            <motion.div className="text-center py-16" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+              <p className="text-xl text-muted-foreground">{t("ideas")} не найдены</p>
+            </motion.div>
+          )}
+        </div>
+      </section>
+
+
+      <section className="py-20 px-6 bg-background">
+        <div className="container mx-auto">
+          <motion.div
+            className="grid md:grid-cols-3 gap-8"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            {[
+              {
+                icon: Lightbulb,
+                titleKey: "suggestIdea",
+                description: "Делитесь своими предложениями по улучшению города",
+              },
+              {
+                icon: Users,
+                titleKey: "vote",
+                description: "Поддерживайте лучшие инициативы других жителей",
+              },
+              {
+                icon: MapPin,
+                titleKey: "ideas",
+                description: "Указывайте конкретные места для реализации идей",
+              },
+            ].map((feature) => (
+              <motion.div
+                key={feature.titleKey}
+                variants={itemVariants}
+                whileHover={{ y: -8 }}
+                onMouseMove={updateCardGlow}
+                onMouseLeave={resetCardGlow}
+                style={cardGlowStyle}
+                className="group relative overflow-hidden rounded-[2rem] border border-border/60 bg-card/80 p-8 shadow-[0_24px_55px_-40px_rgba(0,0,0,0.45)] transition-all duration-500 hover:shadow-[0_35px_70px_-45px_rgba(0,0,0,0.6)] dark:border-white/10 dark:shadow-[0_30px_70px_-50px_rgba(0,0,0,0.9)] before:content-[''] before:absolute before:inset-0 before:pointer-events-none before:opacity-0 before:transition-opacity before:duration-300 before:bg-[radial-gradient(520px_circle_at_var(--x)_var(--y),_rgba(0,0,0,0.16),_transparent_45%)] dark:before:bg-[radial-gradient(520px_circle_at_var(--x)_var(--y),_rgba(255,255,255,0.2),_transparent_45%)] group-hover:before:opacity-100 after:content-[''] after:absolute after:inset-0 after:pointer-events-none after:opacity-60 after:bg-[linear-gradient(130deg,_rgba(255,255,255,0.28),_rgba(255,255,255,0)_55%)] dark:after:bg-[linear-gradient(130deg,_rgba(255,255,255,0.12),_rgba(255,255,255,0)_55%)]"
+              >
+                <div className="relative z-10">
+                  <div className="relative mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-foreground text-background shadow-[0_12px_28px_-12px_rgba(0,0,0,0.45)] transition-transform duration-300 group-hover:scale-105">
+                    <span className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_30%_20%,_rgba(255,255,255,0.55),_transparent_60%)] opacity-70" />
+                    <feature.icon className="relative h-7 w-7" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">{t(feature.titleKey)}</h3>
+                  <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+
+      <section className="py-24 px-6">
+        <div className="container mx-auto text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="text-4xl font-bold mb-6">{t("cityOfIdeas")}</h2>
+            <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">{t("heroSubtitle")}</p>
+            <Link href="/auth">
+              <GradientButton className="inline-flex items-center gap-3">
+                {t("start")}
+                <ArrowRight className="w-5 h-5" />
+              </GradientButton>
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+    </div>
+  )
+}
