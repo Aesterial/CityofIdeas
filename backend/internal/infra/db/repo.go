@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 	"time"
 )
 
@@ -22,6 +23,9 @@ var _ user.Repository = (*UserRepository)(nil)
 
 func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{DB: db}
+}
+func NewLoggerRepository(db *sql.DB) *LoggerRepository {
+	return &LoggerRepository{DB: db}
 }
 
 func (u *UserRepository) GetUID(ctx context.Context, name string) (uint, error) {
@@ -197,7 +201,7 @@ func (l *LoggerRepository) Append(ctx context.Context, event logger.Event) error
 	if event.TraceID == "" {
 		trace = "-"
 	}
-	if _, err := l.DB.ExecContext(ctx, "INSERT INTO events(event_type, level, message, actor_type, actor_id, trace_id, result) VALUES ($1, $2, $3, $4, $5, $6, $7)", event.Type.String(), event.Level.String(), event.Message, event.Actor.Type.String(), event.Actor.ID, trace, event.Result.String()); err != nil {
+	if _, err := l.DB.ExecContext(ctx, "INSERT INTO events(event_type, level, message, actor_type, actor_id, trace_id, result) VALUES ($1, $2, $3, $4, $5, $6, $7)", strings.ToLower(event.Type.String()), event.Level.String(), event.Message, event.Actor.Type.String(), event.Actor.ID, trace, event.Result.String()); err != nil {
 		return err
 	}
 	return nil

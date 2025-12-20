@@ -2,12 +2,16 @@ package logger
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	loggercolor "ascendant/backend/internal/infra/logger/color"
 
 	"github.com/google/uuid"
 )
+
+var events []*Event
+var mu sync.Mutex
 
 type (
 	EventType   string
@@ -125,20 +129,33 @@ func printEvent(e Event) {
 	)
 }
 
+func Append(event Event) {
+	mu.Lock()
+	defer mu.Unlock()
+	events = append(events, &event)
+}
+
+func GetEvents() []*Event {
+	return events
+}
+
 func Info(message, event string, actor EventActor, result EventResult, trace ...string) Event {
 	e := buildLog(EventType(event), InfoL, message, actor, result, trace...)
+	Append(e)
 	printEvent(e)
 	return e
 }
 
 func Warning(message, event string, actor EventActor, result EventResult, trace ...string) Event {
 	e := buildLog(EventType(event), WarnL, message, actor, result, trace...)
+	Append(e)
 	printEvent(e)
 	return e
 }
 
 func Error(message, event string, actor EventActor, result EventResult, trace ...string) Event {
 	e := buildLog(EventType(event), ErrorL, message, actor, result, trace...)
+	Append(e)
 	printEvent(e)
 	return e
 }

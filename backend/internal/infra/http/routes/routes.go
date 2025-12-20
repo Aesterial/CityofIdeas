@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Register(r *gin.Engine, userHandler *userhandler.Handler) {
+func RegisterUser(r *gin.Engine, userHandler *userhandler.Handler) {
 	api := r.Group("/api")
 	users := api.Group("/users")
 	users.GET("/:id", userHandler.GetByID)
