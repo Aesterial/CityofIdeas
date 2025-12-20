@@ -112,7 +112,7 @@ export default function AuthPage() {
           </motion.div>
 
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             <AnimatePresence mode="wait">
               {mode === "register" && (
                 <motion.div
@@ -230,13 +230,20 @@ export default function AuthPage() {
 
 
           <motion.div
-            className="space-y-3"
+            className="space-y-2 sm:space-y-3"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
           >
-            <button className="w-full bg-card border border-border rounded-2xl py-3 px-6 font-medium hover:bg-muted transition-colors duration-300 flex items-center justify-center gap-3 sm:py-4">
-              <svg width="230" height="28" viewBox="0 0 276 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <button className="w-full bg-card border border-border rounded-2xl py-3 px-6 text-sm font-medium hover:bg-muted transition-colors duration-300 flex items-center justify-center gap-3 sm:py-4 sm:text-base">
+              <svg
+                width="230"
+                height="28"
+                viewBox="0 0 276 48"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-full max-w-[230px] h-auto"
+              >
 <path d="M83.4343 29.7801C83.4343 33.4241 80.0416 36.0629 75.2667 36.0629H64.0835V13.4451H74.8897C79.539 13.4451 82.806 15.9582 82.806 19.4765C82.806 21.8639 81.5495 23.3718 79.6646 24.2514C81.6751 25.0053 83.4343 27.0157 83.4343 29.7801ZM68.984 17.5917V22.4922H74.7641C76.5233 22.4922 77.6542 21.487 77.6542 20.1048C77.6542 18.7226 76.3976 17.5917 74.7641 17.5917H68.984ZM75.2667 31.9163C77.1516 31.9163 78.5338 30.7854 78.5338 29.1519C78.5338 27.5184 77.2772 26.3875 75.2667 26.3875H68.984V31.9163H75.2667Z" fill="currentColor"/>
 <path d="M101.905 35.9372L94.1148 27.0158H92.8582V35.9372H87.832V13.4451H92.8582V22.1152H94.1148L101.654 13.4451H107.56L98.1357 24.2514L108.439 35.9372H101.905Z" fill="currentColor"/>
 <path d="M108.439 24.754C108.439 17.9686 113.466 13.0681 120.502 13.0681C127.539 13.0681 132.565 17.9686 132.565 24.754C132.565 31.5393 127.539 36.4398 120.502 36.4398C113.466 36.4398 108.439 31.5393 108.439 24.754ZM127.288 24.754C127.288 20.4817 124.523 17.5917 120.502 17.5917C116.481 17.5917 113.717 20.4817 113.717 24.754C113.717 29.0262 116.481 31.9163 120.502 31.9163C124.523 31.9163 127.288 29.0262 127.288 24.754Z" fill="currentColor"/>

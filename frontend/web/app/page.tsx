@@ -93,36 +93,36 @@ export const itemVariants: Variants = {
 };
 
 const popularIdeas = [
-  { rank: 1, address: "Советский просп., 77" },
-  { rank: 2, address: "ул. 50 лет Октября, 10" },
-  { rank: 3, address: "Весенняя ул., 21" },
+  { rank: 1, address: "Построить ледяные горки (Советский просп., 77)" },
+  { rank: 2, address: "Установить пешеходный переход (ул. 50 лет Октября, 10)" },
+  { rank: 3, address: "Установить Светофор (Весенняя ул., 21)" },
 ]
 
 const ideasForVoting = [
   {
     id: 1,
-    address: "Советский просп., 77",
+    address: "Построить ледяные горки (Советский просп., 77)",
     descriptionKey: "leaksFromRoof",
     satelliteImage: "/aerial-satellite-view-kemerovo-city-block.jpg",
     buildingImage: "/building-entrance-with-awning-kemerovo.jpg",
   },
   {
     id: 2,
-    address: "Ноградская ул., 5",
+    address: "Убрать мусор (Ноградская ул., 5)",
     descriptionKey: "brokenWindow",
     satelliteImage: "/aerial-satellite-view-residential-kemerovo.jpg",
     buildingImage: "/pub-building-facade-harats-kemerovo.jpg",
   },
   {
     id: 3,
-    address: "пр-т Ленина, 90",
+    address: "Установить пешеходный переход (пр-т Ленина, 90)",
     descriptionKey: "noCrosswalk",
     satelliteImage: "/aerial-view-street-intersection-kemerovo.jpg",
     buildingImage: "/busy-street-without-crosswalk.jpg",
   },
   {
     id: 4,
-    address: "ул. Соборная, 21",
+    address: "Установить Светофор (ул. Соборная, 21)",
     descriptionKey: "brokenWindow",
     satelliteImage: "/aerial-satellite-view-kemerovo-city-block.jpg",
     buildingImage: "/building-entrance-with-awning-kemerovo.jpg",
@@ -222,7 +222,7 @@ export default function HomePage() {
               <p className="text-muted-foreground italic mb-6 text-sm sm:text-base">{t("mostPopularIdeas")}</p>
 
               <motion.div
-                className="bg-card rounded-3xl p-6 mb-8 shadow-sm border border-border"
+                className="bg-card rounded-3xl p-4 mb-8 shadow-sm border border-border sm:p-6"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -232,7 +232,7 @@ export default function HomePage() {
                   {popularIdeas.map((idea, index) => (
                     <motion.div
                       key={idea.rank}
-                      className="flex items-center gap-4 cursor-pointer hover:bg-muted/50 rounded-xl p-3 -mx-3 transition-colors duration-300"
+                      className="flex flex-col items-start gap-2 cursor-pointer hover:bg-muted/50 rounded-xl p-3 -mx-3 transition-colors duration-300 sm:flex-row sm:items-center sm:gap-4"
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
@@ -240,7 +240,7 @@ export default function HomePage() {
                       whileHover={{ x: 8 }}
                     >
                       <span className="text-lg font-bold sm:text-2xl">{idea.rank}.</span>
-                      <span className="text-base font-semibold sm:text-lg">{idea.address}</span>
+                      <span className="text-sm font-semibold break-words sm:text-lg">{idea.address}</span>
                     </motion.div>
                   ))}
                 </div>
@@ -268,7 +268,7 @@ export default function HomePage() {
             >
               <div className="relative">
 
-                <div className="relative w-[240px] h-[460px] bg-foreground rounded-[3.5rem] p-3 shadow-2xl sm:w-64 sm:h-[520px] lg:w-72 lg:h-[580px]">
+                <div className="relative w-[72vw] max-w-[240px] h-[420px] bg-foreground rounded-[3.5rem] p-3 shadow-2xl sm:w-64 sm:h-[520px] lg:w-72 lg:h-[580px]">
 
                   <div className="absolute -right-1 top-28 w-1 h-12 bg-foreground rounded-l-sm" />
                   <div className="absolute -left-1 top-24 w-1 h-8 bg-foreground rounded-r-sm" />
@@ -325,7 +325,7 @@ export default function HomePage() {
           </motion.div>
 
 
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {filteredIdeas.map((idea, index) => (
               <motion.div
                 key={idea.id}
@@ -335,21 +335,21 @@ export default function HomePage() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
               >
-                <div className="flex items-center gap-3 mb-6">
-                  <h3 className="text-xl font-bold sm:text-2xl">{idea.address}</h3>
+                <div className="flex flex-col items-start gap-2 mb-5 sm:flex-row sm:items-center sm:gap-3 sm:mb-6">
+                  <h3 className="text-lg font-bold break-words sm:text-xl lg:text-2xl">{idea.address}</h3>
                   <motion.button
-                    className="w-8 h-8 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:bg-foreground hover:text-background transition-all duration-300"
+                    className="w-7 h-7 shrink-0 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:bg-foreground hover:text-background transition-all duration-300 sm:w-8 sm:h-8"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </motion.button>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6">
 
                   <motion.div
-                    className="relative aspect-square rounded-2xl overflow-hidden shadow-md"
+                    className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-md sm:aspect-square"
                     whileHover={{ scale: 1.02 }}
                     transition={{ duration: 0.3 }}
                   >
@@ -366,7 +366,7 @@ export default function HomePage() {
 
 
                   <motion.div
-                    className="relative aspect-square rounded-2xl overflow-hidden shadow-md"
+                    className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-md sm:aspect-square"
                     whileHover={{ scale: 1.02 }}
                     transition={{ duration: 0.3 }}
                   >
@@ -383,13 +383,13 @@ export default function HomePage() {
 
 
                   <motion.div
-                    className="relative aspect-square rounded-2xl bg-muted flex items-center justify-center p-6 shadow-md"
+                    className="relative aspect-[4/3] rounded-2xl bg-muted flex items-center justify-center p-5 shadow-md sm:aspect-square sm:p-6"
                     whileHover={{ scale: 1.02 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <span className="absolute top-4 left-4 text-3xl text-muted-foreground/50 sm:text-4xl">"</span>
-                    <p className="text-base font-bold text-center sm:text-lg lg:text-xl">{t(idea.descriptionKey)}</p>
-                    <span className="absolute bottom-4 right-4 text-3xl text-muted-foreground/50 sm:text-4xl">"</span>
+                    <span className="absolute top-4 left-4 text-2xl text-muted-foreground/50 sm:text-4xl">"</span>
+                    <p className="text-sm font-bold text-center sm:text-base lg:text-xl">{t(idea.descriptionKey)}</p>
+                    <span className="absolute bottom-4 right-4 text-2xl text-muted-foreground/50 sm:text-4xl">"</span>
                   </motion.div>
                 </div>
               </motion.div>

@@ -209,7 +209,7 @@ export function Header() {
                               exit={{ opacity: 0, y: -6 }}
                               transition={{ duration: 0.2 }}
                             >
-                              <div className="mt-4 grid grid-cols-2 gap-2">
+                              <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
                                 {cities.map((cityName) => {
                                   const isActive = cityName === city
                                   return (
@@ -240,7 +240,7 @@ export function Header() {
                           <SheetClose asChild key={item.href}>
                             <Link
                               href={item.href}
-                              className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/80 px-4 py-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/40 hover:bg-card"
+                              className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/80 px-4 py-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/40 hover:bg-card sm:py-4"
                             >
                               <span className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100 before:absolute before:inset-0 before:bg-[radial-gradient(260px_circle_at_12%_20%,_rgba(0,0,0,0.12),_transparent_55%)] dark:before:bg-[radial-gradient(260px_circle_at_12%_20%,_rgba(255,255,255,0.22),_transparent_55%)]" />
                               <span className="relative flex items-center gap-4">

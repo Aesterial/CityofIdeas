@@ -27,59 +27,88 @@ export function YandexMap({
   markers = [],
 }: YandexMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
-  const [mapInstance, setMapInstance] = useState<any>(null)
+  const mapInstanceRef = useRef<any>(null)
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    const loadYandexMaps = () => {
-      if (window.ymaps) {
-        window.ymaps.ready(() => {
-          if (mapRef.current && !mapInstance) {
-            const map = new window.ymaps.Map(mapRef.current, {
-              center: center,
-              zoom: zoom,
-              controls: ["zoomControl", "fullscreenControl"],
-            })
+    let isCancelled = false
 
+    const loadYandexMaps = () =>
+      new Promise<void>((resolve) => {
+        if (window.ymaps) {
+          resolve()
+          return
+        }
 
-            markers.forEach((marker) => {
-              const placemark = new window.ymaps.Placemark(
-                marker.coordinates,
-                {
-                  balloonContentHeader: marker.title,
-                  balloonContentBody: marker.description || "",
-                },
-                {
-                  preset: "islands#redDotIcon",
-                },
-              )
-              map.geoObjects.add(placemark)
-            })
+        const existingScript = document.getElementById("yandex-maps-script") as HTMLScriptElement | null
+        if (existingScript) {
+          existingScript.addEventListener("load", () => resolve(), { once: true })
+          return
+        }
 
-            setMapInstance(map)
-            setIsLoaded(true)
-          }
-        })
+        const script = document.createElement("script")
+        script.id = "yandex-maps-script"
+        script.src = "https://api-maps.yandex.ru/2.1/?apikey=YOUR_API_KEY&lang=ru_RU"
+        script.onload = () => resolve()
+        document.head.appendChild(script)
+      })
+
+    const initMap = async () => {
+      await loadYandexMaps()
+      if (isCancelled || !window.ymaps || !mapRef.current) {
+        return
       }
+
+      window.ymaps.ready(() => {
+        if (isCancelled || !mapRef.current) {
+          return
+        }
+
+        if (!mapInstanceRef.current) {
+          mapInstanceRef.current = new window.ymaps.Map(mapRef.current, {
+            center,
+            zoom,
+            controls: ["zoomControl", "fullscreenControl"],
+          })
+        } else {
+          mapInstanceRef.current.setCenter(center)
+          mapInstanceRef.current.setZoom(zoom)
+          mapInstanceRef.current.geoObjects.removeAll()
+        }
+
+        markers.forEach((marker) => {
+          const placemark = new window.ymaps.Placemark(
+            marker.coordinates,
+            {
+              balloonContentHeader: marker.title,
+              balloonContentBody: marker.description || "",
+            },
+            {
+              preset: "islands#redDotIcon",
+            },
+          )
+          mapInstanceRef.current.geoObjects.add(placemark)
+        })
+
+        setIsLoaded(true)
+      })
     }
 
-
-    if (window.ymaps) {
-      loadYandexMaps()
-    } else {
-
-      const script = document.createElement("script")
-      script.src = "https://api-maps.yandex.ru/2.1/?apikey=YOUR_API_KEY&lang=ru_RU"
-      script.onload = loadYandexMaps
-      document.head.appendChild(script)
-    }
+    initMap()
 
     return () => {
-      if (mapInstance) {
-        mapInstance.destroy()
-      }
+      isCancelled = true
     }
   }, [center, zoom, markers])
+
+  useEffect(() => {
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.destroy()
+        mapInstanceRef.current = null
+      }
+    }
+  }, [])
 
   return (
     <motion.div
@@ -89,7 +118,7 @@ export function YandexMap({
       transition={{ duration: 0.6, delay: 0.3 }}
     >
       
-      <div className="bg-card border-b border-border px-4 py-3 flex items-center gap-2">
+      <div className="bg-card border-b border-border px-3 py-2 flex items-center gap-2 sm:px-4 sm:py-3">
         <div className="w-3 h-3 rounded-full bg-red-500" />
         <div className="w-3 h-3 rounded-full bg-yellow-500" />
         <div className="w-3 h-3 rounded-full bg-green-500" />

@@ -211,7 +211,7 @@ export default function SuggestPage() {
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
                 <label className="block text-sm font-medium mb-2">{t("markOnMap")}</label>
-                <YandexMap className="min-h-[260px] sm:min-h-[320px] lg:min-h-[400px]" />
+                <YandexMap className="min-h-[220px] sm:min-h-[300px] lg:min-h-[360px]" />
                 <p className="text-sm text-muted-foreground mt-2">{t("clickMapToMark")}</p>
               </motion.div>
             </div>

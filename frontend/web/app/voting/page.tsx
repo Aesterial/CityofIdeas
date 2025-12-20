@@ -22,7 +22,7 @@ interface IdeaCard {
 const mockIdeas: IdeaCard[] = [
   {
     id: 1,
-    address: "Советский просп., 77",
+    address: "Построить ледяные горки (Советский просп., 77)",
     descriptionKey: "leaksFromRoof",
     mapImage: "/aerial-satellite-view-kemerovo-city-block.jpg",
     photoImage: "/building-entrance-with-awning-kemerovo.jpg",
@@ -31,7 +31,7 @@ const mockIdeas: IdeaCard[] = [
   },
   {
     id: 2,
-    address: "Ноградская ул., 5",
+    address: "Починить разбитые окна (Ноградская ул., 5)",
     descriptionKey: "brokenWindow",
     mapImage: "/aerial-satellite-view-residential-kemerovo.jpg",
     photoImage: "/pub-building-facade-harats-kemerovo.jpg",
@@ -40,7 +40,7 @@ const mockIdeas: IdeaCard[] = [
   },
   {
     id: 3,
-    address: "ул. 50 лет Октября, 10",
+    address: "Установить пешеходный переход (ул. 50 лет Октября, 10)",
     descriptionKey: "needsCrosswalk",
     mapImage: "/aerial-view-street-intersection-kemerovo.jpg",
     photoImage: "/busy-street-without-crosswalk.jpg",
@@ -120,7 +120,7 @@ export default function VotingPage() {
             </div>
           </motion.div>
 
-          <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-8">
+          <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6 sm:space-y-8">
             <AnimatePresence mode="popLayout">
               {filteredIdeas.map((idea) => (
                 <motion.div
@@ -132,14 +132,14 @@ export default function VotingPage() {
                 >
 
                   <div className="flex items-center mb-6">
-                    <h3 className="text-lg font-bold sm:text-xl lg:text-2xl">{idea.address}</h3>
+                    <h3 className="text-lg font-bold break-words sm:text-xl lg:text-2xl">{idea.address}</h3>
                   </div>
 
 
                   <div className="flex flex-col gap-4 items-stretch sm:flex-row">
 
                     <motion.div
-                      className="relative w-full h-40 rounded-2xl overflow-hidden shadow-md sm:w-40 sm:h-32 sm:flex-shrink-0"
+                      className="relative w-full h-32 rounded-2xl overflow-hidden shadow-md sm:w-40 sm:h-32 sm:flex-shrink-0 md:h-36"
                       whileHover={{ scale: 1.03 }}
                       transition={{ duration: 0.3 }}
                     >
@@ -154,7 +154,7 @@ export default function VotingPage() {
 
 
                     <motion.div
-                      className="relative w-full h-40 rounded-2xl overflow-hidden shadow-md sm:w-40 sm:h-32 sm:flex-shrink-0"
+                      className="relative w-full h-32 rounded-2xl overflow-hidden shadow-md sm:w-40 sm:h-32 sm:flex-shrink-0 md:h-36"
                       whileHover={{ scale: 1.03 }}
                       transition={{ duration: 0.3 }}
                     >
