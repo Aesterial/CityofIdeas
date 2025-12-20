@@ -4,7 +4,7 @@ import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Header } from "@/components/header"
 import { GradientButton } from "@/components/gradient-button"
-import { Search, Heart, Plus } from "lucide-react"
+import { Search, Heart } from "lucide-react"
 import { useLanguage } from "@/components/language-provider"
 import type { Variants } from "framer-motion";
 
@@ -97,16 +97,16 @@ export default function VotingPage() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="pt-28 pb-16 px-6">
+      <main className="pt-24 pb-12 px-4 sm:pt-28 sm:pb-16 sm:px-6">
         <div className="container mx-auto max-w-5xl">
 
           <motion.div
-            className="flex items-center justify-between mb-12"
+            className="flex flex-col gap-4 mb-8 sm:flex-row sm:items-center sm:justify-between sm:mb-12"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-4xl lg:text-5xl font-bold">{t("voting")}</h1>
+            <h1 className="text-3xl font-bold sm:text-4xl lg:text-5xl">{t("voting")}</h1>
 
             <div className="relative">
               <input
@@ -114,7 +114,7 @@ export default function VotingPage() {
                 placeholder={t("searchIdeas")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-card border border-border rounded-full px-5 py-3 pr-12 w-48 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300"
+                className="w-full bg-card border border-border rounded-full px-5 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all duration-300 sm:w-60"
               />
               <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             </div>
@@ -127,29 +127,19 @@ export default function VotingPage() {
                   key={idea.id}
                   variants={cardVariants}
                   layout
-                  className="bg-card dark:bg-neutral-800 rounded-[2rem] p-6 shadow-lg hover:shadow-xl transition-all duration-500"
+                  className="bg-card dark:bg-neutral-800 rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-500 sm:rounded-[2rem] sm:p-6"
                   whileHover={{ y: -4 }}
                 >
 
-                  <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xl lg:text-2xl font-bold">{idea.address}</h3>
-                    <motion.button
-                      onClick={() => toggleLike(idea.id)}
-                      className={`p-2 rounded-full transition-colors duration-300 ${
-                        idea.isLiked ? "text-red-500" : "text-muted-foreground hover:text-foreground"
-                      }`}
-                      whileHover={{ scale: 1.15 }}
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <Plus className="w-6 h-6" strokeWidth={1.5} />
-                    </motion.button>
+                  <div className="flex items-center mb-6">
+                    <h3 className="text-lg font-bold sm:text-xl lg:text-2xl">{idea.address}</h3>
                   </div>
 
 
-                  <div className="flex gap-4 items-stretch">
+                  <div className="flex flex-col gap-4 items-stretch sm:flex-row">
 
                     <motion.div
-                      className="relative w-40 h-32 rounded-2xl overflow-hidden flex-shrink-0 shadow-md"
+                      className="relative w-full h-40 rounded-2xl overflow-hidden shadow-md sm:w-40 sm:h-32 sm:flex-shrink-0"
                       whileHover={{ scale: 1.03 }}
                       transition={{ duration: 0.3 }}
                     >
@@ -164,7 +154,7 @@ export default function VotingPage() {
 
 
                     <motion.div
-                      className="relative w-40 h-32 rounded-2xl overflow-hidden flex-shrink-0 shadow-md"
+                      className="relative w-full h-40 rounded-2xl overflow-hidden shadow-md sm:w-40 sm:h-32 sm:flex-shrink-0"
                       whileHover={{ scale: 1.03 }}
                       transition={{ duration: 0.3 }}
                     >
@@ -178,12 +168,12 @@ export default function VotingPage() {
                     </motion.div>
 
 
-                    <div className="flex-1 bg-muted dark:bg-neutral-600 rounded-2xl p-6 flex items-center justify-center relative min-h-32">
-                      <span className="absolute top-3 left-4 text-4xl text-muted-foreground font-serif leading-none">
+                    <div className="flex-1 bg-muted dark:bg-neutral-600 rounded-2xl p-4 flex items-center justify-center relative min-h-[120px] sm:p-6 sm:min-h-32">
+                      <span className="absolute top-3 left-4 text-3xl text-muted-foreground font-serif leading-none sm:text-4xl">
                         "
                       </span>
-                      <p className="text-center font-bold text-lg">{t(idea.descriptionKey)}</p>
-                      <span className="absolute bottom-3 right-4 text-4xl text-muted-foreground font-serif leading-none">
+                      <p className="text-center font-bold text-base sm:text-lg">{t(idea.descriptionKey)}</p>
+                      <span className="absolute bottom-3 right-4 text-3xl text-muted-foreground font-serif leading-none sm:text-4xl">
                         "
                       </span>
                     </div>
@@ -215,7 +205,7 @@ export default function VotingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
           >
-            <GradientButton className="px-12">{t("vote")}</GradientButton>
+            <GradientButton className="w-full justify-center px-10 sm:w-auto sm:px-12">{t("vote")}</GradientButton>
           </motion.div>
         </div>
       </main>

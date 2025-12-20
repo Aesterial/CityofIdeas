@@ -162,24 +162,27 @@ export default function HomePage() {
       <Header />
 
 
-      <section className="pt-32 pb-20 px-6">
+      <section className="pt-24 pb-16 px-4 sm:pt-28 sm:pb-20 sm:px-6 lg:pt-32">
         <div className="container mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid lg:grid-cols-2 gap-10 items-center lg:gap-16">
             <motion.div variants={containerVariants} initial="hidden" animate="visible">
               <motion.h1
                 variants={itemVariants}
-                className="text-5xl lg:text-6xl font-bold leading-tight mb-6 text-balance"
+                className="text-3xl sm:text-4xl lg:text-6xl font-bold leading-tight mb-6 text-balance"
               >
                 {t("heroTitle")}
               </motion.h1>
 
-              <motion.p variants={itemVariants} className="text-xl text-muted-foreground mb-8 leading-relaxed">
+              <motion.p
+                variants={itemVariants}
+                className="text-base text-muted-foreground mb-8 leading-relaxed sm:text-lg lg:text-xl max-w-xl"
+              >
                 {t("heroSubtitle")}
               </motion.p>
 
               <motion.div variants={itemVariants}>
                 <Link href="/voting">
-                  <GradientButton>{t("start")}</GradientButton>
+                  <GradientButton className="w-full justify-center sm:w-auto">{t("start")}</GradientButton>
                 </Link>
               </motion.div>
             </motion.div>
@@ -204,9 +207,9 @@ export default function HomePage() {
       </section>
 
 
-      <section className="py-20 px-6 bg-background">
+      <section className="py-16 px-4 bg-background sm:py-20 sm:px-6">
         <div className="container mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid lg:grid-cols-2 gap-10 items-center lg:gap-16">
 
             <motion.div
               initial={{ opacity: 0, x: -50 }}
@@ -214,9 +217,9 @@ export default function HomePage() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="text-5xl lg:text-6xl font-bold mb-12">{t("voting")}</h2>
+              <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold mb-8 sm:mb-12">{t("voting")}</h2>
 
-              <p className="text-muted-foreground italic mb-6">{t("mostPopularIdeas")}</p>
+              <p className="text-muted-foreground italic mb-6 text-sm sm:text-base">{t("mostPopularIdeas")}</p>
 
               <motion.div
                 className="bg-card rounded-3xl p-6 mb-8 shadow-sm border border-border"
@@ -236,8 +239,8 @@ export default function HomePage() {
                       transition={{ delay: 0.3 + index * 0.1 }}
                       whileHover={{ x: 8 }}
                     >
-                      <span className="text-2xl font-bold">{idea.rank}.</span>
-                      <span className="text-lg font-semibold">{idea.address}</span>
+                      <span className="text-lg font-bold sm:text-2xl">{idea.rank}.</span>
+                      <span className="text-base font-semibold sm:text-lg">{idea.address}</span>
                     </motion.div>
                   ))}
                 </div>
@@ -250,7 +253,7 @@ export default function HomePage() {
                 transition={{ delay: 0.5 }}
               >
                 <Link href="/voting">
-                  <GradientButton>{t("vote")}</GradientButton>
+                  <GradientButton className="w-full justify-center sm:w-auto">{t("vote")}</GradientButton>
                 </Link>
               </motion.div>
             </motion.div>
@@ -265,7 +268,7 @@ export default function HomePage() {
             >
               <div className="relative">
 
-                <div className="relative w-72 h-[580px] bg-foreground rounded-[3.5rem] p-3 shadow-2xl">
+                <div className="relative w-[240px] h-[460px] bg-foreground rounded-[3.5rem] p-3 shadow-2xl sm:w-64 sm:h-[520px] lg:w-72 lg:h-[580px]">
 
                   <div className="absolute -right-1 top-28 w-1 h-12 bg-foreground rounded-l-sm" />
                   <div className="absolute -left-1 top-24 w-1 h-8 bg-foreground rounded-r-sm" />
@@ -277,7 +280,7 @@ export default function HomePage() {
                     <div className="absolute top-3 left-1/2 -translate-x-1/2 w-28 h-8 bg-foreground rounded-full" />
 
 
-                    <div className="pt-16 px-4 h-full flex flex-col items-center justify-center">
+                    <div className="pt-14 px-3 h-full flex flex-col items-center justify-center sm:pt-16 sm:px-4">
                       <motion.div
                         className="text-center"
                         animate={{ opacity: [0.5, 1, 0.5] }}
@@ -298,15 +301,15 @@ export default function HomePage() {
       </section>
 
 
-      <section className="py-20 px-6 bg-background">
+      <section className="py-16 px-4 bg-background sm:py-20 sm:px-6">
         <div className="container mx-auto">
           <motion.div
-            className="flex items-center justify-between mb-12"
+            className="flex flex-col gap-4 mb-8 sm:flex-row sm:items-center sm:justify-between sm:mb-12"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-4xl lg:text-5xl font-bold">{t("voting")}</h2>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">{t("voting")}</h2>
 
 
             <div className="relative">
@@ -315,7 +318,7 @@ export default function HomePage() {
                 placeholder={t("searchIdeas")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-48 lg:w-64 px-4 py-3 pr-12 rounded-2xl border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all duration-300"
+                className="w-full px-4 py-3 pr-12 rounded-2xl border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all duration-300 sm:w-60 lg:w-64"
               />
               <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             </div>
@@ -326,14 +329,14 @@ export default function HomePage() {
             {filteredIdeas.map((idea, index) => (
               <motion.div
                 key={idea.id}
-                className="bg-card rounded-3xl p-8 shadow-lg border border-border"
+                className="bg-card rounded-3xl p-5 shadow-lg border border-border sm:p-6 lg:p-8"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
               >
                 <div className="flex items-center gap-3 mb-6">
-                  <h3 className="text-2xl font-bold">{idea.address}</h3>
+                  <h3 className="text-xl font-bold sm:text-2xl">{idea.address}</h3>
                   <motion.button
                     className="w-8 h-8 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:bg-foreground hover:text-background transition-all duration-300"
                     whileHover={{ scale: 1.1 }}
@@ -343,7 +346,7 @@ export default function HomePage() {
                   </motion.button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6">
 
                   <motion.div
                     className="relative aspect-square rounded-2xl overflow-hidden shadow-md"
@@ -384,9 +387,9 @@ export default function HomePage() {
                     whileHover={{ scale: 1.02 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <span className="absolute top-4 left-4 text-4xl text-muted-foreground/50">"</span>
-                    <p className="text-xl font-bold text-center">{t(idea.descriptionKey)}</p>
-                    <span className="absolute bottom-4 right-4 text-4xl text-muted-foreground/50">"</span>
+                    <span className="absolute top-4 left-4 text-3xl text-muted-foreground/50 sm:text-4xl">"</span>
+                    <p className="text-base font-bold text-center sm:text-lg lg:text-xl">{t(idea.descriptionKey)}</p>
+                    <span className="absolute bottom-4 right-4 text-3xl text-muted-foreground/50 sm:text-4xl">"</span>
                   </motion.div>
                 </div>
               </motion.div>
@@ -395,17 +398,17 @@ export default function HomePage() {
 
           {filteredIdeas.length === 0 && (
             <motion.div className="text-center py-16" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-              <p className="text-xl text-muted-foreground">{t("ideas")} не найдены</p>
+              <p className="text-base text-muted-foreground sm:text-lg">{t("ideas")} не найдены</p>
             </motion.div>
           )}
         </div>
       </section>
 
 
-      <section className="py-20 px-6 bg-background">
+      <section className="py-16 px-4 bg-background sm:py-20 sm:px-6">
         <div className="container mx-auto">
           <motion.div
-            className="grid md:grid-cols-3 gap-8"
+            className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 sm:gap-8"
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -435,15 +438,15 @@ export default function HomePage() {
                 onMouseMove={updateCardGlow}
                 onMouseLeave={resetCardGlow}
                 style={cardGlowStyle}
-                className="group relative overflow-hidden rounded-[2rem] border border-border/60 bg-card/80 p-8 shadow-[0_24px_55px_-40px_rgba(0,0,0,0.45)] transition-all duration-500 hover:shadow-[0_35px_70px_-45px_rgba(0,0,0,0.6)] dark:border-white/10 dark:shadow-[0_30px_70px_-50px_rgba(0,0,0,0.9)] before:content-[''] before:absolute before:inset-0 before:pointer-events-none before:opacity-0 before:transition-opacity before:duration-300 before:bg-[radial-gradient(520px_circle_at_var(--x)_var(--y),_rgba(0,0,0,0.16),_transparent_45%)] dark:before:bg-[radial-gradient(520px_circle_at_var(--x)_var(--y),_rgba(255,255,255,0.2),_transparent_45%)] group-hover:before:opacity-100 after:content-[''] after:absolute after:inset-0 after:pointer-events-none after:opacity-60 after:bg-[linear-gradient(130deg,_rgba(255,255,255,0.28),_rgba(255,255,255,0)_55%)] dark:after:bg-[linear-gradient(130deg,_rgba(255,255,255,0.12),_rgba(255,255,255,0)_55%)]"
+                className="group relative overflow-hidden rounded-[2rem] border border-border/60 bg-card/80 p-6 shadow-[0_24px_55px_-40px_rgba(0,0,0,0.45)] transition-all duration-500 hover:shadow-[0_35px_70px_-45px_rgba(0,0,0,0.6)] dark:border-white/10 dark:shadow-[0_30px_70px_-50px_rgba(0,0,0,0.9)] before:content-[''] before:absolute before:inset-0 before:pointer-events-none before:opacity-0 before:transition-opacity before:duration-300 before:bg-[radial-gradient(520px_circle_at_var(--x)_var(--y),_rgba(0,0,0,0.16),_transparent_45%)] dark:before:bg-[radial-gradient(520px_circle_at_var(--x)_var(--y),_rgba(255,255,255,0.2),_transparent_45%)] group-hover:before:opacity-100 after:content-[''] after:absolute after:inset-0 after:pointer-events-none after:opacity-60 after:bg-[linear-gradient(130deg,_rgba(255,255,255,0.28),_rgba(255,255,255,0)_55%)] dark:after:bg-[linear-gradient(130deg,_rgba(255,255,255,0.12),_rgba(255,255,255,0)_55%)] sm:p-8"
               >
                 <div className="relative z-10">
-                  <div className="relative mb-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-foreground text-background shadow-[0_12px_28px_-12px_rgba(0,0,0,0.45)] transition-transform duration-300 group-hover:scale-105">
+                  <div className="relative mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-foreground text-background shadow-[0_12px_28px_-12px_rgba(0,0,0,0.45)] transition-transform duration-300 group-hover:scale-105 sm:h-14 sm:w-14">
                     <span className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_30%_20%,_rgba(255,255,255,0.55),_transparent_60%)] opacity-70" />
-                    <feature.icon className="relative h-7 w-7" />
+                    <feature.icon className="relative h-6 w-6 sm:h-7 sm:w-7" />
                   </div>
-                  <h3 className="text-xl font-bold mb-3">{t(feature.titleKey)}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
+                  <h3 className="text-lg font-bold mb-3 sm:text-xl">{t(feature.titleKey)}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed sm:text-base">{feature.description}</p>
                 </div>
               </motion.div>
             ))}
@@ -452,7 +455,7 @@ export default function HomePage() {
       </section>
 
 
-      <section className="py-24 px-6">
+      <section className="py-16 px-4 sm:py-24 sm:px-6">
         <div className="container mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -460,10 +463,12 @@ export default function HomePage() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-4xl font-bold mb-6">{t("cityOfIdeas")}</h2>
-            <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">{t("heroSubtitle")}</p>
+            <h2 className="text-3xl font-bold mb-6 sm:text-4xl">{t("cityOfIdeas")}</h2>
+            <p className="text-base text-muted-foreground mb-8 max-w-2xl mx-auto sm:text-lg lg:text-xl sm:mb-10">
+              {t("heroSubtitle")}
+            </p>
             <Link href="/auth">
-              <GradientButton className="inline-flex items-center gap-3">
+              <GradientButton className="w-full justify-center sm:w-auto">
                 {t("start")}
                 <ArrowRight className="w-5 h-5" />
               </GradientButton>

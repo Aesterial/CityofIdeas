@@ -1,13 +1,13 @@
 "use client"
 
+import { AnimatePresence, motion } from "framer-motion"
+import { ChevronDown, Globe, Lightbulb, LogIn, MapPin, Menu, Moon, Sun, Users, X } from "lucide-react"
 import Link from "next/link"
-import { motion, AnimatePresence } from "framer-motion"
-import { Sun, Moon, Globe, ChevronDown, MapPin, Menu, Lightbulb, Users, LogIn, X } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet"
+import { useLanguage } from "./language-provider"
 import { Logo } from "./logo"
 import { useTheme } from "./theme-provider"
-import { useLanguage } from "./language-provider"
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet"
 
 const cities = [
   "Барнаул",
@@ -111,7 +111,7 @@ export function Header() {
       animate={{ y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
     >
-      <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between sm:px-6 sm:py-4">
         <div className="flex items-center gap-3">
           <div className="lg:hidden">
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -219,7 +219,7 @@ export function Header() {
                                         setCity(cityName)
                                         setMobileCityOpen(false)
                                       }}
-                                      className={`rounded-xl px-3 py-2 text-xs font-medium transition-colors duration-200 ${
+                                      className={`min-w-0 break-words whitespace-normal rounded-xl px-3 py-2 text-xs font-medium transition-colors duration-200 ${
                                         isActive
                                           ? "bg-foreground text-background shadow-md shadow-foreground/20"
                                           : "bg-muted/60 text-foreground/80 hover:bg-foreground hover:text-background"
@@ -341,9 +341,6 @@ export function Header() {
                         <p className="text-[11px] uppercase tracking-[0.3em] text-foreground/50">Выбор города</p>
                         <p className="text-sm font-semibold text-foreground">Где вы хотите участвовать?</p>
                       </div>
-                      <span className="rounded-full bg-foreground/10 px-3 py-1 text-xs font-medium text-foreground">
-                        {city}
-                      </span>
                     </div>
                   </div>
 
@@ -359,7 +356,7 @@ export function Header() {
                             setCity(cityName)
                             setCityOpen(false)
                           }}
-                          className={`rounded-xl px-2 py-2 text-center text-xs font-medium leading-tight transition-colors duration-200 ${
+                          className={`min-w-0 break-words whitespace-normal rounded-xl px-2 py-2 text-center text-xs font-medium leading-tight transition-colors duration-200 ${
                             isActive
                               ? "bg-foreground text-background shadow-md shadow-foreground/20"
                               : "bg-muted/70 text-foreground/80 hover:bg-foreground hover:text-background"

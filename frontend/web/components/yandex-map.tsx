@@ -83,7 +83,7 @@ export function YandexMap({
 
   return (
     <motion.div
-      className={`relative overflow-hidden rounded-3xl ${className}`}
+      className={`relative flex flex-col overflow-hidden rounded-3xl ${className}`}
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6, delay: 0.3 }}
@@ -107,7 +107,7 @@ export function YandexMap({
         </div>
       )}
 
-      <div ref={mapRef} className="w-full h-80 bg-muted" />
+      <div ref={mapRef} className="w-full flex-1 min-h-[260px] bg-muted sm:min-h-[320px] lg:min-h-[360px]" />
     </motion.div>
   )
 }
