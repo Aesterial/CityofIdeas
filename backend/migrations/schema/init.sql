@@ -52,7 +52,7 @@ create table users (
     username varchar(64) not null,
 
     email users_email_t not null default ROW('', false)::users_email_t,
-    settings user_settings_t not null default ROW('', ROW(NULL, NULL, NULL, NULL, NULL, NULL)::avatar_t, '', 30)::user_settings_t,
+    settings user_settings_t not null default ROW('', ROW(NULL, NULL, NULL, NULL, NULL, NULL)::avatar_t, 30)::user_settings_t,
     rank users_rank_t not null default ROW('user', NULL)::users_rank_t,
 
     joined timestamptz not null default now(),
@@ -63,7 +63,6 @@ create table users (
     constraint users_email_address_nn check (((email).address) is not null),
     constraint users_email_verified_nn check (((email).verified) is not null),
 
-    constraint users_password_nn check (((settings).password) is not null),
     constraint users_session_live_time_ok check (((settings).session_live_time) in (7, 30, -1)),
 
     constraint users_rank_name_nn check (((rank).name) is not null),
