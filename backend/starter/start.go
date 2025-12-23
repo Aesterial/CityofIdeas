@@ -2,6 +2,7 @@ package main
 
 import (
 	login "ascendant/backend/internal/app/auth"
+	"ascendant/backend/internal/app/info/sessions"
 	userinfo "ascendant/backend/internal/app/info/user"
 	loggerservice "ascendant/backend/internal/app/logger"
 	usermodifier "ascendant/backend/internal/app/modifier/user"
@@ -53,6 +54,7 @@ func main() {
 	userRepo := db.NewUserRepository(dbConn)
 	loggerRepo := db.NewLoggerRepository(dbConn)
 	loginRepo := db.NewLoginRepository(dbConn)
+	sessionsRepo := db.NewSessionsRepository(dbConn)
 	loggerServ := loggerservice.New(loggerRepo)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -60,19 +62,23 @@ func main() {
 
 	loggerServ.Start(ctx, 2*time.Second)
 
+	sessionsService := sessions.New(sessionsRepo)
 	userInfoService := userinfo.New(userRepo)
 	userModifierService := usermodifier.New(userRepo)
 	userHandler := userhandler.New(userInfoService, userModifierService)
-	loginRegisterService := login.New(loginRepo)
+	loginRegisterService := login.New(loginRepo, sessionsService, userInfoService)
 	loginHandler := loginhandler.New(loginRegisterService)
+	middleService := middlewares.New(sessionsRepo)
 
 	service := gin.New()
-	service.Use(middlewares.Tracing())
+	priv := service.Group("")
+	pub := service.Group("")
+	middleService.Register(service, priv)
 	service.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "pong"})
 	})
-	routes.RegisterUser(service, userHandler)
-	routes.RegisterLogin(service, loginHandler)
+	routes.RegisterUser(service, userHandler, priv)
+	routes.RegisterLogin(service, loginHandler, pub)
 
 	addr := "0.0.0.0:" + strings.TrimPrefix(config.ENV.Boot.Port, ":")
 

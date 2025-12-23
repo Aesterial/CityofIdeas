@@ -7,16 +7,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterUser(r *gin.Engine, userHandler *userhandler.Handler) {
-	api := r.Group("/api")
-	users := api.Group("/users")
-	users.GET("/:id", userHandler.GetByID)
-	users.PATCH("/:id/name", userHandler.UpdateName)
+func RegisterUser(r *gin.Engine, userHandler *userhandler.Handler, group *gin.RouterGroup) {
+	group.GET("/api/user/:id", userHandler.GetByID)
+	group.PATCH("/api/user/:id/name", userHandler.UpdateName)
 }
 
-func RegisterLogin(r *gin.Engine, loginHandler *login.Handler) {
-	api := r.Group("/api")
-	login := api.Group("/login")
-	login.POST("/register", loginHandler.Register)
-	login.POST("/authorization", loginHandler.Authorization)
+func RegisterLogin(r *gin.Engine, loginHandler *login.Handler, group *gin.RouterGroup) {
+	group.POST("/api/login/register", loginHandler.Register)
+	group.POST("/api/login/authorization", loginHandler.Authorization)
 }

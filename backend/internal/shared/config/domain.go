@@ -16,8 +16,11 @@ type TLS struct {
 }
 
 type Cookies struct {
-	Name   string
-	Secret string
+	Name     string
+	Secret   string
+	Domain   string
+	SameSite string
+	Secure   bool
 }
 
 type Boot struct {

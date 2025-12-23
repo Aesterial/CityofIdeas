@@ -4,6 +4,7 @@ import (
 	"ascendant/backend/internal/domain/user"
 	apperrors "ascendant/backend/internal/shared/errors"
 	"context"
+	"errors"
 	"strconv"
 	"strings"
 )
@@ -35,6 +36,13 @@ func (s *Service) GetByID(ctx context.Context, id uint) (*user.User, error) {
 	}
 
 	return u, nil
+}
+
+func (s *Service) GetUserSessionLiveTime(ctx context.Context, uid uint) (*user.SessionTime, error) {
+	if uid == 0 {
+		return nil, errors.New("uid is null")
+	}
+	return s.repo.GetUserSessionLiveTime(ctx, uid)
 }
 
 func isNotFound(err error) bool {

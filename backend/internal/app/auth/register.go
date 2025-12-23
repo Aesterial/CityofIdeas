@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func (s *Service) Register(ctx context.Context, required domain.RegisterRequire) (*int, error) {
+func (s *Service) Register(ctx context.Context, required domain.RegisterRequire) (*uint, error) {
 	if required.IsEmpty() {
 		return nil, apperrors.BuildError(strconv.Itoa(http.StatusBadRequest), "required body is empty", nil, "")
 	}

@@ -4,8 +4,6 @@ import (
 	userinfo "ascendant/backend/internal/app/info/user"
 	modifier "ascendant/backend/internal/app/modifier/user"
 	"ascendant/backend/internal/infra/http/send"
-	apperrors "ascendant/backend/internal/shared/errors"
-	"database/sql"
 	"errors"
 	"net/http"
 	"strconv"
@@ -28,13 +26,13 @@ func New(infoService *userinfo.Service, modifierService *modifier.Service) *Hand
 func (h *Handler) GetByID(req *gin.Context) {
 	id, err := parseIDParam(req)
 	if err != nil {
-		send.Error(req, http.StatusBadRequest, err)
+		send.Error(req, http.StatusBadRequest, "bad request")
 		return
 	}
 
 	u, err := h.info.GetByID(req.Request.Context(), id)
 	if err != nil {
-		h.handleError(req, err)
+		h.handleError(req, errors.New("failed to receive"))
 		return
 	}
 
@@ -48,19 +46,19 @@ type updateNameRequest struct {
 func (h *Handler) UpdateName(c *gin.Context) {
 	id, err := parseIDParam(c)
 	if err != nil {
-		send.Error(c, http.StatusBadRequest, err)
+		send.Error(c, http.StatusBadRequest, "bad request")
 		return
 	}
 
 	var req updateNameRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		send.Error(c, http.StatusBadRequest, err)
+		send.Error(c, http.StatusBadRequest, "bad request")
 		return
 	}
 
 	u, err := h.modifier.UpdateName(c.Request.Context(), id, req.Name)
 	if err != nil {
-		h.handleError(c, err)
+		h.handleError(c, errors.New("failed to update name"))
 		return
 	}
 
@@ -69,26 +67,11 @@ func (h *Handler) UpdateName(c *gin.Context) {
 
 func (h *Handler) handleError(c *gin.Context, err error) {
 	if err == nil {
-		send.Error(c, http.StatusInternalServerError, err)
+		send.Error(c, http.StatusInternalServerError, "")
 		return
 	}
 
-	if appErr, ok := err.(apperrors.Error); ok {
-		send.Error(c, statusForCode(appErr.Code), appErr)
-		return
-	}
-
-	if appErr, ok := err.(*apperrors.Error); ok {
-		send.Error(c, statusForCode(appErr.Code), appErr)
-		return
-	}
-
-	if errors.Is(err, sql.ErrNoRows) {
-		send.Error(c, http.StatusNotFound, err)
-		return
-	}
-
-	send.Error(c, http.StatusInternalServerError, err)
+	send.Error(c, http.StatusInternalServerError, err.Error())
 }
 
 func statusForCode(code string) int {

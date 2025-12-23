@@ -1,14 +1,14 @@
 package login
 
 type RegisterRequire struct {
-	Username string
-	Password string
-	Email    string
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
 }
 
 type AuthorizationRequire struct {
-	Usermail string
-	Password string
+	Usermail string `json:"usermail"`
+	Password string `json:"password"`
 }
 
 func (r RegisterRequire) IsEmpty() bool {

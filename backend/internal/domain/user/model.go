@@ -20,11 +20,16 @@ type Avatar struct {
 	Updated     sql.NullTime
 }
 
+type SessionTime struct {
+	Text     string
+	Duration time.Duration
+}
+
 type Settings struct {
-    DisplayName     *string
-    Avatar          Avatar
-    Password        string
-    SessionLiveTime int
+	DisplayName     *string
+	Avatar          Avatar
+	Password        string
+	SessionLiveTime int
 }
 
 type User struct {

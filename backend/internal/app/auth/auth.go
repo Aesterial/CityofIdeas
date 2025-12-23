@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func (s *Service) Authorization(ctx context.Context, required domain.AuthorizationRequire) (*int, error) {
+func (s *Service) Authorization(ctx context.Context, required domain.AuthorizationRequire) (*uint, error) {
 	if required.IsEmpty() {
 		return nil, apperrors.BuildError(strconv.Itoa(http.StatusBadRequest), "required body is empty", nil, "")
 	}

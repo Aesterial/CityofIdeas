@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func Tracing() gin.HandlerFunc {
+func (s *MiddleService) Tracing() gin.HandlerFunc {
 	return func(req *gin.Context) {
 		at := time.Now()
 

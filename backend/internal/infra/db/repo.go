@@ -3,14 +3,17 @@ package db
 import (
 	"ascendant/backend/internal/domain/login"
 	"ascendant/backend/internal/domain/rank"
+	"ascendant/backend/internal/domain/sessions"
 	"ascendant/backend/internal/domain/user"
 	"ascendant/backend/internal/infra/logger"
 	"context"
 	"database/sql"
 	"errors"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -21,6 +24,10 @@ type LoggerRepository struct {
 	DB *sql.DB
 }
 type LoginRepository struct {
+	DB *sql.DB
+}
+
+type SessionsRepository struct {
 	DB *sql.DB
 }
 
@@ -35,6 +42,7 @@ func NewLoggerRepository(db *sql.DB) *LoggerRepository {
 func NewLoginRepository(db *sql.DB) *LoginRepository {
 	return &LoginRepository{DB: db}
 }
+func NewSessionsRepository(db *sql.DB) *SessionsRepository { return &SessionsRepository{DB: db} }
 
 func (u *UserRepository) GetUID(ctx context.Context, name string) (uint, error) {
 	row := u.DB.QueryRowContext(ctx, "SELECT u.uid FROM users u WHERE u.username = $1", name)
@@ -102,7 +110,7 @@ func (u *UserRepository) GetJoinedAT(ctx context.Context, uid uint) (*time.Time,
 
 func (u *UserRepository) GetSettings(ctx context.Context, uid uint) (*user.Settings, error) {
 	rowMain := u.DB.QueryRowContext(ctx,
-		"SELECT u.settings.session_live_time, u.settings.password, u.settings.display_name FROM users u WHERE u.uid = $1",
+		"SELECT u.settings.session_live_time, u.password, u.settings.display_name FROM users u WHERE u.uid = $1",
 		uid)
 	if err := rowMain.Err(); err != nil {
 		return nil, err
@@ -169,6 +177,20 @@ func (u *UserRepository) GetUserByUsername(ctx context.Context, username string)
 	return u.GetUserByUID(ctx, uid)
 }
 
+func (u *UserRepository) GetUserSessionLiveTime(ctx context.Context, uid uint) (*user.SessionTime, error) {
+	if uid == 0 {
+		return nil, errors.New("uid is zero")
+	}
+	var liveTime int
+	if err := u.DB.QueryRowContext(ctx, "SELECT (u.settings).session_live_time FROM users u WHERE u.uid = $1", uid).Scan(&liveTime); err != nil {
+		return nil, err
+	}
+	var sessionTime user.SessionTime
+	sessionTime.Text = strconv.Itoa(liveTime)
+	sessionTime.Duration = time.Duration(liveTime) * 24 * time.Hour
+	return &sessionTime, nil
+}
+
 func (u *UserRepository) IsExists(ctx context.Context, user user.User) (bool, error) {
 	var exists bool
 	var emailAddress string
@@ -187,33 +209,6 @@ func (u *UserRepository) IsExists(ctx context.Context, user user.User) (bool, er
 
 func (u *UserRepository) IsExistsByUID(ctx context.Context, uid uint) (bool, error) {
 	return u.IsExists(ctx, user.User{UID: uid})
-}
-
-func (u *UserRepository) Register(ctx context.Context, user user.User) error {
-	exists, err := u.IsExists(ctx, user)
-	if err != nil {
-		return err
-	}
-	if exists {
-		return errors.New("user already exists")
-	}
-	if _, err = u.DB.ExecContext(ctx, `
-	INSERT INTO users (username, email, settings, rank, joined)
-	VALUES (
-		$1,
-		ROW($2, false)::users_email_t,
-		ROW(NULL, NULL, $3, 30)::user_settings_t,
-		ROW('user', NULL)::users_rank_t,
-		$4
-	)`, user.Username, user.Email.Address, user.Settings.Password, time.Now()); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (u *UserRepository) Authorize(ctx context.Context, user user.User) error {
-	return nil
 }
 
 func (l *LoggerRepository) Append(ctx context.Context, event logger.Event) error {
@@ -235,13 +230,25 @@ func (l *LoggerRepository) GetList(ctx context.Context, limit uint, offset uint)
 		if err != nil {
 			return nil, err
 		}
-		defer rows.Close()
+		defer func(rows *sql.Rows) {
+			err = rows.Close()
+			if err != nil {
+				logger.Error("Failed to close rows: "+err.Error(), "runtime.db.rows.close", logger.EventActor{Type: logger.System, ID: 0}, logger.None)
+				return
+			}
+		}(rows)
 	} else {
 		rows, err = l.DB.QueryContext(ctx, "SELECT * FROM events ORDER BY at OFFSET $1", offset)
 		if err != nil {
 			return nil, err
 		}
-		defer rows.Close()
+		defer func(rows *sql.Rows) {
+			err = rows.Close()
+			if err != nil {
+				logger.Error("Failed to close rows: "+err.Error(), "runtime.db.rows.close", logger.EventActor{Type: logger.System, ID: 0}, logger.None)
+				return
+			}
+		}(rows)
 	}
 	for rows.Next() {
 		var event logger.Event
@@ -253,11 +260,11 @@ func (l *LoggerRepository) GetList(ctx context.Context, limit uint, offset uint)
 	return events, nil
 }
 
-func (l *LoginRepository) Register(ctx context.Context, require login.RegisterRequire) (*int, error) {
+func (l *LoginRepository) Register(ctx context.Context, require login.RegisterRequire) (*uint, error) {
 	if require.IsEmpty() {
 		return nil, errors.New("some of params is empty")
 	}
-	var id int
+	var id uint
 	err := l.DB.QueryRowContext(ctx, `
 		INSERT INTO users (username, email, password)
 		VALUES (
@@ -271,11 +278,11 @@ func (l *LoginRepository) Register(ctx context.Context, require login.RegisterRe
 	return &id, nil
 }
 
-func (l *LoginRepository) Authorization(ctx context.Context, require login.AuthorizationRequire) (*int, error) {
+func (l *LoginRepository) Authorization(ctx context.Context, require login.AuthorizationRequire) (*uint, error) {
 	if require.IsEmpty() {
 		return nil, errors.New("some of params is empty")
 	}
-	var uid int
+	var uid uint
 	if err := l.DB.QueryRowContext(ctx, "SELECT u.uid FROM users u WHERE u.username == $1", require.Usermail).Scan(&uid); err != nil {
 		return nil, err
 	}
@@ -295,4 +302,67 @@ func (l *LoginRepository) Authorization(ctx context.Context, require login.Autho
 		return nil, err
 	}
 	return &uid, nil
+}
+
+func (s *SessionsRepository) IsValid(ctx context.Context, sessionID uuid.UUID) (bool, error) {
+	var expires time.Time
+	var revoked bool
+	row := s.DB.QueryRowContext(ctx, "SELECT expires, revoked FROM sessions s WHERE s.id = $1", sessionID)
+	if err := row.Scan(&expires, &revoked); err != nil {
+		return false, err
+	}
+	return time.Now().After(expires) || !revoked, nil
+}
+
+func (s *SessionsRepository) GetSession(ctx context.Context, sessionID uuid.UUID) (*sessions.Session, error) {
+	var ses sessions.Session
+	if err := s.DB.QueryRowContext(ctx, "SELECT * FROM sessions s WHERE s.id = $1", sessionID).Scan(&ses.ID, &ses.UID, &ses.Created, &ses.LastSeenAt, &ses.Expires, &ses.Revoked, &ses.MfaComplete, &ses.AgentHash); err != nil {
+		return nil, err
+	}
+	return &ses, nil
+}
+
+func (s *SessionsRepository) GetSessions(ctx context.Context, uid uint) ([]*sessions.Session, error) {
+	var sess []*sessions.Session
+	rows, err := s.DB.QueryContext(ctx, "SELECT id FROM sessions s WHERE s.uid = $1", uid)
+	if err != nil {
+		return nil, err
+	}
+	defer func(rows *sql.Rows) {
+		err = rows.Close()
+		if err != nil {
+			logger.Error("Failed to close rows: "+err.Error(), "runtime.db.rows.close", logger.EventActor{Type: logger.System, ID: 0}, logger.None)
+			return
+		}
+	}(rows)
+	for rows.Next() {
+		var data *sessions.Session
+		var id uuid.UUID
+		if err = rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		data, err = s.GetSession(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		sess = append(sess, data)
+	}
+	return sess, nil
+}
+
+func (s *SessionsRepository) SetRevoked(ctx context.Context, sessionID uuid.UUID) error {
+	if _, err := s.DB.ExecContext(ctx, "UPDATE sessions SET revoked = true WHERE id = $1", sessionID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *SessionsRepository) AddSession(ctx context.Context, sessionID uuid.UUID, agentHash string, expires time.Time, uid uint) error {
+	_, err := s.DB.ExecContext(ctx, "INSERT INTO sessions (id, uid, expires, user_agent_hash) VALUES ($1,$2, $3, $4)", sessionID, uid, expires, agentHash)
+	return err
+}
+
+func (s *SessionsRepository) UpdateLastSeen(ctx context.Context, sessionID uuid.UUID) error {
+	_, err := s.DB.ExecContext(ctx, "UPDATE sessions SET last_seen_at = $1 WHERE id = $2", time.Now(), sessionID)
+	return err
 }

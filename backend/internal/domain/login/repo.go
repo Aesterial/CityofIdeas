@@ -5,6 +5,6 @@ import (
 )
 
 type Repository interface {
-	Register(ctx context.Context, user RegisterRequire) (*int, error)
-	Authorization(ctx context.Context, user AuthorizationRequire) (*int, error)
+	Register(ctx context.Context, user RegisterRequire) (*uint, error)
+	Authorization(ctx context.Context, user AuthorizationRequire) (*uint, error)
 }

@@ -30,6 +30,9 @@ func Ensure() {
 
 	ENV.Cookies.Name = os.Getenv("COOKIES_NAME")
 	ENV.Cookies.Secret = os.Getenv("COOKIES_SECRET")
+	ENV.Cookies.Domain = os.Getenv("COOKIES_DOMAIN")
+	ENV.Cookies.SameSite = os.Getenv("COOKIES_SAME_SITE")
+	ENV.Cookies.Secure = os.Getenv("COOKIES_SECURE") == "true"
 
 	ENV.Boot.Port = os.Getenv("BOOT_PORT")
 	ENV.Boot.IpService = os.Getenv("BOOT_IPSERVICE")
