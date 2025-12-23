@@ -20,5 +20,5 @@ func Error(ctx *gin.Context, status int, err string) {
 		return
 	}
 
-	ctx.JSON(status, ErrorResponse{Error: gin.H{"error": err}})
+	ctx.JSON(status, ErrorResponse{Error: err})
 }

@@ -16,5 +16,6 @@ type Repository interface {
 	GetUserByUID(ctx context.Context, uid uint) (*User, error)
 	GetUserByUsername(ctx context.Context, username string) (*User, error)
 	GetUserSessionLiveTime(ctx context.Context, uid uint) (*SessionTime, error)
+	UpdateDisplayName(ctx context.Context, uid uint, displayName string) error
 	IsExists(ctx context.Context, user User) (bool, error)
 }

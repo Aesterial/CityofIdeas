@@ -12,9 +12,9 @@ type AuthorizationRequire struct {
 }
 
 func (r RegisterRequire) IsEmpty() bool {
-	return r.Username == "" && r.Password == "" && r.Email == ""
+	return r.Username == "" || r.Password == "" || r.Email == ""
 }
 
 func (a AuthorizationRequire) IsEmpty() bool {
-	return a.Usermail == "" && a.Password == ""
+	return a.Usermail == "" || a.Password == ""
 }

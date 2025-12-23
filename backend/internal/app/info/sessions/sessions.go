@@ -18,12 +18,13 @@ func New(repo sessions.Repository) *Service {
 }
 
 func isValid(sessionID uuid.UUID) bool {
-	return sessionID != uuid.Nil || func() bool {
-		if _, err := uuid.Parse(sessionID.String()); err != nil {
-			return false
-		}
-		return true
-	}()
+	if sessionID == uuid.Nil {
+		return false
+	}
+	if _, err := uuid.Parse(sessionID.String()); err != nil {
+		return false
+	}
+	return true
 }
 
 func (s *Service) IsValid(ctx context.Context, sessionID uuid.UUID) (bool, error) {

@@ -44,12 +44,16 @@ func (s *Service) UpdateName(ctx context.Context, id uint, name string) (*user.U
 		return nil, err
 	}
 
-        if u.Settings == nil {
-            u.Settings = &user.Settings{}
-        }
-        u.Settings.DisplayName = &trimmed
+	if err = s.repo.UpdateDisplayName(ctx, id, trimmed); err != nil {
+		return nil, err
+	}
 
-        return u, nil
+	if u.Settings == nil {
+		u.Settings = &user.Settings{}
+	}
+	u.Settings.DisplayName = &trimmed
+
+	return u, nil
 }
 
 func isNotFound(err error) bool {

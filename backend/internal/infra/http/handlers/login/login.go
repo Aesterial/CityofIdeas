@@ -33,9 +33,14 @@ func (h *Handler) issueAndStoreSession(req *gin.Context, uid uint) error {
 		return err
 	}
 
+	ttl := live.Duration
+	if ttl <= 0 {
+		ttl = 7 * 24 * time.Hour
+	}
+
 	sessionID := uuid.New()
 	logger.Debug("generating cookie", "handler.login.issueAndStoreSession")
-	_, err = handlers.IssueSessionCookie(req, sessionID.String(), 7*24*time.Hour)
+	_, err = handlers.IssueSessionCookie(req, sessionID.String(), ttl)
 	if err != nil {
 		logger.Debug("Error on cookie", "handler.login.issueAndStoreSession")
 		return err
@@ -45,7 +50,7 @@ func (h *Handler) issueAndStoreSession(req *gin.Context, uid uint) error {
 		req.Request.Context(),
 		sessionID,
 		userAgentHash(req),
-		time.Now().Add(live.Duration),
+		time.Now().Add(ttl),
 		uid,
 	)
 }

@@ -36,7 +36,7 @@ func (h *Handler) GetByID(req *gin.Context) {
 		return
 	}
 
-	send.OK(req, u)
+	send.OK(req, toPublic(u))
 }
 
 type updateNameRequest struct {
@@ -62,7 +62,7 @@ func (h *Handler) UpdateName(c *gin.Context) {
 		return
 	}
 
-	send.OK(c, u)
+	send.OK(c, toPublic(u))
 }
 
 func (h *Handler) handleError(c *gin.Context, err error) {

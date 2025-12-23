@@ -33,6 +33,9 @@ func queryTest(DB *sql.DB) error {
 	if err != nil {
 		return err
 	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
 	var one int
 	if err = tx.QueryRowContext(ctx, "SELECT 1").Scan(&one); err != nil {
 		return err

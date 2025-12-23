@@ -211,6 +211,27 @@ func (u *UserRepository) IsExistsByUID(ctx context.Context, uid uint) (bool, err
 	return u.IsExists(ctx, user.User{UID: uid})
 }
 
+func (u *UserRepository) UpdateDisplayName(ctx context.Context, uid uint, displayName string) error {
+	if uid == 0 {
+		return errors.New("uid is zero")
+	}
+	res, err := u.DB.ExecContext(ctx, `
+		UPDATE users u
+		SET settings = ROW($1, (u.settings).avatar, (u.settings).session_live_time)::user_settings_t
+		WHERE u.uid = $2`, displayName, uid)
+	if err != nil {
+		return err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return errors.New("user not found")
+	}
+	return nil
+}
+
 func (l *LoggerRepository) Append(ctx context.Context, event logger.Event) error {
 	if event.TraceID == "" {
 		event.TraceID = "-"
@@ -283,11 +304,16 @@ func (l *LoginRepository) Authorization(ctx context.Context, require login.Autho
 		return nil, errors.New("some of params is empty")
 	}
 	var uid uint
-	if err := l.DB.QueryRowContext(ctx, "SELECT u.uid FROM users u WHERE u.username == $1", require.Usermail).Scan(&uid); err != nil {
-		return nil, err
+	if err := l.DB.QueryRowContext(ctx, "SELECT u.uid FROM users u WHERE u.username = $1", require.Usermail).Scan(&uid); err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return nil, err
+		}
 	}
 	if uid == 0 {
-		if err := l.DB.QueryRowContext(ctx, "SELECT u.uid FROM users u WHERE (u.email).address == $1", require.Usermail).Scan(&uid); err != nil {
+		if err := l.DB.QueryRowContext(ctx, "SELECT u.uid FROM users u WHERE (u.email).address = $1", require.Usermail).Scan(&uid); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return nil, errors.New("user not found")
+			}
 			return nil, err
 		}
 	}
@@ -311,7 +337,7 @@ func (s *SessionsRepository) IsValid(ctx context.Context, sessionID uuid.UUID) (
 	if err := row.Scan(&expires, &revoked); err != nil {
 		return false, err
 	}
-	return time.Now().After(expires) || !revoked, nil
+	return time.Now().Before(expires) && !revoked, nil
 }
 
 func (s *SessionsRepository) GetSession(ctx context.Context, sessionID uuid.UUID) (*sessions.Session, error) {
