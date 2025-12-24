@@ -82,7 +82,7 @@ func (h *Handler) Register(req *gin.Context) {
 		return
 	}
 
-	send.OK(req, gin.H{"data": "registered"})
+	send.OK(req, gin.H{"data": "success"})
 }
 
 func (h *Handler) Authorization(req *gin.Context) {
@@ -103,5 +103,5 @@ func (h *Handler) Authorization(req *gin.Context) {
 		return
 	}
 
-	send.OK(req, gin.H{"data": "authorization"})
+	send.OK(req, gin.H{"data": "success"})
 }

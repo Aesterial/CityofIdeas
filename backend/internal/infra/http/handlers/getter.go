@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -53,15 +54,15 @@ func IssueSessionCookie(c *gin.Context, sessionID string, ttl time.Duration) (st
 	path := "/"
 	maxAge := int(ttl.Seconds())
 
-	c.SetCookie(
-		config.ENV.Cookies.Name,
-		val,
-		maxAge,
-		path,
-		domain,
-		secure,
-		true,
-	)
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     config.ENV.Cookies.Name,
+		Value:    url.QueryEscape(val),
+		MaxAge:   maxAge,
+		Path:     path,
+		Domain:   domain,
+		Secure:   secure,
+		HttpOnly: true,
+	})
 
 	return val, nil
 }
