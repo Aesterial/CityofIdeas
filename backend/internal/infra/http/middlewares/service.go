@@ -14,7 +14,9 @@ func New(repo sessions.Repository) *MiddleService {
 	return &MiddleService{repo}
 }
 
-func (s *MiddleService) Register(serv *gin.Engine, group *gin.RouterGroup) {
+func (s *MiddleService) Register(serv *gin.Engine) *gin.RouterGroup {
 	serv.Use(s.Tracing())
-	group.Use(s.Authorize())
+	priv := serv.Group("")
+	priv.Use(s.Authorize())
+	return priv
 }

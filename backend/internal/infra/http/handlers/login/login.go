@@ -8,11 +8,13 @@ import (
 	"ascendant/backend/internal/infra/logger"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Handler struct {
@@ -94,6 +96,10 @@ func (h *Handler) Authorization(req *gin.Context) {
 
 	uid, err := h.service.Authorization(req.Request.Context(), require)
 	if err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			send.Error(req, http.StatusForbidden, "invalid password")
+			return
+		}
 		send.Error(req, http.StatusInternalServerError, "failed to authenticate")
 		return
 	}

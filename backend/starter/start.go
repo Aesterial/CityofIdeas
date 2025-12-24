@@ -71,9 +71,8 @@ func main() {
 	middleService := middlewares.New(sessionsRepo)
 
 	service := gin.New()
-	priv := service.Group("")
+	priv := middleService.Register(service)
 	pub := service.Group("")
-	middleService.Register(service, priv)
 	service.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "pong"})
 	})
