@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"ascendant/backend/internal/domain/user"
 	"ascendant/backend/internal/infra/http/handlers"
 	"ascendant/backend/internal/infra/http/send"
 	"ascendant/backend/internal/infra/logger"
@@ -44,6 +45,13 @@ func (s *MiddleService) Authorize() gin.HandlerFunc {
 			req.Abort()
 			return
 		}
+		uid, err := s.repo.GetUID(req.Request.Context(), id)
+		if err != nil {
+			send.Error(req, http.StatusForbidden, "failed to validate cookie")
+			req.Abort()
+			return
+		}
+		req.Set("user-data", user.RequestData{UID: *uid, SessionID: id})
 		req.Next()
 	}
 }

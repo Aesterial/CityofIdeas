@@ -110,7 +110,7 @@ func (u *UserRepository) GetJoinedAT(ctx context.Context, uid uint) (*time.Time,
 
 func (u *UserRepository) GetSettings(ctx context.Context, uid uint) (*user.Settings, error) {
 	rowMain := u.DB.QueryRowContext(ctx,
-		"SELECT u.settings.session_live_time, u.password, u.settings.display_name FROM users u WHERE u.uid = $1",
+		"SELECT (u.settings).session_live_time, u.password, (u.settings).display_name FROM users u WHERE u.uid = $1",
 		uid)
 	if err := rowMain.Err(); err != nil {
 		return nil, err
@@ -124,14 +124,18 @@ func (u *UserRepository) GetSettings(ctx context.Context, uid uint) (*user.Setti
 		s.DisplayName = &displayName.String
 	}
 	var a user.Avatar
-	row := u.DB.QueryRowContext(ctx, " SELECT((u.settings).avatar).content_type, ((u.settings).avatar).data, ((u.settings).avatar).width, ((u.settings).avatar).height, ((u.settings).avatar).size_bytes, ((u.settings).avatar).updated FROM users u WHERE u.uid = $1", uid)
+	row := u.DB.QueryRowContext(ctx, " SELECT ((u.settings).avatar).content_type, ((u.settings).avatar).data, ((u.settings).avatar).width, ((u.settings).avatar).height, ((u.settings).avatar).size_bytes, ((u.settings).avatar).updated FROM users u WHERE u.uid = $1", uid)
 	if err := row.Err(); err != nil {
 		return nil, err
 	}
 	if err := row.Scan(&a.ContentType, &a.Data, &a.Width, &a.Height, &a.SizeBytes, &a.Updated); err != nil {
 		return nil, err
 	}
-	s.Avatar = a
+	if a.Data == nil {
+		s.Avatar = nil
+	} else {
+		s.Avatar = &a
+	}
 	return &s, nil
 }
 
@@ -374,6 +378,12 @@ func (s *SessionsRepository) GetSessions(ctx context.Context, uid uint) ([]*sess
 		sess = append(sess, data)
 	}
 	return sess, nil
+}
+
+func (s *SessionsRepository) GetUID(ctx context.Context, sessionID uuid.UUID) (*uint, error) {
+	var uid uint
+	err := s.DB.QueryRowContext(ctx, "SELECT uid FROM sessions s WHERE s.id = $1", sessionID).Scan(&uid)
+	return &uid, err
 }
 
 func (s *SessionsRepository) SetRevoked(ctx context.Context, sessionID uuid.UUID) error {

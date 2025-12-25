@@ -11,6 +11,7 @@ type Repository interface {
 	IsValid(ctx context.Context, sessionID uuid.UUID) (bool, error)
 	GetSession(ctx context.Context, sessionID uuid.UUID) (*Session, error)
 	GetSessions(ctx context.Context, uid uint) ([]*Session, error)
+	GetUID(ctx context.Context, sessionID uuid.UUID) (*uint, error)
 	SetRevoked(ctx context.Context, sessionID uuid.UUID) error
 	AddSession(ctx context.Context, sessionID uuid.UUID, agentHash string, expires time.Time, uid uint) error
 	UpdateLastSeen(ctx context.Context, sessionID uuid.UUID) error

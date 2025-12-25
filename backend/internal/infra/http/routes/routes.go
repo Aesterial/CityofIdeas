@@ -8,6 +8,7 @@ import (
 )
 
 func RegisterUser(r *gin.Engine, userHandler *userhandler.Handler, group *gin.RouterGroup) {
+	group.GET("/api/user", userHandler.GetSelf)
 	group.GET("/api/user/:id", userHandler.GetByID)
 	group.PATCH("/api/user/:id/name", userHandler.UpdateName)
 }

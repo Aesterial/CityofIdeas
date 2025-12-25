@@ -3,7 +3,9 @@ package user
 import (
 	userinfo "ascendant/backend/internal/app/info/user"
 	modifier "ascendant/backend/internal/app/modifier/user"
+	"ascendant/backend/internal/infra/http/handlers"
 	"ascendant/backend/internal/infra/http/send"
+	"ascendant/backend/internal/infra/logger"
 	"errors"
 	"net/http"
 	"strconv"
@@ -37,6 +39,21 @@ func (h *Handler) GetByID(req *gin.Context) {
 	}
 
 	send.OK(req, toPublic(u))
+}
+
+func (h *Handler) GetSelf(req *gin.Context) {
+	id, err := handlers.GetUser(req)
+	if err != nil {
+		h.handleError(req, errors.New("failed to receive"))
+		return
+	}
+	usr, err := h.info.GetSelf(req.Request.Context(), id.SessionID)
+	if err != nil {
+		logger.Debug("error: "+err.Error(), "service.handlers.getSelf")
+		h.handleError(req, errors.New("failed to receive"))
+		return
+	}
+	send.OK(req, toPublic(usr))
 }
 
 type updateNameRequest struct {

@@ -7,18 +7,18 @@ import (
 )
 
 type PublicSettings struct {
-	DisplayName     *string          `json:"display_name,omitempty"`
-	Avatar          domainuser.Avatar `json:"avatar"`
-	SessionLiveTime int              `json:"session_live_time"`
+	DisplayName     *string            `json:"display_name,omitempty"`
+	Avatar          *domainuser.Avatar `json:"avatar,omitempty"`
+	SessionLiveTime *int               `json:"session_live_time,omitempty"`
 }
 
 type PublicUser struct {
-	UID      uint                `json:"uid"`
-	Username string              `json:"username"`
-	Email    *domainuser.Email    `json:"email,omitempty"`
-	Settings *PublicSettings     `json:"settings,omitempty"`
-	Rank     *rank.Rank          `json:"rank,omitempty"`
-	Joined   time.Time           `json:"joined"`
+	UID      uint              `json:"uid"`
+	Username string            `json:"username"`
+	Email    *domainuser.Email `json:"email,omitempty"`
+	Settings *PublicSettings   `json:"settings,omitempty"`
+	Rank     *rank.Rank        `json:"rank,omitempty"`
+	Joined   time.Time         `json:"joined"`
 }
 
 func toPublic(u *domainuser.User) *PublicUser {
@@ -31,7 +31,7 @@ func toPublic(u *domainuser.User) *PublicUser {
 		settings = &PublicSettings{
 			DisplayName:     u.Settings.DisplayName,
 			Avatar:          u.Settings.Avatar,
-			SessionLiveTime: u.Settings.SessionLiveTime,
+			SessionLiveTime: &u.Settings.SessionLiveTime,
 		}
 	}
 

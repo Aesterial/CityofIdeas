@@ -1,20 +1,24 @@
 package user
 
 import (
+	"ascendant/backend/internal/domain/sessions"
 	"ascendant/backend/internal/domain/user"
 	apperrors "ascendant/backend/internal/shared/errors"
 	"context"
 	"errors"
 	"strconv"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 type Service struct {
-	repo user.Repository
+	repo        user.Repository
+	sessionRepo sessions.Repository
 }
 
-func New(repo user.Repository) *Service {
-	return &Service{repo: repo}
+func New(repo user.Repository, sessionRepo sessions.Repository) *Service {
+	return &Service{repo: repo, sessionRepo: sessionRepo}
 }
 
 func (s *Service) GetByID(ctx context.Context, id uint) (*user.User, error) {
@@ -36,6 +40,21 @@ func (s *Service) GetByID(ctx context.Context, id uint) (*user.User, error) {
 	}
 
 	return u, nil
+}
+
+func (s *Service) GetSelf(ctx context.Context, sessionID uuid.UUID) (*user.User, error) {
+	if sessionID == uuid.Nil {
+		return nil, errors.New("session id is null")
+	}
+	uid, err := s.sessionRepo.GetUID(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	usr, err := s.GetByID(ctx, *uid)
+	if err != nil {
+		return nil, err
+	}
+	return usr, nil
 }
 
 func (s *Service) GetUserSessionLiveTime(ctx context.Context, uid uint) (*user.SessionTime, error) {

@@ -63,7 +63,7 @@ func main() {
 	loggerServ.Start(ctx, 2*time.Second)
 
 	sessionsService := sessions.New(sessionsRepo)
-	userInfoService := userinfo.New(userRepo)
+	userInfoService := userinfo.New(userRepo, sessionsRepo)
 	userModifierService := usermodifier.New(userRepo)
 	userHandler := userhandler.New(userInfoService, userModifierService)
 	loginRegisterService := login.New(loginRepo, sessionsService, userInfoService)

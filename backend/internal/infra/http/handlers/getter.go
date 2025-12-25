@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"ascendant/backend/internal/domain/user"
 	"ascendant/backend/internal/shared/config"
 	"ascendant/backend/internal/shared/types"
 	"errors"
@@ -121,4 +122,16 @@ func isSecureRequest(r *http.Request) bool {
 		return true
 	}
 	return strings.EqualFold(r.Header.Get("X-Forwarded-Proto"), "https")
+}
+
+func GetUser(req *gin.Context) (*user.RequestData, error) {
+	value, exists := req.Get("user-data")
+	if !exists {
+		return nil, errors.New("user-data is empty")
+	}
+	data, ok := value.(user.RequestData)
+	if !ok {
+		return nil, errors.New("user-data is invalid")
+	}
+	return &data, nil
 }

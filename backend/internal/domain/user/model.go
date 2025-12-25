@@ -4,6 +4,8 @@ import (
 	"ascendant/backend/internal/domain/rank"
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Email struct {
@@ -27,8 +29,8 @@ type SessionTime struct {
 
 type Settings struct {
 	DisplayName     *string
-	Avatar          Avatar
-	Password        string
+	Avatar          *Avatar
+	Password        *string
 	SessionLiveTime int
 }
 
@@ -39,4 +41,9 @@ type User struct {
 	Settings *Settings
 	Rank     *rank.Rank
 	Joined   time.Time
+}
+
+type RequestData struct {
+	SessionID uuid.UUID
+	UID       uint
 }
