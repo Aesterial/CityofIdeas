@@ -1,12 +1,36 @@
 "use client"
 
 import { AnimatePresence, motion } from "framer-motion"
-import { ChevronDown, Globe, Lightbulb, LogIn, MapPin, Menu, Moon, Sun, Users, X } from "lucide-react"
+import {
+  ChevronDown,
+  Globe,
+  Lightbulb,
+  LogIn,
+  MapPin,
+  Menu,
+  Moon,
+  Settings,
+  Shield,
+  Sun,
+  UserCircle,
+  Users,
+  X,
+} from "lucide-react"
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
+import { useAuth } from "./auth-provider"
 import { useLanguage } from "./language-provider"
 import { Logo } from "./logo"
 import { useTheme } from "./theme-provider"
+import { Avatar, AvatarFallback } from "./ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu"
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet"
 
 const cities = [
@@ -32,9 +56,21 @@ const cities = [
 
 type City = (typeof cities)[number]
 
+const getInitials = (value: string) => {
+  const parts = value.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) {
+    return "U"
+  }
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase()
+  }
+  return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+}
+
 export function Header() {
   const { theme, toggleTheme } = useTheme()
   const { language, setLanguage, t } = useLanguage()
+  const { user, status, hasAdminAccess } = useAuth()
   const [langOpen, setLangOpen] = useState(false)
   const [cityOpen, setCityOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -42,6 +78,8 @@ export function Header() {
   const [mounted, setMounted] = useState(false)
   const [city, setCity] = useState<City>(cities[0])
   const cityRef = useRef<HTMLDivElement>(null)
+  const displayName = user?.displayName || user?.username || ""
+  const avatarLabel = getInitials(displayName || user?.username || "User")
 
   const languages = [
     { code: "RU" as const, label: "RU" },
@@ -52,7 +90,10 @@ export function Header() {
   const mobileNavItems = [
     { href: "/voting", label: t("voting"), icon: Users },
     { href: "/suggest", label: t("suggestIdea"), icon: Lightbulb },
-    { href: "/auth", label: t("login"), icon: LogIn },
+    ...(status === "authenticated"
+      ? [{ href: "/account", label: "Account", icon: UserCircle }]
+      : [{ href: "/auth", label: t("login"), icon: LogIn }]),
+    ...(hasAdminAccess ? [{ href: "/admin", label: "Admin panel", icon: Shield }] : []),
   ]
 
   useEffect(() => {
@@ -436,15 +477,57 @@ export function Header() {
             )}
           </motion.button>
 
-          <Link href="/auth">
-            <motion.button
-              className="bg-foreground text-background px-6 py-2.5 rounded-full font-medium hover:opacity-80 transition-all duration-300"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {t("login")}
-            </motion.button>
-          </Link>
+          {status === "authenticated" && user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <motion.button
+                  className="flex items-center gap-3 rounded-full border border-border/60 bg-card/80 px-4 py-2 shadow-lg shadow-foreground/10"
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.98 }}
+                  aria-label="Account menu"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="text-xs font-semibold">{avatarLabel}</AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-semibold">{displayName || user.username}</span>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </motion.button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="space-y-1">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Account</p>
+                  <p className="text-sm font-semibold">{displayName || user.username}</p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/account">
+                    <Settings className="h-4 w-4" />
+                    Account settings
+                  </Link>
+                </DropdownMenuItem>
+                {hasAdminAccess ? (
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin">
+                      <Shield className="h-4 w-4" />
+                      Admin panel
+                    </Link>
+                  </DropdownMenuItem>
+                ) : null}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : status === "loading" ? (
+            <div className="h-10 w-24 rounded-full bg-muted/80 animate-pulse" />
+          ) : (
+            <Link href="/auth">
+              <motion.button
+                className="bg-foreground text-background px-6 py-2.5 rounded-full font-medium hover:opacity-80 transition-all duration-300"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {t("login")}
+              </motion.button>
+            </Link>
+          )}
         </nav>
       </div>
     </motion.header>

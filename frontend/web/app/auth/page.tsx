@@ -2,6 +2,7 @@
 
 import type React from "react"
 
+import { useAuth } from "@/components/auth-provider"
 import { GradientButton } from "@/components/gradient-button"
 import { useLanguage } from "@/components/language-provider"
 import { Logo } from "@/components/logo"
@@ -16,9 +17,12 @@ type AuthMode = "login" | "register" // | "forgot-password"
 
 export default function AuthPage() {
   const router = useRouter()
+  const { login, register } = useAuth()
   const [mode, setMode] = useState<AuthMode>("login")
   const [showPassword, setShowPassword] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -32,19 +36,46 @@ export default function AuthPage() {
     setMounted(true)
   }, [])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    setErrorMessage(null)
+  }, [mode])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (mode === "login") {
-      const isAdminLogin =
-        formData.email.trim().toLowerCase() === "admin@admin.admin" &&
-        formData.password === "admin"
-      if (isAdminLogin) {
-        router.push("/admin")
+    setErrorMessage(null)
+
+    const email = formData.email.trim()
+    const password = formData.password
+    const name = formData.name.trim()
+
+    if (mode === "register") {
+      if (!name || !email || !password) {
+        setErrorMessage("Please fill in all fields.")
         return
       }
+      if (password !== formData.confirmPassword) {
+        setErrorMessage("Passwords do not match.")
+        return
+      }
+    } else if (!email || !password) {
+      setErrorMessage("Please enter your email and password.")
+      return
     }
-    console.log("[!] Form submit:", formData)
-  } // <-- just example!!!! i waiting api!!!!
+
+    setIsSubmitting(true)
+    try {
+      if (mode === "login") {
+        await login({ usermail: email, password })
+      } else {
+        await register({ username: name, email, password })
+      }
+      router.push("/")
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : "Something went wrong.")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const inputVariants = {
     hidden: { opacity: 0, x: -20 },
@@ -137,6 +168,11 @@ export default function AuthPage() {
 
 
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+            {errorMessage ? (
+              <div className="rounded-2xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                {errorMessage}
+              </div>
+            ) : null}
             <AnimatePresence mode="wait">
               {mode === "register" && (
                 <motion.div
@@ -238,8 +274,12 @@ export default function AuthPage() {
               transition={{ duration: 0.5, delay: 0.4 }}
               className="pt-2 sm:pt-4"
             >
-              <GradientButton type="submit" className="w-full flex items-center justify-center gap-3">
-                {mode === "login" ? t("login") : t("register")}
+              <GradientButton
+                type="submit"
+                className="w-full flex items-center justify-center gap-3"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Loading..." : mode === "login" ? t("login") : t("register")}
                 <ArrowRight className="w-5 h-5" />
               </GradientButton>
             </motion.div>

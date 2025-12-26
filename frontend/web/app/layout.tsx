@@ -1,3 +1,4 @@
+import { AuthProvider } from "@/components/auth-provider"
 import { LanguageProvider } from "@/components/language-provider"
 import { PageLoader } from "@/components/page-loader"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -34,8 +35,10 @@ export default function RootLayout({
       <body className={`${daysOne.className} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange={false}>
           <LanguageProvider>
-            <PageLoader />
-            {children}
+            <AuthProvider>
+              <PageLoader />
+              {children}
+            </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>
         <Analytics />
