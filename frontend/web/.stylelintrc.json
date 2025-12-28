@@ -1,0 +1,14 @@
+{
+  "extends": ["stylelint-config-standard"],
+  "rules": {
+    "selector-pseudo-element-no-unknown": [true, {
+      "ignorePseudoElements": [
+        "-webkit-scrollbar",
+        "-webkit-scrollbar-thumb",
+        "-webkit-scrollbar-track",
+        "-webkit-scrollbar-corner",
+        "-webkit-scrollbar-button"
+      ]
+    }]
+  }
+}
