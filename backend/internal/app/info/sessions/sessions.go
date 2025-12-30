@@ -48,6 +48,13 @@ func (s *Service) GetSessions(ctx context.Context, uid uint) ([]*sessions.Sessio
 	return s.repo.GetSessions(ctx, uid)
 }
 
+func (s *Service) GetUID(ctx context.Context, sessionID uuid.UUID) (*uint, error) {
+	if !isValid(sessionID) {
+		return nil, errors.New("invalid session id")
+	}
+	return s.repo.GetUID(ctx, sessionID)
+}
+
 func (s *Service) SetRevoked(ctx context.Context, sessionID uuid.UUID) error {
 	if !isValid(sessionID) {
 		return errors.New("invalid session id")

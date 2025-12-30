@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package projects.v1;
+option go_package = "ascendant/backend/internal/gen/projects/v1;projects";
+
+import "google/protobuf/timestamp.proto";
+import "user/domain.proto";
+
+message GetRequest {
+  int32 limit = 1;
+}
+
+message GetResponse {
+  repeated Project projects = 1;
+  string tracing = 2;
+}
+
+enum ProjectCategory {
+  UNSPECIFIED = 0;
+  IMPROVEMENT = 1;
+  ROADSIDEWALKS = 2;
+  LIGHTING = 3;
+  PLAYGROUNDS = 4;
+  PARKS = 5;
+  OTHER = 6;
+}
+
+enum ProjectVoteStatus {
+  PUBLISHED = 0;
+  PROGRESS = 1;
+  IMPLEMENTING = 2;
+  CLOSED = 3;
+  ARCHIVED = 4;
+}
+
+message ProjectLocation {
+  string city = 1;
+  string street = 2;
+  string house = 3;
+}
+
+message ProjectInfo {
+  string title = 1;
+  string description = 2;
+  repeated user.v1.Avatar photos = 3;
+  ProjectCategory category = 4;
+  ProjectLocation location = 5;
+}
+
+message Project {
+  string id = 1;
+  user.v1.UserPublic author = 2;
+  ProjectInfo info = 3;
+  ProjectVoteStatus status = 4;
+  int32 likes_count = 5;
+  repeated user.v1.UserPublic liked = 6;
+  google.protobuf.Timestamp createdAt = 7;
+}
+
+message CreateRequest {
+  string title = 1;
+  optional string description = 2;
+  repeated user.v1.Avatar photos = 3;
+  string category = 4;
+  ProjectLocation location = 5;
+}
+
+message RequestWithID {
+  string id = 1;
+}
+
+message ChangeRequest {
+  string id = 1;
+  string to = 2;
+}
+
+message EmptyResponse {
+  string tracing = 1;
+}

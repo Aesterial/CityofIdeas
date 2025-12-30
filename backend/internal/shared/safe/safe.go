@@ -13,7 +13,6 @@ func Go(name string, fn func()) {
 				msg := fmt.Sprintf("%v", r)
 				stack := debug.Stack()
 				logger.Debug(string(stack), "safego.crash")
-
 				logger.Error(
 					fmt.Sprintf("Goroutine %s crashed: %s", name, msg),
 					"safego.crash",

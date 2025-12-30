@@ -55,3 +55,17 @@ func (s *Service) ChangeForRank(ctx context.Context, rank string, need permissio
 	}
 	return s.repo.ChangeForRank(ctx, rank, need, state)
 }
+
+func (s *Service) SetForUser(ctx context.Context, uid uint, perms *permissions.Permissions) error {
+	if uid == 0 || perms == nil {
+		return errors.New("arguments empty")
+	}
+	return s.repo.SetForUser(ctx, uid, perms)
+}
+
+func (s *Service) SetForRank(ctx context.Context, rank string, perms *permissions.Permissions) error {
+	if rank == "" || perms == nil {
+		return errors.New("arguments empty")
+	}
+	return s.repo.SetForRank(ctx, rank, perms)
+}

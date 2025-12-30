@@ -102,7 +102,7 @@ npm run dev
 
 ### Backend
 ```sh
-cd backend
+cd oldbackend
 go work sync
 ```
 

@@ -9,4 +9,6 @@ type Repository interface {
 	HasAll(ctx context.Context, uid uint, need ...Permission) (bool, error)
 	ChangeForUser(ctx context.Context, uid uint, need Permission, state bool) error
 	ChangeForRank(ctx context.Context, rank string, need Permission, state bool) error
+	SetForUser(ctx context.Context, uid uint, perms *Permissions) error
+	SetForRank(ctx context.Context, rank string, perms *Permissions) error
 }

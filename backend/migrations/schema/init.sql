@@ -256,3 +256,6 @@ create table sessions (
 
 create index events_at_idx on events(at);
 create index events_trace_id_idx on events(trace_id);
+
+-- load base seed data (psql)
+\ir ../seed/base_data.sql

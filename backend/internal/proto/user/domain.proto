@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package user.v1;
+option go_package = "ascendant/backend/internal/gen/user/v1;user";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+message UserPublic {
+  uint32 userID = 1;
+  string username = 2;
+  Rank rank = 3;
+  optional UserSettings settings = 4;
+  google.protobuf.Timestamp joinedAt = 5;
+}
+
+message UserSelf{
+  UserPublic public = 1;
+  UserEmail email = 2;
+}
+
+message Avatar {
+  string contentType = 1;
+  bytes data = 2;
+}
+
+message UserSettings  {
+  optional string displayName = 1;
+  optional Avatar avatar = 2;
+  int32 sessionLiveTime = 3;
+}
+
+message Rank  {
+  string name = 1;
+  optional google.protobuf.Timestamp expires = 2;
+}
+
+message UserEmail  {
+  string address = 1;
+  bool verified = 2;
+}
+
+message UserSessions {
+  repeated Session sessions = 1;
+}
+
+message Session {
+  string uuid = 1;
+  uint32 uid = 2;
+  google.protobuf.Timestamp created = 3;
+  google.protobuf.Timestamp lastSeen = 4;
+  google.protobuf.Timestamp expires = 5;
+}
+
+message OtherUserRequest {
+  uint32 userID = 1;
+}
+
+message BanUserRequest {
+  uint32 userID = 1;
+  optional google.protobuf.Duration duration = 2;
+}
+
+message ChangeSelfNameRequest {
+  string name = 1;
+}
+
+message UserSelfResponse {
+  UserSelf data = 1;
+  string tracing = 2;
+}
+
+message UserPublicResponse {
+  UserPublic data = 1;
+  string tracing = 2;
+}
+
+message UserSessionsResponse {
+  UserSessions data = 1;
+  string tracing = 2;
+}
+
+message EmptyResponse {
+  string tracing = 1;
+}

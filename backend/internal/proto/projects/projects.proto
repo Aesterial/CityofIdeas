@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package projects.v1;
+option go_package = "ascendant/backend/internal/gen/projects/v1;projects";
+
+import "google/api/annotations.proto";
+import "projects/domain.proto";
+
+service ProjectService {
+  rpc Get(GetRequest) returns (GetResponse) {
+    option (google.api.http) = {
+      get: "/api/projects"
+    };
+  }
+  rpc Create(CreateRequest) returns (EmptyResponse) {
+    option (google.api.http) = {
+      post: "/api/projects/create"
+      body: "*"
+    };
+  }
+  rpc ChangeTitle(ChangeRequest) returns (EmptyResponse) {
+    option (google.api.http) = {
+      patch: "/api/projects/{id}/name/{to}"
+    };
+  }
+  rpc ChangeDescription(ChangeRequest) returns (EmptyResponse) {        
+    option (google.api.http) = {
+      patch: "/api/project/{id}/description/{to}"
+    };
+  }
+  rpc Delete(RequestWithID) returns (EmptyResponse) {
+    option (google.api.http) = {
+      delete: "/api/projects/{id}/delete"
+    };
+  }
+}

@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package permissions.v1;
+option go_package = "ascendant/backend/internal/gen/permissions/v1;permissions";
+
+message Permissions {
+  bool viewOtherProfile = 1;
+  bool patchOtherProfile = 2;
+  bool patchSelfProfile = 3;
+  bool deleteSelfProfile = 4;
+  bool banProfile = 5;
+  bool unbanProfile = 6;
+
+  bool createIdea = 7;
+  bool patchSelfIdea = 8;
+  bool deleteSelfIdea = 9;
+
+  bool createComment = 10;
+  bool patchSelfComment = 11;
+  bool deleteSelfComment = 12;
+  bool deleteOtherComment = 13;
+
+  bool uploadIdeaMediaSelf = 14;
+  bool deleteIdeaMediaSelf = 15;
+  bool deleteIdeaMediaOther = 16;
+
+  bool moderateIdea = 17;
+
+  bool patchIdeaStatus = 18;
+
+  bool viewStatistics = 19;
+  bool viewPermissions = 20;
+  bool managePermissions = 21;
+}
+
+message RequestForRank {
+  string name = 1;
+}
+
+message RequestForUser {
+  uint32 userID = 1;
+}
+
+message RequestForUserChange {
+  uint32 userID = 1;
+  Permissions permissions = 2;
+}
+
+message RequestForRankChange {
+  string name = 1;
+  Permissions permissions = 2;
+}
+
+message PermissionsResponse {
+  Permissions data = 1;
+  string tracing = 2;
+}
+
+message EmptyResponse {
+  string tracing = 1;
+}

@@ -1,21 +1,23 @@
 package main
 
 import (
-	login "ascendant/backend/internal/app/auth"
-	"ascendant/backend/internal/app/info/sessions"
+	loginapp "ascendant/backend/internal/app/auth"
+	"ascendant/backend/internal/app/config"
+	permissionsinfo "ascendant/backend/internal/app/info/permissions"
+	sessionsinfo "ascendant/backend/internal/app/info/sessions"
 	userinfo "ascendant/backend/internal/app/info/user"
 	loggerservice "ascendant/backend/internal/app/logger"
 	usermodifier "ascendant/backend/internal/app/modifier/user"
+	loginpb "ascendant/backend/internal/gen/login/v1"
+	permspb "ascendant/backend/internal/gen/permissions/v1"
+	userpb "ascendant/backend/internal/gen/user/v1"
 	"ascendant/backend/internal/infra/db"
 	dbtest "ascendant/backend/internal/infra/db/test"
-	loginhandler "ascendant/backend/internal/infra/http/handlers/login"
-	userhandler "ascendant/backend/internal/infra/http/handlers/user"
-	"ascendant/backend/internal/infra/http/middlewares"
-	"ascendant/backend/internal/infra/http/routes"
+	"ascendant/backend/internal/infra/grpcserver"
 	"ascendant/backend/internal/infra/logger"
-	"ascendant/backend/internal/shared/config"
 	"context"
 	"errors"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -23,13 +25,16 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/reflection"
 )
 
 func main() {
 	logger.Debug("service starting", "service.starting")
 
-	config.Ensure()
+	env := config.Get()
 
 	dbConn, err := db.NewConnection()
 	if err != nil {
@@ -56,6 +61,7 @@ func main() {
 	loginRepo := db.NewLoginRepository(dbConn)
 	sessionsRepo := db.NewSessionsRepository(dbConn)
 	permissionsRepo := db.NewPermissionsRepository(dbConn)
+
 	loggerServ := loggerservice.New(loggerRepo)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -63,59 +69,134 @@ func main() {
 
 	loggerServ.Start(ctx, 2*time.Second)
 
-	sessionsService := sessions.New(sessionsRepo)
+	sessionsService := sessionsinfo.New(sessionsRepo)
 	userInfoService := userinfo.New(userRepo, sessionsRepo)
 	userModifierService := usermodifier.New(userRepo)
-	userHandler := userhandler.New(userInfoService, userModifierService)
-	loginRegisterService := login.New(loginRepo, sessionsService, userInfoService)
-	loginHandler := loginhandler.New(loginRegisterService)
-	middleService := middlewares.New(sessionsRepo, permissionsRepo)
+	permissionsService := permissionsinfo.New(permissionsRepo)
+	loginService := loginapp.New(loginRepo, sessionsService, userInfoService)
 
-	service := gin.New()
-	priv := middleService.Register(service)
-	pub := service.Group("")
-	service.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "pong"})
-	})
-	routes.RegisterUser(userHandler, priv, middleService.RequirePermissions)
-	routes.RegisterLogin(loginHandler, pub)
+	loginServer := grpcserver.NewLoginService(loginService)
+	userServer := grpcserver.NewUserService(userInfoService, userModifierService, sessionsService, permissionsService)
+	permissionsServer := grpcserver.NewPermissionsService(permissionsService, sessionsService)
 
-	addr := "0.0.0.0:" + strings.TrimPrefix(config.ENV.Boot.Port, ":")
+	gateway := runtime.NewServeMux(
+		runtime.WithIncomingHeaderMatcher(gatewayHeaderMatcher),
+		runtime.WithOutgoingHeaderMatcher(gatewayOutgoingHeaderMatcher),
+	)
+	if err := loginpb.RegisterLoginServiceHandlerServer(ctx, gateway, loginServer); err != nil {
+		logger.Error("Failed to register login gateway: "+err.Error(), "service.gateway.register", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
+		return
+	}
+	if err := userpb.RegisterUserServiceHandlerServer(ctx, gateway, userServer); err != nil {
+		logger.Error("Failed to register user gateway: "+err.Error(), "service.gateway.register", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
+		return
+	}
+	if err := permspb.RegisterPermissionsServiceHandlerServer(ctx, gateway, permissionsServer); err != nil {
+		logger.Error("Failed to register permissions gateway: "+err.Error(), "service.gateway.register", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
+		return
+	}
 
-	srv := &http.Server{
-		Addr:              addr,
-		Handler:           service,
+	grpcPort := normalizePort(env.Startup.GRPCPort, env.Startup.Port, "8080")
+	httpPort := normalizePort(env.Startup.HTTPPort, env.Startup.Port, grpcPort)
+	samePort := grpcPort == httpPort
+
+	var opts []grpc.ServerOption
+	if env.TLS.Use && !samePort {
+		creds, err := credentials.NewServerTLSFromFile(env.TLS.CertPath, env.TLS.KeyPath)
+		if err != nil {
+			logger.Error("Failed to load TLS creds: "+err.Error(), "service.tls.failed", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
+			return
+		}
+		opts = append(opts, grpc.Creds(creds))
+	}
+	opts = append(opts, grpc.UnaryInterceptor(grpcserver.TraceUnaryInterceptor()))
+
+	grpcServer := grpc.NewServer(opts...)
+	reflection.Register(grpcServer)
+	loginpb.RegisterLoginServiceServer(grpcServer, loginServer)
+	userpb.RegisterUserServiceServer(grpcServer, userServer)
+	permspb.RegisterPermissionsServiceServer(grpcServer, permissionsServer)
+
+	cors := newCORS(env.Cors.AllowedOrigins)
+	handler := buildHTTPHandler(grpcServer, gateway, cors)
+	httpAddr := "0.0.0.0:" + httpPort
+	grpcAddr := "0.0.0.0:" + grpcPort
+
+	httpServer := &http.Server{
+		Addr:              httpAddr,
+		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
-	srvErr := make(chan error, 1)
-
-	go func() {
-		if config.ENV.Boot.UseTLS {
-			srvErr <- srv.ListenAndServeTLS(config.ENV.TLS.CertPath, config.ENV.TLS.KeyPath)
+	srvErr := make(chan error, 2)
+	if samePort {
+		if !env.TLS.Use {
+			httpServer.Handler = withH2C(handler)
+		}
+		go func() {
+			logger.Debug("listening on same addr: "+httpServer.Addr, "service.listen.start")
+			srvErr <- serveHTTPServer(httpServer, env.TLS.Use, env.TLS.CertPath, env.TLS.KeyPath)
+		}()
+	} else {
+		listener, err := net.Listen("tcp", grpcAddr)
+		if err != nil {
+			logger.Error("Failed to listen: "+err.Error(), "service.listen.failed", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
 			return
 		}
-		srvErr <- srv.ListenAndServe()
-	}()
+		go func() {
+			logger.Debug("gRPC serving at: "+grpcAddr, "service.listen.start")
+			srvErr <- grpcServer.Serve(listener)
+		}()
+		go func() {
+			logger.Debug("HTTP serving at: "+httpAddr, "service.listen.start")
+			srvErr <- serveHTTPServer(httpServer, env.TLS.Use, env.TLS.CertPath, env.TLS.KeyPath)
+		}()
+	}
 
 	select {
 	case <-ctx.Done():
 		logger.Debug("shutdown signal received", "service.shutdown.signal")
-
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
-		if err = srv.Shutdown(shutdownCtx); err != nil {
-			logger.Error("Failed to shutdown server: "+err.Error(), "service.shutdown.failed", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
-			_ = srv.Close()
+		if err := httpServer.Shutdown(shutdownCtx); err != nil {
+			logger.Error("Failed to shutdown http server: "+err.Error(), "service.shutdown.failed", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
 		}
 
+		done := make(chan struct{})
+		go func() {
+			grpcServer.GracefulStop()
+			close(done)
+		}()
+
+		select {
+		case <-done:
+		case <-time.After(10 * time.Second):
+			grpcServer.Stop()
+		}
 		logger.Debug("service stopped", "service.stopped")
 
 	case err = <-srvErr:
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err != nil && !errors.Is(err, grpc.ErrServerStopped) && !errors.Is(err, http.ErrServerClosed) {
 			logger.Error("Service is Down!. "+err.Error(), "service.down", logger.EventActor{Type: logger.System, ID: 0}, logger.None)
-			return
 		}
 	}
+}
+
+func normalizePort(values ...string) string {
+	for _, raw := range values {
+		val := strings.TrimSpace(raw)
+		val = strings.TrimPrefix(val, ":")
+		if val != "" {
+			return val
+		}
+	}
+	return ""
+}
+
+func serveHTTPServer(server *http.Server, useTLS bool, certPath, keyPath string) error {
+	if useTLS {
+		return server.ListenAndServeTLS(certPath, keyPath)
+	}
+	return server.ListenAndServe()
 }

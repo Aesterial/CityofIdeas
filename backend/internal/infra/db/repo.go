@@ -606,3 +606,16 @@ func (p *PermissionsRepository) ChangeForRank(ctx context.Context, rank string, 
 	}
 	return nil
 }
+func (p *PermissionsRepository) SetForUser(ctx context.Context, uid uint, perms *permissions.Permissions) error {
+	if perms == nil {
+		return errors.New("permissions is nil")
+	}
+	return updateUserPermissions(p.DB, ctx, uid, perms)
+}
+
+func (p *PermissionsRepository) SetForRank(ctx context.Context, rank string, perms *permissions.Permissions) error {
+	if perms == nil {
+		return errors.New("permissions is nil")
+	}
+	return updateRankPermissions(p.DB, ctx, rank, perms)
+}

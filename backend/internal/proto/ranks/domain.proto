@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package ranks.v1;
+option go_package = "ascendant/backend/internal/gen/ranks/v1;ranks";
+
+import "permissions/domain.proto";
+
+message CreateRequest {
+  permissions.v1.Permissions permissions = 1;
+  string name = 2;
+  string color = 3;
+  optional string description = 4;
+}
+
+message DeleteRequest {
+  string name = 1;
+}
+
+message EmptyResponse {
+  string tracing = 1;
+}
