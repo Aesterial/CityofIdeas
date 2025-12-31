@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package statistics.v1;
+option go_package = "ascendant/backend/internal/gen/statistics/v1;statistics";
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "statistics/domain.proto";
+
+service StatisticsService {
+  rpc VotesDay(google.protobuf.Empty) returns (VoteCountResponse) {
+    option (google.api.http) = {
+      get: "/api/statistics/votes"
+    };
+  }
+  rpc TopVoteCategories(CategoriesRequest) returns (TopByCategoriesResponse) {
+    option (google.api.http) = {
+      get: "/api/statistics/categories/{limit}"
+    };
+  }
+  rpc IdeasDay(google.protobuf.Empty) returns (IdeasCountResponse) {
+    option (google.api.http) = {
+      get: "/api/statistics/ideas"
+    };
+  }
+  rpc IdeasRecap(google.protobuf.Empty) returns (IdeasApprovalResponse) {
+    option (google.api.http) = {
+      get: "/api/statistics/ideas/recap"
+    };
+  }
+  rpc ActiveUsers(google.protobuf.Empty) returns (ActiveUsersResponse) {
+    option (google.api.http) = {
+      get: "/api/statistics/users/active"
+    };
+  }
+  rpc OfflineUsers(google.protobuf.Empty) returns (OfflineUsersResponse) {
+    option (google.api.http) = {
+      get: "/api/statistics/users/offline"
+    };
+  }
+  rpc UsersActivity(UsersActivityRequest) returns (UsersActivityResponse) {
+    option (google.api.http) = {
+      get: "/api/statistics/activity/users/{limit}"
+    };
+  }
+  rpc QualityRecap(google.protobuf.Empty) returns (EditorsGradeResponse) {
+    option (google.api.http) = {
+      get: "/api/statistics/quality/recap"
+    };
+  }
+  rpc MediaCoverage(MediaCoverageRequest) returns (MediaCoverageResponse) {
+    option (google.api.http) = {
+      get: "/api/statistics/media/coverage"
+    };
+  }
+}

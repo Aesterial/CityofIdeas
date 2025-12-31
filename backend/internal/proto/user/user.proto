@@ -52,4 +52,15 @@ service UserService {
       delete: "/api/user/{userID}/delete/avatar"
     };
   }
+  rpc SendMessage(SendMessageRequest) returns (EmptyResponse) {
+    option (google.api.http) = {
+      post: "/api/user/{userID}/messages/send"
+      body: "*"
+    };
+  }
+  rpc Messages(google.protobuf.Empty) returns (MessagesResponse) {
+    option (google.api.http) = {
+      get: "/api/user/messages"
+    };
+  }
 }

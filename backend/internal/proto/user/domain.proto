@@ -58,7 +58,19 @@ message OtherUserRequest {
 
 message BanUserRequest {
   uint32 userID = 1;
-  optional google.protobuf.Duration duration = 2;
+  string reason = 2;
+  optional google.protobuf.Duration duration = 3;
+}
+
+message SendMessageRequest {
+  uint32 userID = 1;
+  string message = 2;
+}
+
+message Message {
+  string from = 1;
+  string text = 2;
+  google.protobuf.Timestamp at = 3;
 }
 
 message ChangeSelfNameRequest {
@@ -77,6 +89,11 @@ message UserPublicResponse {
 
 message UserSessionsResponse {
   UserSessions data = 1;
+  string tracing = 2;
+}
+
+message MessagesResponse {
+  repeated Message messages = 1;
   string tracing = 2;
 }
 

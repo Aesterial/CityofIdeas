@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package statistics.v1;
+option go_package = "ascendant/backend/internal/gen/statistics/v1;statistics";
+
+message VoteCountResponse {
+  uint32 count = 1;
+  string tracing = 2;
+}
+
+message IdeasCountResponse {
+  uint32 count = 1;
+  string tracing = 2;
+}
+
+message CategoryRecord {
+  string name = 1;
+  uint32 posts = 2;
+  string tracing = 3;
+}
+
+message TopByCategoriesResponse {
+  repeated CategoryRecord record = 1;
+  string tracing = 2;
+}
+
+message ActiveUsersResponse {
+  uint32 count = 1;
+  string tracing = 2;
+}
+
+message OfflineUsersResponse {
+  uint32 count = 1;
+  string tracing = 2;
+}
+
+message UsersActivity {
+  uint32 active = 1;
+  uint32 offline = 2;
+}
+
+message IdeasApprovalResponse {
+  uint32 new = 1;
+  uint32 working = 2;
+  uint32 decided = 3;
+}
+
+message UsersActivityRequest {
+  uint32 limit = 1;
+}
+
+message UsersActivityResponse {
+  map<int64, UsersActivity> data = 1;
+  string tracing = 2;
+}
+
+message CategoriesRequest {
+  uint32 limit = 1;
+}
+
+message EditorsGradeResponse {
+  message Grade {
+    uint32 good = 1;
+    uint32 bad  = 2;
+  }
+
+  Grade photos   = 1;
+  Grade videos   = 2;
+  Grade graphics = 3;
+
+  string tracing = 4;
+}
+
+message MediaCoverageRequest {
+  uint32 limit = 1;
+}
+
+message MediaCoverageResponse {
+  message media {
+    uint32 photos = 1;
+    uint32 videos = 2;
+  }
+  map<int64, media> medias = 1;
+  string tracing = 2;
+}
