@@ -12,7 +12,6 @@ require (
 require (
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/desertbit/timer v1.0.1 // indirect
-	github.com/klauspost/compress v1.18.2 // indirect
 	github.com/rs/cors v1.11.1 // indirect
 	golang.org/x/sys v0.39.0 // indirect
 	golang.org/x/text v0.32.0 // indirect
@@ -21,5 +20,3 @@ require (
 	google.golang.org/protobuf v1.36.11 // indirect
 	nhooyr.io/websocket v1.8.17 // indirect
 )
-
-replace github.com/improbable-eng/grpc-web => ../internal/proto/third_party/grpc-web

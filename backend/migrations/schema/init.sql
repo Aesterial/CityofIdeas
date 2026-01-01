@@ -280,7 +280,8 @@ create index statistics_recap_at_idx on statistics_recap (at);
 create table submissions (
     id bigint generated always as identity primary key,
     project_id uuid not null references projects(id),
-    state submissions_state not null default 'waiting'
+    state submissions_state not null default 'waiting',
+    reason text
 );
 
 create index submissions_project_id_idx on submissions (project_id);

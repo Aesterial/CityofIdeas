@@ -8,6 +8,7 @@ type Submission struct {
 	ID        int64
 	ProjectID uuid.UUID
 	State     string
+	Reason    *string
 }
 
 func (s Submission) IsActive() bool {

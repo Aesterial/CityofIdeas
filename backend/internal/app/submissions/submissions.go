@@ -9,6 +9,7 @@ import (
 	userpb "ascendant/backend/internal/gen/user/v1"
 	"context"
 	"errors"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -89,7 +90,7 @@ func (s *Service) GetList(ctx context.Context) ([]*submpb.ListResponseTarget, er
 	}
 	var response []*submpb.ListResponseTarget
 	for _, v := range data {
-		id, err := uuid.Parse(v.Info.Id)
+		id, err := uuid.Parse(strconv.Itoa(int(v.ID)))
 		if err != nil {
 			return nil, err
 		}
@@ -109,7 +110,7 @@ func (s *Service) GetList(ctx context.Context) ([]*submpb.ListResponseTarget, er
 }
 
 func (s *Service) GetActive(ctx context.Context) ([]*submpb.ListResponseTarget, error) {
-	data, err := s.repo.GetList(ctx)
+	data, err := s.GetList(ctx)
 	if err != nil {
 		return nil, err
 	}

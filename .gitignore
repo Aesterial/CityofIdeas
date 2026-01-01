@@ -44,6 +44,4 @@ generated/
 /.idea
 /backend/starter/.env
 /backend/.idea
-/backend/internal/third_party/
-/backend/internal/proto/third_party/
 /backend/third_party/

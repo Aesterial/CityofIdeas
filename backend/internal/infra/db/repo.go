@@ -883,17 +883,43 @@ func (s *StatisticsRepository) VoteCategories(ctx context.Context, since time.Ti
 
 func (s *SubmissionsRepository) GetList(ctx context.Context) ([]*submissions.Submission, error) {
 	var data []*submissions.Submission
-	rows, err := s.DB.QueryContext(ctx, "SELECT s.id, s.project_id, s.state FROM submissions s")
+	rows, err := s.DB.QueryContext(ctx, "SELECT s.id, s.project_id, s.state, s.reason FROM submissions s")
 	if err != nil {
 		return nil, err
 	}
 	defer func() { _ = rows.Close() }()
 	for rows.Next() {
 		var sub submissions.Submission
+		var reason sql.NullString
 		if err := rows.Scan(&sub.ID, &sub.ProjectID, &sub.State); err != nil {
 			return nil, err
+		}
+		if sub.State == "declined" {
+			if reason.Valid {
+				sub.Reason = &reason.String
+			}
 		}
 		data = append(data, &sub)
 	}
 	return data, nil
+}
+
+func (s *SubmissionsRepository) Approve(ctx context.Context, id uuid.UUID) error {
+	if id == uuid.Nil {
+		return errors.New("invalid id")
+	}
+	if _, err := s.DB.ExecContext(ctx, "UPDATE submissions SET state = 'approved' WHERE project_id = $1", id); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *SubmissionsRepository) Decline(ctx context.Context, id uuid.UUID, reason string) error {
+	if id == uuid.Nil {
+		return errors.New("invalid id")
+	}
+	if _, err := s.DB.ExecContext(ctx, "UPDATE submissions SET state = 'declined', reason = $1 WHERE project_id = $2", reason, id); err != nil {
+		return err
+	}
+	return nil
 }
