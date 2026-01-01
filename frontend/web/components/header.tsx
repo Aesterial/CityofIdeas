@@ -8,6 +8,7 @@ import {
   LogIn,
   MapPin,
   Menu,
+  MessageSquare,
   Moon,
   Settings,
   Shield,
@@ -90,6 +91,7 @@ export function Header() {
   const mobileNavItems = [
     { href: "/voting", label: t("voting"), icon: Users },
     { href: "/suggest", label: t("suggestIdea"), icon: Lightbulb },
+    { href: "/support", label: "Задать вопрос", icon: MessageSquare },
     ...(status === "authenticated"
       ? [{ href: "/account", label: "Account", icon: UserCircle }]
       : [{ href: "/auth", label: t("login"), icon: LogIn }]),
@@ -334,6 +336,9 @@ export function Header() {
           </Link>
           <Link href="/suggest" className="text-foreground/70 hover:text-foreground transition-colors duration-300">
             {t("suggestIdea")}
+          </Link>
+          <Link href="/support" className="text-foreground/70 hover:text-foreground transition-colors duration-300">
+            Задать вопрос
           </Link>
 
           <div className="relative" ref={cityRef}>

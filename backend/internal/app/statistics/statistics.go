@@ -32,3 +32,10 @@ func (s *StatService) VoteCategories(ctx context.Context, since time.Time, limit
 	}
 	return s.repo.VoteCategories(ctx, since, limit)
 }
+
+func (s *StatService) UsersActivity(ctx context.Context, since time.Time) (map[time.Time]*statpb.UsersActivity, error) {
+	if since.IsZero() {
+		return nil, errors.New("since is null")
+	}
+	return s.repo.UsersActivity(ctx, since)
+}

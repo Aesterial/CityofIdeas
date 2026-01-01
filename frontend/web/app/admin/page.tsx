@@ -1,6 +1,31 @@
 "use client"
 
+import { Logo } from "@/components/logo"
+import { useTheme } from "@/components/theme-provider"
+import {
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart"
 import { motion } from "framer-motion"
+import {
+  Ban,
+  BarChart3,
+  Bell,
+  CheckCircle2,
+  Image as ImageIcon,
+  Lock,
+  MessageSquare,
+  Moon,
+  Shield,
+  Sun,
+  TrendingUp,
+  Users,
+  UserX,
+  Vote,
+} from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useMemo, useState } from "react"
@@ -17,33 +42,11 @@ import {
   YAxis,
 } from "recharts"
 import { toast } from "sonner"
-import { Logo } from "@/components/logo"
-import { useTheme } from "@/components/theme-provider"
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
-import {
-  BarChart3,
-  Bell,
-  Ban,
-  CheckCircle2,
-  Image as ImageIcon,
-  Lock,
-  MessageSquare,
-  Moon,
-  Shield,
-  Sun,
-  TrendingUp,
-  Users,
-  UserX,
-  Vote,
-} from "lucide-react"
+
+// import { useRouter } from "next/navigation"
 
 const sidebarItems = [
+  { id: "submissions", label: "Одобрение проектов", icon: CheckCircle2, href: "/admin/submissions" },
   { id: "users", label: "Пользователи", icon: Users, href: "/admin/users" },
   { id: "voting", label: "Голосование", icon: Vote, href: "#voting" },
   { id: "stats", label: "Статистика", icon: BarChart3, href: "#stats" },
@@ -55,7 +58,7 @@ const statsCards = [
     title: "Активные пользователи",
     value: "3 482",
     delta: "+12%",
-    note: "за 7 дней",
+    note: "за сутки",
     icon: Users,
   },
   {
@@ -122,6 +125,32 @@ const users = [
 
 type User = (typeof users)[number]
 
+type SubmissionState = "pending" | "approved" | "declined"
+
+type SubmissionsListResponse = {
+  data?: Array<{
+    state?: string
+    info?: {
+      createdAt?: string
+      created_at?: string
+    }
+  }>
+}
+
+type UsersActivityResponse = {
+  data?: Record<string, { active?: number; offline?: number }>
+}
+
+type VoteCategoriesResponse = {
+  record?: Array<{ name?: string; posts?: number }>
+}
+
+const timeRanges = [
+  { id: "day", label: "24h", days: 1 },
+  { id: "3d", label: "3d", days: 3 },
+  { id: "week", label: "7d", days: 7 },
+]
+
 const votingRounds = [
   {
     title: "Освещение в Центральном районе",
@@ -143,7 +172,7 @@ const votingRounds = [
   },
 ]
 
-const activityData = [
+const activitySeed = [
   { day: "Пн", active: 3120, offline: 420 },
   { day: "Вт", active: 3280, offline: 380 },
   { day: "Ср", active: 2950, offline: 460 },
@@ -153,17 +182,17 @@ const activityData = [
   { day: "Вс", active: 3420, offline: 340 },
 ]
 
-const votingData = [
+const votingSeed = [
   { category: "Благоустройство", votes: 820 },
   { category: "Транспорт", votes: 640 },
   { category: "Экология", votes: 540 },
   { category: "Дворы", votes: 380 },
 ]
 
-const statusData = [
-  { name: "Новые", value: 42, key: "new" },
-  { name: "В работе", value: 68, key: "progress" },
-  { name: "Решено", value: 31, key: "done" },
+const statusSeed = [
+  { name: "Pending", value: 0, key: "pending" },
+  { name: "Approved", value: 0, key: "approved" },
+  { name: "Declined", value: 0, key: "declined" },
 ]
 
 const mediaData = [
@@ -173,23 +202,7 @@ const mediaData = [
   { week: "Нед 4", photos: 360, videos: 180 },
 ]
 
-const mediaCards = [
-  {
-    title: "Фотоотчеты",
-    subtitle: "Полевые обновления",
-    image: "/aerial-view-of-city-block-kemerovo.jpg",
-  },
-  {
-    title: "Видеоподборки",
-    subtitle: "Визуальные истории",
-    image: "/aerial-view-residential-area-kemerovo.jpg",
-  },
-  {
-    title: "Снимки кварталов",
-    subtitle: "Новые маршруты",
-    image: "/aerial-satellite-view-kemerovo-city-block.jpg",
-  },
-]
+
 
 const activityConfig = {
   active: {
@@ -210,9 +223,9 @@ const votingConfig = {
 }
 
 const statusConfig = {
-  new: { label: "Новые", color: "var(--foreground)" },
-  progress: { label: "В работе", color: "var(--muted-foreground)" },
-  done: { label: "Решено", color: "var(--border)" },
+  pending: { label: "Pending", color: "var(--chart-4)" },
+  approved: { label: "Approved", color: "var(--chart-2)" },
+  declined: { label: "Declined", color: "var(--chart-1)" },
 }
 
 const mediaConfig = {
@@ -235,20 +248,215 @@ const cardVariants = {
   visible: { opacity: 1, y: 0 },
 }
 
+const submissionStatusLabels: Record<SubmissionState, string> = {
+  pending: "Pending",
+  approved: "Approved",
+  declined: "Declined",
+}
+
+const dayLabelFormatter = new Intl.DateTimeFormat("en-GB", {
+  month: "short",
+  day: "2-digit",
+})
+const timeLabelFormatter = new Intl.DateTimeFormat("en-GB", {
+  hour: "2-digit",
+  minute: "2-digit",
+})
+
+const formatCompactNumber = (value: number) => {
+  if (!Number.isFinite(value)) {
+    return "0"
+  }
+
+  const abs = Math.abs(value)
+  if (abs >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(abs >= 10_000_000 ? 0 : 1)}m`
+  }
+  if (abs >= 1_000) {
+    return `${(value / 1_000).toFixed(abs >= 10_000 ? 0 : 1)}k`
+  }
+  return `${value}`
+}
+
+const formatCategoryLabel = (value: string) => {
+  const trimmed = value.trim()
+  if (trimmed.length <= 12) {
+    return trimmed
+  }
+  return `${trimmed.slice(0, 9)}...`
+}
+
+const normalizeTimestampMs = (value: number) => (value > 1_000_000_000_000 ? value : value * 1000)
+
+const formatActivityLabel = (timestampMs: number, rangeDays: number) => {
+  const date = new Date(timestampMs)
+  return rangeDays <= 1 ? timeLabelFormatter.format(date) : dayLabelFormatter.format(date)
+}
+
+const normalizeSubmissionState = (state?: string): SubmissionState | null => {
+  if (!state) {
+    return null
+  }
+
+  switch (state.toLowerCase()) {
+    case "approved":
+      return "approved"
+    case "declined":
+      return "declined"
+    case "waiting":
+    case "pending":
+      return "pending"
+    default:
+      return null
+  }
+}
+
+async function requestJson<T>(path: string, signal?: AbortSignal): Promise<T> {
+  const response = await fetch(path, {
+    credentials: "include",
+    headers: {
+      Accept: "application/json",
+    },
+    signal,
+  })
+
+  if (response.ok) {
+    return (await response.json()) as T
+  }
+
+  let message = `Request failed (${response.status})`
+  try {
+    const data = (await response.json()) as { error?: string }
+    if (data?.error) {
+      message = data.error
+    }
+  } catch {
+    const text = await response.text()
+    if (text) {
+      message = text
+    }
+  }
+  throw new Error(message)
+}
+
 export default function AdminPage() {
   const { theme, toggleTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
+  const [rangeDays, setRangeDays] = useState(timeRanges[2].days)
+  const [activityData, setActivityData] = useState(activitySeed)
+  const [statusData, setStatusData] = useState(statusSeed)
+  const [votingData, setVotingData] = useState(votingSeed)
   const [selectedUserId, setSelectedUserId] = useState(users[0].id)
   const [banReason, setBanReason] = useState("Спам, мультиаккаунты, повторные жалобы")
+  // const push = useRouter();
 
   useEffect(() => {
     setMounted(true)
   }, [])
+  useEffect(() => {
+    const controller = new AbortController()
+    const sinceMs = Date.now() - rangeDays * 24 * 60 * 60 * 1000
+
+    const load = async () => {
+      const [activityResult, submissionsResult, votesResult] = await Promise.allSettled([
+        requestJson<UsersActivityResponse>(`/api/statistics/activity/users/${rangeDays}`, controller.signal),
+        requestJson<SubmissionsListResponse>("/api/submissions/list", controller.signal),
+        requestJson<VoteCategoriesResponse>("/api/statistics/categories/4", controller.signal),
+      ])
+
+      if (controller.signal.aborted) {
+        return
+      }
+
+      if (activityResult.status === "fulfilled") {
+        const entries = Object.entries(activityResult.value?.data ?? {})
+          .map(([key, value]) => {
+            const timestamp = Number(key)
+            if (!Number.isFinite(timestamp)) {
+              return null
+            }
+            return {
+              timestamp: normalizeTimestampMs(timestamp),
+              active: Number(value?.active ?? 0),
+              offline: Number(value?.offline ?? 0),
+            }
+          })
+          .filter((item): item is { timestamp: number; active: number; offline: number } => Boolean(item))
+          .sort((a, b) => a.timestamp - b.timestamp)
+          .map((item) => ({
+            day: formatActivityLabel(item.timestamp, rangeDays),
+            active: item.active,
+            offline: item.offline,
+          }))
+
+        setActivityData(entries)
+      } else if (activityResult.reason) {
+        toast.error("Failed to load audience activity", {
+          description: activityResult.reason instanceof Error ? activityResult.reason.message : undefined,
+        })
+      }
+
+      if (submissionsResult.status === "fulfilled") {
+        const counts: Record<SubmissionState, number> = {
+          pending: 0,
+          approved: 0,
+          declined: 0,
+        }
+
+        for (const item of submissionsResult.value?.data ?? []) {
+          const state = normalizeSubmissionState(item.state)
+          if (!state) {
+            continue
+          }
+
+          const createdAt = item.info?.createdAt ?? item.info?.created_at
+          if (createdAt) {
+            const parsed = Date.parse(createdAt)
+            if (!Number.isNaN(parsed) && parsed < sinceMs) {
+              continue
+            }
+          }
+
+          counts[state] += 1
+        }
+
+        setStatusData([
+          { key: "pending", name: submissionStatusLabels.pending, value: counts.pending },
+          { key: "approved", name: submissionStatusLabels.approved, value: counts.approved },
+          { key: "declined", name: submissionStatusLabels.declined, value: counts.declined },
+        ])
+      } else if (submissionsResult.reason) {
+        toast.error("Failed to load submission statuses", {
+          description: submissionsResult.reason instanceof Error ? submissionsResult.reason.message : undefined,
+        })
+      }
+
+      if (votesResult.status === "fulfilled") {
+        const records = votesResult.value?.record ?? []
+        setVotingData(
+          records.map((record) => ({
+            category: record?.name ?? "Unknown",
+            votes: record?.posts ?? 0,
+          })),
+        )
+      } else if (votesResult.reason) {
+        toast.error("Failed to load vote categories", {
+          description: votesResult.reason instanceof Error ? votesResult.reason.message : undefined,
+        })
+      }
+    }
+
+    load()
+
+    return () => controller.abort()
+  }, [rangeDays])
 
   const selectedUser = useMemo(
     () => users.find((user) => user.id === selectedUserId) ?? users[0],
     [selectedUserId],
-  )
+  );
+
+  // const routerpusher = push.push('/');
 
   const handleUserAction = (user: User, action: "block" | "unblock" | "reset" | "message") => {
     if (action === "block") {
@@ -831,15 +1039,38 @@ export default function AdminPage() {
                       <p className="text-sm font-semibold">Активность аудитории</p>
                       <p className="text-xs text-muted-foreground">Неделя в разрезе</p>
                     </div>
-                    <span className="rounded-full border border-border/70 px-3 py-1 text-xs font-semibold">
-                      7 дней
-                    </span>
+                    <div className="flex items-center gap-1 rounded-full border border-border/70 bg-background/70 p-1 text-xs font-semibold">
+                      {timeRanges.map((range) => {
+                        const isActive = rangeDays === range.days
+                        return (
+                          <button
+                            key={range.id}
+                            type="button"
+                            onClick={() => setRangeDays(range.days)}
+                            aria-pressed={isActive}
+                            className={`rounded-full px-3 py-1 transition-all duration-300 ${
+                              isActive
+                                ? "bg-foreground text-background shadow-sm"
+                                : "text-muted-foreground hover:text-foreground"
+                            }`}
+                          >
+                            {range.label}
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
                   <ChartContainer config={activityConfig} className="mt-6 h-[240px]">
-                    <AreaChart data={activityData} margin={{ left: 0, right: 0 }}>
+                    <AreaChart data={activityData} margin={{ left: 8, right: 16 }}>
                       <CartesianGrid strokeDasharray="4 4" vertical={false} />
-                      <XAxis dataKey="day" tickLine={false} axisLine={false} />
-                      <YAxis tickLine={false} axisLine={false} width={30} />
+                      <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={8} minTickGap={16} />
+                      <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        width={48}
+                        tickMargin={8}
+                        tickFormatter={formatCompactNumber}
+                      />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <ChartLegend content={<ChartLegendContent />} />
                       <Area
@@ -900,10 +1131,23 @@ export default function AdminPage() {
                   <span className="rounded-full border border-border/70 px-3 py-1 text-xs font-semibold">Месяц</span>
                 </div>
                 <ChartContainer config={votingConfig} className="mt-6 h-[240px]">
-                  <BarChart data={votingData} margin={{ left: 0, right: 0 }}>
+                  <BarChart data={votingData} margin={{ left: 8, right: 16 }}>
                     <CartesianGrid strokeDasharray="4 4" vertical={false} />
-                    <XAxis dataKey="category" tickLine={false} axisLine={false} />
-                    <YAxis tickLine={false} axisLine={false} width={30} />
+                    <XAxis
+                      dataKey="category"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                      minTickGap={12}
+                      tickFormatter={(value) => formatCategoryLabel(String(value))}
+                    />
+                    <YAxis
+                      tickLine={false}
+                      axisLine={false}
+                      width={48}
+                      tickMargin={8}
+                      tickFormatter={formatCompactNumber}
+                    />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Bar dataKey="votes" fill="var(--color-votes)" radius={[8, 8, 0, 0]} barSize={36} />
                   </BarChart>
@@ -937,10 +1181,16 @@ export default function AdminPage() {
                     </span>
                   </div>
                   <ChartContainer config={mediaConfig} className="mt-6 h-[240px]">
-                    <BarChart data={mediaData} margin={{ left: 0, right: 0 }}>
+                    <BarChart data={mediaData} margin={{ left: 8, right: 16 }}>
                       <CartesianGrid strokeDasharray="4 4" vertical={false} />
-                      <XAxis dataKey="week" tickLine={false} axisLine={false} />
-                      <YAxis tickLine={false} axisLine={false} width={30} />
+                      <XAxis dataKey="week" tickLine={false} axisLine={false} tickMargin={8} minTickGap={16} />
+                      <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        width={48}
+                        tickMargin={8}
+                        tickFormatter={formatCompactNumber}
+                      />
                       <ChartTooltip content={<ChartTooltipContent />} />
                       <ChartLegend content={<ChartLegendContent />} />
                       <Bar dataKey="photos" fill="var(--color-photos)" radius={[8, 8, 0, 0]} />
@@ -956,7 +1206,6 @@ export default function AdminPage() {
                     {[
                       { label: "Фотоотчеты", score: "92%" },
                       { label: "Видеоистории", score: "87%" },
-                      { label: "Графика", score: "78%" },
                     ].map((item) => (
                       <div key={item.label} className="space-y-2">
                         <div className="flex items-center justify-between">
@@ -972,36 +1221,7 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <motion.div
-                variants={listVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
-                className="grid gap-4 md:grid-cols-3"
-              >
-                {mediaCards.map((card) => (
-                  <motion.div
-                    key={card.title}
-                    variants={cardVariants}
-                    className="group relative overflow-hidden rounded-3xl border border-border/70 bg-card/90"
-                  >
-                    <div className="relative h-48">
-                      <Image
-                        src={card.image}
-                        alt={card.title}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, 33vw"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent opacity-80 transition-opacity duration-300 group-hover:opacity-90" />
-                    </div>
-                    <div className="p-5">
-                      <p className="text-sm font-semibold">{card.title}</p>
-                      <p className="text-xs text-muted-foreground">{card.subtitle}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </motion.div>
+
             </motion.section>
           </div>
         </main>

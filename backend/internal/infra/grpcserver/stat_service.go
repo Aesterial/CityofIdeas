@@ -44,3 +44,29 @@ func (s *StatService) TopVoteCategories(ctx context.Context, req *statpb.Categor
 	}
 	return &statpb.TopByCategoriesResponse{Record: cat, Tracing: TraceIDOrNew(ctx)}, nil
 }
+
+func (s *StatService) UsersActivity(ctx context.Context, req *statpb.UsersActivityRequest) (*statpb.UsersActivityResponse, error) {
+	if s == nil || s.stat == nil {
+		return nil, status.Error(codes.Internal, "service is not configured")
+	}
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request must not be nil")
+	}
+
+	limit := int(req.Limit)
+	if limit <= 0 {
+		limit = 7
+	}
+
+	activity, err := s.stat.UsersActivity(ctx, time.Now().Add(-time.Duration(limit)*24*time.Hour))
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to get users activity")
+	}
+
+	data := make(map[int64]*statpb.UsersActivity, len(activity))
+	for at, record := range activity {
+		data[at.Unix()] = record
+	}
+
+	return &statpb.UsersActivityResponse{Data: data, Tracing: TraceIDOrNew(ctx)}, nil
+}
