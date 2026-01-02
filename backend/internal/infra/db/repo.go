@@ -721,7 +721,7 @@ func (s *StatisticsRepository) VoteCount(ctx context.Context, since time.Time) (
 		return 0, errors.New("since is zero")
 	}
 	var count uint
-	err := s.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM project_likes WHERE created_at >= $1 ORDER BY created_at", since).Scan(&count)
+	err := s.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM project_likes WHERE created_at >= $1", since).Scan(&count)
 	if err != nil {
 		return 0, err
 	}
@@ -803,11 +803,13 @@ func (s *StatisticsRepository) GetForToday(ctx context.Context) (*statpb.Statist
 	if err != nil {
 		return nil, err
 	}
-	stat.UsersActivity.Active = active
-	stat.UsersActivity.Offline = offline
+	var activity statpb.UsersActivity
+	activity.Active = active
+	activity.Offline = offline
 	stat.NewIdeas = newIdeas
 	stat.VoteCount = voteCount
 	stat.At = timestamppb.New(today())
+	stat.UsersActivity = &activity
 	return &stat, nil
 }
 
@@ -898,11 +900,11 @@ func (s *StatisticsRepository) VoteCategories(ctx context.Context, since time.Ti
 	}
 
 	base := `
-		SELECT pr.info.category AS category, COUNT(*) AS votes
+		SELECT (pr.info).category AS category, COUNT(*) AS votes
 		FROM project_likes pl
 		JOIN projects pr ON pr.id = pl.project_id
 		WHERE pl.created_at >= $1
-		GROUP BY pr.info.category
+		GROUP BY (pr.info).category
 		ORDER BY votes DESC
 	`
 

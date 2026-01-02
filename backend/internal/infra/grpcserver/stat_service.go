@@ -72,6 +72,7 @@ func (s *StatService) TopVoteCategories(ctx context.Context, req *statpb.Categor
 	}
 	cat, err := s.stat.VoteCategories(ctx, time.Now().Add(-24*7*time.Hour), int(req.Limit))
 	if err != nil {
+		logger.Debug("Failed to get top categories: "+err.Error(), "statService.topVoteCategories")
 		return nil, status.Error(codes.Internal, "failed to get top vote categories")
 	}
 	return &statpb.TopByCategoriesResponse{Record: cat, Tracing: TraceIDOrNew(ctx)}, nil
@@ -95,6 +96,7 @@ func (s *StatService) UsersActivity(ctx context.Context, req *statpb.UsersActivi
 
 	activity, err := s.stat.UsersActivity(ctx, time.Now().Add(-time.Duration(limit)*24*time.Hour))
 	if err != nil {
+		logger.Debug("Error on getting users activity: "+err.Error(), "service.usersActivity")
 		return nil, status.Error(codes.Internal, "failed to get users activity")
 	}
 
@@ -144,9 +146,20 @@ func (s *StatService) IdeasDay(ctx context.Context, _ *emptypb.Empty) (*statpb.I
 	if err != nil || requestor == nil {
 		return nil, err
 	}
-	data, err := s.stat.VoteCount(ctx, oClock())
+	data, err := s.stat.NewIdeasCount(ctx, oClock())
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to get vote count")
 	}
 	return &statpb.IdeasCountResponse{Count: data, Tracing: TraceIDOrNew(ctx)}, nil
+}
+
+func (s *StatService) IdeasRecap(ctx context.Context, _ *emptypb.Empty) (*statpb.IdeasApprovalResponse, error) {
+	if s == nil || s.stat == nil {
+		return nil, status.Error(codes.Internal, "service is not configured")
+	}
+	requestor, err := authorize(ctx, s.auth)
+	if err != nil || requestor == nil {
+		return nil, err
+	}
+	return s.stat.IdeasRecap(ctx)
 }

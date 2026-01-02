@@ -47,3 +47,11 @@ func (s *StatService) GetActiveUsers(ctx context.Context, since time.Time) (uint
 func (s *StatService) GetOfflineUsers(ctx context.Context, since time.Time) (uint32, error) {
 	return s.repo.GetOfflineUsers(ctx, since)
 }
+
+func (s *StatService) NewIdeasCount(ctx context.Context, since time.Time) (uint32, error) {
+	return s.repo.NewIdeasCount(ctx, since)
+}
+
+func (s *StatService) IdeasRecap(ctx context.Context) (*statpb.IdeasApprovalResponse, error) {
+	return s.repo.IdeasRecap(ctx)
+}
