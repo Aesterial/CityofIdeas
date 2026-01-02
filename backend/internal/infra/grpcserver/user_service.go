@@ -207,6 +207,24 @@ func (s *UserService) BanInfoOther(ctx context.Context, req *userpb.OtherUserReq
 	return formateBanInfoResponse(ctx, info, s.info)
 }
 
+func (s *UserService) Users(ctx context.Context, _ *emptypb.Empty) (*userpb.UsersResponse, error) {
+	requestor, err := s.auth.RequireUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if requestor == nil {
+		return nil, status.Error(codes.PermissionDenied, "User not logged in")
+	}
+	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.ViewStatistics); err != nil {
+		return nil, err
+	}
+	info, err := s.info.GetList(ctx)
+	if err != nil {
+		return nil, statusFromError(err)
+	}
+	return &userpb.UsersResponse{Data: info, Tracing: TraceIDOrNew(ctx)}, nil
+}
+
 func (s *UserService) DeleteSelfAvatar(ctx context.Context, _ *emptypb.Empty) (*userpb.EmptyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "DeleteSelfAvatar is not implemented")
 }

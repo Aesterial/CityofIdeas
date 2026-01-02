@@ -83,8 +83,8 @@ func NewSubmissionRepository(db *sql.DB) *SubmissionsRepository {
 	return &SubmissionsRepository{DB: db}
 }
 
-func (u *UserRepository) GetList(ctx context.Context) ([]*userpb.UserSelf, error) {
-	var usrs []*userpb.UserSelf
+func (u *UserRepository) GetList(ctx context.Context) ([]*userpb.UserPublic, error) {
+	var usrs []*userpb.UserPublic
 	rows, err := u.DB.QueryContext(ctx, "SELECT u.uid, u.username, (u.email).address, (u.email).verified, ((u.settings).avatar).data, ((u.settings).avatar).content_type, (u.rank).name, (u.rank).expires, u.joined FROM users u ORDER BY u.joined")
 	if err != nil {
 		return nil, err
@@ -93,11 +93,12 @@ func (u *UserRepository) GetList(ctx context.Context) ([]*userpb.UserSelf, error
 		_ = rows.Close()
 	}()
 	for rows.Next() {
-		var usr userpb.UserSelf
-		if err := rows.Scan(&usr.Public.UserID, &usr.Public.Username, &usr.Email.Address, &usr.Email.Verified, &usr.Public.Settings.Avatar.Data, &usr.Public.Settings.Avatar.ContentType, &usr.Public.Rank.Name, &usr.Public.Rank.Expires, &usr.Public.JoinedAt); err != nil {
+		var usr = user.User{Settings: &user.Settings{Avatar: &user.Avatar{}}, Rank: &rank.Rank{}, Email: &user.Email{}}
+		var av user.Avatar
+		if err := rows.Scan(&usr.UID, &usr.Username, &usr.Email.Address, &usr.Email.Verified, &usr.Settings.Avatar.Data, &usr.Settings.Avatar.ContentType, &usr.Rank.Name, &usr.Rank.Expires, &usr.Joined); err != nil {
 			return nil, err
 		}
-		usrs = append(usrs, &usr)
+		usrs = append(usrs, usr.ToPublic())
 	}
 	return usrs, nil
 }

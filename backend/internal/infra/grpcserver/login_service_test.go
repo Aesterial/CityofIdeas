@@ -202,7 +202,7 @@ func (u *userRepoStub) UnBan(ctx context.Context, uid uint) error {
 	return nil
 }
 
-func (u *userRepoStub) GetList(ctx context.Context) ([]*userpb.UserSelf, error) {
+func (u *userRepoStub) GetList(ctx context.Context) ([]*userpb.UserPublic, error) {
 	return nil, nil
 }
 

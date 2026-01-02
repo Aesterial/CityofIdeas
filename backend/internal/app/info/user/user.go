@@ -3,6 +3,7 @@ package user
 import (
 	"ascendant/backend/internal/domain/sessions"
 	"ascendant/backend/internal/domain/user"
+	userpb "ascendant/backend/internal/gen/user/v1"
 	"ascendant/backend/internal/infra/logger"
 	apperrors "ascendant/backend/internal/shared/errors"
 	"context"
@@ -86,6 +87,10 @@ func (s *Service) BanInfo(ctx context.Context, uid uint) (*user.BanInfo, error) 
 		return nil, errors.New("argument is empty")
 	}
 	return s.repo.BanInfo(ctx, uid)
+}
+
+func (s *Service) GetList(ctx context.Context) ([]*userpb.UserPublic, error) {
+	return s.repo.GetList(ctx)
 }
 
 func (s *Service) GetUserSessionLiveTime(ctx context.Context, uid uint) (*user.SessionTime, error) {

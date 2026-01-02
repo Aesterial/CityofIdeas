@@ -8,7 +8,7 @@ import (
 )
 
 type Repository interface {
-	GetList(ctx context.Context) ([]*user.UserSelf, error)
+	GetList(ctx context.Context) ([]*user.UserPublic, error)
 	GetUID(ctx context.Context, username string) (uint, error)
 	GetUsername(ctx context.Context, uid uint) (string, error)
 	GetEmail(ctx context.Context, uid uint) (*Email, error)
