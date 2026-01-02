@@ -100,7 +100,7 @@ export function Header() {
     ...(status === "authenticated"
       ? [{ href: "/account", label: t("account"), icon: UserCircle }]
       : [{ href: "/auth", label: t("login"), icon: LogIn }]),
-    ...(hasAdminAccess ? [{ href: "/admin", label: "Admin panel", icon: Shield }] : []),
+    ...(hasAdminAccess ? [{ href: "/admin", label: t("adminPanel"), icon: Shield }] : []),
   ]
 
   useEffect(() => {
@@ -526,7 +526,7 @@ export function Header() {
                   <DropdownMenuItem asChild>
                     <Link href="/admin">
                       <Shield className="h-4 w-4" />
-                      Admin panel
+                      {t("adminPanel")}
                     </Link>
                   </DropdownMenuItem>
                 ) : null}

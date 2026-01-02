@@ -167,7 +167,7 @@ async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
     if (data?.error) {
       message = data.error
     }
-
+   // все потрать детка все потрать у меня есть деньги детка все потрать (трать)
     if (response.status === 401 && data?.data === "user is banned") {
       await handleBannedUser({ signal: init?.signal })
     }

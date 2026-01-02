@@ -1,7 +1,36 @@
+﻿
 "use client"
 
 import { Logo } from "@/components/logo"
 import { useTheme } from "@/components/theme-provider"
+import { motion } from "framer-motion"
+import {
+  Ban,
+  BarChart3,
+  CheckCircle2,
+  ChevronDown,
+  Globe,
+  Image as ImageIcon,
+  LogOut,
+  Menu,
+  MessageSquare,
+  Moon,
+  Shield,
+  Sparkles,
+  Sun,
+  TrendingUp,
+  Users,
+  UserX,
+  Vote,
+  X,
+} from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useMemo, useState } from "react"
+import { toast } from "sonner"
+import { useAuth } from "@/components/auth-provider"
+import { useLanguage } from "@/components/language-provider"
+import { fetchUserBanInfo, fetchUsers, handleBannedUser, type BanInfo } from "@/lib/api"
 import {
   ChartContainer,
   ChartLegend,
@@ -9,47 +38,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { motion } from "framer-motion"
-import {
-  Ban,
-  BarChart3,
-  Bell,
-  ChevronDown,
-  CheckCircle2,
-  Globe,
-  Image as ImageIcon,
-  Lock,
-  LogOut,
-  MessageSquare,
-  Moon,
-  Settings,
-  Shield,
-  Sun,
-  TrendingUp,
-  Users,
-  UserX,
-  Vote,
-} from "lucide-react"
-import Image from "next/image"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  XAxis,
-  YAxis,
-} from "recharts"
-import { toast } from "sonner"
-import { useAuth } from "@/components/auth-provider"
-import { useLanguage } from "@/components/language-provider"
-import { fetchUserBanInfo, fetchUsers, handleBannedUser, type BanInfo } from "@/lib/api"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,58 +46,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, XAxis, YAxis } from "recharts"
 
-// import { useRouter } from "next/navigation"
-
-const sidebarItems = [
-  { id: "submissions", label: "Одобрение проектов", icon: CheckCircle2, href: "/admin/submissions" },
-  { id: "users", label: "Пользователи", icon: Users, href: "/admin/users" },
-  { id: "voting", label: "Голосование", icon: Vote, href: "#voting" },
-  { id: "stats", label: "Статистика", icon: BarChart3, href: "#stats" },
-  { id: "media", label: "Медиа", icon: ImageIcon, href: "#media" },
-]
-
-const statsCards: Array<{
-  id: StatCardId
-  title: string
-  value: string
-  delta: string
-  note: string
-  icon: typeof Users
-}> = [
-    {
-      id: "activeUsers",
-      title: "Активные пользователи",
-      value: "3 482",
-      delta: "+12%",
-      note: "за сутки",
-      icon: Users,
-    },
-    {
-      id: "offlineUsers",
-      title: "Оффлайн",
-      value: "214",
-      delta: "-3%",
-      note: "сейчас не в сети",
-      icon: UserX,
-    },
-    {
-      id: "newIdeas",
-      title: "Новых идей",
-      value: "128",
-      delta: "+18%",
-      note: "за сутки",
-      icon: TrendingUp,
-    },
-    {
-      id: "votes",
-      title: "Голосов сегодня",
-      value: "1 946",
-      delta: "+9%",
-      note: "с 00:00",
-      icon: Vote,
-    },
-  ]
+const sectionVariants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0 },
+}
 
 type UserStatus = "active" | "banned"
 
@@ -125,19 +67,12 @@ type User = {
   reports: number
 }
 
-type SubmissionState = "pending" | "approved" | "declined"
-
-type UsersActivityResponse = {
-  data?: Record<string, { active?: number; offline?: number }>
-}
-
-type VoteCategoriesResponse = {
-  record?: Array<{ name?: string; posts?: number }>
-}
-
 type CountResponse = {
   count?: number
 }
+
+type VoteCategoryRecord = { name?: string; posts?: number }
+type TopCategoriesResponse = { record?: VoteCategoryRecord[] }
 
 type IdeasRecapResponse = {
   approved?: number
@@ -145,184 +80,23 @@ type IdeasRecapResponse = {
   declined?: number
 }
 
-type EditorsGrade = {
-  good?: number
-  bad?: number
+type UsersActivityResponse = {
+  data?: Record<string, { active?: number; offline?: number }>
 }
 
-type EditorsGradeResponse = {
-  photos?: EditorsGrade
-  videos?: EditorsGrade
-  graphics?: EditorsGrade
-}
+type Grade = { good?: number; bad?: number }
+type EditorsGradeResponse = { photos?: Grade; videos?: Grade; graphics?: Grade }
 
-type MediaCoverageResponse = {
-  medias?: Record<string, { photos?: number; videos?: number }>
-}
+type MediaCoverageResponse = { medias?: Record<string, { photos?: number; videos?: number }> }
 
 type StatCardId = "activeUsers" | "offlineUsers" | "newIdeas" | "votes"
-
 type StatsSummary = Record<StatCardId, number | null>
 
-const timeRanges = [
-  { id: "day", label: "24h", days: 1 },
-  { id: "3d", label: "3d", days: 3 },
-  { id: "week", label: "7d", days: 7 },
-]
-
-const votingRounds = [
-  {
-    title: "Освещение в Центральном районе",
-    progress: 72,
-    voters: "1 543",
-    end: "18 ноя",
-  },
-  {
-    title: "Пешеходные переходы у школ",
-    progress: 48,
-    voters: "987",
-    end: "24 ноя",
-  },
-  {
-    title: "Дворовые площадки и спорт",
-    progress: 63,
-    voters: "1 214",
-    end: "30 ноя",
-  },
-]
-
-const activitySeed = [
-  { day: "Пн", active: 3120, offline: 420 },
-  { day: "Вт", active: 3280, offline: 380 },
-  { day: "Ср", active: 2950, offline: 460 },
-  { day: "Чт", active: 3490, offline: 320 },
-  { day: "Пт", active: 3710, offline: 290 },
-  { day: "Сб", active: 3880, offline: 260 },
-  { day: "Вс", active: 3420, offline: 340 },
-]
-
-const votingSeed = [
-  { category: "Благоустройство", votes: 820 },
-  { category: "Транспорт", votes: 640 },
-  { category: "Экология", votes: 540 },
-  { category: "Дворы", votes: 380 },
-]
-
-const statusSeed = [
-  { name: "Pending", value: 0, key: "pending" },
-  { name: "Approved", value: 0, key: "approved" },
-  { name: "Declined", value: 0, key: "declined" },
-]
-
-const mediaSeed = [
-  { week: "Нед 1", photos: 240, videos: 110 },
-  { week: "Нед 2", photos: 280, videos: 140 },
-  { week: "Нед 3", photos: 320, videos: 160 },
-  { week: "Нед 4", photos: 360, videos: 180 },
-]
-
-const qualitySeed = [
-  { key: "photos", label: "Photos", score: 0 },
-  { key: "videos", label: "Videos", score: 0 },
-  { key: "graphics", label: "Graphics", score: 0 },
-]
-
-
-
-const activityConfig = {
-  active: {
-    label: "Активные",
-    color: "var(--foreground)",
-  },
-  offline: {
-    label: "Оффлайн",
-    color: "var(--muted-foreground)",
-  },
-}
-
-const votingConfig = {
-  votes: {
-    label: "Голоса",
-    color: "var(--foreground)",
-  },
-}
-
-const statusConfig = {
-  pending: { label: "Pending", color: "var(--chart-4)" },
-  approved: { label: "Approved", color: "var(--chart-2)" },
-  declined: { label: "Declined", color: "var(--chart-1)" },
-}
-
-const mediaConfig = {
-  photos: { label: "Фото", color: "var(--foreground)" },
-  videos: { label: "Видео", color: "var(--muted-foreground)" },
-}
-
-const sectionVariants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0 },
-}
-
-const listVariants = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08 } },
-}
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0 },
-}
-
-const submissionStatusLabels: Record<SubmissionState, string> = {
-  pending: "Pending",
-  approved: "Approved",
-  declined: "Declined",
-}
-
-const dayLabelFormatter = new Intl.DateTimeFormat("en-GB", {
-  month: "short",
-  day: "2-digit",
-})
-const timeLabelFormatter = new Intl.DateTimeFormat("en-GB", {
-  hour: "2-digit",
-  minute: "2-digit",
-})
-
-const formatCompactNumber = (value: number) => {
-  if (!Number.isFinite(value)) {
-    return "0"
-  }
-
-  const abs = Math.abs(value)
-  if (abs >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(abs >= 10_000_000 ? 0 : 1)}m`
-  }
-  if (abs >= 1_000) {
-    return `${(value / 1_000).toFixed(abs >= 10_000 ? 0 : 1)}k`
-  }
-  return `${value}`
-}
-
-const formatCategoryLabel = (value: string) => {
-  const trimmed = value.trim()
-  if (trimmed.length <= 12) {
-    return trimmed
-  }
-  return `${trimmed.slice(0, 9)}...`
-}
-
-const normalizeTimestampMs = (value: number) => (value > 1_000_000_000_000 ? value : value * 1000)
-
-const formatActivityLabel = (timestampMs: number, rangeDays: number) => {
-  const date = new Date(timestampMs)
-  return rangeDays <= 1 ? timeLabelFormatter.format(date) : dayLabelFormatter.format(date)
-}
-
-const fullNumberFormatter = new Intl.NumberFormat("en-US")
-
-const formatFullNumber = (value: number) => fullNumberFormatter.format(value)
-
-const formatMediaLabel = (timestampMs: number) => dayLabelFormatter.format(new Date(timestampMs))
+type ActivityPoint = { label: string; timestamp: number; active: number; offline: number }
+type VoteCategory = { category: string; votes: number }
+type MediaCoveragePoint = { label: string; timestamp: number; photos: number; videos: number }
+type QualityScore = { type: string; score: number }
+type ActivityRange = "24h" | "3d" | "7d"
 
 const userDateFormatter = new Intl.DateTimeFormat("en-GB", {
   day: "2-digit",
@@ -331,38 +105,18 @@ const userDateFormatter = new Intl.DateTimeFormat("en-GB", {
 })
 
 const formatUserDate = (value?: string) => {
-  if (!value) {
-    return "-"
-  }
+  if (!value) return "-"
   const date = new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return "-"
-  }
+  if (Number.isNaN(date.getTime())) return "-"
   return userDateFormatter.format(date)
 }
 
 const isBanActive = (banInfo: BanInfo | null) => {
-  if (!banInfo) {
-    return false
-  }
-  if (!banInfo.expires) {
-    return true
-  }
+  if (!banInfo) return false
+  if (!banInfo.expires) return true
   const expiresAt = new Date(banInfo.expires).getTime()
-  if (!Number.isFinite(expiresAt)) {
-    return true
-  }
+  if (!Number.isFinite(expiresAt)) return true
   return expiresAt > Date.now()
-}
-
-const toQualityScore = (grade?: EditorsGrade) => {
-  const good = Number(grade?.good ?? 0)
-  const bad = Number(grade?.bad ?? 0)
-  const total = good + bad
-  if (total <= 0) {
-    return 0
-  }
-  return Math.round((good / total) * 100)
 }
 
 const DEFAULT_API_BASE_URL = "http://127.0.0.1:8080"
@@ -405,30 +159,171 @@ export default function AdminPage() {
   const { theme, toggleTheme } = useTheme()
   const { logout, user } = useAuth()
   const { language, setLanguage, t } = useLanguage()
+
   const [mounted, setMounted] = useState(false)
-  const [rangeDays, setRangeDays] = useState(timeRanges[2].days)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [activeSection, setActiveSection] = useState("overview")
+
   const [statsSummary, setStatsSummary] = useState<StatsSummary>({
     activeUsers: null,
     offlineUsers: null,
     newIdeas: null,
     votes: null,
   })
-  const [activityData, setActivityData] = useState(activitySeed)
-  const [statusData, setStatusData] = useState(statusSeed)
-  const [votingData, setVotingData] = useState(votingSeed)
-  const [mediaData, setMediaData] = useState(mediaSeed)
-  const [qualityScores, setQualityScores] = useState(qualitySeed)
   const [users, setUsers] = useState<User[]>([])
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
   const [banReason, setBanReason] = useState("Спам, мультиаккаунты, повторные жалобы")
-  // const push = useRouter();
+
+  const [voteCategories, setVoteCategories] = useState<VoteCategory[]>([])
+  const [ideasApproval, setIdeasApproval] = useState<{
+    approved: number | null
+    waiting: number | null
+    declined: number | null
+  }>({
+    approved: null,
+    waiting: null,
+    declined: null,
+  })
+  const [activityRange, setActivityRange] = useState<ActivityRange>("7d")
+  const [activityPoints, setActivityPoints] = useState<ActivityPoint[]>([])
+  const [mediaCoveragePoints, setMediaCoveragePoints] = useState<MediaCoveragePoint[]>([])
+  const [qualityScores, setQualityScores] = useState<QualityScore[]>([])
+  const [audienceSnapshot, setAudienceSnapshot] = useState<{ active: number | null; offline: number | null }>({
+    active: null,
+    offline: null,
+  })
+
   const displayName = user?.displayName || user?.username || ""
   const initials = (displayName || "U").slice(0, 2).toUpperCase()
+
   const languageOptions = [
     { code: "RU" as const, label: "RU" },
     { code: "EN" as const, label: "EN" },
     { code: "KZ" as const, label: "KZ" },
   ]
+
+  const locale = language === "KZ" ? "kk-KZ" : language === "RU" ? "ru-RU" : "en-US"
+
+  const sidebarItems = useMemo(
+    () => [
+      { id: "overview", label: t("adminStatsTitle"), icon: BarChart3, href: "#overview" },
+      { id: "analytics", label: t("adminStatsActivityTitle"), icon: TrendingUp, href: "#analytics" },
+      { id: "media", label: t("adminMediaTitle"), icon: ImageIcon, href: "#media" },
+      { id: "users", label: t("adminAccessModerationTitle"), icon: Shield, href: "#users" },
+      { id: "submissions", label: t("adminSubmissionsTitle"), icon: CheckCircle2, href: "/admin/submissions" },
+    ],
+    [language, t],
+  )
+
+  const statsCards = [
+    { id: "activeUsers" as const, title: t("adminStatsActiveUsers"), icon: Users },
+    { id: "offlineUsers" as const, title: t("adminStatsOfflineUsers"), icon: UserX },
+    { id: "newIdeas" as const, title: t("adminStatsNewIdeas"), icon: Users },
+    { id: "votes" as const, title: t("adminStatsVotes"), icon: Vote },
+  ]
+
+  const activityRanges = useMemo(
+    () => [
+      { id: "24h" as const, label: t("adminStatsRange24h"), days: 1 },
+      { id: "3d" as const, label: t("adminStatsRange3d"), days: 3 },
+      { id: "7d" as const, label: t("adminStatsRange7d"), days: 7 },
+    ],
+    [t],
+  )
+
+  const activityRangeDays = activityRanges.find((range) => range.id === activityRange)?.days ?? 7
+
+  const activityFallback = useMemo(() => {
+    const formatter = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" })
+    const now = new Date()
+    const baseActive = statsSummary.activeUsers ?? 0
+    const baseOffline = statsSummary.offlineUsers ?? 0
+
+    return Array.from({ length: activityRangeDays }, (_, index) => {
+      const date = new Date(now)
+      const steps = Math.max(activityRangeDays - 1, 0)
+      date.setDate(now.getDate() - (steps - index))
+      const growth = index * 0.08
+
+      return {
+        label: formatter.format(date),
+        timestamp: date.getTime(),
+        active: Math.max(0, Math.round(baseActive * (0.6 + growth))),
+        offline: Math.max(0, Math.round(baseOffline * (0.7 - growth * 0.6))),
+      }
+    })
+  }, [activityRangeDays, locale, statsSummary.activeUsers, statsSummary.offlineUsers])
+
+  const activityData = activityPoints.length ? activityPoints : activityFallback
+
+  const statusData = useMemo(
+    () => [
+      { status: t("statusPending"), value: ideasApproval.waiting ?? 0 },
+      { status: t("statusApproved"), value: ideasApproval.approved ?? 0 },
+      { status: t("statusDeclined"), value: ideasApproval.declined ?? 0 },
+    ],
+    [ideasApproval, t],
+  )
+
+  const votesByCategoryData = useMemo(
+    () =>
+      voteCategories.map((item) => ({
+        category: item.category,
+        votes: item.votes,
+      })),
+    [voteCategories],
+  )
+
+  const participationData = useMemo(() => {
+    const active = audienceSnapshot.active ?? statsSummary.activeUsers ?? 0
+    const offline = audienceSnapshot.offline ?? statsSummary.offlineUsers ?? 0
+    return [
+      { status: t("adminStatsActiveUsers"), value: active },
+      { status: t("adminStatsOfflineUsers"), value: offline },
+    ]
+  }, [audienceSnapshot.active, audienceSnapshot.offline, statsSummary.activeUsers, statsSummary.offlineUsers, t])
+
+  const mediaCoverageData = useMemo(() => mediaCoveragePoints, [mediaCoveragePoints])
+
+  const qualityData = useMemo(() => {
+    if (qualityScores.length) {
+      return qualityScores
+    }
+    return [
+      { type: t("adminMediaLabelPhotos"), score: 0 },
+      { type: t("adminMediaLabelVideos"), score: 0 },
+      { type: t("adminMediaLabelGraphics"), score: 0 },
+    ]
+  }, [qualityScores, t])
+
+  const activityConfig = {
+    active: {
+      label: t("adminStatsActiveUsers"),
+      color: "var(--color-chart-1)",
+    },
+    offline: {
+      label: t("adminStatsOfflineUsers"),
+      color: "var(--color-chart-2)",
+    },
+  }
+
+  const votesByCategoryConfig = {
+    votes: {
+      label: t("adminStatsVotes"),
+      color: "var(--color-chart-4)",
+    },
+  }
+
+  const mediaCoverageConfig = {
+    photos: {
+      label: t("adminMediaLabelPhotos"),
+      color: "var(--color-chart-1)",
+    },
+    videos: {
+      label: t("adminMediaLabelVideos"),
+      color: "var(--color-chart-2)",
+    },
+  }
 
   const handleLogout = async () => {
     await logout()
@@ -438,157 +333,111 @@ export default function AdminPage() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    const sectionIds = ["overview", "analytics", "media", "users"]
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.find((entry) => entry.isIntersecting)
+        if (visible?.target?.id) {
+          setActiveSection(visible.target.id)
+        }
+      },
+      { rootMargin: "-45% 0px -45% 0px" },
+    )
+
+    const elements = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => Boolean(el))
+
+    elements.forEach((el) => observer.observe(el))
+
+    return () => observer.disconnect()
+  }, [])
+
   useEffect(() => {
     const controller = new AbortController()
-    const sinceMs = Date.now() - rangeDays * 24 * 60 * 60 * 1000
+    const sinceMs = Date.now() - 24 * 60 * 60 * 1000
     const sinceParam = encodeURIComponent(new Date(sinceMs).toISOString())
+    const activityLimit = activityRangeDays
 
     const load = async () => {
       const [
-        activityResult,
-        categoriesResult,
         votesDayResult,
         ideasDayResult,
         activeUsersResult,
         offlineUsersResult,
+        categoriesResult,
         ideasRecapResult,
+        usersActivityResult,
         qualityRecapResult,
         mediaCoverageResult,
       ] = await Promise.allSettled([
-        requestJson<UsersActivityResponse>(`/api/statistics/activity/users/${rangeDays}`, controller.signal),
-        requestJson<VoteCategoriesResponse>("/api/statistics/categories/4", controller.signal),
         requestJson<CountResponse>("/api/statistics/votes", controller.signal),
         requestJson<CountResponse>("/api/statistics/ideas", controller.signal),
         requestJson<CountResponse>(`/api/statistics/users/active/${sinceParam}`, controller.signal),
         requestJson<CountResponse>(`/api/statistics/users/offline/${sinceParam}`, controller.signal),
+        requestJson<TopCategoriesResponse>("/api/statistics/categories/5", controller.signal),
         requestJson<IdeasRecapResponse>("/api/statistics/ideas/recap", controller.signal),
+        requestJson<UsersActivityResponse>(`/api/statistics/activity/users/${activityLimit}`, controller.signal),
         requestJson<EditorsGradeResponse>("/api/statistics/quality/recap", controller.signal),
-        requestJson<MediaCoverageResponse>("/api/statistics/media/coverage?limit=4", controller.signal),
+        requestJson<MediaCoverageResponse>("/api/statistics/media/coverage", controller.signal),
       ])
 
       if (controller.signal.aborted) {
         return
       }
 
-      if (activityResult.status === "fulfilled") {
-        const entries = Object.entries(activityResult.value?.data ?? {})
-          .map(([key, value]) => {
-            const timestamp = Number(key)
-            if (!Number.isFinite(timestamp)) {
-              return null
-            }
-            return {
-              timestamp: normalizeTimestampMs(timestamp),
-              active: Number(value?.active ?? 0),
-              offline: Number(value?.offline ?? 0),
-            }
-          })
-          .filter((item): item is { timestamp: number; active: number; offline: number } => Boolean(item))
-          .sort((a, b) => a.timestamp - b.timestamp)
-          .map((item) => ({
-            day: formatActivityLabel(item.timestamp, rangeDays),
-            active: item.active,
-            offline: item.offline,
-          }))
-
-        setActivityData(entries)
-      } else if (activityResult.reason) {
-        toast.error("Failed to load audience activity", {
-          description: activityResult.reason instanceof Error ? activityResult.reason.message : undefined,
-        })
-      }
-
-      if (categoriesResult.status === "fulfilled") {
-        const records = categoriesResult.value?.record ?? []
-        setVotingData(
-          records.map((record) => ({
-            category: record?.name ?? "Unknown",
-            votes: record?.posts ?? 0,
-          })),
-        )
-      } else if (categoriesResult.reason) {
-        toast.error("Failed to load vote categories", {
-          description: categoriesResult.reason instanceof Error ? categoriesResult.reason.message : undefined,
-        })
-      }
-
       if (votesDayResult.status !== "fulfilled" && votesDayResult.reason) {
-        toast.error("Failed to load vote count", {
+        toast.error(t("adminErrorLoadVoteCount"), {
           description: votesDayResult.reason instanceof Error ? votesDayResult.reason.message : undefined,
         })
       }
 
       if (ideasDayResult.status !== "fulfilled" && ideasDayResult.reason) {
-        toast.error("Failed to load ideas count", {
+        toast.error(t("adminErrorLoadIdeasCount"), {
           description: ideasDayResult.reason instanceof Error ? ideasDayResult.reason.message : undefined,
         })
       }
 
       if (activeUsersResult.status !== "fulfilled" && activeUsersResult.reason) {
-        toast.error("Failed to load active users", {
+        toast.error(t("adminErrorLoadActiveUsers"), {
           description: activeUsersResult.reason instanceof Error ? activeUsersResult.reason.message : undefined,
         })
       }
 
       if (offlineUsersResult.status !== "fulfilled" && offlineUsersResult.reason) {
-        toast.error("Failed to load offline users", {
+        toast.error(t("adminErrorLoadOfflineUsers"), {
           description: offlineUsersResult.reason instanceof Error ? offlineUsersResult.reason.message : undefined,
         })
       }
 
-      if (ideasRecapResult.status === "fulfilled") {
-        const approved = Number(ideasRecapResult.value?.approved ?? 0)
-        const waiting = Number(ideasRecapResult.value?.waiting ?? 0)
-        const declined = Number(ideasRecapResult.value?.declined ?? 0)
+      if (categoriesResult.status !== "fulfilled" && categoriesResult.reason) {
+        toast.error(t("adminErrorLoadVoteCategories"), {
+          description: categoriesResult.reason instanceof Error ? categoriesResult.reason.message : undefined,
+        })
+      }
 
-        setStatusData([
-          { key: "pending", name: submissionStatusLabels.pending, value: waiting },
-          { key: "approved", name: submissionStatusLabels.approved, value: approved },
-          { key: "declined", name: submissionStatusLabels.declined, value: declined },
-        ])
-      } else if (ideasRecapResult.reason) {
-        toast.error("Failed to load ideas recap", {
+      if (ideasRecapResult.status !== "fulfilled" && ideasRecapResult.reason) {
+        toast.error(t("adminErrorLoadIdeasRecap"), {
           description: ideasRecapResult.reason instanceof Error ? ideasRecapResult.reason.message : undefined,
         })
       }
 
-      if (qualityRecapResult.status === "fulfilled") {
-        const grade = qualityRecapResult.value ?? {}
-        setQualityScores([
-          { key: "photos", label: "Photos", score: toQualityScore(grade.photos) },
-          { key: "videos", label: "Videos", score: toQualityScore(grade.videos) },
-          { key: "graphics", label: "Graphics", score: toQualityScore(grade.graphics) },
-        ])
-      } else if (qualityRecapResult.reason) {
-        toast.error("Failed to load quality recap", {
+      if (usersActivityResult.status !== "fulfilled" && usersActivityResult.reason) {
+        toast.error(t("adminErrorLoadAudience"), {
+          description: usersActivityResult.reason instanceof Error ? usersActivityResult.reason.message : undefined,
+        })
+      }
+
+      if (qualityRecapResult.status !== "fulfilled" && qualityRecapResult.reason) {
+        toast.error(t("adminErrorLoadQualityRecap"), {
           description: qualityRecapResult.reason instanceof Error ? qualityRecapResult.reason.message : undefined,
         })
       }
 
-      if (mediaCoverageResult.status === "fulfilled") {
-        const records = Object.entries(mediaCoverageResult.value?.medias ?? {})
-          .map(([key, value]) => {
-            const timestamp = Number(key)
-            if (!Number.isFinite(timestamp)) {
-              return null
-            }
-            return {
-              timestamp: normalizeTimestampMs(timestamp),
-              photos: Number(value?.photos ?? 0),
-              videos: Number(value?.videos ?? 0),
-            }
-          })
-          .filter((item): item is { timestamp: number; photos: number; videos: number } => Boolean(item))
-          .sort((a, b) => a.timestamp - b.timestamp)
-          .map((item) => ({
-            week: formatMediaLabel(item.timestamp),
-            photos: item.photos,
-            videos: item.videos,
-          }))
-
-        setMediaData(records)
-      } else if (mediaCoverageResult.reason) {
-        toast.error("Failed to load media coverage", {
+      if (mediaCoverageResult.status !== "fulfilled" && mediaCoverageResult.reason) {
+        toast.error(t("adminErrorLoadMediaCoverage"), {
           description: mediaCoverageResult.reason instanceof Error ? mediaCoverageResult.reason.message : undefined,
         })
       }
@@ -602,19 +451,103 @@ export default function AdminPage() {
           offlineUsersResult.status === "fulfilled"
             ? Number(offlineUsersResult.value?.count ?? 0)
             : prev.offlineUsers,
-        newIdeas:
-          ideasDayResult.status === "fulfilled"
-            ? Number(ideasDayResult.value?.count ?? 0)
-            : prev.newIdeas,
-        votes:
-          votesDayResult.status === "fulfilled" ? Number(votesDayResult.value?.count ?? 0) : prev.votes,
+        newIdeas: ideasDayResult.status === "fulfilled" ? Number(ideasDayResult.value?.count ?? 0) : prev.newIdeas,
+        votes: votesDayResult.status === "fulfilled" ? Number(votesDayResult.value?.count ?? 0) : prev.votes,
+      }))
+
+      if (categoriesResult.status === "fulfilled") {
+        const mapped = (categoriesResult.value.record ?? []).map((item) => ({
+          category: item.name || t("other"),
+          votes: Number(item.posts ?? 0),
+        }))
+        setVoteCategories(mapped)
+      }
+
+      if (ideasRecapResult.status === "fulfilled") {
+        setIdeasApproval({
+          approved: Number(ideasRecapResult.value?.approved ?? 0),
+          waiting: Number(ideasRecapResult.value?.waiting ?? 0),
+          declined: Number(ideasRecapResult.value?.declined ?? 0),
+        })
+      }
+
+      if (usersActivityResult.status === "fulfilled") {
+        const formatter = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" })
+        const mapped = Object.entries(usersActivityResult.value?.data ?? {})
+          .map(([key, value]) => {
+            const timestamp = Number(key) * 1000
+            if (!Number.isFinite(timestamp)) return null
+            const active = Number(value?.active ?? 0)
+            const offline = Number(value?.offline ?? 0)
+            return {
+              label: formatter.format(new Date(timestamp)),
+              timestamp,
+              active,
+              offline,
+            }
+          })
+          .filter((item): item is ActivityPoint => Boolean(item))
+          .sort((a, b) => a.timestamp - b.timestamp)
+
+        setActivityPoints(mapped)
+
+        const latest = mapped[mapped.length - 1]
+        if (latest) {
+          setAudienceSnapshot((prev) => ({
+            active: latest.active ?? prev.active,
+            offline: latest.offline ?? prev.offline,
+          }))
+        }
+      }
+
+      if (qualityRecapResult.status === "fulfilled") {
+        const computeScore = (grade?: Grade) => {
+          const good = Number(grade?.good ?? 0)
+          const bad = Number(grade?.bad ?? 0)
+          const total = good + bad
+          if (total === 0) return 0
+          return Math.round((good / total) * 100)
+        }
+        setQualityScores([
+          { type: t("adminMediaLabelPhotos"), score: computeScore(qualityRecapResult.value.photos) },
+          { type: t("adminMediaLabelVideos"), score: computeScore(qualityRecapResult.value.videos) },
+          { type: t("adminMediaLabelGraphics"), score: computeScore(qualityRecapResult.value.graphics) },
+        ])
+      }
+
+      if (mediaCoverageResult.status === "fulfilled") {
+        const formatter = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" })
+        const mapped = Object.entries(mediaCoverageResult.value?.medias ?? {})
+          .map(([key, value]) => {
+            const timestamp = Number(key) * 1000
+            if (!Number.isFinite(timestamp)) return null
+            return {
+              label: formatter.format(new Date(timestamp)),
+              timestamp,
+              photos: Number(value?.photos ?? 0),
+              videos: Number(value?.videos ?? 0),
+            }
+          })
+          .filter((item): item is MediaCoveragePoint => Boolean(item))
+          .sort((a, b) => a.timestamp - b.timestamp)
+
+        setMediaCoveragePoints(mapped)
+      }
+
+      setAudienceSnapshot((prev) => ({
+        active:
+          prev.active ??
+          (activeUsersResult.status === "fulfilled" ? Number(activeUsersResult.value?.count ?? 0) : null),
+        offline:
+          prev.offline ??
+          (offlineUsersResult.status === "fulfilled" ? Number(offlineUsersResult.value?.count ?? 0) : null),
       }))
     }
 
-    load()
+    void load()
 
     return () => controller.abort()
-  }, [rangeDays])
+  }, [activityRangeDays, locale, t])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -628,7 +561,7 @@ export default function AdminPage() {
           return
         }
         if (banResults.some((result) => result.status === "rejected")) {
-          toast.error("Failed to load some ban statuses")
+          toast.error(t("adminErrorLoadBanStatuses"))
         }
         const mapped = list.map((item, index) => {
           const banInfo = banResults[index].status === "fulfilled" ? banResults[index].value : null
@@ -639,341 +572,655 @@ export default function AdminPage() {
             name: item.displayName || item.username,
             username: item.username,
             email: item.username || "-",
-            role: item.rank?.name || "User",
+            role: item.rank?.name || t("labelUser"),
             status: isBanned ? "banned" : "active",
             lastActive: formatUserDate(item.joined),
             reports: 0,
           }
         })
         setUsers(mapped)
-        setSelectedUserId((prev) => prev ?? mapped[0]?.userID ?? null)
       } catch (error) {
         if (!controller.signal.aborted) {
-          toast.error("Failed to load users", {
+          toast.error(t("adminErrorLoadUsers"), {
             description: error instanceof Error ? error.message : undefined,
           })
           setUsers([])
-          setSelectedUserId(null)
         }
       }
     }
 
     void loadUsers()
     return () => controller.abort()
-  }, [])
-
-  // const routerpusher = push.push('/');
+  }, [t])
 
   const handleUserAction = (user: User, action: "block" | "unblock" | "reset" | "message") => {
     if (action === "block") {
-      toast.error("Пользователь заблокирован", {
-        description: `${user.name} - Причина: ${banReason}`,
+      toast.error(t("adminToastUserBlocked"), {
+        description: `${user.name} - ${t("adminBanReason")}: ${banReason}`,
       })
       return
     }
 
     if (action === "unblock") {
-      toast.success("Блокировка снята", {
-        description: `${user.name} снова может входить`,
+      toast.success(t("adminToastUserUnblocked"), {
+        description: user.name,
       })
       return
     }
 
     if (action === "reset") {
-      toast.message("Пароль сброшен", {
-        description: `Ссылка отправлена на ${user.email}`,
+      toast.message(t("adminToastPasswordReset"), {
+        description: user.name,
       })
       return
     }
 
-    toast.message("Сообщение отправлено", {
-      description: `Пользователь ${user.name} получил уведомление`,
+    toast.message(t("adminToastMessageSent"), {
+      description: user.name,
     })
   }
 
-  return (
-    <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
-      <div className="pointer-events-none absolute -top-40 right-0 h-[28rem] w-[28rem] rounded-full bg-foreground/5 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 left-0 h-[32rem] w-[32rem] rounded-full bg-foreground/10 blur-3xl" />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(0,0,0,0.04),transparent_45%,rgba(0,0,0,0.06))]" />
+  const handleSelectedAction = (action: "block" | "unblock" | "reset") => {
+    const selectedUser = users.find((item) => item.userID === selectedUserId)
+    if (!selectedUser) {
+      toast.message(t("adminToastSelectUser"))
+      return
+    }
+    handleUserAction(selectedUser, action)
+  }
 
-      <aside className="relative z-30 w-full border-b border-border/60 bg-background/90 backdrop-blur lg:fixed lg:inset-y-0 lg:left-0 lg:w-72 lg:border-b-0 lg:border-r">
-        <div className="flex flex-col gap-6 p-4 sm:p-6">
-          <div className="flex items-center justify-between lg:justify-start lg:gap-3">
-            <Link href="/" aria-label="Go to main site">
-              <Logo className="h-9 w-9 text-foreground" showText={false} />
-            </Link>
-            <div className="leading-tight">
-              <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Admin panel</p>
-              <p className="text-sm font-semibold">City of Ideas</p>
-            </div>
-            <div className="hidden items-center gap-2 lg:flex">
-              <Shield className="h-4 w-4 text-foreground" />
-              <span className="text-xs font-semibold">Moderator workspace</span>
-            </div>
-          </div>
-          <nav className="flex gap-3 overflow-x-auto pb-2 text-sm lg:flex-col lg:gap-2 lg:pb-0">
-            {sidebarItems.map((item) => {
-              const content = (
-                <>
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground text-background shadow-lg shadow-foreground/20 transition-transform duration-300 group-hover:scale-105">
-                    <item.icon className="h-4 w-4" />
-                  </span>
-                  <span className="font-medium">{item.label}</span>
-                </>
-              )
-
-              if (item.href.startsWith("/")) {
-                return (
-                  <Link
-                    key={item.id}
-                    href={item.href}
-                    className="group flex shrink-0 items-center gap-3 rounded-2xl border border-border/60 bg-card/80 px-4 py-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/30 hover:bg-card lg:rounded-xl"
-                  >
-                    {content}
-                  </Link>
-                )
-              }
-
-              return (
-                <a
-                  key={item.id}
-                  href={item.href}
-                  className="group flex shrink-0 items-center gap-3 rounded-2xl border border-border/60 bg-card/80 px-4 py-3 transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/30 hover:bg-card lg:rounded-xl"
-                >
-                  {content}
-                </a>
-              )
-            })}
-          </nav>
-
-          <div className="rounded-2xl border border-border/60 bg-card/80 p-4">
-            <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-foreground text-background">
-                <Bell className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-sm font-semibold">Notifications</p>
-                <p className="text-xs text-muted-foreground">3 new items</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              className="mt-4 w-full rounded-xl border border-foreground/20 bg-background px-4 py-2 text-xs font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
-              onClick={() => toast.message("View notifications")}
-            >
-              View notifications
-            </button>
-          </div>
-
-          <div className="rounded-2xl border border-border/60 bg-card/80 p-4">
-            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Theme</p>
-            <div className="mt-3 flex items-center justify-between gap-3 text-sm font-semibold">
-              <span>{mounted ? (theme === "light" ? "Light" : "Dark") : "Theme"}</span>
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-border/70 bg-background px-4 text-xs font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
-              >
-                {mounted ? (theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />) : null}
-                Toggle
-              </button>
-            </div>
-          </div>
+  const sidebar = (
+    <motion.aside
+      initial={{ opacity: 0, x: -24 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -24 }}
+      transition={{ duration: 0.3 }}
+      className="relative z-40 flex h-full w-full max-w-[260px] flex-col gap-4 rounded-3xl border border-border/70 bg-gradient-to-b from-background/95 via-background/80 to-background/70 p-5 shadow-[0_16px_40px_-30px_rgba(0,0,0,0.6)] backdrop-blur"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Logo className="h-9 w-9 text-foreground" showText={false} />
         </div>
-      </aside>
+        <button
+          type="button"
+          onClick={() => setSidebarOpen(false)}
+          className="lg:hidden inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/60 bg-background/80 text-sm hover:bg-foreground hover:text-background"
+          aria-label="Close menu"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
 
-      <div className="relative z-20 flex min-h-screen flex-col lg:pl-72">
-        <header className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur">
-          <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
-            <div className="flex items-center gap-4">
-              <Link href="/" aria-label="Go to main site">
-                <Logo className="h-9 w-9 text-foreground" showText={false} />
-              </Link>
-              <div>
-                <p className="text-lg font-semibold">Город идей | Административная панель</p>
-                <p className="text-xs text-muted-foreground">Контроль, аналитика и модерация</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background px-3 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
-                  >
-                    <Globe className="h-4 w-4" />
-                    {language}
-                    <ChevronDown className="h-3 w-3" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-[90px]">
-                  {languageOptions.map((option) => (
-                    <DropdownMenuItem key={option.code} onClick={() => setLanguage(option.code)}>
-                      {option.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className="flex items-center gap-3 rounded-full border border-border/60 bg-card/90 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
-                  >
-                    <Avatar className="h-9 w-9">
-                      <AvatarFallback className="text-xs font-semibold">{initials}</AvatarFallback>
-                    </Avatar>
-                    <span className="text-sm font-semibold">{displayName || user?.username || "admin"}</span>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuItem asChild>
-                    <Link href="/account">
-                      <Settings className="h-4 w-4" />
-                      {t("accountSettings")}
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onSelect={(event) => {
-                      event.preventDefault()
-                      void handleLogout()
-                    }}
-                  >
-                    <LogOut className="h-4 w-4" />
-                    {t("logout")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </header>
-
-        <main className="flex-1 px-4 pb-16 pt-8 sm:px-6">
-          <div className="mx-auto flex max-w-6xl flex-col gap-12">
-            <motion.section
-              id="users"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.5 }}
-              variants={sectionVariants}
-              className="space-y-6 scroll-mt-28"
+      <nav className="space-y-1">
+        {sidebarItems.map((item) => {
+          const isActive = activeSection === item.id
+          return (
+            <Link
+              key={item.id}
+              href={item.href}
+              className={`flex items-center gap-3 rounded-2xl border border-border/60 px-4 py-2 text-sm font-semibold transition-colors duration-300 ${isActive ? "bg-foreground text-background shadow-lg shadow-foreground/20" : "bg-card/90 hover:bg-foreground/90 hover:text-background"
+                }`}
+              onClick={() => setSidebarOpen(false)}
             >
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Пользователи</p>
-                  <h2 className="text-2xl font-bold">Контроль доступа и модерация</h2>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Link
-                    href="/admin/users"
-                    className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
-                  >
-                    Полная таблица
-                  </Link>
+              <item.icon className="h-4 w-4 shrink-0" />
+              <span className="truncate">{item.label}</span>
+            </Link>
+          )
+        })}
+      </nav>
+    </motion.aside>
+  )
+
+  return (
+    <div className="relative min-h-screen bg-background text-foreground">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255, 255, 255, 0.12),transparent_32%),radial-gradient(circle_at_80%_0%,rgba(151, 151, 151, 0.15),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.02),transparent_50%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.03),transparent_50%)]" />
+
+      {sidebarOpen ? (
+        <div className="fixed inset-0 z-30 bg-background/70 backdrop-blur lg:hidden">
+          <div className="absolute left-4 top-6">{sidebar}</div>
+        </div>
+      ) : null}
+
+      <div className="relative flex">
+        <div className="fixed left-6 top-6 hidden h-[calc(100vh-3rem)] lg:block">{sidebar}</div>
+
+        <div className="flex min-h-screen w-full flex-col lg:pl-[320px]  rounded-bl-[48px] overflow-hidden">
+          <header className="sticky top-0 z-20  backdrop-blur">
+            <div className="px-4 py-3 sm:px-6 lg:px-10">
+              <div className="relative overflow-hidden rounded-md border border-border/60 bg-card/80 shadow-[0_20px_40px_-32px_rgba(0,0,0,0.6)] sm:rounded-md">
+                <div className="pointer-events-none absolute inset-x-2 top-0 h-[3px] rounded-md opacity-80 sm:rounded-full" />
+                <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-4 lg:px-6">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setSidebarOpen(true)}
+                      className="lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/90 text-foreground shadow-sm hover:bg-foreground hover:text-background"
+                      aria-label="Open menu"
+                    >
+                      <Menu className="h-5 w-5" />
+                    </button>
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t("adminPanel")}</p>
+                        <p className="text-base font-semibold leading-tight text-foreground">{t("adminPanelSubtitle")}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+                    <button
+                      type="button"
+                      onClick={toggleTheme}
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-border/70 bg-background px-4 text-xs font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
+                    >
+                      {mounted ? (theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />) : null}
+                      {t("adminThemeToggle")}
+                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+                        >
+                          <Globe className="h-4 w-4" />
+                          {language}
+                          <ChevronDown className="h-3 w-3" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="min-w-[90px]">
+                        {languageOptions.map((option) => (
+                          <DropdownMenuItem key={option.code} onClick={() => setLanguage(option.code)}>
+                            {option.label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          className="flex items-center gap-3 rounded-full border border-border/60 bg-background/90 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
+                        >
+                          <Avatar className="h-9 w-9">
+                            <AvatarFallback className="text-xs font-semibold">{initials}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm font-semibold">{displayName || user?.username || "admin"}</span>
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuItem asChild>
+                          <Link href="/account">
+                            <Shield className="h-4 w-4" />
+                            {t("accountSettings")}
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onSelect={(event) => {
+                            event.preventDefault()
+                            void handleLogout()
+                          }}
+                        >
+                          <LogOut className="h-4 w-4" />
+                          {t("logout")}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               </div>
+            </div>
+          </header>
 
-              <div className="admin-moderation-grid grid grid-cols-1 gap-6">
-                <div className="order-1 min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold">Последние пользователи</p>
-                    <span className="text-xs text-muted-foreground">Обновлено минуту назад</span>
+          <main className="px-4 pb-16 pt-8 sm:px-6 lg:px-10">
+            <div className="mx-auto flex max-w-6xl flex-col gap-10">
+              <motion.section
+                id="overview"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5 }}
+                variants={sectionVariants}
+                className="space-y-6 scroll-mt-32"
+              >
+
+                <div>
+                  <h2 className="text-3xl font-bold leading-tight">{t("adminStatsSubtitle")}</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">{t("adminStatsActivitySubtitle")}</p>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  {statsCards.map((card) => {
+                    const value = statsSummary[card.id]
+                    const displayValue = value == null ? "-" : value.toLocaleString(locale)
+
+                    return (
+                      <div
+                        key={card.id}
+                        className="rounded-3xl border border-border/70 bg-card/90 p-5 shadow-[0_18px_40px_-30px_rgba(0,0,0,0.5)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_-32px_rgba(0,0,0,0.6)]"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-foreground text-background shadow-lg shadow-foreground/20">
+                            <card.icon className="h-5 w-5" />
+                          </div>
+                          <Sparkles className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div className="mt-4 text-2xl font-bold">{displayValue}</div>
+                        <p className="text-sm font-semibold text-muted-foreground">{card.title}</p>
+                      </div>
+                    )
+                  })}
+                </div>
+              </motion.section>
+
+              <motion.section
+                id="analytics"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5 }}
+                variants={sectionVariants}
+                className="space-y-6 scroll-mt-32"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t("adminStatsTitle")}</p>
+                    <h2 className="text-2xl font-bold">{t("adminStatsActivityTitle")}</h2>
+                    <p className="text-sm text-muted-foreground">{t("adminStatsActivitySubtitle")}</p>
                   </div>
-                  <div className="mt-4">
-                    <div className="space-y-3 sm:hidden">
-                      {users.map((user) => {
+                </div>
+
+                <div className="grid gap-6 lg:grid-cols-[1.6fr,1fr]">
+                  <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-semibold">{t("adminStatsActivityTitle")}</p>
+                        <p className="text-xs text-muted-foreground">{t("adminStatsActivitySubtitle")}</p>
+                      </div>
+                      <div className="flex items-center gap-1 rounded-full border border-border/70 bg-background/60 p-1">
+                        {activityRanges.map((range) => {
+                          const isActive = range.id === activityRange
+                          return (
+                            <button
+                              key={range.id}
+                              type="button"
+                              className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-300 ${
+                                isActive
+                                  ? "bg-foreground text-background shadow-sm"
+                                  : "text-muted-foreground hover:text-foreground"
+                              }`}
+                              onClick={() => setActivityRange(range.id)}
+                            >
+                              {range.label}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                    <ChartContainer config={activityConfig} className="mt-4 h-[220px] sm:h-[260px]">
+                      <AreaChart data={activityData} margin={{ left: 8, right: 8 }}>
+                        <defs>
+                          <linearGradient id="fillActive" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="var(--color-chart-1)" stopOpacity={0.4} />
+                            <stop offset="95%" stopColor="var(--color-chart-1)" stopOpacity={0.05} />
+                          </linearGradient>
+                          <linearGradient id="fillOffline" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="var(--color-chart-2)" stopOpacity={0.35} />
+                            <stop offset="95%" stopColor="var(--color-chart-2)" stopOpacity={0.05} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid vertical={false} />
+                        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
+                        <YAxis tickLine={false} axisLine={false} width={32} tick={{ fontSize: 11 }} />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Area
+                          type="monotone"
+                          dataKey="active"
+                          stroke="var(--color-chart-1)"
+                          fill="url(#fillActive)"
+                          strokeWidth={2}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="offline"
+                          stroke="var(--color-chart-2)"
+                          fill="url(#fillOffline)"
+                          strokeWidth={2}
+                        />
+                        <ChartLegend content={<ChartLegendContent />} />
+                      </AreaChart>
+                    </ChartContainer>
+                  </div>
+
+                  <div className="min-w-0 space-y-6">
+                    <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-semibold">{t("adminStatsStatusesTitle")}</p>
+                          <p className="text-xs text-muted-foreground">{t("adminStatsStatusesSubtitle")}</p>
+                        </div>
+                        <Vote className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <ChartContainer config={{}} className="mt-4 h-[200px] sm:h-[220px]">
+                        <PieChart>
+                          <ChartTooltip content={<ChartTooltipContent nameKey="status" />} />
+                          <Pie
+                            data={statusData}
+                            dataKey="value"
+                            nameKey="status"
+                            innerRadius={55}
+                            outerRadius={85}
+                            strokeWidth={2}
+                          >
+                            {statusData.map((entry, index) => (
+                              <Cell
+                                key={entry.status}
+                                fill={`var(--color-chart-${index + 1})`}
+                                stroke="var(--color-background)"
+                              />
+                            ))}
+                          </Pie>
+                        </PieChart>
+                      </ChartContainer>
+                      <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+                        {statusData.map((entry, index) => (
+                          <div key={entry.status} className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="h-2 w-2 rounded-full"
+                                style={{ backgroundColor: `var(--color-chart-${index + 1})` }}
+                              />
+                              <span>{entry.status}</span>
+                            </div>
+                            <span className="font-semibold text-foreground">{entry.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-semibold">{t("adminStatsActivityTitle")}</p>
+                          <p className="text-xs text-muted-foreground">{t("adminStatsActivitySubtitle")}</p>
+                        </div>
+                        <Users className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                      <ChartContainer config={{}} className="mt-4 h-[200px] sm:h-[220px]">
+                        <PieChart>
+                          <ChartTooltip content={<ChartTooltipContent nameKey="status" />} />
+                          <Pie
+                            data={participationData}
+                            dataKey="value"
+                            nameKey="status"
+                            innerRadius={50}
+                            outerRadius={80}
+                            strokeWidth={2}
+                          >
+                            {participationData.map((entry, index) => (
+                              <Cell
+                                key={entry.status}
+                                fill={`var(--color-chart-${index + 1})`}
+                                stroke="var(--color-background)"
+                              />
+                            ))}
+                          </Pie>
+                        </PieChart>
+                      </ChartContainer>
+                      <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+                        {participationData.map((entry, index) => (
+                          <div key={entry.status} className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="h-2 w-2 rounded-full"
+                                style={{ backgroundColor: `var(--color-chart-${index + 1})` }}
+                              />
+                              <span>{entry.status}</span>
+                            </div>
+                            <span className="font-semibold text-foreground">{entry.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid gap-6 lg:grid-cols-[1.2fr,1fr]">
+                  <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-semibold">{t("adminStatsVotesByCategoryTitle")}</p>
+                        <p className="text-xs text-muted-foreground">{t("adminStatsVotesByCategorySubtitle")}</p>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{t("adminStatsNoteSinceMidnight")}</span>
+                    </div>
+                    <ChartContainer config={votesByCategoryConfig} className="mt-4 h-[220px] sm:h-[240px]">
+                      <BarChart data={votesByCategoryData} margin={{ left: 8, right: 8 }}>
+                        <CartesianGrid vertical={false} />
+                        <XAxis dataKey="category" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
+                        <YAxis tickLine={false} axisLine={false} width={36} tick={{ fontSize: 11 }} />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Bar dataKey="votes" radius={[10, 10, 0, 0]}>
+                          {votesByCategoryData.map((item, index) => (
+                            <Cell key={item.category} fill={`var(--color-chart-${index + 2})`} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ChartContainer>
+                  </div>
+
+                  <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-semibold">{t("adminMediaQualityTitle")}</p>
+                        <p className="text-xs text-muted-foreground">{t("adminMediaQualitySubtitle")}</p>
+                      </div>
+                      <Shield className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <ChartContainer config={{}} className="mt-4 h-[220px] w-full">
+                      <BarChart data={qualityData} layout="vertical" margin={{ left: 8, right: 8 }}>
+                        <CartesianGrid horizontal={false} />
+                        <XAxis type="number" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
+                        <YAxis
+                          type="category"
+                          dataKey="type"
+                          tickLine={false}
+                          axisLine={false}
+                          width={90}
+                          tick={{ fontSize: 11 }}
+                        />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Bar dataKey="score" radius={[0, 10, 10, 0]}>
+                          {qualityData.map((item, index) => (
+                            <Cell key={item.type} fill={`var(--color-chart-${index + 1})`} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ChartContainer>
+                  </div>
+                </div>
+              </motion.section>
+
+              <motion.section
+                id="media"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5 }}
+                variants={sectionVariants}
+                className="space-y-6 scroll-mt-32"
+              >
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t("adminMediaTitle")}</p>
+                  <h2 className="text-2xl font-bold">{t("adminMediaSubtitle")}</h2>
+                </div>
+                <div className="grid gap-6 lg:grid-cols-[1.2fr,1fr]">
+                  <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-semibold">{t("adminMediaCoverageTitle")}</p>
+                        <p className="text-xs text-muted-foreground">{t("adminMediaCoverageSubtitle")}</p>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{t("adminMediaCoverageRange")}</span>
+                    </div>
+                    <ChartContainer config={mediaCoverageConfig} className="mt-4 h-[220px] sm:h-[240px]">
+                      <AreaChart data={mediaCoverageData} margin={{ left: 8, right: 8 }}>
+                        <defs>
+                          <linearGradient id="fillPhotos" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="var(--color-chart-1)" stopOpacity={0.35} />
+                            <stop offset="95%" stopColor="var(--color-chart-1)" stopOpacity={0.05} />
+                          </linearGradient>
+                          <linearGradient id="fillVideos" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="var(--color-chart-2)" stopOpacity={0.35} />
+                            <stop offset="95%" stopColor="var(--color-chart-2)" stopOpacity={0.05} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid vertical={false} />
+                        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
+                        <YAxis tickLine={false} axisLine={false} width={32} tick={{ fontSize: 11 }} />
+                        <ChartTooltip content={<ChartTooltipContent />} />
+                        <Area
+                          type="monotone"
+                          dataKey="photos"
+                          stroke="var(--color-chart-1)"
+                          fill="url(#fillPhotos)"
+                          strokeWidth={2}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="videos"
+                          stroke="var(--color-chart-2)"
+                          fill="url(#fillVideos)"
+                          strokeWidth={2}
+                        />
+                        <ChartLegend content={<ChartLegendContent />} />
+                      </AreaChart>
+                    </ChartContainer>
+                  </div>
+
+                  <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="text-sm font-semibold">{t("adminMediaQualityTitle")}</p>
+                        <p className="text-xs text-muted-foreground">{t("adminMediaQualitySubtitle")}</p>
+                      </div>
+                      <Shield className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div className="mt-4 space-y-3 text-sm text-muted-foreground">
+                      <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                        {t("adminMediaCoverageRange")}
+                      </p>
+                      <p className="text-sm">{t("adminMediaCoverageSubtitle")}</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.section>
+
+              <motion.section
+                id="users"
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5 }}
+                variants={sectionVariants}
+                className="space-y-6 scroll-mt-32"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t("labelUsers")}</p>
+                    <h2 className="text-2xl font-bold">{t("adminAccessModerationTitle")}</h2>
+                    <p className="text-sm text-muted-foreground">{t("adminAccessModerationSubtitle")}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Link
+                      href="/admin/users"
+                      className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+                    >
+                      {t("adminUsersViewAll")}
+                    </Link>
+                    <Link
+                      href="/admin/submissions"
+                      className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+                    >
+                      {t("adminSubmissionsTitle")}
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+                  <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold">{t("adminUsersListTitle")}</p>
+                      <span className="text-xs text-muted-foreground">{t("adminUsersListSubtitle")}</span>
+                    </div>
+                    <div className="mt-4 space-y-3">
+                      {users.slice(0, 6).map((user) => {
                         const ActionIcon = user.status === "banned" ? CheckCircle2 : Ban
-                        const actionTitle = user.status === "banned" ? "Unblock user" : "Block user"
+                        const actionTitle = user.status === "banned" ? t("actionUnblock") : t("actionBlock")
 
                         return (
                           <div key={user.id} className="rounded-2xl border border-border/60 bg-background/70 p-4">
                             <div className="flex items-start justify-between gap-3">
                               <div>
-                                <p className="text-sm font-semibold break-words">{user.name}</p>
-                                <p className="text-xs text-muted-foreground break-all">{user.email}</p>
+                                <p className="break-words text-sm font-semibold">{user.name}</p>
+                                <p className="break-all text-xs text-muted-foreground">{user.email}</p>
                                 <p className="text-xs text-muted-foreground">{user.lastActive}</p>
                               </div>
                               <span
-                                className={`rounded-full px-3 py-1 text-xs font-semibold ${user.status === "banned" ? "bg-destructive/10 text-destructive" : "bg-foreground text-background"}`}
+                                className={`rounded-full px-3 py-1 text-xs font-semibold ${user.status === "banned"
+                                    ? "bg-destructive/10 text-destructive"
+                                    : "bg-foreground text-background"
+                                  }`}
                               >
-                                {user.status === "banned" ? "Banned" : "Active"}
+                                {user.status === "banned" ? t("statusBanned") : t("statusActive")}
                               </span>
                             </div>
-                            <div className="mt-3 space-y-2 text-xs">
-                              <div className="flex items-center justify-between">
-                                <span className="text-muted-foreground uppercase tracking-[0.2em]">Role</span>
-                                <span className="text-sm font-semibold">{user.role}</span>
-                              </div>
-                              <div className="flex items-center justify-between">
-                                <span className="text-muted-foreground uppercase tracking-[0.2em]">Reports</span>
-                                <span className="text-sm font-semibold">{user.reports}</span>
-                              </div>
-                            </div>
-                            <div className="mt-4 flex justify-end gap-2">
+                            <div className="mt-3 flex justify-end gap-2">
+                              <button
+                                type="button"
+                                title={actionTitle}
+                                className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                onClick={() => handleUserAction(user, user.status === "banned" ? "unblock" : "block")}
+                              >
+                                <ActionIcon className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                title={t("actionResetPassword")}
+                                className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                onClick={() => handleUserAction(user, "reset")}
+                              >
+                                <Shield className="h-4 w-4" />
+                              </button>
+                              <button
+                                type="button"
+                                title={t("actionMessage")}
+                                className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                onClick={() => handleUserAction(user, "message")}
+                              >
+                                <MessageSquare className="h-4 w-4" />
+                              </button>
                             </div>
                           </div>
                         )
                       })}
                     </div>
-                    <div className="hidden overflow-hidden rounded-2xl border border-border/60 sm:block">
-                      <table className="w-full text-left text-sm">
-                        <thead className="bg-muted/60 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                          <tr>
-                            <th className="px-4 py-3">Пользователь</th>
-                            <th className="px-4 py-3">Роль</th>
-                            <th className="px-4 py-3">Статус</th>
-                            <th className="px-4 py-3 text-right">Жалобы</th>
-                            <th className="px-4 py-3 text-right">Действия</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {users.map((user) => {
-                            const ActionIcon = user.status === "banned" ? CheckCircle2 : Ban
-                            const actionTitle = user.status === "banned" ? "Снять бан" : "Заблокировать"
-
-                            return (
-                              <tr key={user.id} className="border-t border-border/50">
-                                <td className="px-4 py-4">
-                                  <div className="font-semibold">{user.name}</div>
-                                  <div className="text-xs text-muted-foreground">{user.email}</div>
-                                  <div className="text-xs text-muted-foreground">{user.lastActive}</div>
-                                </td>
-                                <td className="px-4 py-4 text-sm">{user.role}</td>
-                                <td className="px-4 py-4">
-                                  <span
-                                    className={`rounded-full px-3 py-1 text-xs font-semibold ${user.status === "banned" ? "bg-destructive/10 text-destructive" : "bg-foreground text-background"}`}
-                                  >
-                                    {user.status === "banned" ? "Banned" : "Active"}
-                                  </span>
-                                </td>
-                                <td className="px-4 py-4 text-right text-sm font-semibold">{user.reports}</td>
-                                <td className="px-4 py-4">
-                                  <div className="flex justify-end gap-2">
-                                  </div>
-                                </td>
-                              </tr>
-                            )
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
                   </div>
 
-                  <div className="order-2 flex flex-col gap-6">
+                  <div className="min-w-0 space-y-6">
                     <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-sm font-semibold">Блокировка пользоваzтеля</p>
-                          <p className="text-xs text-muted-foreground">Текущий выбор</p>
+                          <p className="text-sm font-semibold">{t("adminBanCardTitle")}</p>
+                          <p className="text-xs text-muted-foreground">{t("adminBanCardSubtitle")}</p>
                         </div>
                         <Ban className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <div className="mt-4 space-y-3">
-                        <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Пользователь</label>
+                        <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                          {t("adminBanSelectUser")}
+                        </label>
                         <select
                           className="w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
                           value={selectedUserId ?? ""}
@@ -982,367 +1229,79 @@ export default function AdminPage() {
                             setSelectedUserId(Number.isFinite(nextValue) ? nextValue : null)
                           }}
                         >
+                          <option value="">{t("adminBanSelectUser")}</option>
                           {users.map((user) => (
                             <option key={user.id} value={user.userID}>
                               {user.name}
                             </option>
                           ))}
                         </select>
-                        <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Причина</label>
+                        <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                          {t("adminBanReason")}
+                        </label>
                         <textarea
                           className="min-h-[90px] w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
                           value={banReason}
                           onChange={(event) => setBanReason(event.target.value)}
                         />
-                        <p className="text-xs text-muted-foreground">
-                          Эта причина будет показана пользователю на странице блокировки.
-                        </p>
+                        <p className="text-xs text-muted-foreground">{t("adminBanReasonHint")}</p>
                       </div>
                       <div className="mt-4 grid grid-cols-2 gap-3">
+                        <button
+                          type="button"
+                          className="rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/30"
+                          onClick={() => handleSelectedAction("block")}
+                        >
+                          {t("actionBlock")}
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded-full border border-border/70 px-4 py-2 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+                          onClick={() => handleSelectedAction("unblock")}
+                        >
+                          {t("actionUnblock")}
+                        </button>
+                        <button
+                          type="button"
+                          className="col-span-2 rounded-full border border-border/70 px-4 py-2 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+                          onClick={() => handleSelectedAction("reset")}
+                        >
+                          {t("actionResetPassword")}
+                        </button>
                       </div>
                     </div>
 
                     <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-sm font-semibold">Быстрые действия</p>
-                          <p className="text-xs text-muted-foreground">Администрирование</p>
+                          <p className="text-sm font-semibold">{t("adminModerationChecklistTitle")}</p>
+                          <p className="text-xs text-muted-foreground">{t("adminModerationChecklistSubtitle")}</p>
                         </div>
                         <Shield className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <div className="mt-4 space-y-3 text-sm">
                         {[
-                          { icon: CheckCircle2, label: 'Review approvals' },
-                          { icon: Lock, label: 'Security audit' },
-                          { icon: MessageSquare, label: 'Support inbox' },
+                          { icon: CheckCircle2, label: t("adminChecklistApprovals") },
+                          { icon: Shield, label: t("adminChecklistSecurityAudit") },
+                          { icon: MessageSquare, label: t("adminChecklistSupportInbox") },
                         ].map((item) => {
-                          const Icon = item.icon;
+                          const Icon = item.icon
 
                           return (
                             <div key={item.label} className="flex items-center gap-2">
                               <Icon className="h-4 w-4" />
                               <span>{item.label}</span>
                             </div>
-                          );
-                        })} {/* i fuck prettier, where my fucking formatter.... */}
+                          )
+                        })}
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </motion.section>
-
-            <motion.section
-              id="voting"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.5 }}
-              variants={sectionVariants}
-              className="space-y-6 scroll-mt-28"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Голосование</p>
-                  <h2 className="text-2xl font-bold">Активные кампании</h2>
-                </div>
-              </div>
-
-              <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-                <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
-                  <div className="space-y-6">
-                    {votingRounds.map((vote) => (
-                      <div key={vote.title} className="rounded-2xl border border-border/60 bg-background/70 p-5">
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
-                            <p className="text-base font-semibold">{vote.title}</p>
-                            <p className="text-xs text-muted-foreground">Завершение: {vote.end}</p>
-                          </div>
-                          <span className="rounded-full bg-foreground px-3 py-1 text-xs font-semibold text-background">
-                            Активно
-                          </span>
-                        </div>
-                        <div className="mt-4">
-                          <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            <span>Прогресс</span>
-                            <span>{vote.progress}%</span>
-                          </div>
-                          <div className="mt-2 h-2 rounded-full bg-muted">
-                            <div
-                              className="h-2 rounded-full bg-foreground transition-all duration-500"
-                              style={{ width: `${vote.progress}%` }}
-                            />
-                          </div>
-                          <div className="mt-3 text-xs text-muted-foreground">Голосов: {vote.voters}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-6">
-                  <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
-                    <p className="text-sm font-semibold">Тональность обсуждений</p>
-                    <p className="text-xs text-muted-foreground">Последние 24 часа</p>
-                    <div className="mt-4 space-y-3 text-sm">
-                      {[
-                        { label: "Позитив", value: "64%" },
-                        { label: "Нейтрально", value: "25%" },
-                        { label: "Негатив", value: "11%" },
-                      ].map((item) => (
-                        <div key={item.label} className="flex items-center justify-between">
-                          <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                            {item.label}
-                          </span>
-                          <span className="text-sm font-semibold">{item.value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
-                    <p className="text-sm font-semibold">Модерация идей</p>
-                    <p className="text-xs text-muted-foreground">Требуют внимания</p>
-                    <div className="mt-4 space-y-3 text-xs">
-                      {[
-                        "Проверить 6 новых жалоб",
-                        "Закрыть 2 дубликата",
-                        "Уточнить описание у 4 заявок",
-                      ].map((item) => (
-                        <div key={item} className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-foreground" />
-                          <span>{item}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.section>
-
-            <motion.section
-              id="stats"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.5 }}
-              variants={sectionVariants}
-              className="space-y-6 scroll-mt-28"
-            >
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Статистика</p>
-                <h2 className="text-2xl font-bold">Метрики платформы</h2>
-              </div>
-
-              <motion.div
-                variants={listVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.3 }}
-                className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
-              >
-                {statsCards.map((card) => {
-                  const value = statsSummary[card.id]
-                  const displayValue = value == null ? card.value : formatFullNumber(value)
-
-                  return (
-                    <motion.div
-                      key={card.title}
-                      variants={cardVariants}
-                      className="rounded-3xl border border-border/70 bg-card/90 p-5 shadow-[0_18px_40px_-30px_rgba(0,0,0,0.5)]"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-foreground text-background shadow-lg shadow-foreground/20">
-                          <card.icon className="h-5 w-5" />
-                        </div>
-                        <span className="text-xs font-semibold text-muted-foreground">{card.delta}</span>
-                      </div>
-                      <div className="mt-4 text-2xl font-bold">{displayValue}</div>
-                      <p className="text-sm font-semibold">{card.title}</p>
-                      <p className="text-xs text-muted-foreground">{card.note}</p>
-                    </motion.div>
-                  )
-                })}
-              </motion.div>
-
-              <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-                <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm font-semibold">Активность аудитории</p>
-                      <p className="text-xs text-muted-foreground">Неделя в разрезе</p>
-                    </div>
-                    <div className="flex items-center gap-1 rounded-full border border-border/70 bg-background/70 p-1 text-xs font-semibold">
-                      {timeRanges.map((range) => {
-                        const isActive = rangeDays === range.days
-                        return (
-                          key = { range.id }
-                        )
-                      })}
-                    </div>
-                  </div>
-                  <ChartContainer config={activityConfig} className="mt-6 h-[240px]">
-                    <AreaChart data={activityData} margin={{ left: 8, right: 16 }}>
-                      <CartesianGrid strokeDasharray="4 4" vertical={false} />
-                      <XAxis dataKey="day" tickLine={false} axisLine={false} tickMargin={8} minTickGap={16} />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        width={48}
-                        tickMargin={8}
-                        tickFormatter={formatCompactNumber}
-                      />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <ChartLegend content={<ChartLegendContent />} />
-                      <Area
-                        type="monotone"
-                        dataKey="active"
-                        stroke="var(--color-active)"
-                        fill="var(--color-active)"
-                        fillOpacity={0.18}
-                        strokeWidth={2}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="offline"
-                        stroke="var(--color-offline)"
-                        fill="var(--color-offline)"
-                        fillOpacity={0.08}
-                        strokeWidth={2}
-                      />
-                    </AreaChart>
-                  </ChartContainer>
-                </div>
-
-                <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm font-semibold">Статусы заявок</p>
-                      <p className="text-xs text-muted-foreground">Общий баланс</p>
-                    </div>
-                    <BarChart3 className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <ChartContainer config={statusConfig} className="mt-6 h-[240px]">
-                    <PieChart>
-                      <ChartTooltip content={<ChartTooltipContent hideIndicator nameKey="key" />} />
-                      <Pie
-                        data={statusData}
-                        dataKey="value"
-                        nameKey="name"
-                        innerRadius={70}
-                        outerRadius={95}
-                        stroke="transparent"
-                      >
-                        {statusData.map((entry) => (
-                          <Cell key={entry.key} fill={`var(--color-${entry.key})`} />
-                        ))}
-                      </Pie>
-                      <ChartLegend content={<ChartLegendContent nameKey="key" />} />
-                    </PieChart>
-                  </ChartContainer>
-                </div>
-              </div>
-
-              <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm font-semibold">Голоса по категориям</p>
-                    <p className="text-xs text-muted-foreground">Топ-4 направления</p>
-                  </div>
-                  <span className="rounded-full border border-border/70 px-3 py-1 text-xs font-semibold">Месяц</span>
-                </div>
-                <ChartContainer config={votingConfig} className="mt-6 h-[240px]">
-                  <BarChart data={votingData} margin={{ left: 8, right: 16 }}>
-                    <CartesianGrid strokeDasharray="4 4" vertical={false} />
-                    <XAxis
-                      dataKey="category"
-                      tickLine={false}
-                      axisLine={false}
-                      tickMargin={8}
-                      minTickGap={12}
-                      tickFormatter={(value) => formatCategoryLabel(String(value))}
-                    />
-                    <YAxis
-                      tickLine={false}
-                      axisLine={false}
-                      width={48}
-                      tickMargin={8}
-                      tickFormatter={formatCompactNumber}
-                    />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar dataKey="votes" fill="var(--color-votes)" radius={[8, 8, 0, 0]} barSize={36} />
-                  </BarChart>
-                </ChartContainer>
-              </div>
-            </motion.section>
-
-            <motion.section
-              id="media"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.5 }}
-              variants={sectionVariants}
-              className="space-y-6 scroll-mt-28"
-            >
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Медиа</p>
-                <h2 className="text-2xl font-bold">Визуальная аналитика</h2>
-              </div>
-
-              <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-                <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-sm font-semibold">Охват медиа</p>
-                      <p className="text-xs text-muted-foreground">Последние 4 недели</p>
-                    </div>
-                    <span className="rounded-full border border-border/70 px-3 py-1 text-xs font-semibold">
-                      28 дней
-                    </span>
-                  </div>
-                  <ChartContainer config={mediaConfig} className="mt-6 h-[240px]">
-                    <BarChart data={mediaData} margin={{ left: 8, right: 16 }}>
-                      <CartesianGrid strokeDasharray="4 4" vertical={false} />
-                      <XAxis dataKey="week" tickLine={false} axisLine={false} tickMargin={8} minTickGap={16} />
-                      <YAxis
-                        tickLine={false}
-                        axisLine={false}
-                        width={48}
-                        tickMargin={8}
-                        tickFormatter={formatCompactNumber}
-                      />
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                      <ChartLegend content={<ChartLegendContent />} />
-                      <Bar dataKey="photos" fill="var(--color-photos)" radius={[8, 8, 0, 0]} />
-                      <Bar dataKey="videos" fill="var(--color-videos)" radius={[8, 8, 0, 0]} />
-                    </BarChart>
-                  </ChartContainer>
-                </div>
-
-                <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
-                  <p className="text-sm font-semibold">Качество контента</p>
-                  <p className="text-xs text-muted-foreground">Оценка редакторов</p>
-                  <div className="mt-6 space-y-4 text-sm">
-                    {qualityScores.map((item) => (
-                      <div key={item.label} className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{item.label}</span>
-                          <span className="text-sm font-semibold">{item.score}%</span>
-                        </div>
-                        <div className="h-2 rounded-full bg-muted">
-                          <div className="h-2 rounded-full bg-foreground" style={{ width: `${item.score}%` }} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-
-            </motion.section>
-          </div>
-        </main>
+              </motion.section>
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   )

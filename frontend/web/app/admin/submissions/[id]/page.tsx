@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
@@ -43,12 +43,6 @@ const statusBadgeStyles: Record<SubmissionStatus, string> = {
   pending: "bg-amber-500/10 text-amber-700",
   approved: "bg-emerald-500/10 text-emerald-700",
   declined: "bg-rose-500/10 text-rose-700",
-}
-
-const statusLabel: Record<SubmissionStatus, string> = {
-  pending: "Ожидает решения",
-  approved: "Одобрено",
-  declined: "Отклонено",
 }
 
 type SubmissionDetailPageProps = {
@@ -124,14 +118,14 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
           <Logo className="h-10 w-10 text-foreground" showText={false} />
         </Link>
         <div>
-          <p className="text-lg font-semibold">Проект не найден.</p>
-          <p className="text-sm text-muted-foreground">Проверьте ссылку или вернитесь к списку.</p>
+          <p className="text-lg font-semibold">{t("adminSubmissionNotFoundTitle")}</p>
+          <p className="text-sm text-muted-foreground">{t("adminSubmissionNotFoundSubtitle")}</p>
         </div>
         <Link
           href="/admin/submissions"
           className="rounded-full border border-border/70 px-5 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
         >
-          Вернуться к категориям
+          {t("adminSubmissionBackToList")}
         </Link>
       </div>
     )
@@ -140,7 +134,12 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
   const activeStatus = currentStatus ?? submission.status
   const statusInfo = statusMeta[activeStatus]
   const statusClass = statusBadgeStyles[activeStatus]
-  const statusText = statusLabel[activeStatus]
+  const statusText =
+    activeStatus === "approved"
+      ? t("statusApproved")
+      : activeStatus === "declined"
+        ? t("statusDeclined")
+        : t("statusPending")
   const isApproving = actionLoading === "approve"
   const isDeclining = actionLoading === "decline"
 
@@ -152,12 +151,12 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
     try {
       await postDecision(`/api/submissions/${submission.id}/approve`)
       setCurrentStatus("approved")
-      toast.success("Проект одобрен", {
-        description: "Решение отправлено в систему.",
+      toast.success(t("adminSubmissionApproveSuccessTitle"), {
+        description: t("adminSubmissionApproveSuccessDesc"),
       })
     } catch (error) {
-      toast.error("Не удалось одобрить", {
-        description: error instanceof Error ? error.message : "Попробуйте еще раз.",
+      toast.error(t("adminSubmissionApproveErrorTitle"), {
+        description: error instanceof Error ? error.message : t("adminSubmissionApproveErrorDesc"),
       })
     } finally {
       setActionLoading(null)
@@ -167,7 +166,7 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
   const handleDecline = async () => {
     const reason = declineReason.trim()
     if (!reason) {
-      setDeclineError("Укажите причину отклонения.")
+      setDeclineError(t("adminSubmissionDeclineReasonError"))
       return
     }
     setDeclineError(null)
@@ -177,12 +176,12 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
       setCurrentStatus("declined")
       setDeclineOpen(false)
       setDeclineReason("")
-      toast.success("Проект отклонен", {
-        description: "Причина сохранена и отправлена заявителю.",
+      toast.success(t("adminSubmissionDeclineSuccessTitle"), {
+        description: t("adminSubmissionDeclineSuccessDesc"),
       })
     } catch (error) {
-      toast.error("Не удалось отклонить", {
-        description: error instanceof Error ? error.message : "Попробуйте еще раз.",
+      toast.error(t("adminSubmissionDeclineErrorTitle"), {
+        description: error instanceof Error ? error.message : t("adminSubmissionDeclineErrorDesc"),
       })
     } finally {
       setActionLoading(null)
@@ -202,8 +201,8 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
               <Logo className="h-9 w-9 text-foreground" showText={false} />
             </Link>
             <div>
-              <p className="text-lg font-semibold">Карточка проекта</p>
-              <p className="text-xs text-muted-foreground">{statusInfo.label}</p>
+              <p className="text-lg font-semibold">{t("adminPanelTitle")}</p>
+              <p className="text-xs text-muted-foreground">{t(statusInfo.labelKey)}</p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -262,13 +261,13 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
               href={`/admin/submissions/${activeStatus}`}
               className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
             >
-              Back to list
+              {t("adminSubmissionBackToList")}
             </Link>
             <Link
               href="/admin/submissions"
               className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
             >
-              All submissions
+              {t("adminSubmissionsAll")}
             </Link>
           </div>
         </div>
@@ -290,7 +289,7 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
                 href="#media"
                 className="inline-flex items-center gap-2 rounded-full border border-border/70 px-4 py-2 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
               >
-                Перейти к фото
+                {t("adminSubmissionsMediaJump")}
                 <ExternalLink className="h-4 w-4" />
               </Link>
             </div>
@@ -298,30 +297,34 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
             <div className="mt-6 grid gap-4 text-sm">
               <div className="flex flex-wrap items-center gap-2">
                 <UserCircle2 className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Автор:</span>
+                <span className="text-muted-foreground">{t("adminSubmissionsInfoAuthor")}:</span>
                 <span className="font-semibold">{submission.authorName}</span>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Дата:</span>
+                <span className="text-muted-foreground">{t("adminSubmissionsInfoDate")}:</span>
                 <span className="font-semibold">{submission.submittedAt}</span>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Локация:</span>
+                <span className="text-muted-foreground">{t("adminSubmissionsInfoLocation")}:</span>
                 <span className="font-semibold">{submission.location}</span>
               </div>
-              <div className="text-xs text-muted-foreground">Город: {submission.city}</div>
-              <div className="text-xs text-muted-foreground">Источник: {submission.source}</div>
+              <div className="text-xs text-muted-foreground">
+                {t("adminSubmissionsInfoCity")}: {submission.city}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {t("adminSubmissionsInfoSource")}: {submission.source}
+              </div>
             </div>
 
             <div className="mt-6 rounded-2xl border border-border/70 bg-background/70 p-5">
-              <p className="text-sm font-semibold">Описание проекта</p>
+              <p className="text-sm font-semibold">{t("adminSubmissionsDetailsTitle")}</p>
               <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{submission.description}</p>
             </div>
 
             <div id="media" className="mt-6">
-              <p className="text-sm font-semibold">Материалы</p>
+              <p className="text-sm font-semibold">{t("adminMediaTitle")}</p>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 {submission.images.map((image) => (
                   <div key={image} className="relative h-48 overflow-hidden rounded-2xl">
@@ -335,7 +338,7 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
           <aside className="rounded-3xl border border-border/70 bg-card/90 p-6 lg:sticky lg:top-24 h-fit">
             <div className="space-y-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Статус</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t("labelStatus")}</p>
                 <div className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusClass}`}>
                   {statusText}
                 </div>
@@ -349,7 +352,11 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
                   className="flex items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/30 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <CheckCircle2 className="h-4 w-4" />
-                  {activeStatus === "approved" ? "Проект уже одобрен" : isApproving ? "Отправка..." : "Одобрить"}
+                  {activeStatus === "approved"
+                    ? t("adminSubmissionApproveDone")
+                    : isApproving
+                      ? t("adminSubmissionSending")
+                      : t("actionApprove")}
                 </button>
                 <button
                   type="button"
@@ -361,13 +368,12 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
                   className="flex items-center justify-center gap-2 rounded-full border border-border/70 px-4 py-2 text-sm font-semibold text-foreground transition-all duration-300 hover:bg-foreground hover:text-background disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <XCircle className="h-4 w-4" />
-                  {activeStatus === "declined" ? "Проект отклонен" : "Отклонить"}
+                  {activeStatus === "declined" ? t("adminSubmissionDeclineDone") : t("actionDecline")}
                 </button>
               </div>
 
               <div className="rounded-2xl border border-border/70 bg-background/70 p-4 text-xs text-muted-foreground">
-                При отклонении нужно указать причину. Она будет отправлена вместе с результатом
-                проверки проекта.
+                {t("adminSubmissionActionNote")}
               </div>
             </div>
           </aside>
@@ -386,16 +392,14 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Причина отклонения</DialogTitle>
-            <DialogDescription>
-              Укажите конкретную причину, чтобы заявитель понял, что нужно исправить.
-            </DialogDescription>
+            <DialogTitle>{t("adminSubmissionDeclineReasonLabel")}</DialogTitle>
+            <DialogDescription>{t("adminSubmissionDeclineReasonHelp")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
             <Textarea
               value={declineReason}
               onChange={(event) => setDeclineReason(event.target.value)}
-              placeholder="Например: нет подтверждающих фото или заявка не соответствует регламенту."
+              placeholder={t("adminSubmissionDeclineReasonPlaceholder")}
               rows={4}
             />
             {declineError ? <p className="text-sm text-destructive">{declineError}</p> : null}
@@ -407,7 +411,7 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
               className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
               disabled={isDeclining}
             >
-              Отмена
+              {t("adminDialogCancel")}
             </button>
             <button
               type="button"
@@ -415,7 +419,7 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
               disabled={isDeclining}
               className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/30 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isDeclining ? "Отправка..." : "Отклонить проект"}
+              {isDeclining ? t("adminSubmissionSending") : t("adminDialogSend")}
             </button>
           </DialogFooter>
         </DialogContent>

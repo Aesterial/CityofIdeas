@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -67,8 +67,8 @@ export default function SubmissionsLandingPage() {
               <Logo className="h-9 w-9 text-foreground" showText={false} />
             </Link>
             <div>
-              <p className="text-lg font-semibold">Модерация проектов</p>
-              <p className="text-xs text-muted-foreground">Категории заявок и быстрый переход к проверке.</p>
+              <p className="text-lg font-semibold">{t("adminPanelTitle")}</p>
+              <p className="text-xs text-muted-foreground">{t("adminSubmissionsSubtitle")}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -127,7 +127,7 @@ export default function SubmissionsLandingPage() {
               href="/admin"
               className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
             >
-              Admin panel
+              {t("adminPanel")}
             </Link>
           </div>
         </div>
@@ -143,11 +143,11 @@ export default function SubmissionsLandingPage() {
           >
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Категории</p>
-                <h1 className="text-2xl font-bold sm:text-3xl">Одобрение проектов</h1>
+                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t("adminSubmissionsSubtitle")}</p>
+                <h1 className="text-2xl font-bold sm:text-3xl">{t("adminSubmissionsTitle")}</h1>
               </div>
               <div className="text-sm text-muted-foreground">
-                Всего заявок:{" "}
+                {t("adminSubmissionsCountLabel")}: {" "}
                 <span className="text-foreground font-semibold">{submissions.length}</span>
               </div>
             </div>
@@ -169,11 +169,11 @@ export default function SubmissionsLandingPage() {
                       <span className="text-3xl font-semibold">{counts[status]}</span>
                     </div>
                     <div className="mt-4">
-                      <p className="text-base font-semibold">{meta.label}</p>
-                      <p className="text-xs text-muted-foreground">{meta.description}</p>
+                      <p className="text-base font-semibold">{t(meta.labelKey)}</p>
+                      <p className="text-xs text-muted-foreground">{t(meta.descriptionKey)}</p>
                     </div>
                     <div className="mt-4 text-xs font-semibold text-muted-foreground group-hover:text-foreground">
-                      Открыть список →
+                      {t("adminSubmissionsOpenCategory")}
                     </div>
                   </Link>
                 )
@@ -187,11 +187,8 @@ export default function SubmissionsLandingPage() {
             transition={{ duration: 0.4, delay: 0.05 }}
             className="rounded-3xl border border-border/70 bg-card/90 p-6"
           >
-            <h2 className="text-lg font-semibold">Как работает модерация</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Открывайте категорию, выбирайте проект, изучайте подробности и отправляйте решение.
-              Для отклонения требуется указать причину — она будет сохранена вместе с заявкой.
-            </p>
+            <h2 className="text-lg font-semibold">{t("adminSubmissionsHowTitle")}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{t("adminSubmissionsHowText")}</p>
           </motion.section>
         </div>
       </main>

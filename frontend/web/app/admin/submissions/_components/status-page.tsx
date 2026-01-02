@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
@@ -24,12 +24,6 @@ const statusBadgeStyles: Record<SubmissionStatus, string> = {
   declined: "bg-rose-500/10 text-rose-700",
 }
 
-const statusLabel: Record<SubmissionStatus, string> = {
-  pending: "Ожидает решения",
-  approved: "Одобрено",
-  declined: "Отклонено",
-}
-
 type StatusPageProps = {
   status: SubmissionStatus
 }
@@ -51,10 +45,13 @@ export default function SubmissionStatusPage({ status }: StatusPageProps) {
     { code: "KZ" as const, label: "KZ" },
   ]
 
-  const filtered = useMemo(
-    () => submissions.filter((item) => item.status === status),
-    [status],
-  )
+  const statusLabel: Record<SubmissionStatus, string> = {
+    pending: t("statusPending"),
+    approved: t("statusApproved"),
+    declined: t("statusDeclined"),
+  }
+
+  const filtered = useMemo(() => submissions.filter((item) => item.status === status), [status])
   const [selectedId, setSelectedId] = useState<string | null>(filtered[0]?.id ?? null)
 
   useEffect(() => {
@@ -62,6 +59,7 @@ export default function SubmissionStatusPage({ status }: StatusPageProps) {
   }, [filtered])
 
   const selected = filtered.find((item) => item.id === selectedId) ?? null
+  const statusInfo = statusMeta[status]
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
@@ -76,8 +74,8 @@ export default function SubmissionStatusPage({ status }: StatusPageProps) {
               <Logo className="h-9 w-9 text-foreground" showText={false} />
             </Link>
             <div>
-              <p className="text-lg font-semibold">{statusMeta[status].label}</p>
-              <p className="text-xs text-muted-foreground">{statusMeta[status].description}</p>
+              <p className="text-lg font-semibold">{t(statusInfo.labelKey)}</p>
+              <p className="text-xs text-muted-foreground">{t(statusInfo.descriptionKey)}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -146,11 +144,11 @@ export default function SubmissionStatusPage({ status }: StatusPageProps) {
           >
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Список проектов</p>
-                <h1 className="text-2xl font-bold sm:text-3xl">{statusMeta[status].label}</h1>
+                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t("adminSubmissionsListTitle")}</p>
+                <h1 className="text-2xl font-bold sm:text-3xl">{t(statusInfo.labelKey)}</h1>
               </div>
               <div className="text-sm text-muted-foreground">
-                Всего: <span className="text-foreground font-semibold">{filtered.length}</span>
+                {t("adminSubmissionsTotalLabel")}: <span className="text-foreground font-semibold">{filtered.length}</span>
               </div>
             </div>
           </motion.section>
@@ -162,15 +160,13 @@ export default function SubmissionStatusPage({ status }: StatusPageProps) {
               transition={{ duration: 0.4 }}
               className="rounded-3xl border border-border/70 bg-card/90 p-10 text-center"
             >
-              <p className="text-lg font-semibold">В этой категории пока нет проектов.</p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Вернитесь позже или выберите другую категорию.
-              </p>
+              <p className="text-lg font-semibold">{t("adminSubmissionsEmptyTitle")}</p>
+              <p className="mt-2 text-sm text-muted-foreground">{t("adminSubmissionsEmptySubtitle")}</p>
               <Link
                 href="/admin/submissions"
                 className="mt-5 inline-flex rounded-full border border-border/70 px-5 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
               >
-                К списку категорий
+                {t("adminSubmissionsBackToCategories")}
               </Link>
             </motion.section>
           ) : (
@@ -189,6 +185,7 @@ export default function SubmissionStatusPage({ status }: StatusPageProps) {
                       selected={item.id === selectedId}
                       onSelect={() => setSelectedId(item.id)}
                       status={status}
+                      statusText={statusLabel[status]}
                     />
                   ))}
                 </div>
@@ -203,11 +200,7 @@ export default function SubmissionStatusPage({ status }: StatusPageProps) {
                 {selected ? (
                   <div className="space-y-5">
                     <div className="relative h-40 overflow-hidden rounded-2xl">
-                      <img
-                        src={selected.coverImage}
-                        alt={selected.title}
-                        className="h-full w-full object-cover"
-                      />
+                      <img src={selected.coverImage} alt={selected.title} className="h-full w-full object-cover" />
                       <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/10 to-transparent" />
                     </div>
                     <div>
@@ -224,33 +217,33 @@ export default function SubmissionStatusPage({ status }: StatusPageProps) {
                     <div className="grid gap-3 text-sm">
                       <div className="flex items-center gap-2">
                         <UserCircle2 className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Автор:</span>
+                        <span className="text-muted-foreground">{t("adminSubmissionsInfoAuthor")}:</span>
                         <span className="font-semibold">{selected.authorName}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Дата:</span>
+                        <span className="text-muted-foreground">{t("adminSubmissionsInfoDate")}:</span>
                         <span className="font-semibold">{selected.submittedAt}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">Локация:</span>
+                        <span className="text-muted-foreground">{t("adminSubmissionsInfoLocation")}:</span>
                         <span className="font-semibold">{selected.location}</span>
                       </div>
-                      <div className="text-xs text-muted-foreground">Источник: {selected.source}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {t("adminSubmissionsInfoSource")}: {selected.source}
+                      </div>
                     </div>
                     <Link
                       href={`/admin/submissions/${selected.id}`}
                       className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/30"
                     >
-                      Открыть карточку проекта
+                      {t("adminSubmissionsOpenProject")}
                       <ExternalLink className="h-4 w-4" />
                     </Link>
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Выберите проект слева, чтобы увидеть сведения и перейти к полной карточке.
-                  </p>
+                  <p className="text-sm text-muted-foreground">{t("adminSubmissionsSelectHint")}</p>
                 )}
               </motion.aside>
             </div>
@@ -266,9 +259,10 @@ type ProjectCardProps = {
   selected: boolean
   onSelect: () => void
   status: SubmissionStatus
+  statusText: string
 }
 
-function ProjectCard({ item, selected, onSelect, status }: ProjectCardProps) {
+function ProjectCard({ item, selected, onSelect, status, statusText }: ProjectCardProps) {
   return (
     <button
       type="button"
@@ -283,15 +277,13 @@ function ProjectCard({ item, selected, onSelect, status }: ProjectCardProps) {
       <div className="flex-1">
         <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
           <span>{item.category}</span>
-          <span className={`rounded-full px-2 py-0.5 font-semibold ${statusBadgeStyles[status]}`}>
-            {statusLabel[status]}
-          </span>
+          <span className={`rounded-full px-2 py-0.5 font-semibold ${statusBadgeStyles[status]}`}>{statusText}</span>
         </div>
         <p className="mt-2 text-base font-semibold">{item.title}</p>
         <div className="mt-2 grid gap-1 text-xs text-muted-foreground">
-          <span>Автор: {item.authorName}</span>
-          <span>Дата: {item.submittedAt}</span>
-          <span>Локация: {item.location}</span>
+          <span>{item.authorName}</span>
+          <span>{item.submittedAt}</span>
+          <span>{item.location}</span>
         </div>
       </div>
     </button>

@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { motion } from "framer-motion"
 import Link from "next/link"
@@ -48,12 +48,6 @@ type User = {
 
 type StatusFilter = "all" | UserStatus
 
-const statusLabels: Record<StatusFilter, string> = {
-  all: "All",
-  active: "Active",
-  banned: "Banned",
-}
-
 const userDateFormatter = new Intl.DateTimeFormat("en-GB", {
   day: "2-digit",
   month: "short",
@@ -97,12 +91,16 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([])
   const displayName = user?.displayName || user?.username || ""
   const initials = (displayName || "U").slice(0, 2).toUpperCase()
+  const statusLabels: Record<StatusFilter, string> = {
+    all: t("statusAll"),
+    active: t("statusActive"),
+    banned: t("statusBanned"),
+  }
   const languageOptions = [
     { code: "RU" as const, label: "RU" },
     { code: "EN" as const, label: "EN" },
     { code: "KZ" as const, label: "KZ" },
   ]
-
 
   const handleLogout = async () => {
     await logout()
@@ -124,7 +122,7 @@ export default function AdminUsersPage() {
           return
         }
         if (banResults.some((result) => result.status === "rejected")) {
-          toast.error("Failed to load some ban statuses")
+          toast.error(t("adminErrorLoadBanStatuses"))
         }
         const mapped = list.map((item, index) => {
           const banInfo = banResults[index].status === "fulfilled" ? banResults[index].value : null
@@ -135,7 +133,7 @@ export default function AdminUsersPage() {
             name: item.displayName || item.username,
             username: item.username,
             email: item.username || "-",
-            role: item.rank?.name || "User",
+            role: item.rank?.name || t("labelUser"),
             status: isBanned ? "banned" : "active",
             lastActive: formatUserDate(item.joined),
             reports: 0,
@@ -144,7 +142,7 @@ export default function AdminUsersPage() {
         setUsers(mapped)
       } catch (error) {
         if (!controller.signal.aborted) {
-          toast.error("Failed to load users", {
+          toast.error(t("adminErrorLoadUsers"), {
             description: error instanceof Error ? error.message : undefined,
           })
           setUsers([])
@@ -154,7 +152,7 @@ export default function AdminUsersPage() {
 
     void loadUsers()
     return () => controller.abort()
-  }, [])
+  }, [t])
 
   useEffect(() => {
     setPage(1)
@@ -190,21 +188,21 @@ export default function AdminUsersPage() {
 
   const handleAction = (user: User, action: "block" | "unblock" | "message") => {
     if (action === "block") {
-      toast.error("Пользователь заблокирован", {
-        description: `${user.name} - ограничения применены`,
+      toast.error(t("adminToastUserBlocked"), {
+        description: user.name,
       })
       return
     }
 
     if (action === "unblock") {
-      toast.success("Блокировка снята", {
-        description: `${user.name} снова может входить`,
+      toast.success(t("adminToastUserUnblocked"), {
+        description: user.name,
       })
       return
     }
 
-    toast.message("Сообщение отправлено", {
-      description: `Пользователь ${user.name} получил уведомление`,
+    toast.message(t("adminToastMessageSent"), {
+      description: user.name,
     })
   }
 
@@ -221,8 +219,8 @@ export default function AdminUsersPage() {
               <Logo className="h-9 w-9 text-foreground" showText={false} />
             </Link>
             <div>
-              <p className="text-lg font-semibold">Таблица пользователей</p>
-              <p className="text-xs text-muted-foreground">Город идей | Админ-панель</p>
+              <p className="text-lg font-semibold">{t("adminPanelTitle")}</p>
+              <p className="text-xs text-muted-foreground">{t("adminUsersManageTitle")}</p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -232,7 +230,7 @@ export default function AdminUsersPage() {
               className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-border/70 bg-background px-4 text-xs font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
             >
               {mounted ? (theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />) : null}
-              ????????
+              {t("adminThemeToggle")}
             </button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -299,35 +297,35 @@ export default function AdminUsersPage() {
           >
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Статистика</p>
-                <h2 className="text-2xl font-bold">База пользователей</h2>
+                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t("labelUsers")}</p>
+                <h2 className="text-2xl font-bold">{t("adminUsersManageTitle")}</h2>
               </div>
               <div className="flex items-center gap-3">
                 <Link
                   href="/admin"
                   className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
                 >
-                  Назад в админку
+                  {t("adminPanel")}
                 </Link>
                 <button
                   type="button"
                   className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/30"
                   onClick={() =>
-                    toast.message("Экспорт готов", {
-                      description: "Файл пользователей сформирован",
+                    toast.message(t("adminExport"), {
+                      description: t("adminExportHint"),
                     })
                   }
                 >
-                  Экспорт
+                  {t("adminExport")}
                 </button>
               </div>
             </div>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {[
-                { label: "Total", value: counts.total },
-                { label: "Active", value: counts.active },
-                { label: "Banned", value: counts.banned },
+                { label: t("labelTotal"), value: counts.total },
+                { label: t("labelActive"), value: counts.active },
+                { label: t("labelBanned"), value: counts.banned },
               ].map((item) => (
                 <div key={item.label} className="rounded-2xl border border-border/60 bg-background/70 p-4">
                   <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{item.label}</p>
@@ -345,8 +343,8 @@ export default function AdminUsersPage() {
           >
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Фильтры</p>
-                <h3 className="text-lg font-semibold">Поиск и сегменты</h3>
+                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t("labelSearch")}</p>
+                <h3 className="text-lg font-semibold">{t("adminUsersManageSubtitle")}</h3>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <div className="relative">
@@ -354,7 +352,7 @@ export default function AdminUsersPage() {
                   <input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Имя или почта"
+                    placeholder={t("adminUsersSearchPlaceholder")}
                     className="h-10 w-full rounded-full border border-border/70 bg-background pl-9 pr-4 text-sm sm:w-64"
                   />
                 </div>
@@ -383,11 +381,11 @@ export default function AdminUsersPage() {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Users className="h-4 w-4" />
                 <span>
-                  Показано {pageStart}-{pageEnd} из {filteredUsers.length}
+                  {t("labelShowing")} {pageStart}-{pageEnd} {t("labelOf")} {filteredUsers.length}
                 </span>
               </div>
               <div className="text-xs text-muted-foreground">
-                Статус: {statusLabels[statusFilter]}
+                {t("adminUsersFilterLabel")}: {statusLabels[statusFilter]}
               </div>
             </div>
 
@@ -395,7 +393,7 @@ export default function AdminUsersPage() {
               <div className="space-y-3 sm:hidden">
                 {currentPageUsers.map((user) => {
                   const ActionIcon = user.status === "banned" ? CheckCircle2 : Ban
-                  const actionTitle = user.status === "banned" ? "Unblock user" : "Block user"
+                  const actionTitle = user.status === "banned" ? t("actionUnblock") : t("actionBlock")
 
                   return (
                     <div key={user.id} className="rounded-2xl border border-border/60 bg-background/70 p-4">
@@ -407,51 +405,107 @@ export default function AdminUsersPage() {
                         </div>
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-semibold ${user.status === "banned" ? "bg-destructive/10 text-destructive" : "bg-foreground text-background"}`}
-                          >
-                            {user.status === "banned" ? "Banned" : "Active"}
-                          </span>
-                        </td>
-                        <td className="px-4 py-4 text-sm text-muted-foreground">{user.lastActive}</td>
-                        <td className="px-4 py-4 text-right text-sm font-semibold">{user.reports}</td>
-                        <td className="px-4 py-4">
-                          <div className="flex justify-end gap-2">
-                            <button
-                              type="button"
-                              title={actionTitle}
-                              className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                              onClick={() =>
-                                handleAction(user, user.status === "banned" ? "unblock" : "block")
-                              }
-                            >
-                              <ActionIcon className="h-4 w-4" />
-                            </button>
-                            <button
-                              type="button"
-                              title="Сообщение"
-                              className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                              onClick={() => handleAction(user, "message")}
-                            >
-                              <MessageSquare className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
+                        >
+                          {user.status === "banned" ? t("statusBanned") : t("statusActive")}
+                        </span>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{user.lastActive}</span>
+                        <span className="text-foreground font-semibold">{user.reports}</span>
+                      </div>
+                      <div className="mt-3 flex justify-end gap-2">
+                        <button
+                          type="button"
+                          title={actionTitle}
+                          className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                          onClick={() => handleAction(user, user.status === "banned" ? "unblock" : "block")}
+                        >
+                          <ActionIcon className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          title={t("actionMessage")}
+                          className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                          onClick={() => handleAction(user, "message")}
+                        >
+                          <MessageSquare className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="hidden sm:block">
+                <div className="overflow-hidden rounded-2xl border border-border/60">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
+                      <tr>
+                        <th className="px-4 py-3 font-semibold">{t("labelUser")}</th>
+                        <th className="px-4 py-3 font-semibold">{t("labelEmail")}</th>
+                        <th className="px-4 py-3 font-semibold">{t("labelStatus")}</th>
+                        <th className="px-4 py-3 font-semibold">{t("labelLastActive")}</th>
+                        <th className="px-4 py-3 text-right font-semibold">{t("labelReports")}</th>
+                        <th className="px-4 py-3 text-right font-semibold">{t("labelActions")}</th>
                       </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+                    </thead>
+                    <tbody>
+                      {currentPageUsers.map((user) => {
+                        const ActionIcon = user.status === "banned" ? CheckCircle2 : Ban
+                        const actionTitle = user.status === "banned" ? t("actionUnblock") : t("actionBlock")
+
+                        return (
+                          <tr key={user.id} className="border-t border-border/60">
+                            <td className="px-4 py-4">
+                              <div className="flex flex-col">
+                                <span className="font-semibold">{user.name}</span>
+                                <span className="text-xs text-muted-foreground">{user.username}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 text-muted-foreground">{user.email}</td>
+                            <td className="px-4 py-4">
+                              <span
+                                className={`rounded-full px-3 py-1 text-xs font-semibold ${user.status === "banned" ? "bg-destructive/10 text-destructive" : "bg-foreground text-background"}`}
+                              >
+                                {user.status === "banned" ? t("statusBanned") : t("statusActive")}
+                              </span>
+                            </td>
+                            <td className="px-4 py-4 text-muted-foreground">{user.lastActive}</td>
+                            <td className="px-4 py-4 text-right font-semibold">{user.reports}</td>
+                            <td className="px-4 py-4">
+                              <div className="flex justify-end gap-2">
+                                <button
+                                  type="button"
+                                  title={actionTitle}
+                                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                  onClick={() => handleAction(user, user.status === "banned" ? "unblock" : "block")}
+                                >
+                                  <ActionIcon className="h-4 w-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  title={t("actionMessage")}
+                                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                  onClick={() => handleAction(user, "message")}
+                                >
+                                  <MessageSquare className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-
             {filteredUsers.length === 0 && (
-              <div className="mt-6 text-center text-sm text-muted-foreground">
-                Ничего не найдено по вашему запросу.
-              </div>
+              <div className="mt-6 text-center text-sm text-muted-foreground">{t("adminUsersEmpty")}</div>
             )}
 
             <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
               <div className="text-xs text-muted-foreground">
-                Страница {safePage} из {totalPages}
+                {t("labelPage")} {safePage} {t("labelOf")} {totalPages}
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -460,7 +514,7 @@ export default function AdminUsersPage() {
                   onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                   disabled={safePage <= 1}
                 >
-                  Назад
+                  {t("adminPaginationPrev")}
                 </button>
                 <button
                   type="button"
@@ -468,7 +522,7 @@ export default function AdminUsersPage() {
                   onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={safePage >= totalPages}
                 >
-                  Далее
+                  {t("adminPaginationNext")}
                 </button>
               </div>
             </div>
