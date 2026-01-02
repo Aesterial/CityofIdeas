@@ -1,9 +1,8 @@
-﻿
-"use client"
+﻿"use client";
 
-import { Logo } from "@/components/logo"
-import { useTheme } from "@/components/theme-provider"
-import { motion } from "framer-motion"
+import { Logo } from "@/components/logo";
+import { useTheme } from "@/components/theme-provider";
+import { motion } from "framer-motion";
 import {
   Ban,
   BarChart3,
@@ -23,105 +22,139 @@ import {
   UserX,
   Vote,
   X,
-} from "lucide-react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useEffect, useMemo, useState } from "react"
-import { toast } from "sonner"
-import { useAuth } from "@/components/auth-provider"
-import { useLanguage } from "@/components/language-provider"
-import { fetchUserBanInfo, fetchUsers, handleBannedUser, type BanInfo } from "@/lib/api"
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { useAuth } from "@/components/auth-provider";
+import { useLanguage } from "@/components/language-provider";
+import {
+  fetchUserBanInfo,
+  fetchUsers,
+  handleBannedUser,
+  type BanInfo,
+} from "@/lib/api";
 import {
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
+} from "@/components/ui/chart";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, XAxis, YAxis } from "recharts"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  XAxis,
+  YAxis,
+} from "recharts";
+import { type } from "node:os";
 
 const sectionVariants = {
   hidden: { opacity: 0, y: 24 },
   visible: { opacity: 1, y: 0 },
-}
+};
 
-type UserStatus = "active" | "banned"
+type UserStatus = "active" | "banned";
 
 type User = {
-  id: string
-  userID: number
-  name: string
-  username: string
-  email: string
-  role: string
-  status: UserStatus
-  lastActive: string
-  reports: number
-}
+  id: string;
+  userID: number;
+  name: string;
+  username: string;
+  email: string;
+  role: string;
+  status: UserStatus;
+  lastActive: string;
+  reports: number;
+};
 
 type CountResponse = {
-  count?: number
-}
+  count?: number;
+};
 
-type VoteCategoryRecord = { name?: string; posts?: number }
-type TopCategoriesResponse = { record?: VoteCategoryRecord[] }
+type VoteCategoryRecord = { name?: string; posts?: number };
+type TopCategoriesResponse = { record?: VoteCategoryRecord[] };
 
 type IdeasRecapResponse = {
-  approved?: number
-  waiting?: number
-  declined?: number
-}
+  approved?: number;
+  waiting?: number;
+  declined?: number;
+};
 
 type UsersActivityResponse = {
-  data?: Record<string, { active?: number; offline?: number }>
-}
+  data?: Record<string, { active?: number; offline?: number }>;
+};
 
-type Grade = { good?: number; bad?: number }
-type EditorsGradeResponse = { photos?: Grade; videos?: Grade; graphics?: Grade }
+type Grade = { good?: number; bad?: number };
+type EditorsGradeResponse = {
+  photos?: Grade;
+  videos?: Grade;
+  graphics?: Grade;
+};
 
-type MediaCoverageResponse = { medias?: Record<string, { photos?: number; videos?: number }> }
+type MediaCoverageResponse = {
+  medias?: Record<string, { photos?: number; videos?: number }>;
+};
 
-type StatCardId = "activeUsers" | "offlineUsers" | "newIdeas" | "votes"
-type StatsSummary = Record<StatCardId, number | null>
+type StatCardId = "activeUsers" | "offlineUsers" | "newIdeas" | "votes";
+type StatsSummary = Record<StatCardId, number | null>;
 
-type ActivityPoint = { label: string; timestamp: number; active: number; offline: number }
-type VoteCategory = { category: string; votes: number }
-type MediaCoveragePoint = { label: string; timestamp: number; photos: number; videos: number }
-type QualityScore = { type: string; score: number }
-type ActivityRange = "24h" | "3d" | "7d"
+type ActivityPoint = {
+  label: string;
+  timestamp: number;
+  active: number;
+  offline: number;
+};
+type VoteCategory = { category: string; votes: number };
+type MediaCoveragePoint = {
+  label: string;
+  timestamp: number;
+  photos: number;
+  videos: number;
+};
+type QualityScore = { type: string; score: number };
+type ActivityRange = "24h" | "3d" | "7d";
 
 const userDateFormatter = new Intl.DateTimeFormat("en-GB", {
   day: "2-digit",
   month: "short",
   year: "numeric",
-})
+});
 
 const formatUserDate = (value?: string) => {
-  if (!value) return "-"
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return "-"
-  return userDateFormatter.format(date)
-}
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return userDateFormatter.format(date);
+};
 
 const isBanActive = (banInfo: BanInfo | null) => {
-  if (!banInfo) return false
-  if (!banInfo.expires) return true
-  const expiresAt = new Date(banInfo.expires).getTime()
-  if (!Number.isFinite(expiresAt)) return true
-  return expiresAt > Date.now()
-}
+  if (!banInfo) return false;
+  if (!banInfo.expires) return true;
+  const expiresAt = new Date(banInfo.expires).getTime();
+  if (!Number.isFinite(expiresAt)) return true;
+  return expiresAt > Date.now();
+};
 
-const DEFAULT_API_BASE_URL = "http://127.0.0.1:8080"
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/$/, "")
-
+const DEFAULT_API_BASE_URL = "http://127.0.0.1:8080";
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL
+).replace(/\/$/, "");
 async function requestJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     credentials: "include",
@@ -129,98 +162,139 @@ async function requestJson<T>(path: string, signal?: AbortSignal): Promise<T> {
       Accept: "application/json",
     },
     signal,
-  })
+  });
 
   if (response.ok) {
-    return (await response.json()) as T
+    return (await response.json()) as T;
   }
 
-  let message = `Request failed (${response.status})`
-  let data: { error?: string; data?: unknown } | null = null
+  let message = `Request failed (${response.status})`;
+  let data: { error?: string; data?: unknown } | null = null;
   try {
-    data = (await response.json()) as { error?: string; data?: unknown }
+    data = (await response.json()) as { error?: string; data?: unknown };
   } catch {
-    const text = await response.text()
+    const text = await response.text();
     if (text) {
-      message = text
+      message = text;
     }
   }
   if (data?.error) {
-    message = data.error
+    message = data.error;
   }
   if (response.status === 401 && data?.data === "user is banned") {
-    await handleBannedUser({ signal })
+    await handleBannedUser({ signal });
   }
-  throw new Error(message)
+  throw new Error(message);
 }
 
 export default function AdminPage() {
-  const router = useRouter()
-  const { theme, toggleTheme } = useTheme()
-  const { logout, user } = useAuth()
-  const { language, setLanguage, t } = useLanguage()
+  const router = useRouter();
+  const { theme, toggleTheme } = useTheme();
+  const { logout, user } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
 
-  const [mounted, setMounted] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [activeSection, setActiveSection] = useState("overview")
+  const [mounted, setMounted] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("overview");
 
   const [statsSummary, setStatsSummary] = useState<StatsSummary>({
     activeUsers: null,
     offlineUsers: null,
     newIdeas: null,
     votes: null,
-  })
-  const [users, setUsers] = useState<User[]>([])
-  const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
-  const [banReason, setBanReason] = useState("Спам, мультиаккаунты, повторные жалобы")
+  });
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [banReason, setBanReason] = useState(
+    "Спам, мультиаккаунты, повторные жалобы",
+  );
 
-  const [voteCategories, setVoteCategories] = useState<VoteCategory[]>([])
+  const [voteCategories, setVoteCategories] = useState<VoteCategory[]>([]);
   const [ideasApproval, setIdeasApproval] = useState<{
-    approved: number | null
-    waiting: number | null
-    declined: number | null
+    approved: number | null;
+    waiting: number | null;
+    declined: number | null;
   }>({
     approved: null,
     waiting: null,
     declined: null,
-  })
-  const [activityRange, setActivityRange] = useState<ActivityRange>("7d")
-  const [activityPoints, setActivityPoints] = useState<ActivityPoint[]>([])
-  const [mediaCoveragePoints, setMediaCoveragePoints] = useState<MediaCoveragePoint[]>([])
-  const [qualityScores, setQualityScores] = useState<QualityScore[]>([])
-  const [audienceSnapshot, setAudienceSnapshot] = useState<{ active: number | null; offline: number | null }>({
+  });
+  const [activityRange, setActivityRange] = useState<ActivityRange>("7d");
+  const [activityPoints, setActivityPoints] = useState<ActivityPoint[]>([]);
+  const [mediaCoveragePoints, setMediaCoveragePoints] = useState<
+    MediaCoveragePoint[]
+  >([]);
+  const [qualityScores, setQualityScores] = useState<QualityScore[]>([]);
+  const [audienceSnapshot, setAudienceSnapshot] = useState<{
+    active: number | null;
+    offline: number | null;
+  }>({
     active: null,
     offline: null,
-  })
+  });
 
-  const displayName = user?.displayName || user?.username || ""
-  const initials = (displayName || "U").slice(0, 2).toUpperCase()
+  const displayName = user?.displayName || user?.username || "";
+  const initials = (displayName || "U").slice(0, 2).toUpperCase();
 
   const languageOptions = [
     { code: "RU" as const, label: "RU" },
     { code: "EN" as const, label: "EN" },
     { code: "KZ" as const, label: "KZ" },
-  ]
+  ];
 
-  const locale = language === "KZ" ? "kk-KZ" : language === "RU" ? "ru-RU" : "en-US"
+  const locale =
+    language === "KZ" ? "kk-KZ" : language === "RU" ? "ru-RU" : "en-US";
 
   const sidebarItems = useMemo(
     () => [
-      { id: "overview", label: t("adminStatsTitle"), icon: BarChart3, href: "#overview" },
-      { id: "analytics", label: t("adminStatsActivityTitle"), icon: TrendingUp, href: "#analytics" },
-      { id: "media", label: t("adminMediaTitle"), icon: ImageIcon, href: "#media" },
-      { id: "users", label: t("adminAccessModerationTitle"), icon: Shield, href: "#users" },
-      { id: "submissions", label: t("adminSubmissionsTitle"), icon: CheckCircle2, href: "/admin/submissions" },
+      {
+        id: "overview",
+        label: t("adminStatsTitle"),
+        icon: BarChart3,
+        href: "#overview",
+      },
+      {
+        id: "analytics",
+        label: t("adminStatsActivityTitle"),
+        icon: TrendingUp,
+        href: "#analytics",
+      },
+      {
+        id: "media",
+        label: t("adminMediaTitle"),
+        icon: ImageIcon,
+        href: "#media",
+      },
+      {
+        id: "users",
+        label: t("adminAccessModerationTitle"),
+        icon: Shield,
+        href: "#users",
+      },
+      {
+        id: "submissions",
+        label: t("adminSubmissionsTitle"),
+        icon: CheckCircle2,
+        href: "/admin/submissions",
+      },
     ],
     [language, t],
-  )
+  );
 
   const statsCards = [
-    { id: "activeUsers" as const, title: t("adminStatsActiveUsers"), icon: Users },
-    { id: "offlineUsers" as const, title: t("adminStatsOfflineUsers"), icon: UserX },
+    {
+      id: "activeUsers" as const,
+      title: t("adminStatsActiveUsers"),
+      icon: Users,
+    },
+    {
+      id: "offlineUsers" as const,
+      title: t("adminStatsOfflineUsers"),
+      icon: UserX,
+    },
     { id: "newIdeas" as const, title: t("adminStatsNewIdeas"), icon: Users },
     { id: "votes" as const, title: t("adminStatsVotes"), icon: Vote },
-  ]
+  ];
 
   const activityRanges = useMemo(
     () => [
@@ -229,32 +303,43 @@ export default function AdminPage() {
       { id: "7d" as const, label: t("adminStatsRange7d"), days: 7 },
     ],
     [t],
-  )
+  );
 
-  const activityRangeDays = activityRanges.find((range) => range.id === activityRange)?.days ?? 7
+  const activityRangeDays =
+    activityRanges.find((range) => range.id === activityRange)?.days ?? 7;
 
   const activityFallback = useMemo(() => {
-    const formatter = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" })
-    const now = new Date()
-    const baseActive = statsSummary.activeUsers ?? 0
-    const baseOffline = statsSummary.offlineUsers ?? 0
+    const formatter = new Intl.DateTimeFormat(locale, {
+      month: "short",
+      day: "numeric",
+    });
+    const now = new Date();
+    const baseActive = statsSummary.activeUsers ?? 0;
+    const baseOffline = statsSummary.offlineUsers ?? 0;
 
     return Array.from({ length: activityRangeDays }, (_, index) => {
-      const date = new Date(now)
-      const steps = Math.max(activityRangeDays - 1, 0)
-      date.setDate(now.getDate() - (steps - index))
-      const growth = index * 0.08
+      const date = new Date(now);
+      const steps = Math.max(activityRangeDays - 1, 0);
+      date.setDate(now.getDate() - (steps - index));
+      const growth = index * 0.08;
 
       return {
         label: formatter.format(date),
         timestamp: date.getTime(),
         active: Math.max(0, Math.round(baseActive * (0.6 + growth))),
         offline: Math.max(0, Math.round(baseOffline * (0.7 - growth * 0.6))),
-      }
-    })
-  }, [activityRangeDays, locale, statsSummary.activeUsers, statsSummary.offlineUsers])
+      };
+    });
+  }, [
+    activityRangeDays,
+    locale,
+    statsSummary.activeUsers,
+    statsSummary.offlineUsers,
+  ]);
 
-  const activityData = activityPoints.length ? activityPoints : activityFallback
+  const activityData = activityPoints.length
+    ? activityPoints
+    : activityFallback;
 
   const statusData = useMemo(
     () => [
@@ -263,7 +348,7 @@ export default function AdminPage() {
       { status: t("statusDeclined"), value: ideasApproval.declined ?? 0 },
     ],
     [ideasApproval, t],
-  )
+  );
 
   const votesByCategoryData = useMemo(
     () =>
@@ -272,29 +357,38 @@ export default function AdminPage() {
         votes: item.votes,
       })),
     [voteCategories],
-  )
+  );
 
   const participationData = useMemo(() => {
-    const active = audienceSnapshot.active ?? statsSummary.activeUsers ?? 0
-    const offline = audienceSnapshot.offline ?? statsSummary.offlineUsers ?? 0
+    const active = audienceSnapshot.active ?? statsSummary.activeUsers ?? 0;
+    const offline = audienceSnapshot.offline ?? statsSummary.offlineUsers ?? 0;
     return [
       { status: t("adminStatsActiveUsers"), value: active },
       { status: t("adminStatsOfflineUsers"), value: offline },
-    ]
-  }, [audienceSnapshot.active, audienceSnapshot.offline, statsSummary.activeUsers, statsSummary.offlineUsers, t])
+    ];
+  }, [
+    audienceSnapshot.active,
+    audienceSnapshot.offline,
+    statsSummary.activeUsers,
+    statsSummary.offlineUsers,
+    t,
+  ]);
 
-  const mediaCoverageData = useMemo(() => mediaCoveragePoints, [mediaCoveragePoints])
+  const mediaCoverageData = useMemo(
+    () => mediaCoveragePoints,
+    [mediaCoveragePoints],
+  );
 
   const qualityData = useMemo(() => {
     if (qualityScores.length) {
-      return qualityScores
+      return qualityScores;
     }
     return [
       { type: t("adminMediaLabelPhotos"), score: 0 },
       { type: t("adminMediaLabelVideos"), score: 0 },
       { type: t("adminMediaLabelGraphics"), score: 0 },
-    ]
-  }, [qualityScores, t])
+    ];
+  }, [qualityScores, t]);
 
   const activityConfig = {
     active: {
@@ -305,14 +399,14 @@ export default function AdminPage() {
       label: t("adminStatsOfflineUsers"),
       color: "var(--color-chart-2)",
     },
-  }
+  };
 
   const votesByCategoryConfig = {
     votes: {
       label: t("adminStatsVotes"),
       color: "var(--color-chart-4)",
     },
-  }
+  };
 
   const mediaCoverageConfig = {
     photos: {
@@ -323,43 +417,43 @@ export default function AdminPage() {
       label: t("adminMediaLabelVideos"),
       color: "var(--color-chart-2)",
     },
-  }
+  };
 
   const handleLogout = async () => {
-    await logout()
-    router.push("/")
-  }
+    await logout();
+    router.push("/");
+  };
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
-    const sectionIds = ["overview", "analytics", "media", "users"]
+    const sectionIds = ["overview", "analytics", "media", "users"];
     const observer = new IntersectionObserver(
       (entries) => {
-        const visible = entries.find((entry) => entry.isIntersecting)
+        const visible = entries.find((entry) => entry.isIntersecting);
         if (visible?.target?.id) {
-          setActiveSection(visible.target.id)
+          setActiveSection(visible.target.id);
         }
       },
       { rootMargin: "-45% 0px -45% 0px" },
-    )
+    );
 
     const elements = sectionIds
       .map((id) => document.getElementById(id))
-      .filter((el): el is HTMLElement => Boolean(el))
+      .filter((el): el is HTMLElement => Boolean(el));
 
-    elements.forEach((el) => observer.observe(el))
+    elements.forEach((el) => observer.observe(el));
 
-    return () => observer.disconnect()
-  }, [])
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
-    const controller = new AbortController()
-    const sinceMs = Date.now() - 24 * 60 * 60 * 1000
-    const sinceParam = encodeURIComponent(new Date(sinceMs).toISOString())
-    const activityLimit = activityRangeDays
+    const controller = new AbortController();
+    const sinceMs = Date.now() - 24 * 60 * 60 * 1000;
+    const sinceParam = encodeURIComponent(new Date(sinceMs).toISOString());
+    const activityLimit = activityRangeDays;
 
     const load = async () => {
       const [
@@ -375,71 +469,134 @@ export default function AdminPage() {
       ] = await Promise.allSettled([
         requestJson<CountResponse>("/api/statistics/votes", controller.signal),
         requestJson<CountResponse>("/api/statistics/ideas", controller.signal),
-        requestJson<CountResponse>(`/api/statistics/users/active/${sinceParam}`, controller.signal),
-        requestJson<CountResponse>(`/api/statistics/users/offline/${sinceParam}`, controller.signal),
-        requestJson<TopCategoriesResponse>("/api/statistics/categories/5", controller.signal),
-        requestJson<IdeasRecapResponse>("/api/statistics/ideas/recap", controller.signal),
-        requestJson<UsersActivityResponse>(`/api/statistics/activity/users/${activityLimit}`, controller.signal),
-        requestJson<EditorsGradeResponse>("/api/statistics/quality/recap", controller.signal),
-        requestJson<MediaCoverageResponse>("/api/statistics/media/coverage", controller.signal),
-      ])
+        requestJson<CountResponse>(
+          `/api/statistics/users/active/${sinceParam}`,
+          controller.signal,
+        ),
+        requestJson<CountResponse>(
+          `/api/statistics/users/offline/${sinceParam}`,
+          controller.signal,
+        ),
+        requestJson<TopCategoriesResponse>(
+          "/api/statistics/categories/5",
+          controller.signal,
+        ),
+        requestJson<IdeasRecapResponse>(
+          "/api/statistics/ideas/recap",
+          controller.signal,
+        ),
+        requestJson<UsersActivityResponse>(
+          `/api/statistics/activity/users/${activityLimit}`,
+          controller.signal,
+        ),
+        requestJson<EditorsGradeResponse>(
+          "/api/statistics/quality/recap",
+          controller.signal,
+        ),
+        requestJson<MediaCoverageResponse>(
+          "/api/statistics/media/coverage",
+          controller.signal,
+        ),
+      ]);
 
       if (controller.signal.aborted) {
-        return
+        return;
       }
 
       if (votesDayResult.status !== "fulfilled" && votesDayResult.reason) {
         toast.error(t("adminErrorLoadVoteCount"), {
-          description: votesDayResult.reason instanceof Error ? votesDayResult.reason.message : undefined,
-        })
+          description:
+            votesDayResult.reason instanceof Error
+              ? votesDayResult.reason.message
+              : undefined,
+        });
       }
 
       if (ideasDayResult.status !== "fulfilled" && ideasDayResult.reason) {
         toast.error(t("adminErrorLoadIdeasCount"), {
-          description: ideasDayResult.reason instanceof Error ? ideasDayResult.reason.message : undefined,
-        })
+          description:
+            ideasDayResult.reason instanceof Error
+              ? ideasDayResult.reason.message
+              : undefined,
+        });
       }
 
-      if (activeUsersResult.status !== "fulfilled" && activeUsersResult.reason) {
+      if (
+        activeUsersResult.status !== "fulfilled" &&
+        activeUsersResult.reason
+      ) {
         toast.error(t("adminErrorLoadActiveUsers"), {
-          description: activeUsersResult.reason instanceof Error ? activeUsersResult.reason.message : undefined,
-        })
+          description:
+            activeUsersResult.reason instanceof Error
+              ? activeUsersResult.reason.message
+              : undefined,
+        });
       }
 
-      if (offlineUsersResult.status !== "fulfilled" && offlineUsersResult.reason) {
+      if (
+        offlineUsersResult.status !== "fulfilled" &&
+        offlineUsersResult.reason
+      ) {
         toast.error(t("adminErrorLoadOfflineUsers"), {
-          description: offlineUsersResult.reason instanceof Error ? offlineUsersResult.reason.message : undefined,
-        })
+          description:
+            offlineUsersResult.reason instanceof Error
+              ? offlineUsersResult.reason.message
+              : undefined,
+        });
       }
 
       if (categoriesResult.status !== "fulfilled" && categoriesResult.reason) {
         toast.error(t("adminErrorLoadVoteCategories"), {
-          description: categoriesResult.reason instanceof Error ? categoriesResult.reason.message : undefined,
-        })
+          description:
+            categoriesResult.reason instanceof Error
+              ? categoriesResult.reason.message
+              : undefined,
+        });
       }
 
       if (ideasRecapResult.status !== "fulfilled" && ideasRecapResult.reason) {
         toast.error(t("adminErrorLoadIdeasRecap"), {
-          description: ideasRecapResult.reason instanceof Error ? ideasRecapResult.reason.message : undefined,
-        })
+          description:
+            ideasRecapResult.reason instanceof Error
+              ? ideasRecapResult.reason.message
+              : undefined,
+        });
       }
 
-      if (usersActivityResult.status !== "fulfilled" && usersActivityResult.reason) {
+      if (
+        usersActivityResult.status !== "fulfilled" &&
+        usersActivityResult.reason
+      ) {
         toast.error(t("adminErrorLoadAudience"), {
-          description: usersActivityResult.reason instanceof Error ? usersActivityResult.reason.message : undefined,
-        })
+          description:
+            usersActivityResult.reason instanceof Error
+              ? usersActivityResult.reason.message
+              : undefined,
+        });
       }
 
-      if (qualityRecapResult.status !== "fulfilled" && qualityRecapResult.reason) {
+      if (
+        qualityRecapResult.status !== "fulfilled" &&
+        qualityRecapResult.reason
+      ) {
         toast.error(t("adminErrorLoadQualityRecap"), {
-          description: qualityRecapResult.reason instanceof Error ? qualityRecapResult.reason.message : undefined,
-        })
+          description:
+            qualityRecapResult.reason instanceof Error
+              ? qualityRecapResult.reason.message
+              : undefined,
+        });
       }
 
-      if (mediaCoverageResult.status !== "fulfilled" && mediaCoverageResult.reason) {
+      if (
+        mediaCoverageResult.status !== "fulfilled" &&
+        mediaCoverageResult.reason
+      ) {
         toast.error(t("adminErrorLoadMediaCoverage"), {
-          description: mediaCoverageResult.reason instanceof Error ? mediaCoverageResult.reason.message : undefined,
-        })
+          description:
+            mediaCoverageResult.reason instanceof Error
+              ? mediaCoverageResult.reason.message
+              : undefined,
+        });
       }
 
       setStatsSummary((prev) => ({
@@ -451,16 +608,22 @@ export default function AdminPage() {
           offlineUsersResult.status === "fulfilled"
             ? Number(offlineUsersResult.value?.count ?? 0)
             : prev.offlineUsers,
-        newIdeas: ideasDayResult.status === "fulfilled" ? Number(ideasDayResult.value?.count ?? 0) : prev.newIdeas,
-        votes: votesDayResult.status === "fulfilled" ? Number(votesDayResult.value?.count ?? 0) : prev.votes,
-      }))
+        newIdeas:
+          ideasDayResult.status === "fulfilled"
+            ? Number(ideasDayResult.value?.count ?? 0)
+            : prev.newIdeas,
+        votes:
+          votesDayResult.status === "fulfilled"
+            ? Number(votesDayResult.value?.count ?? 0)
+            : prev.votes,
+      }));
 
       if (categoriesResult.status === "fulfilled") {
         const mapped = (categoriesResult.value.record ?? []).map((item) => ({
           category: item.name || t("other"),
           votes: Number(item.posts ?? 0),
-        }))
-        setVoteCategories(mapped)
+        }));
+        setVoteCategories(mapped);
       }
 
       if (ideasRecapResult.status === "fulfilled") {
@@ -468,104 +631,128 @@ export default function AdminPage() {
           approved: Number(ideasRecapResult.value?.approved ?? 0),
           waiting: Number(ideasRecapResult.value?.waiting ?? 0),
           declined: Number(ideasRecapResult.value?.declined ?? 0),
-        })
+        });
       }
 
       if (usersActivityResult.status === "fulfilled") {
-        const formatter = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" })
+        const formatter = new Intl.DateTimeFormat(locale, {
+          month: "short",
+          day: "numeric",
+        });
         const mapped = Object.entries(usersActivityResult.value?.data ?? {})
           .map(([key, value]) => {
-            const timestamp = Number(key) * 1000
-            if (!Number.isFinite(timestamp)) return null
-            const active = Number(value?.active ?? 0)
-            const offline = Number(value?.offline ?? 0)
+            const timestamp = Number(key) * 1000;
+            if (!Number.isFinite(timestamp)) return null;
+            const active = Number(value?.active ?? 0);
+            const offline = Number(value?.offline ?? 0);
             return {
               label: formatter.format(new Date(timestamp)),
               timestamp,
               active,
               offline,
-            }
+            };
           })
           .filter((item): item is ActivityPoint => Boolean(item))
-          .sort((a, b) => a.timestamp - b.timestamp)
+          .sort((a, b) => a.timestamp - b.timestamp);
 
-        setActivityPoints(mapped)
+        setActivityPoints(mapped);
 
-        const latest = mapped[mapped.length - 1]
+        const latest = mapped[mapped.length - 1];
         if (latest) {
           setAudienceSnapshot((prev) => ({
             active: latest.active ?? prev.active,
             offline: latest.offline ?? prev.offline,
-          }))
+          }));
         }
       }
 
       if (qualityRecapResult.status === "fulfilled") {
         const computeScore = (grade?: Grade) => {
-          const good = Number(grade?.good ?? 0)
-          const bad = Number(grade?.bad ?? 0)
-          const total = good + bad
-          if (total === 0) return 0
-          return Math.round((good / total) * 100)
-        }
+          const good = Number(grade?.good ?? 0);
+          const bad = Number(grade?.bad ?? 0);
+          const total = good + bad;
+          if (total === 0) return 0;
+          return Math.round((good / total) * 100);
+        };
         setQualityScores([
-          { type: t("adminMediaLabelPhotos"), score: computeScore(qualityRecapResult.value.photos) },
-          { type: t("adminMediaLabelVideos"), score: computeScore(qualityRecapResult.value.videos) },
-          { type: t("adminMediaLabelGraphics"), score: computeScore(qualityRecapResult.value.graphics) },
-        ])
+          {
+            type: t("adminMediaLabelPhotos"),
+            score: computeScore(qualityRecapResult.value.photos),
+          },
+          {
+            type: t("adminMediaLabelVideos"),
+            score: computeScore(qualityRecapResult.value.videos),
+          },
+          {
+            type: t("adminMediaLabelGraphics"),
+            score: computeScore(qualityRecapResult.value.graphics),
+          },
+        ]);
       }
 
       if (mediaCoverageResult.status === "fulfilled") {
-        const formatter = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" })
+        const formatter = new Intl.DateTimeFormat(locale, {
+          month: "short",
+          day: "numeric",
+        });
         const mapped = Object.entries(mediaCoverageResult.value?.medias ?? {})
           .map(([key, value]) => {
-            const timestamp = Number(key) * 1000
-            if (!Number.isFinite(timestamp)) return null
+            const timestamp = Number(key) * 1000;
+            if (!Number.isFinite(timestamp)) return null;
             return {
               label: formatter.format(new Date(timestamp)),
               timestamp,
               photos: Number(value?.photos ?? 0),
               videos: Number(value?.videos ?? 0),
-            }
+            };
           })
           .filter((item): item is MediaCoveragePoint => Boolean(item))
-          .sort((a, b) => a.timestamp - b.timestamp)
+          .sort((a, b) => a.timestamp - b.timestamp);
 
-        setMediaCoveragePoints(mapped)
+        setMediaCoveragePoints(mapped);
       }
 
       setAudienceSnapshot((prev) => ({
         active:
           prev.active ??
-          (activeUsersResult.status === "fulfilled" ? Number(activeUsersResult.value?.count ?? 0) : null),
+          (activeUsersResult.status === "fulfilled"
+            ? Number(activeUsersResult.value?.count ?? 0)
+            : null),
         offline:
           prev.offline ??
-          (offlineUsersResult.status === "fulfilled" ? Number(offlineUsersResult.value?.count ?? 0) : null),
-      }))
-    }
+          (offlineUsersResult.status === "fulfilled"
+            ? Number(offlineUsersResult.value?.count ?? 0)
+            : null),
+      }));
+    };
 
-    void load()
+    void load();
 
-    return () => controller.abort()
-  }, [activityRangeDays, locale, t])
+    return () => controller.abort();
+  }, [activityRangeDays, locale, t]);
 
   useEffect(() => {
-    const controller = new AbortController()
+    const controller = new AbortController();
     const loadUsers = async () => {
       try {
-        const list = await fetchUsers({ signal: controller.signal })
+        const list = await fetchUsers({ signal: controller.signal });
         const banResults = await Promise.allSettled(
-          list.map((item) => fetchUserBanInfo(item.userID, { signal: controller.signal })),
-        )
+          list.map((item) =>
+            fetchUserBanInfo(item.userID, { signal: controller.signal }),
+          ),
+        );
         if (controller.signal.aborted) {
-          return
+          return;
         }
         if (banResults.some((result) => result.status === "rejected")) {
-          toast.error(t("adminErrorLoadBanStatuses"))
+          toast.error(t("adminErrorLoadBanStatuses"));
         }
-        const mapped = list.map((item, index) => {
-          const banInfo = banResults[index].status === "fulfilled" ? banResults[index].value : null
-          const isBanned = isBanActive(banInfo)
+        const mapped: User[] = list.map((item, index) => {
+          const banInfo =
+            banResults[index].status === "fulfilled"
+              ? banResults[index].value
+              : null;
+          const isBanned = isBanActive(banInfo);
           return {
             id: `USR-${item.userID}`,
             userID: item.userID,
@@ -576,58 +763,61 @@ export default function AdminPage() {
             status: isBanned ? "banned" : "active",
             lastActive: formatUserDate(item.joined),
             reports: 0,
-          }
-        })
-        setUsers(mapped)
+          };
+        });
+        setUsers(mapped);
       } catch (error) {
         if (!controller.signal.aborted) {
           toast.error(t("adminErrorLoadUsers"), {
             description: error instanceof Error ? error.message : undefined,
-          })
-          setUsers([])
+          });
+          setUsers([]);
         }
       }
-    }
+    };
 
-    void loadUsers()
-    return () => controller.abort()
-  }, [t])
+    void loadUsers();
+    return () => controller.abort();
+  }, [t]);
 
-  const handleUserAction = (user: User, action: "block" | "unblock" | "reset" | "message") => {
+  const handleUserAction = (
+    user: User,
+    action: "block" | "unblock" | "reset" | "message",
+  ) => {
     if (action === "block") {
       toast.error(t("adminToastUserBlocked"), {
         description: `${user.name} - ${t("adminBanReason")}: ${banReason}`,
-      })
-      return
+      });
+      return;
     }
 
     if (action === "unblock") {
       toast.success(t("adminToastUserUnblocked"), {
         description: user.name,
-      })
-      return
+      });
+      return;
     }
 
     if (action === "reset") {
       toast.message(t("adminToastPasswordReset"), {
         description: user.name,
-      })
-      return
+      });
+      return;
     }
 
     toast.message(t("adminToastMessageSent"), {
       description: user.name,
-    })
-  }
+    });
+  };
 
   const handleSelectedAction = (action: "block" | "unblock" | "reset") => {
-    const selectedUser = users.find((item) => item.userID === selectedUserId)
+    const selectedUser = users.find((item) => item.userID === selectedUserId);
     if (!selectedUser) {
-      toast.message(t("adminToastSelectUser"))
-      return
+      toast.message(t("adminToastSelectUser"));
+      return;
     }
-    handleUserAction(selectedUser, action)
-  }
+    handleUserAction(selectedUser, action);
+  };
 
   const sidebar = (
     <motion.aside
@@ -653,23 +843,26 @@ export default function AdminPage() {
 
       <nav className="space-y-1">
         {sidebarItems.map((item) => {
-          const isActive = activeSection === item.id
+          const isActive = activeSection === item.id;
           return (
             <Link
               key={item.id}
               href={item.href}
-              className={`flex items-center gap-3 rounded-2xl border border-border/60 px-4 py-2 text-sm font-semibold transition-colors duration-300 ${isActive ? "bg-foreground text-background shadow-lg shadow-foreground/20" : "bg-card/90 hover:bg-foreground/90 hover:text-background"
-                }`}
+              className={`flex items-center gap-3 rounded-2xl border border-border/60 px-4 py-2 text-sm font-semibold transition-colors duration-300 ${
+                isActive
+                  ? "bg-foreground text-background shadow-lg shadow-foreground/20"
+                  : "bg-card/90 hover:bg-foreground/90 hover:text-background"
+              }`}
               onClick={() => setSidebarOpen(false)}
             >
               <item.icon className="h-4 w-4 shrink-0" />
               <span className="truncate">{item.label}</span>
             </Link>
-          )
+          );
         })}
       </nav>
     </motion.aside>
-  )
+  );
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">
@@ -683,7 +876,9 @@ export default function AdminPage() {
       ) : null}
 
       <div className="relative flex">
-        <div className="fixed left-6 top-6 hidden h-[calc(100vh-3rem)] lg:block">{sidebar}</div>
+        <div className="fixed left-6 top-6 hidden h-[calc(100vh-3rem)] lg:block">
+          {sidebar}
+        </div>
 
         <div className="flex min-h-screen w-full flex-col lg:pl-[320px]  rounded-bl-[48px] overflow-hidden">
           <header className="sticky top-0 z-20  backdrop-blur">
@@ -702,8 +897,12 @@ export default function AdminPage() {
                     </button>
                     <div className="flex items-center gap-3">
                       <div>
-                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t("adminPanel")}</p>
-                        <p className="text-base font-semibold leading-tight text-foreground">{t("adminPanelSubtitle")}</p>
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                          {t("adminPanel")}
+                        </p>
+                        <p className="text-base font-semibold leading-tight text-foreground">
+                          {t("adminPanelSubtitle")}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -714,7 +913,13 @@ export default function AdminPage() {
                       onClick={toggleTheme}
                       className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-border/70 bg-background px-4 text-xs font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
                     >
-                      {mounted ? (theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />) : null}
+                      {mounted ? (
+                        theme === "light" ? (
+                          <Moon className="h-4 w-4" />
+                        ) : (
+                          <Sun className="h-4 w-4" />
+                        )
+                      ) : null}
                       {t("adminThemeToggle")}
                     </button>
                     <DropdownMenu>
@@ -730,7 +935,10 @@ export default function AdminPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="min-w-[90px]">
                         {languageOptions.map((option) => (
-                          <DropdownMenuItem key={option.code} onClick={() => setLanguage(option.code)}>
+                          <DropdownMenuItem
+                            key={option.code}
+                            onClick={() => setLanguage(option.code)}
+                          >
                             {option.label}
                           </DropdownMenuItem>
                         ))}
@@ -743,9 +951,13 @@ export default function AdminPage() {
                           className="flex items-center gap-3 rounded-full border border-border/60 bg-background/90 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
                         >
                           <Avatar className="h-9 w-9">
-                            <AvatarFallback className="text-xs font-semibold">{initials}</AvatarFallback>
+                            <AvatarFallback className="text-xs font-semibold">
+                              {initials}
+                            </AvatarFallback>
                           </Avatar>
-                          <span className="text-sm font-semibold">{displayName || user?.username || "admin"}</span>
+                          <span className="text-sm font-semibold">
+                            {displayName || user?.username || "admin"}
+                          </span>
                           <ChevronDown className="h-4 w-4 text-muted-foreground" />
                         </button>
                       </DropdownMenuTrigger>
@@ -759,8 +971,8 @@ export default function AdminPage() {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onSelect={(event) => {
-                            event.preventDefault()
-                            void handleLogout()
+                            event.preventDefault();
+                            void handleLogout();
                           }}
                         >
                           <LogOut className="h-4 w-4" />
@@ -785,15 +997,19 @@ export default function AdminPage() {
                 variants={sectionVariants}
                 className="space-y-6 scroll-mt-32"
               >
-
                 <div>
-                  <h2 className="text-3xl font-bold leading-tight">{t("adminStatsSubtitle")}</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">{t("adminStatsActivitySubtitle")}</p>
+                  <h2 className="text-3xl font-bold leading-tight">
+                    {t("adminStatsSubtitle")}
+                  </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {t("adminStatsActivitySubtitle")}
+                  </p>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                   {statsCards.map((card) => {
-                    const value = statsSummary[card.id]
-                    const displayValue = value == null ? "-" : value.toLocaleString(locale)
+                    const value = statsSummary[card.id];
+                    const displayValue =
+                      value == null ? "-" : value.toLocaleString(locale);
 
                     return (
                       <div
@@ -806,10 +1022,14 @@ export default function AdminPage() {
                           </div>
                           <Sparkles className="h-4 w-4 text-muted-foreground" />
                         </div>
-                        <div className="mt-4 text-2xl font-bold">{displayValue}</div>
-                        <p className="text-sm font-semibold text-muted-foreground">{card.title}</p>
+                        <div className="mt-4 text-2xl font-bold">
+                          {displayValue}
+                        </div>
+                        <p className="text-sm font-semibold text-muted-foreground">
+                          {card.title}
+                        </p>
                       </div>
-                    )
+                    );
                   })}
                 </div>
               </motion.section>
@@ -825,9 +1045,15 @@ export default function AdminPage() {
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t("adminStatsTitle")}</p>
-                    <h2 className="text-2xl font-bold">{t("adminStatsActivityTitle")}</h2>
-                    <p className="text-sm text-muted-foreground">{t("adminStatsActivitySubtitle")}</p>
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                      {t("adminStatsTitle")}
+                    </p>
+                    <h2 className="text-2xl font-bold">
+                      {t("adminStatsActivityTitle")}
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      {t("adminStatsActivitySubtitle")}
+                    </p>
                   </div>
                 </div>
 
@@ -835,12 +1061,16 @@ export default function AdminPage() {
                   <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
-                        <p className="text-sm font-semibold">{t("adminStatsActivityTitle")}</p>
-                        <p className="text-xs text-muted-foreground">{t("adminStatsActivitySubtitle")}</p>
+                        <p className="text-sm font-semibold">
+                          {t("adminStatsActivityTitle")}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("adminStatsActivitySubtitle")}
+                        </p>
                       </div>
                       <div className="flex items-center gap-1 rounded-full border border-border/70 bg-background/60 p-1">
                         {activityRanges.map((range) => {
-                          const isActive = range.id === activityRange
+                          const isActive = range.id === activityRange;
                           return (
                             <button
                               key={range.id}
@@ -854,25 +1084,69 @@ export default function AdminPage() {
                             >
                               {range.label}
                             </button>
-                          )
+                          );
                         })}
                       </div>
                     </div>
-                    <ChartContainer config={activityConfig} className="mt-4 h-[220px] sm:h-[260px]">
-                      <AreaChart data={activityData} margin={{ left: 8, right: 8 }}>
+                    <ChartContainer
+                      config={activityConfig}
+                      className="mt-4 h-[220px] sm:h-[260px]"
+                    >
+                      <AreaChart
+                        data={activityData}
+                        margin={{ left: 8, right: 8 }}
+                      >
                         <defs>
-                          <linearGradient id="fillActive" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="var(--color-chart-1)" stopOpacity={0.4} />
-                            <stop offset="95%" stopColor="var(--color-chart-1)" stopOpacity={0.05} />
+                          <linearGradient
+                            id="fillActive"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="var(--color-chart-1)"
+                              stopOpacity={0.4}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="var(--color-chart-1)"
+                              stopOpacity={0.05}
+                            />
                           </linearGradient>
-                          <linearGradient id="fillOffline" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="var(--color-chart-2)" stopOpacity={0.35} />
-                            <stop offset="95%" stopColor="var(--color-chart-2)" stopOpacity={0.05} />
+                          <linearGradient
+                            id="fillOffline"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="var(--color-chart-2)"
+                              stopOpacity={0.35}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="var(--color-chart-2)"
+                              stopOpacity={0.05}
+                            />
                           </linearGradient>
                         </defs>
                         <CartesianGrid vertical={false} />
-                        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
-                        <YAxis tickLine={false} axisLine={false} width={32} tick={{ fontSize: 11 }} />
+                        <XAxis
+                          dataKey="label"
+                          tickLine={false}
+                          axisLine={false}
+                          tick={{ fontSize: 11 }}
+                        />
+                        <YAxis
+                          tickLine={false}
+                          axisLine={false}
+                          width={32}
+                          tick={{ fontSize: 11 }}
+                        />
                         <ChartTooltip content={<ChartTooltipContent />} />
                         <Area
                           type="monotone"
@@ -897,14 +1171,23 @@ export default function AdminPage() {
                     <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <p className="text-sm font-semibold">{t("adminStatsStatusesTitle")}</p>
-                          <p className="text-xs text-muted-foreground">{t("adminStatsStatusesSubtitle")}</p>
+                          <p className="text-sm font-semibold">
+                            {t("adminStatsStatusesTitle")}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {t("adminStatsStatusesSubtitle")}
+                          </p>
                         </div>
                         <Vote className="h-5 w-5 text-muted-foreground" />
                       </div>
-                      <ChartContainer config={{}} className="mt-4 h-[200px] sm:h-[220px]">
+                      <ChartContainer
+                        config={{}}
+                        className="mt-4 h-[200px] sm:h-[220px]"
+                      >
                         <PieChart>
-                          <ChartTooltip content={<ChartTooltipContent nameKey="status" />} />
+                          <ChartTooltip
+                            content={<ChartTooltipContent nameKey="status" />}
+                          />
                           <Pie
                             data={statusData}
                             dataKey="value"
@@ -925,15 +1208,22 @@ export default function AdminPage() {
                       </ChartContainer>
                       <div className="mt-3 space-y-2 text-xs text-muted-foreground">
                         {statusData.map((entry, index) => (
-                          <div key={entry.status} className="flex items-center justify-between">
+                          <div
+                            key={entry.status}
+                            className="flex items-center justify-between"
+                          >
                             <div className="flex items-center gap-2">
                               <span
                                 className="h-2 w-2 rounded-full"
-                                style={{ backgroundColor: `var(--color-chart-${index + 1})` }}
+                                style={{
+                                  backgroundColor: `var(--color-chart-${index + 1})`,
+                                }}
                               />
                               <span>{entry.status}</span>
                             </div>
-                            <span className="font-semibold text-foreground">{entry.value}</span>
+                            <span className="font-semibold text-foreground">
+                              {entry.value}
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -942,14 +1232,23 @@ export default function AdminPage() {
                     <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <p className="text-sm font-semibold">{t("adminStatsActivityTitle")}</p>
-                          <p className="text-xs text-muted-foreground">{t("adminStatsActivitySubtitle")}</p>
+                          <p className="text-sm font-semibold">
+                            {t("adminStatsActivityTitle")}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {t("adminStatsActivitySubtitle")}
+                          </p>
                         </div>
                         <Users className="h-5 w-5 text-muted-foreground" />
                       </div>
-                      <ChartContainer config={{}} className="mt-4 h-[200px] sm:h-[220px]">
+                      <ChartContainer
+                        config={{}}
+                        className="mt-4 h-[200px] sm:h-[220px]"
+                      >
                         <PieChart>
-                          <ChartTooltip content={<ChartTooltipContent nameKey="status" />} />
+                          <ChartTooltip
+                            content={<ChartTooltipContent nameKey="status" />}
+                          />
                           <Pie
                             data={participationData}
                             dataKey="value"
@@ -970,15 +1269,22 @@ export default function AdminPage() {
                       </ChartContainer>
                       <div className="mt-3 space-y-2 text-xs text-muted-foreground">
                         {participationData.map((entry, index) => (
-                          <div key={entry.status} className="flex items-center justify-between">
+                          <div
+                            key={entry.status}
+                            className="flex items-center justify-between"
+                          >
                             <div className="flex items-center gap-2">
                               <span
                                 className="h-2 w-2 rounded-full"
-                                style={{ backgroundColor: `var(--color-chart-${index + 1})` }}
+                                style={{
+                                  backgroundColor: `var(--color-chart-${index + 1})`,
+                                }}
                               />
                               <span>{entry.status}</span>
                             </div>
-                            <span className="font-semibold text-foreground">{entry.value}</span>
+                            <span className="font-semibold text-foreground">
+                              {entry.value}
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -990,20 +1296,45 @@ export default function AdminPage() {
                   <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
-                        <p className="text-sm font-semibold">{t("adminStatsVotesByCategoryTitle")}</p>
-                        <p className="text-xs text-muted-foreground">{t("adminStatsVotesByCategorySubtitle")}</p>
+                        <p className="text-sm font-semibold">
+                          {t("adminStatsVotesByCategoryTitle")}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("adminStatsVotesByCategorySubtitle")}
+                        </p>
                       </div>
-                      <span className="text-xs text-muted-foreground">{t("adminStatsNoteSinceMidnight")}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {t("adminStatsNoteSinceMidnight")}
+                      </span>
                     </div>
-                    <ChartContainer config={votesByCategoryConfig} className="mt-4 h-[220px] sm:h-[240px]">
-                      <BarChart data={votesByCategoryData} margin={{ left: 8, right: 8 }}>
+                    <ChartContainer
+                      config={votesByCategoryConfig}
+                      className="mt-4 h-[220px] sm:h-[240px]"
+                    >
+                      <BarChart
+                        data={votesByCategoryData}
+                        margin={{ left: 8, right: 8 }}
+                      >
                         <CartesianGrid vertical={false} />
-                        <XAxis dataKey="category" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
-                        <YAxis tickLine={false} axisLine={false} width={36} tick={{ fontSize: 11 }} />
+                        <XAxis
+                          dataKey="category"
+                          tickLine={false}
+                          axisLine={false}
+                          tick={{ fontSize: 11 }}
+                        />
+                        <YAxis
+                          tickLine={false}
+                          axisLine={false}
+                          width={36}
+                          tick={{ fontSize: 11 }}
+                        />
                         <ChartTooltip content={<ChartTooltipContent />} />
                         <Bar dataKey="votes" radius={[10, 10, 0, 0]}>
                           {votesByCategoryData.map((item, index) => (
-                            <Cell key={item.category} fill={`var(--color-chart-${index + 2})`} />
+                            <Cell
+                              key={item.category}
+                              fill={`var(--color-chart-${index + 2})`}
+                            />
                           ))}
                         </Bar>
                       </BarChart>
@@ -1013,15 +1344,31 @@ export default function AdminPage() {
                   <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-sm font-semibold">{t("adminMediaQualityTitle")}</p>
-                        <p className="text-xs text-muted-foreground">{t("adminMediaQualitySubtitle")}</p>
+                        <p className="text-sm font-semibold">
+                          {t("adminMediaQualityTitle")}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("adminMediaQualitySubtitle")}
+                        </p>
                       </div>
                       <Shield className="h-5 w-5 text-muted-foreground" />
                     </div>
-                    <ChartContainer config={{}} className="mt-4 h-[220px] w-full">
-                      <BarChart data={qualityData} layout="vertical" margin={{ left: 8, right: 8 }}>
+                    <ChartContainer
+                      config={{}}
+                      className="mt-4 h-[220px] w-full"
+                    >
+                      <BarChart
+                        data={qualityData}
+                        layout="vertical"
+                        margin={{ left: 8, right: 8 }}
+                      >
                         <CartesianGrid horizontal={false} />
-                        <XAxis type="number" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
+                        <XAxis
+                          type="number"
+                          tickLine={false}
+                          axisLine={false}
+                          tick={{ fontSize: 11 }}
+                        />
                         <YAxis
                           type="category"
                           dataKey="type"
@@ -1033,7 +1380,10 @@ export default function AdminPage() {
                         <ChartTooltip content={<ChartTooltipContent />} />
                         <Bar dataKey="score" radius={[0, 10, 10, 0]}>
                           {qualityData.map((item, index) => (
-                            <Cell key={item.type} fill={`var(--color-chart-${index + 1})`} />
+                            <Cell
+                              key={item.type}
+                              fill={`var(--color-chart-${index + 1})`}
+                            />
                           ))}
                         </Bar>
                       </BarChart>
@@ -1052,33 +1402,87 @@ export default function AdminPage() {
                 className="space-y-6 scroll-mt-32"
               >
                 <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t("adminMediaTitle")}</p>
-                  <h2 className="text-2xl font-bold">{t("adminMediaSubtitle")}</h2>
+                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                    {t("adminMediaTitle")}
+                  </p>
+                  <h2 className="text-2xl font-bold">
+                    {t("adminMediaSubtitle")}
+                  </h2>
                 </div>
                 <div className="grid gap-6 lg:grid-cols-[1.2fr,1fr]">
                   <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
-                        <p className="text-sm font-semibold">{t("adminMediaCoverageTitle")}</p>
-                        <p className="text-xs text-muted-foreground">{t("adminMediaCoverageSubtitle")}</p>
+                        <p className="text-sm font-semibold">
+                          {t("adminMediaCoverageTitle")}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("adminMediaCoverageSubtitle")}
+                        </p>
                       </div>
-                      <span className="text-xs text-muted-foreground">{t("adminMediaCoverageRange")}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {t("adminMediaCoverageRange")}
+                      </span>
                     </div>
-                    <ChartContainer config={mediaCoverageConfig} className="mt-4 h-[220px] sm:h-[240px]">
-                      <AreaChart data={mediaCoverageData} margin={{ left: 8, right: 8 }}>
+                    <ChartContainer
+                      config={mediaCoverageConfig}
+                      className="mt-4 h-[220px] sm:h-[240px]"
+                    >
+                      <AreaChart
+                        data={mediaCoverageData}
+                        margin={{ left: 8, right: 8 }}
+                      >
                         <defs>
-                          <linearGradient id="fillPhotos" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="var(--color-chart-1)" stopOpacity={0.35} />
-                            <stop offset="95%" stopColor="var(--color-chart-1)" stopOpacity={0.05} />
+                          <linearGradient
+                            id="fillPhotos"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="var(--color-chart-1)"
+                              stopOpacity={0.35}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="var(--color-chart-1)"
+                              stopOpacity={0.05}
+                            />
                           </linearGradient>
-                          <linearGradient id="fillVideos" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="var(--color-chart-2)" stopOpacity={0.35} />
-                            <stop offset="95%" stopColor="var(--color-chart-2)" stopOpacity={0.05} />
+                          <linearGradient
+                            id="fillVideos"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="var(--color-chart-2)"
+                              stopOpacity={0.35}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="var(--color-chart-2)"
+                              stopOpacity={0.05}
+                            />
                           </linearGradient>
                         </defs>
                         <CartesianGrid vertical={false} />
-                        <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11 }} />
-                        <YAxis tickLine={false} axisLine={false} width={32} tick={{ fontSize: 11 }} />
+                        <XAxis
+                          dataKey="label"
+                          tickLine={false}
+                          axisLine={false}
+                          tick={{ fontSize: 11 }}
+                        />
+                        <YAxis
+                          tickLine={false}
+                          axisLine={false}
+                          width={32}
+                          tick={{ fontSize: 11 }}
+                        />
                         <ChartTooltip content={<ChartTooltipContent />} />
                         <Area
                           type="monotone"
@@ -1102,8 +1506,12 @@ export default function AdminPage() {
                   <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="text-sm font-semibold">{t("adminMediaQualityTitle")}</p>
-                        <p className="text-xs text-muted-foreground">{t("adminMediaQualitySubtitle")}</p>
+                        <p className="text-sm font-semibold">
+                          {t("adminMediaQualityTitle")}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("adminMediaQualitySubtitle")}
+                        </p>
                       </div>
                       <Shield className="h-5 w-5 text-muted-foreground" />
                     </div>
@@ -1111,7 +1519,9 @@ export default function AdminPage() {
                       <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                         {t("adminMediaCoverageRange")}
                       </p>
-                      <p className="text-sm">{t("adminMediaCoverageSubtitle")}</p>
+                      <p className="text-sm">
+                        {t("adminMediaCoverageSubtitle")}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -1128,9 +1538,15 @@ export default function AdminPage() {
               >
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t("labelUsers")}</p>
-                    <h2 className="text-2xl font-bold">{t("adminAccessModerationTitle")}</h2>
-                    <p className="text-sm text-muted-foreground">{t("adminAccessModerationSubtitle")}</p>
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                      {t("labelUsers")}
+                    </p>
+                    <h2 className="text-2xl font-bold">
+                      {t("adminAccessModerationTitle")}
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      {t("adminAccessModerationSubtitle")}
+                    </p>
                   </div>
                   <div className="flex items-center gap-3">
                     <Link
@@ -1151,29 +1567,49 @@ export default function AdminPage() {
                 <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
                   <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold">{t("adminUsersListTitle")}</p>
-                      <span className="text-xs text-muted-foreground">{t("adminUsersListSubtitle")}</span>
+                      <p className="text-sm font-semibold">
+                        {t("adminUsersListTitle")}
+                      </p>
+                      <span className="text-xs text-muted-foreground">
+                        {t("adminUsersListSubtitle")}
+                      </span>
                     </div>
                     <div className="mt-4 space-y-3">
                       {users.slice(0, 6).map((user) => {
-                        const ActionIcon = user.status === "banned" ? CheckCircle2 : Ban
-                        const actionTitle = user.status === "banned" ? t("actionUnblock") : t("actionBlock")
+                        const ActionIcon =
+                          user.status === "banned" ? CheckCircle2 : Ban;
+                        const actionTitle =
+                          user.status === "banned"
+                            ? t("actionUnblock")
+                            : t("actionBlock");
 
                         return (
-                          <div key={user.id} className="rounded-2xl border border-border/60 bg-background/70 p-4">
+                          <div
+                            key={user.id}
+                            className="rounded-2xl border border-border/60 bg-background/70 p-4"
+                          >
                             <div className="flex items-start justify-between gap-3">
                               <div>
-                                <p className="break-words text-sm font-semibold">{user.name}</p>
-                                <p className="break-all text-xs text-muted-foreground">{user.email}</p>
-                                <p className="text-xs text-muted-foreground">{user.lastActive}</p>
+                                <p className="break-words text-sm font-semibold">
+                                  {user.name}
+                                </p>
+                                <p className="break-all text-xs text-muted-foreground">
+                                  {user.email}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {user.lastActive}
+                                </p>
                               </div>
                               <span
-                                className={`rounded-full px-3 py-1 text-xs font-semibold ${user.status === "banned"
+                                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                  user.status === "banned"
                                     ? "bg-destructive/10 text-destructive"
                                     : "bg-foreground text-background"
-                                  }`}
+                                }`}
                               >
-                                {user.status === "banned" ? t("statusBanned") : t("statusActive")}
+                                {user.status === "banned"
+                                  ? t("statusBanned")
+                                  : t("statusActive")}
                               </span>
                             </div>
                             <div className="mt-3 flex justify-end gap-2">
@@ -1181,7 +1617,14 @@ export default function AdminPage() {
                                 type="button"
                                 title={actionTitle}
                                 className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                                onClick={() => handleUserAction(user, user.status === "banned" ? "unblock" : "block")}
+                                onClick={() =>
+                                  handleUserAction(
+                                    user,
+                                    user.status === "banned"
+                                      ? "unblock"
+                                      : "block",
+                                  )
+                                }
                               >
                                 <ActionIcon className="h-4 w-4" />
                               </button>
@@ -1197,13 +1640,15 @@ export default function AdminPage() {
                                 type="button"
                                 title={t("actionMessage")}
                                 className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                                onClick={() => handleUserAction(user, "message")}
+                                onClick={() =>
+                                  handleUserAction(user, "message")
+                                }
                               >
                                 <MessageSquare className="h-4 w-4" />
                               </button>
                             </div>
                           </div>
-                        )
+                        );
                       })}
                     </div>
                   </div>
@@ -1212,8 +1657,12 @@ export default function AdminPage() {
                     <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-sm font-semibold">{t("adminBanCardTitle")}</p>
-                          <p className="text-xs text-muted-foreground">{t("adminBanCardSubtitle")}</p>
+                          <p className="text-sm font-semibold">
+                            {t("adminBanCardTitle")}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {t("adminBanCardSubtitle")}
+                          </p>
                         </div>
                         <Ban className="h-5 w-5 text-muted-foreground" />
                       </div>
@@ -1225,8 +1674,10 @@ export default function AdminPage() {
                           className="w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
                           value={selectedUserId ?? ""}
                           onChange={(event) => {
-                            const nextValue = Number(event.target.value)
-                            setSelectedUserId(Number.isFinite(nextValue) ? nextValue : null)
+                            const nextValue = Number(event.target.value);
+                            setSelectedUserId(
+                              Number.isFinite(nextValue) ? nextValue : null,
+                            );
                           }}
                         >
                           <option value="">{t("adminBanSelectUser")}</option>
@@ -1244,7 +1695,9 @@ export default function AdminPage() {
                           value={banReason}
                           onChange={(event) => setBanReason(event.target.value)}
                         />
-                        <p className="text-xs text-muted-foreground">{t("adminBanReasonHint")}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {t("adminBanReasonHint")}
+                        </p>
                       </div>
                       <div className="mt-4 grid grid-cols-2 gap-3">
                         <button
@@ -1274,25 +1727,41 @@ export default function AdminPage() {
                     <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-sm font-semibold">{t("adminModerationChecklistTitle")}</p>
-                          <p className="text-xs text-muted-foreground">{t("adminModerationChecklistSubtitle")}</p>
+                          <p className="text-sm font-semibold">
+                            {t("adminModerationChecklistTitle")}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {t("adminModerationChecklistSubtitle")}
+                          </p>
                         </div>
                         <Shield className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <div className="mt-4 space-y-3 text-sm">
                         {[
-                          { icon: CheckCircle2, label: t("adminChecklistApprovals") },
-                          { icon: Shield, label: t("adminChecklistSecurityAudit") },
-                          { icon: MessageSquare, label: t("adminChecklistSupportInbox") },
+                          {
+                            icon: CheckCircle2,
+                            label: t("adminChecklistApprovals"),
+                          },
+                          {
+                            icon: Shield,
+                            label: t("adminChecklistSecurityAudit"),
+                          },
+                          {
+                            icon: MessageSquare,
+                            label: t("adminChecklistSupportInbox"),
+                          },
                         ].map((item) => {
-                          const Icon = item.icon
+                          const Icon = item.icon;
 
                           return (
-                            <div key={item.label} className="flex items-center gap-2">
+                            <div
+                              key={item.label}
+                              className="flex items-center gap-2"
+                            >
                               <Icon className="h-4 w-4" />
                               <span>{item.label}</span>
                             </div>
-                          )
+                          );
                         })}
                       </div>
                     </div>
@@ -1304,5 +1773,5 @@ export default function AdminPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
