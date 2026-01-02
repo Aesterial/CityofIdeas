@@ -33,7 +33,7 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Area,
   AreaChart,
@@ -49,6 +49,7 @@ import {
 import { toast } from "sonner"
 import { useAuth } from "@/components/auth-provider"
 import { useLanguage } from "@/components/language-provider"
+import { fetchUserBanInfo, fetchUsers, type BanInfo } from "@/lib/api"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -110,46 +111,19 @@ const statsCards: Array<{
   },
 ]
 
-const users = [
-  {
-    id: "USR-4821",
-    name: "Анна Романова",
-    email: "anna.romanova@cityideas.ru",
-    role: "Администратор",
-    status: "active",
-    lastActive: "2 мин назад",
-    reports: 0,
-  },
-  {
-    id: "USR-9182",
-    name: "Максим Иванов",
-    email: "m.ivanov@cityideas.ru",
-    role: "Модератор",
-    status: "active",
-    lastActive: "12 мин назад",
-    reports: 1,
-  },
-  {
-    id: "USR-7710",
-    name: "Екатерина Лаврова",
-    email: "lavrova.k@cityideas.ru",
-    role: "Горожанин",
-    status: "offline",
-    lastActive: "1 ч назад",
-    reports: 2,
-  },
-  {
-    id: "USR-2339",
-    name: "Илья Смирнов",
-    email: "smirnov.i@cityideas.ru",
-    role: "Горожанин",
-    status: "banned",
-    lastActive: "3 дня назад",
-    reports: 6,
-  },
-]
+type UserStatus = "active" | "banned"
 
-type User = (typeof users)[number]
+type User = {
+  id: string
+  userID: number
+  name: string
+  username: string
+  email: string
+  role: string
+  status: UserStatus
+  lastActive: string
+  reports: number
+}
 
 type SubmissionState = "pending" | "approved" | "declined"
 
@@ -350,6 +324,37 @@ const formatFullNumber = (value: number) => fullNumberFormatter.format(value)
 
 const formatMediaLabel = (timestampMs: number) => dayLabelFormatter.format(new Date(timestampMs))
 
+const userDateFormatter = new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+})
+
+const formatUserDate = (value?: string) => {
+  if (!value) {
+    return "-"
+  }
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return "-"
+  }
+  return userDateFormatter.format(date)
+}
+
+const isBanActive = (banInfo: BanInfo | null) => {
+  if (!banInfo) {
+    return false
+  }
+  if (!banInfo.expires) {
+    return true
+  }
+  const expiresAt = new Date(banInfo.expires).getTime()
+  if (!Number.isFinite(expiresAt)) {
+    return true
+  }
+  return expiresAt > Date.now()
+}
+
 const toQualityScore = (grade?: EditorsGrade) => {
   const good = Number(grade?.good ?? 0)
   const bad = Number(grade?.bad ?? 0)
@@ -409,7 +414,8 @@ export default function AdminPage() {
   const [votingData, setVotingData] = useState(votingSeed)
   const [mediaData, setMediaData] = useState(mediaSeed)
   const [qualityScores, setQualityScores] = useState(qualitySeed)
-  const [selectedUserId, setSelectedUserId] = useState(users[0].id)
+  const [users, setUsers] = useState<User[]>([])
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
   const [banReason, setBanReason] = useState("Спам, мультиаккаунты, повторные жалобы")
   // const push = useRouter();
   const displayName = user?.displayName || user?.username || ""
@@ -606,10 +612,51 @@ export default function AdminPage() {
     return () => controller.abort()
   }, [rangeDays])
 
-  const selectedUser = useMemo(
-    () => users.find((user) => user.id === selectedUserId) ?? users[0],
-    [selectedUserId],
-  );
+  useEffect(() => {
+    const controller = new AbortController()
+    const loadUsers = async () => {
+      try {
+        const list = await fetchUsers({ signal: controller.signal })
+        const banResults = await Promise.allSettled(
+          list.map((item) => fetchUserBanInfo(item.userID, { signal: controller.signal })),
+        )
+        if (controller.signal.aborted) {
+          return
+        }
+        if (banResults.some((result) => result.status === "rejected")) {
+          toast.error("Failed to load some ban statuses")
+        }
+        const mapped = list.map((item, index) => {
+          const banInfo = banResults[index].status === "fulfilled" ? banResults[index].value : null
+          const isBanned = isBanActive(banInfo)
+          return {
+            id: `USR-${item.userID}`,
+            userID: item.userID,
+            name: item.displayName || item.username,
+            username: item.username,
+            email: item.username || "-",
+            role: item.rank?.name || "User",
+            status: isBanned ? "banned" : "active",
+            lastActive: formatUserDate(item.joined),
+            reports: 0,
+          }
+        })
+        setUsers(mapped)
+        setSelectedUserId((prev) => prev ?? mapped[0]?.userID ?? null)
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          toast.error("Failed to load users", {
+            description: error instanceof Error ? error.message : undefined,
+          })
+          setUsers([])
+          setSelectedUserId(null)
+        }
+      }
+    }
+
+    void loadUsers()
+    return () => controller.abort()
+  }, [])
 
   // const routerpusher = push.push('/');
 
@@ -847,19 +894,9 @@ export default function AdminPage() {
                                 <p className="text-xs text-muted-foreground">{user.lastActive}</p>
                               </div>
                               <span
-                                className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                  user.status === "active"
-                                    ? "bg-foreground text-background"
-                                    : user.status === "offline"
-                                      ? "bg-muted text-foreground"
-                                      : "bg-destructive/10 text-destructive"
-                                }`}
+                                className={`rounded-full px-3 py-1 text-xs font-semibold ${user.status === "banned" ? "bg-destructive/10 text-destructive" : "bg-foreground text-background"}`}
                               >
-                                {user.status === "active"
-                                  ? "Active"
-                                  : user.status === "offline"
-                                    ? "Offline"
-                                    : "Banned"}
+                                {user.status === "banned" ? "Banned" : "Active"}
                               </span>
                             </div>
                             <div className="mt-3 space-y-2 text-xs">
@@ -904,15 +941,9 @@ export default function AdminPage() {
                               <td className="px-4 py-4 text-sm">{user.role}</td>
                               <td className="px-4 py-4">
                                 <span
-                                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                    user.status === "active"
-                                      ? "bg-foreground text-background"
-                                      : user.status === "offline"
-                                        ? "bg-muted text-foreground"
-                                        : "bg-destructive/10 text-destructive"
-                                  }`}
+                                  className={`rounded-full px-3 py-1 text-xs font-semibold ${user.status === "banned" ? "bg-destructive/10 text-destructive" : "bg-foreground text-background"}`}
                                 >
-                                  {user.status === "active" ? "активен" : user.status === "offline" ? "оффлайн" : "бан"}
+                                  {user.status === "banned" ? "Banned" : "Active"}
                                 </span>
                               </td>
                               <td className="px-4 py-4 text-right text-sm font-semibold">{user.reports}</td>
@@ -941,11 +972,14 @@ export default function AdminPage() {
                       <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Пользователь</label>
                       <select
                         className="w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
-                        value={selectedUserId}
-                        onChange={(event) => setSelectedUserId(event.target.value)}
+                        value={selectedUserId ?? ""}
+                        onChange={(event) => {
+                          const nextValue = Number(event.target.value)
+                          setSelectedUserId(Number.isFinite(nextValue) ? nextValue : null)
+                        }}
                       >
                         {users.map((user) => (
-                          <option key={user.id} value={user.id}>
+                          <option key={user.id} value={user.userID}>
                             {user.name}
                           </option>
                         ))}

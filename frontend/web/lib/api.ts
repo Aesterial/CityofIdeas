@@ -14,7 +14,7 @@ type ApiEmail = {
   verified: boolean
 }
 
-type ApiRank = {
+export type ApiRank = {
   name: string
   expires?: string | null
 }
@@ -54,6 +54,19 @@ type ApiUserResponse = {
   tracing?: string
 }
 
+type ApiUsersResponse = {
+  data?: ApiUserPublic[] | null
+  tracing?: string
+}
+
+type ApiBanInfoResponse = {
+  id?: string
+  reason?: string
+  at?: string
+  expires?: string | null
+  tracing?: string
+}
+
 export type AuthUser = {
   uid: number
   username: string
@@ -61,6 +74,21 @@ export type AuthUser = {
   displayName?: string
   rank?: ApiRank | null
   joined?: string
+}
+
+export type UserListItem = {
+  userID: number
+  username: string
+  displayName?: string
+  rank?: ApiRank | null
+  joined?: string
+}
+
+export type BanInfo = {
+  id?: string
+  reason?: string
+  at?: string
+  expires?: string | null
 }
 
 export class ApiError extends Error {
@@ -154,6 +182,26 @@ export async function authorizeUser(payload: AuthorizationPayload): Promise<void
   })
 }
 
+function toUserListItem(payload: ApiUserPublic): UserListItem | null {
+  const userID = payload.userID ?? payload.uid
+  const username = payload.username
+  if (userID == null || !username) {
+    return null
+  }
+
+  const settings = payload.settings ?? undefined
+  const displayName = settings?.display_name ?? settings?.displayName ?? undefined
+  const joined = payload.joined ?? payload.joinedAt
+
+  return {
+    userID,
+    username,
+    displayName,
+    rank: payload.rank ?? undefined,
+    joined,
+  }
+}
+
 export async function logoutUser(): Promise<void> {
   await apiRequest("/api/login/logout", {
     method: "POST",
@@ -163,6 +211,41 @@ export async function logoutUser(): Promise<void> {
 export async function fetchCurrentUser(): Promise<AuthUser> {
   const payload = await apiRequest<ApiUser | ApiUserResponse>("/api/user", { method: "GET" })
   return toAuthUser(payload)
+}
+
+export async function fetchUsers(options?: { signal?: AbortSignal }): Promise<UserListItem[]> {
+  const payload = await apiRequest<ApiUsersResponse | ApiUserPublic[]>("/api/user/list", {
+    method: "GET",
+    signal: options?.signal,
+  })
+  const records = Array.isArray(payload) ? payload : payload.data ?? []
+  return records.map(toUserListItem).filter((item): item is UserListItem => Boolean(item))
+}
+
+export async function fetchUserBanInfo(
+  userID: number,
+  options?: { signal?: AbortSignal },
+): Promise<BanInfo | null> {
+  try {
+    const payload = await apiRequest<ApiBanInfoResponse>(`/api/user/${userID}/ban/info`, {
+      method: "GET",
+      signal: options?.signal,
+    })
+    if (!payload) {
+      return null
+    }
+    return {
+      id: payload.id,
+      reason: payload.reason,
+      at: payload.at,
+      expires: payload.expires ?? null,
+    }
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return null
+    }
+    throw error
+  }
 }
 
 export async function updateDisplayName(name: string): Promise<AuthUser> {

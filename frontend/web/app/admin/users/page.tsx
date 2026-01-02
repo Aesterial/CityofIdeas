@@ -9,6 +9,7 @@ import { Logo } from "@/components/logo"
 import { useTheme } from "@/components/theme-provider"
 import { useAuth } from "@/components/auth-provider"
 import { useLanguage } from "@/components/language-provider"
+import { fetchUserBanInfo, fetchUsers, type BanInfo } from "@/lib/api"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,55 +32,57 @@ import {
   Users,
 } from "lucide-react"
 
-const nameSeeds = [
-  "Анна Романова",
-  "Максим Иванов",
-  "Екатерина Лаврова",
-  "Илья Смирнов",
-  "Мария Орлова",
-  "Денис Кузнецов",
-  "Ольга Петрова",
-  "Сергей Сафонов",
-  "Полина Назарова",
-  "Артем Васильев",
-  "Юлия Пономарева",
-  "Никита Соколов",
-  "Надежда Волкова",
-  "Кирилл Белов",
-  "Алена Филиппова",
-  "Тимур Морозов",
-  "Владимир Гончаров",
-  "Елена Тимофеева",
-  "Павел Жуков",
-  "Светлана Котова",
-  "Алексей Новиков",
-  "Вероника Селезнева",
-  "Роман Михайлов",
-  "Ксения Логинова",
-]
+type UserStatus = "active" | "banned"
 
-const roleCycle = ["Администратор", "Модератор", "Горожанин"]
-const statusCycle = ["active", "active", "offline", "banned", "active", "offline"]
-const lastActiveCycle = ["2 мин назад", "14 мин назад", "1 ч назад", "3 ч назад", "вчера", "3 дня назад"]
+type User = {
+  id: string
+  userID: number
+  name: string
+  username: string
+  email: string
+  role: string
+  status: UserStatus
+  lastActive: string
+  reports: number
+}
 
-const users = nameSeeds.map((name, index) => ({
-  id: `USR-${4200 + index}`,
-  name,
-  email: `user${index + 1}@cityideas.ru`,
-  role: roleCycle[index % roleCycle.length],
-  status: statusCycle[index % statusCycle.length],
-  lastActive: lastActiveCycle[index % lastActiveCycle.length],
-  reports: (index * 2) % 7,
-}))
-
-type User = (typeof users)[number]
-type StatusFilter = "all" | "active" | "offline" | "banned"
+type StatusFilter = "all" | UserStatus
 
 const statusLabels: Record<StatusFilter, string> = {
-  all: "Все",
-  active: "Активные",
-  offline: "Оффлайн",
-  banned: "Заблокированные",
+  all: "All",
+  active: "Active",
+  banned: "Banned",
+}
+
+const userDateFormatter = new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+})
+
+const formatUserDate = (value?: string) => {
+  if (!value) {
+    return "-"
+  }
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return "-"
+  }
+  return userDateFormatter.format(date)
+}
+
+const isBanActive = (banInfo: BanInfo | null) => {
+  if (!banInfo) {
+    return false
+  }
+  if (!banInfo.expires) {
+    return true
+  }
+  const expiresAt = new Date(banInfo.expires).getTime()
+  if (!Number.isFinite(expiresAt)) {
+    return true
+  }
+  return expiresAt > Date.now()
 }
 
 export default function AdminUsersPage() {
@@ -91,6 +94,7 @@ export default function AdminUsersPage() {
   const [query, setQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
   const [page, setPage] = useState(1)
+  const [users, setUsers] = useState<User[]>([])
   const displayName = user?.displayName || user?.username || ""
   const initials = (displayName || "U").slice(0, 2).toUpperCase()
   const languageOptions = [
@@ -109,6 +113,50 @@ export default function AdminUsersPage() {
   }, [])
 
   useEffect(() => {
+    const controller = new AbortController()
+    const loadUsers = async () => {
+      try {
+        const list = await fetchUsers({ signal: controller.signal })
+        const banResults = await Promise.allSettled(
+          list.map((item) => fetchUserBanInfo(item.userID, { signal: controller.signal })),
+        )
+        if (controller.signal.aborted) {
+          return
+        }
+        if (banResults.some((result) => result.status === "rejected")) {
+          toast.error("Failed to load some ban statuses")
+        }
+        const mapped = list.map((item, index) => {
+          const banInfo = banResults[index].status === "fulfilled" ? banResults[index].value : null
+          const isBanned = isBanActive(banInfo)
+          return {
+            id: `USR-${item.userID}`,
+            userID: item.userID,
+            name: item.displayName || item.username,
+            username: item.username,
+            email: item.username || "-",
+            role: item.rank?.name || "User",
+            status: isBanned ? "banned" : "active",
+            lastActive: formatUserDate(item.joined),
+            reports: 0,
+          }
+        })
+        setUsers(mapped)
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          toast.error("Failed to load users", {
+            description: error instanceof Error ? error.message : undefined,
+          })
+          setUsers([])
+        }
+      }
+    }
+
+    void loadUsers()
+    return () => controller.abort()
+  }, [])
+
+  useEffect(() => {
     setPage(1)
   }, [query, statusFilter])
 
@@ -118,20 +166,20 @@ export default function AdminUsersPage() {
       const matchesQuery =
         !normalized ||
         user.name.toLowerCase().includes(normalized) ||
+        user.username.toLowerCase().includes(normalized) ||
         user.email.toLowerCase().includes(normalized)
       const matchesStatus = statusFilter === "all" || user.status === statusFilter
       return matchesQuery && matchesStatus
     })
-  }, [query, statusFilter])
+  }, [query, statusFilter, users])
 
   const counts = useMemo(() => {
     return {
       total: users.length,
       active: users.filter((user) => user.status === "active").length,
-      offline: users.filter((user) => user.status === "offline").length,
       banned: users.filter((user) => user.status === "banned").length,
     }
-  }, [])
+  }, [users])
 
   const pageSize = 8
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize))
@@ -275,12 +323,11 @@ export default function AdminUsersPage() {
               </div>
             </div>
 
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {[
-                { label: "Всего", value: counts.total },
-                { label: "Активные", value: counts.active },
-                { label: "Оффлайн", value: counts.offline },
-                { label: "Заблокированы", value: counts.banned },
+                { label: "Total", value: counts.total },
+                { label: "Active", value: counts.active },
+                { label: "Banned", value: counts.banned },
               ].map((item) => (
                 <div key={item.label} className="rounded-2xl border border-border/60 bg-background/70 p-4">
                   <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{item.label}</p>
@@ -359,97 +406,9 @@ export default function AdminUsersPage() {
                           <p className="text-xs text-muted-foreground break-all">{user.id}</p>
                         </div>
                         <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                            user.status === "active"
-                              ? "bg-foreground text-background"
-                              : user.status === "offline"
-                                ? "bg-muted text-foreground"
-                                : "bg-destructive/10 text-destructive"
-                          }`}
-                        >
-                          {user.status === "active"
-                            ? "Active"
-                            : user.status === "offline"
-                              ? "Offline"
-                              : "Banned"}
-                        </span>
-                      </div>
-                      <div className="mt-3 space-y-2 text-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground uppercase tracking-[0.2em]">Role</span>
-                          <span className="text-sm font-semibold">{user.role}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground uppercase tracking-[0.2em]">Last active</span>
-                          <span className="text-sm font-semibold">{user.lastActive}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground uppercase tracking-[0.2em]">Reports</span>
-                          <span className="text-sm font-semibold">{user.reports}</span>
-                        </div>
-                      </div>
-                      <div className="mt-4 flex justify-end gap-2">
-                        <button
-                          type="button"
-                          title={actionTitle}
-                          className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                          onClick={() => handleAction(user, user.status === "banned" ? "unblock" : "block")}
-                        >
-                          <ActionIcon className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          title="Message user"
-                          className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                          onClick={() => handleAction(user, "message")}
-                        >
-                          <MessageSquare className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-              <div className="hidden overflow-hidden rounded-2xl border border-border/60 sm:block">
-                <table className="w-full text-left text-sm">
-                <thead className="bg-muted/60 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  <tr>
-                    <th className="px-4 py-3">Пользователь</th>
-                    <th className="px-4 py-3">Роль</th>
-                    <th className="px-4 py-3">Статус</th>
-                    <th className="px-4 py-3">Активность</th>
-                    <th className="px-4 py-3 text-right">Жалобы</th>
-                    <th className="px-4 py-3 text-right">Действия</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentPageUsers.map((user) => {
-                    const ActionIcon = user.status === "banned" ? CheckCircle2 : Ban
-                    const actionTitle = user.status === "banned" ? "Снять бан" : "Заблокировать"
-
-                    return (
-                      <tr key={user.id} className="border-t border-border/50">
-                        <td className="px-4 py-4">
-                          <div className="font-semibold">{user.name}</div>
-                          <div className="text-xs text-muted-foreground">{user.email}</div>
-                          <div className="text-xs text-muted-foreground">{user.id}</div>
-                        </td>
-                        <td className="px-4 py-4 text-sm">{user.role}</td>
-                        <td className="px-4 py-4">
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                              user.status === "active"
-                                ? "bg-foreground text-background"
-                                : user.status === "offline"
-                                  ? "bg-muted text-foreground"
-                                  : "bg-destructive/10 text-destructive"
-                            }`}
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${user.status === "banned" ? "bg-destructive/10 text-destructive" : "bg-foreground text-background"}`}
                           >
-                            {user.status === "active"
-                              ? "активен"
-                              : user.status === "offline"
-                                ? "оффлайн"
-                                : "бан"}
+                            {user.status === "banned" ? "Banned" : "Active"}
                           </span>
                         </td>
                         <td className="px-4 py-4 text-sm text-muted-foreground">{user.lastActive}</td>
