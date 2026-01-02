@@ -464,9 +464,9 @@ func (x *StatisticsRecap) GetVoteCount() uint32 {
 
 type IdeasApprovalResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	New           uint32                 `protobuf:"varint,1,opt,name=new,proto3" json:"new,omitempty"`
-	Working       uint32                 `protobuf:"varint,2,opt,name=working,proto3" json:"working,omitempty"`
-	Decided       uint32                 `protobuf:"varint,3,opt,name=decided,proto3" json:"decided,omitempty"`
+	Approved      uint32                 `protobuf:"varint,1,opt,name=approved,proto3" json:"approved,omitempty"`
+	Waiting       uint32                 `protobuf:"varint,2,opt,name=waiting,proto3" json:"waiting,omitempty"`
+	Declined      uint32                 `protobuf:"varint,3,opt,name=declined,proto3" json:"declined,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -501,23 +501,23 @@ func (*IdeasApprovalResponse) Descriptor() ([]byte, []int) {
 	return file_statistics_domain_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *IdeasApprovalResponse) GetNew() uint32 {
+func (x *IdeasApprovalResponse) GetApproved() uint32 {
 	if x != nil {
-		return x.New
+		return x.Approved
 	}
 	return 0
 }
 
-func (x *IdeasApprovalResponse) GetWorking() uint32 {
+func (x *IdeasApprovalResponse) GetWaiting() uint32 {
 	if x != nil {
-		return x.Working
+		return x.Waiting
 	}
 	return 0
 }
 
-func (x *IdeasApprovalResponse) GetDecided() uint32 {
+func (x *IdeasApprovalResponse) GetDeclined() uint32 {
 	if x != nil {
-		return x.Decided
+		return x.Declined
 	}
 	return 0
 }
@@ -826,6 +826,50 @@ func (x *MediaCoverageResponse) GetTracing() string {
 	return ""
 }
 
+type WithFromTagRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Since         *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=since,proto3" json:"since,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WithFromTagRequest) Reset() {
+	*x = WithFromTagRequest{}
+	mi := &file_statistics_domain_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WithFromTagRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WithFromTagRequest) ProtoMessage() {}
+
+func (x *WithFromTagRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_statistics_domain_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WithFromTagRequest.ProtoReflect.Descriptor instead.
+func (*WithFromTagRequest) Descriptor() ([]byte, []int) {
+	return file_statistics_domain_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *WithFromTagRequest) GetSince() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Since
+	}
+	return nil
+}
+
 type EditorsGradeResponse_Grade struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Good          uint32                 `protobuf:"varint,1,opt,name=good,proto3" json:"good,omitempty"`
@@ -836,7 +880,7 @@ type EditorsGradeResponse_Grade struct {
 
 func (x *EditorsGradeResponse_Grade) Reset() {
 	*x = EditorsGradeResponse_Grade{}
-	mi := &file_statistics_domain_proto_msgTypes[16]
+	mi := &file_statistics_domain_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -848,7 +892,7 @@ func (x *EditorsGradeResponse_Grade) String() string {
 func (*EditorsGradeResponse_Grade) ProtoMessage() {}
 
 func (x *EditorsGradeResponse_Grade) ProtoReflect() protoreflect.Message {
-	mi := &file_statistics_domain_proto_msgTypes[16]
+	mi := &file_statistics_domain_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -888,7 +932,7 @@ type MediaCoverageResponseMedia struct {
 
 func (x *MediaCoverageResponseMedia) Reset() {
 	*x = MediaCoverageResponseMedia{}
-	mi := &file_statistics_domain_proto_msgTypes[17]
+	mi := &file_statistics_domain_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -900,7 +944,7 @@ func (x *MediaCoverageResponseMedia) String() string {
 func (*MediaCoverageResponseMedia) ProtoMessage() {}
 
 func (x *MediaCoverageResponseMedia) ProtoReflect() protoreflect.Message {
-	mi := &file_statistics_domain_proto_msgTypes[17]
+	mi := &file_statistics_domain_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -962,11 +1006,11 @@ const file_statistics_domain_proto_rawDesc = "" +
 	"\x0eusers_activity\x18\x03 \x01(\v2\x1c.statistics.v1.UsersActivityR\rusersActivity\x12\x1b\n" +
 	"\tnew_ideas\x18\x04 \x01(\rR\bnewIdeas\x12\x1d\n" +
 	"\n" +
-	"vote_count\x18\x05 \x01(\rR\tvoteCount\"]\n" +
-	"\x15IdeasApprovalResponse\x12\x10\n" +
-	"\x03new\x18\x01 \x01(\rR\x03new\x12\x18\n" +
-	"\aworking\x18\x02 \x01(\rR\aworking\x12\x18\n" +
-	"\adecided\x18\x03 \x01(\rR\adecided\",\n" +
+	"vote_count\x18\x05 \x01(\rR\tvoteCount\"i\n" +
+	"\x15IdeasApprovalResponse\x12\x1a\n" +
+	"\bapproved\x18\x01 \x01(\rR\bapproved\x12\x18\n" +
+	"\awaiting\x18\x02 \x01(\rR\awaiting\x12\x1a\n" +
+	"\bdeclined\x18\x03 \x01(\rR\bdeclined\",\n" +
 	"\x14UsersActivityRequest\x12\x14\n" +
 	"\x05limit\x18\x01 \x01(\rR\x05limit\"\xcc\x01\n" +
 	"\x15UsersActivityResponse\x12B\n" +
@@ -995,7 +1039,9 @@ const file_statistics_domain_proto_rawDesc = "" +
 	"\x06videos\x18\x02 \x01(\rR\x06videos\x1ae\n" +
 	"\vMediasEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\x03R\x03key\x12@\n" +
-	"\x05value\x18\x02 \x01(\v2*.statistics.v1.MediaCoverageResponse.mediaR\x05value:\x028\x01B9Z7ascendant/backend/internal/gen/statistics/v1;statisticsb\x06proto3"
+	"\x05value\x18\x02 \x01(\v2*.statistics.v1.MediaCoverageResponse.mediaR\x05value:\x028\x01\"F\n" +
+	"\x12WithFromTagRequest\x120\n" +
+	"\x05since\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x05sinceB9Z7ascendant/backend/internal/gen/statistics/v1;statisticsb\x06proto3"
 
 var (
 	file_statistics_domain_proto_rawDescOnce sync.Once
@@ -1009,7 +1055,7 @@ func file_statistics_domain_proto_rawDescGZIP() []byte {
 	return file_statistics_domain_proto_rawDescData
 }
 
-var file_statistics_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
+var file_statistics_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_statistics_domain_proto_goTypes = []any{
 	(*VoteCountResponse)(nil),          // 0: statistics.v1.VoteCountResponse
 	(*IdeasCountResponse)(nil),         // 1: statistics.v1.IdeasCountResponse
@@ -1026,28 +1072,30 @@ var file_statistics_domain_proto_goTypes = []any{
 	(*EditorsGradeResponse)(nil),       // 12: statistics.v1.EditorsGradeResponse
 	(*MediaCoverageRequest)(nil),       // 13: statistics.v1.MediaCoverageRequest
 	(*MediaCoverageResponse)(nil),      // 14: statistics.v1.MediaCoverageResponse
-	nil,                                // 15: statistics.v1.UsersActivityResponse.DataEntry
-	(*EditorsGradeResponse_Grade)(nil), // 16: statistics.v1.EditorsGradeResponse.Grade
-	(*MediaCoverageResponseMedia)(nil), // 17: statistics.v1.MediaCoverageResponse.media
-	nil,                                // 18: statistics.v1.MediaCoverageResponse.MediasEntry
-	(*timestamppb.Timestamp)(nil),      // 19: google.protobuf.Timestamp
+	(*WithFromTagRequest)(nil),         // 15: statistics.v1.WithFromTagRequest
+	nil,                                // 16: statistics.v1.UsersActivityResponse.DataEntry
+	(*EditorsGradeResponse_Grade)(nil), // 17: statistics.v1.EditorsGradeResponse.Grade
+	(*MediaCoverageResponseMedia)(nil), // 18: statistics.v1.MediaCoverageResponse.media
+	nil,                                // 19: statistics.v1.MediaCoverageResponse.MediasEntry
+	(*timestamppb.Timestamp)(nil),      // 20: google.protobuf.Timestamp
 }
 var file_statistics_domain_proto_depIdxs = []int32{
 	2,  // 0: statistics.v1.TopByCategoriesResponse.record:type_name -> statistics.v1.CategoryRecord
-	19, // 1: statistics.v1.StatisticsRecap.at:type_name -> google.protobuf.Timestamp
+	20, // 1: statistics.v1.StatisticsRecap.at:type_name -> google.protobuf.Timestamp
 	6,  // 2: statistics.v1.StatisticsRecap.users_activity:type_name -> statistics.v1.UsersActivity
-	15, // 3: statistics.v1.UsersActivityResponse.data:type_name -> statistics.v1.UsersActivityResponse.DataEntry
-	16, // 4: statistics.v1.EditorsGradeResponse.photos:type_name -> statistics.v1.EditorsGradeResponse.Grade
-	16, // 5: statistics.v1.EditorsGradeResponse.videos:type_name -> statistics.v1.EditorsGradeResponse.Grade
-	16, // 6: statistics.v1.EditorsGradeResponse.graphics:type_name -> statistics.v1.EditorsGradeResponse.Grade
-	18, // 7: statistics.v1.MediaCoverageResponse.medias:type_name -> statistics.v1.MediaCoverageResponse.MediasEntry
-	6,  // 8: statistics.v1.UsersActivityResponse.DataEntry.value:type_name -> statistics.v1.UsersActivity
-	17, // 9: statistics.v1.MediaCoverageResponse.MediasEntry.value:type_name -> statistics.v1.MediaCoverageResponse.media
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	16, // 3: statistics.v1.UsersActivityResponse.data:type_name -> statistics.v1.UsersActivityResponse.DataEntry
+	17, // 4: statistics.v1.EditorsGradeResponse.photos:type_name -> statistics.v1.EditorsGradeResponse.Grade
+	17, // 5: statistics.v1.EditorsGradeResponse.videos:type_name -> statistics.v1.EditorsGradeResponse.Grade
+	17, // 6: statistics.v1.EditorsGradeResponse.graphics:type_name -> statistics.v1.EditorsGradeResponse.Grade
+	19, // 7: statistics.v1.MediaCoverageResponse.medias:type_name -> statistics.v1.MediaCoverageResponse.MediasEntry
+	20, // 8: statistics.v1.WithFromTagRequest.since:type_name -> google.protobuf.Timestamp
+	6,  // 9: statistics.v1.UsersActivityResponse.DataEntry.value:type_name -> statistics.v1.UsersActivity
+	18, // 10: statistics.v1.MediaCoverageResponse.MediasEntry.value:type_name -> statistics.v1.MediaCoverageResponse.media
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_statistics_domain_proto_init() }
@@ -1061,7 +1109,7 @@ func file_statistics_domain_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_statistics_domain_proto_rawDesc), len(file_statistics_domain_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   19,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

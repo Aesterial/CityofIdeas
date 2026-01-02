@@ -39,3 +39,11 @@ func (s *StatService) UsersActivity(ctx context.Context, since time.Time) (map[t
 	}
 	return s.repo.UsersActivity(ctx, since)
 }
+
+func (s *StatService) GetActiveUsers(ctx context.Context, since time.Time) (uint32, error) {
+	return s.repo.GetOnlineUsers(ctx, since)
+}
+
+func (s *StatService) GetOfflineUsers(ctx context.Context, since time.Time) (uint32, error) {
+	return s.repo.GetOfflineUsers(ctx, since)
+}

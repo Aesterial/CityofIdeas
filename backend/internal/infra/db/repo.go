@@ -6,6 +6,7 @@ import (
 	project_domain "ascendant/backend/internal/domain/projects"
 	"ascendant/backend/internal/domain/rank"
 	"ascendant/backend/internal/domain/sessions"
+	"ascendant/backend/internal/domain/statistics"
 	"ascendant/backend/internal/domain/submissions"
 	userpb "ascendant/backend/internal/gen/user/v1"
 
@@ -705,7 +706,7 @@ func (p *ProjectsRepository) GetProjectsByUID(ctx context.Context, uid int) ([]*
 	return projects, nil
 }
 
-//var _ statistics.Repository = (*StatisticsRepository)(nil)
+var _ statistics.Repository = (*StatisticsRepository)(nil)
 
 func (s *StatisticsRepository) VoteCount(ctx context.Context, since time.Time) (uint32, error) {
 	if since.IsZero() {
@@ -900,6 +901,31 @@ func (s *StatisticsRepository) VoteCategories(ctx context.Context, since time.Ti
 	}
 
 	return records, nil
+}
+
+func (s *StatisticsRepository) IdeasRecap(ctx context.Context) (*statpb.IdeasApprovalResponse, error) {
+	var resp statpb.IdeasApprovalResponse
+
+	err := s.DB.QueryRowContext(ctx, `
+		SELECT
+			COUNT(*) FILTER (WHERE state = 'waiting')  AS waiting,
+			COUNT(*) FILTER (WHERE state = 'approved') AS approved,
+			COUNT(*) FILTER (WHERE state = 'declined') AS declined
+		FROM submissions
+	`).Scan(&resp.Waiting, &resp.Approved, &resp.Declined)
+	if err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}
+
+func (s *StatisticsRepository) MediaCoverage(ctx context.Context) (map[int64]*statpb.MediaCoverageResponseMedia, error) {
+	return make(map[int64]*statpb.MediaCoverageResponseMedia), nil
+}
+
+func (s *StatisticsRepository) QualityRecap(ctx context.Context) ([]*statpb.EditorsGradeResponse, error) {
+	return []*statpb.EditorsGradeResponse{}, nil
 }
 
 func (s *SubmissionsRepository) GetList(ctx context.Context) ([]*submissions.Submission, error) {

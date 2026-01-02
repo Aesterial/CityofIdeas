@@ -17,10 +17,12 @@ import (
 	"ascendant/backend/internal/infra/logger"
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"sort"
 	"strings"
 	"syscall"
 	"time"
@@ -30,6 +32,42 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
 )
+
+func printRegistered(serv *grpc.Server) {
+	type row struct {
+		svc    string
+		method string
+	}
+
+	rows := make([]row, 0, 64)
+	maxSvc, maxMeth := 0, 0
+
+	for svc, info := range serv.GetServiceInfo() {
+		if l := len(svc); l > maxSvc {
+			maxSvc = l
+		}
+		for _, m := range info.Methods {
+			rows = append(rows, row{svc: svc, method: m.Name})
+			if l := len(m.Name); l > maxMeth {
+				maxMeth = l
+			}
+		}
+	}
+
+	sort.Slice(rows, func(i, j int) bool {
+		if rows[i].svc == rows[j].svc {
+			return rows[i].method < rows[j].method
+		}
+		return rows[i].svc < rows[j].svc
+	})
+
+	for _, r := range rows {
+		logger.Debug(
+			fmt.Sprintf("Registered handler: %-*s | %-*s", maxSvc, r.svc, maxMeth, r.method),
+			"grpc.server.handlers",
+		)
+	}
+}
 
 func main() {
 	logger.Debug("service starting", "service.starting")
@@ -127,6 +165,8 @@ func main() {
 		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
+
+	printRegistered(grpcServer)
 
 	srvErr := make(chan error, 2)
 	if samePort {

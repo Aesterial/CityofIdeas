@@ -26,15 +26,15 @@ var File_statistics_statistics_proto protoreflect.FileDescriptor
 
 const file_statistics_statistics_proto_rawDesc = "" +
 	"\n" +
-	"\x1bstatistics/statistics.proto\x12\rstatistics.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x17statistics/domain.proto2\xc6\b\n" +
+	"\x1bstatistics/statistics.proto\x12\rstatistics.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x17statistics/domain.proto2\xee\b\n" +
 	"\x11StatisticsService\x12c\n" +
 	"\bVotesDay\x12\x16.google.protobuf.Empty\x1a .statistics.v1.VoteCountResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/statistics/votes\x12\x89\x01\n" +
 	"\x11TopVoteCategories\x12 .statistics.v1.CategoriesRequest\x1a&.statistics.v1.TopByCategoriesResponse\"*\x82\xd3\xe4\x93\x02$\x12\"/api/statistics/categories/{limit}\x12d\n" +
 	"\bIdeasDay\x12\x16.google.protobuf.Empty\x1a!.statistics.v1.IdeasCountResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/statistics/ideas\x12o\n" +
 	"\n" +
-	"IdeasRecap\x12\x16.google.protobuf.Empty\x1a$.statistics.v1.IdeasApprovalResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/statistics/ideas/recap\x12o\n" +
-	"\vActiveUsers\x12\x16.google.protobuf.Empty\x1a\".statistics.v1.ActiveUsersResponse\"$\x82\xd3\xe4\x93\x02\x1e\x12\x1c/api/statistics/users/active\x12r\n" +
-	"\fOfflineUsers\x12\x16.google.protobuf.Empty\x1a#.statistics.v1.OfflineUsersResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/statistics/users/offline\x12\x8a\x01\n" +
+	"IdeasRecap\x12\x16.google.protobuf.Empty\x1a$.statistics.v1.IdeasApprovalResponse\"#\x82\xd3\xe4\x93\x02\x1d\x12\x1b/api/statistics/ideas/recap\x12\x82\x01\n" +
+	"\vActiveUsers\x12!.statistics.v1.WithFromTagRequest\x1a\".statistics.v1.ActiveUsersResponse\",\x82\xd3\xe4\x93\x02&\x12$/api/statistics/users/active/{since}\x12\x85\x01\n" +
+	"\fOfflineUsers\x12!.statistics.v1.WithFromTagRequest\x1a#.statistics.v1.OfflineUsersResponse\"-\x82\xd3\xe4\x93\x02'\x12%/api/statistics/users/offline/{since}\x12\x8a\x01\n" +
 	"\rUsersActivity\x12#.statistics.v1.UsersActivityRequest\x1a$.statistics.v1.UsersActivityResponse\".\x82\xd3\xe4\x93\x02(\x12&/api/statistics/activity/users/{limit}\x12r\n" +
 	"\fQualityRecap\x12\x16.google.protobuf.Empty\x1a#.statistics.v1.EditorsGradeResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/statistics/quality/recap\x12\x82\x01\n" +
 	"\rMediaCoverage\x12#.statistics.v1.MediaCoverageRequest\x1a$.statistics.v1.MediaCoverageResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/api/statistics/media/coverageB9Z7ascendant/backend/internal/gen/statistics/v1;statisticsb\x06proto3"
@@ -42,37 +42,38 @@ const file_statistics_statistics_proto_rawDesc = "" +
 var file_statistics_statistics_proto_goTypes = []any{
 	(*emptypb.Empty)(nil),           // 0: google.protobuf.Empty
 	(*CategoriesRequest)(nil),       // 1: statistics.v1.CategoriesRequest
-	(*UsersActivityRequest)(nil),    // 2: statistics.v1.UsersActivityRequest
-	(*MediaCoverageRequest)(nil),    // 3: statistics.v1.MediaCoverageRequest
-	(*VoteCountResponse)(nil),       // 4: statistics.v1.VoteCountResponse
-	(*TopByCategoriesResponse)(nil), // 5: statistics.v1.TopByCategoriesResponse
-	(*IdeasCountResponse)(nil),      // 6: statistics.v1.IdeasCountResponse
-	(*IdeasApprovalResponse)(nil),   // 7: statistics.v1.IdeasApprovalResponse
-	(*ActiveUsersResponse)(nil),     // 8: statistics.v1.ActiveUsersResponse
-	(*OfflineUsersResponse)(nil),    // 9: statistics.v1.OfflineUsersResponse
-	(*UsersActivityResponse)(nil),   // 10: statistics.v1.UsersActivityResponse
-	(*EditorsGradeResponse)(nil),    // 11: statistics.v1.EditorsGradeResponse
-	(*MediaCoverageResponse)(nil),   // 12: statistics.v1.MediaCoverageResponse
+	(*WithFromTagRequest)(nil),      // 2: statistics.v1.WithFromTagRequest
+	(*UsersActivityRequest)(nil),    // 3: statistics.v1.UsersActivityRequest
+	(*MediaCoverageRequest)(nil),    // 4: statistics.v1.MediaCoverageRequest
+	(*VoteCountResponse)(nil),       // 5: statistics.v1.VoteCountResponse
+	(*TopByCategoriesResponse)(nil), // 6: statistics.v1.TopByCategoriesResponse
+	(*IdeasCountResponse)(nil),      // 7: statistics.v1.IdeasCountResponse
+	(*IdeasApprovalResponse)(nil),   // 8: statistics.v1.IdeasApprovalResponse
+	(*ActiveUsersResponse)(nil),     // 9: statistics.v1.ActiveUsersResponse
+	(*OfflineUsersResponse)(nil),    // 10: statistics.v1.OfflineUsersResponse
+	(*UsersActivityResponse)(nil),   // 11: statistics.v1.UsersActivityResponse
+	(*EditorsGradeResponse)(nil),    // 12: statistics.v1.EditorsGradeResponse
+	(*MediaCoverageResponse)(nil),   // 13: statistics.v1.MediaCoverageResponse
 }
 var file_statistics_statistics_proto_depIdxs = []int32{
 	0,  // 0: statistics.v1.StatisticsService.VotesDay:input_type -> google.protobuf.Empty
 	1,  // 1: statistics.v1.StatisticsService.TopVoteCategories:input_type -> statistics.v1.CategoriesRequest
 	0,  // 2: statistics.v1.StatisticsService.IdeasDay:input_type -> google.protobuf.Empty
 	0,  // 3: statistics.v1.StatisticsService.IdeasRecap:input_type -> google.protobuf.Empty
-	0,  // 4: statistics.v1.StatisticsService.ActiveUsers:input_type -> google.protobuf.Empty
-	0,  // 5: statistics.v1.StatisticsService.OfflineUsers:input_type -> google.protobuf.Empty
-	2,  // 6: statistics.v1.StatisticsService.UsersActivity:input_type -> statistics.v1.UsersActivityRequest
+	2,  // 4: statistics.v1.StatisticsService.ActiveUsers:input_type -> statistics.v1.WithFromTagRequest
+	2,  // 5: statistics.v1.StatisticsService.OfflineUsers:input_type -> statistics.v1.WithFromTagRequest
+	3,  // 6: statistics.v1.StatisticsService.UsersActivity:input_type -> statistics.v1.UsersActivityRequest
 	0,  // 7: statistics.v1.StatisticsService.QualityRecap:input_type -> google.protobuf.Empty
-	3,  // 8: statistics.v1.StatisticsService.MediaCoverage:input_type -> statistics.v1.MediaCoverageRequest
-	4,  // 9: statistics.v1.StatisticsService.VotesDay:output_type -> statistics.v1.VoteCountResponse
-	5,  // 10: statistics.v1.StatisticsService.TopVoteCategories:output_type -> statistics.v1.TopByCategoriesResponse
-	6,  // 11: statistics.v1.StatisticsService.IdeasDay:output_type -> statistics.v1.IdeasCountResponse
-	7,  // 12: statistics.v1.StatisticsService.IdeasRecap:output_type -> statistics.v1.IdeasApprovalResponse
-	8,  // 13: statistics.v1.StatisticsService.ActiveUsers:output_type -> statistics.v1.ActiveUsersResponse
-	9,  // 14: statistics.v1.StatisticsService.OfflineUsers:output_type -> statistics.v1.OfflineUsersResponse
-	10, // 15: statistics.v1.StatisticsService.UsersActivity:output_type -> statistics.v1.UsersActivityResponse
-	11, // 16: statistics.v1.StatisticsService.QualityRecap:output_type -> statistics.v1.EditorsGradeResponse
-	12, // 17: statistics.v1.StatisticsService.MediaCoverage:output_type -> statistics.v1.MediaCoverageResponse
+	4,  // 8: statistics.v1.StatisticsService.MediaCoverage:input_type -> statistics.v1.MediaCoverageRequest
+	5,  // 9: statistics.v1.StatisticsService.VotesDay:output_type -> statistics.v1.VoteCountResponse
+	6,  // 10: statistics.v1.StatisticsService.TopVoteCategories:output_type -> statistics.v1.TopByCategoriesResponse
+	7,  // 11: statistics.v1.StatisticsService.IdeasDay:output_type -> statistics.v1.IdeasCountResponse
+	8,  // 12: statistics.v1.StatisticsService.IdeasRecap:output_type -> statistics.v1.IdeasApprovalResponse
+	9,  // 13: statistics.v1.StatisticsService.ActiveUsers:output_type -> statistics.v1.ActiveUsersResponse
+	10, // 14: statistics.v1.StatisticsService.OfflineUsers:output_type -> statistics.v1.OfflineUsersResponse
+	11, // 15: statistics.v1.StatisticsService.UsersActivity:output_type -> statistics.v1.UsersActivityResponse
+	12, // 16: statistics.v1.StatisticsService.QualityRecap:output_type -> statistics.v1.EditorsGradeResponse
+	13, // 17: statistics.v1.StatisticsService.MediaCoverage:output_type -> statistics.v1.MediaCoverageResponse
 	9,  // [9:18] is the sub-list for method output_type
 	0,  // [0:9] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name

@@ -39,8 +39,8 @@ type StatisticsServiceClient interface {
 	TopVoteCategories(ctx context.Context, in *CategoriesRequest, opts ...grpc.CallOption) (*TopByCategoriesResponse, error)
 	IdeasDay(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*IdeasCountResponse, error)
 	IdeasRecap(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*IdeasApprovalResponse, error)
-	ActiveUsers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ActiveUsersResponse, error)
-	OfflineUsers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*OfflineUsersResponse, error)
+	ActiveUsers(ctx context.Context, in *WithFromTagRequest, opts ...grpc.CallOption) (*ActiveUsersResponse, error)
+	OfflineUsers(ctx context.Context, in *WithFromTagRequest, opts ...grpc.CallOption) (*OfflineUsersResponse, error)
 	UsersActivity(ctx context.Context, in *UsersActivityRequest, opts ...grpc.CallOption) (*UsersActivityResponse, error)
 	QualityRecap(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*EditorsGradeResponse, error)
 	MediaCoverage(ctx context.Context, in *MediaCoverageRequest, opts ...grpc.CallOption) (*MediaCoverageResponse, error)
@@ -94,7 +94,7 @@ func (c *statisticsServiceClient) IdeasRecap(ctx context.Context, in *emptypb.Em
 	return out, nil
 }
 
-func (c *statisticsServiceClient) ActiveUsers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ActiveUsersResponse, error) {
+func (c *statisticsServiceClient) ActiveUsers(ctx context.Context, in *WithFromTagRequest, opts ...grpc.CallOption) (*ActiveUsersResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ActiveUsersResponse)
 	err := c.cc.Invoke(ctx, StatisticsService_ActiveUsers_FullMethodName, in, out, cOpts...)
@@ -104,7 +104,7 @@ func (c *statisticsServiceClient) ActiveUsers(ctx context.Context, in *emptypb.E
 	return out, nil
 }
 
-func (c *statisticsServiceClient) OfflineUsers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*OfflineUsersResponse, error) {
+func (c *statisticsServiceClient) OfflineUsers(ctx context.Context, in *WithFromTagRequest, opts ...grpc.CallOption) (*OfflineUsersResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(OfflineUsersResponse)
 	err := c.cc.Invoke(ctx, StatisticsService_OfflineUsers_FullMethodName, in, out, cOpts...)
@@ -152,8 +152,8 @@ type StatisticsServiceServer interface {
 	TopVoteCategories(context.Context, *CategoriesRequest) (*TopByCategoriesResponse, error)
 	IdeasDay(context.Context, *emptypb.Empty) (*IdeasCountResponse, error)
 	IdeasRecap(context.Context, *emptypb.Empty) (*IdeasApprovalResponse, error)
-	ActiveUsers(context.Context, *emptypb.Empty) (*ActiveUsersResponse, error)
-	OfflineUsers(context.Context, *emptypb.Empty) (*OfflineUsersResponse, error)
+	ActiveUsers(context.Context, *WithFromTagRequest) (*ActiveUsersResponse, error)
+	OfflineUsers(context.Context, *WithFromTagRequest) (*OfflineUsersResponse, error)
 	UsersActivity(context.Context, *UsersActivityRequest) (*UsersActivityResponse, error)
 	QualityRecap(context.Context, *emptypb.Empty) (*EditorsGradeResponse, error)
 	MediaCoverage(context.Context, *MediaCoverageRequest) (*MediaCoverageResponse, error)
@@ -179,10 +179,10 @@ func (UnimplementedStatisticsServiceServer) IdeasDay(context.Context, *emptypb.E
 func (UnimplementedStatisticsServiceServer) IdeasRecap(context.Context, *emptypb.Empty) (*IdeasApprovalResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method IdeasRecap not implemented")
 }
-func (UnimplementedStatisticsServiceServer) ActiveUsers(context.Context, *emptypb.Empty) (*ActiveUsersResponse, error) {
+func (UnimplementedStatisticsServiceServer) ActiveUsers(context.Context, *WithFromTagRequest) (*ActiveUsersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ActiveUsers not implemented")
 }
-func (UnimplementedStatisticsServiceServer) OfflineUsers(context.Context, *emptypb.Empty) (*OfflineUsersResponse, error) {
+func (UnimplementedStatisticsServiceServer) OfflineUsers(context.Context, *WithFromTagRequest) (*OfflineUsersResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method OfflineUsers not implemented")
 }
 func (UnimplementedStatisticsServiceServer) UsersActivity(context.Context, *UsersActivityRequest) (*UsersActivityResponse, error) {
@@ -288,7 +288,7 @@ func _StatisticsService_IdeasRecap_Handler(srv interface{}, ctx context.Context,
 }
 
 func _StatisticsService_ActiveUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(WithFromTagRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -300,13 +300,13 @@ func _StatisticsService_ActiveUsers_Handler(srv interface{}, ctx context.Context
 		FullMethod: StatisticsService_ActiveUsers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StatisticsServiceServer).ActiveUsers(ctx, req.(*emptypb.Empty))
+		return srv.(StatisticsServiceServer).ActiveUsers(ctx, req.(*WithFromTagRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _StatisticsService_OfflineUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(WithFromTagRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -318,7 +318,7 @@ func _StatisticsService_OfflineUsers_Handler(srv interface{}, ctx context.Contex
 		FullMethod: StatisticsService_OfflineUsers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StatisticsServiceServer).OfflineUsers(ctx, req.(*emptypb.Empty))
+		return srv.(StatisticsServiceServer).OfflineUsers(ctx, req.(*WithFromTagRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

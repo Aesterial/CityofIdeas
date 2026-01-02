@@ -28,14 +28,14 @@ service StatisticsService {
       get: "/api/statistics/ideas/recap"
     };
   }
-  rpc ActiveUsers(google.protobuf.Empty) returns (ActiveUsersResponse) {
+  rpc ActiveUsers(WithFromTagRequest) returns (ActiveUsersResponse) {
     option (google.api.http) = {
-      get: "/api/statistics/users/active"
+      get: "/api/statistics/users/active/{since}"
     };
   }
-  rpc OfflineUsers(google.protobuf.Empty) returns (OfflineUsersResponse) {
+  rpc OfflineUsers(WithFromTagRequest) returns (OfflineUsersResponse) {
     option (google.api.http) = {
-      get: "/api/statistics/users/offline"
+      get: "/api/statistics/users/offline/{since}"
     };
   }
   rpc UsersActivity(UsersActivityRequest) returns (UsersActivityResponse) {

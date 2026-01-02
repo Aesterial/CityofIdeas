@@ -16,6 +16,12 @@ type StatService struct {
 	stat *appstatistics.StatService
 }
 
+func oClock() time.Time {
+	t := time.Now()
+	startOfDay := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+	return startOfDay
+}
+
 func NewStatService(stat *appstatistics.StatService) *StatService {
 	return &StatService{stat: stat}
 }
@@ -69,4 +75,37 @@ func (s *StatService) UsersActivity(ctx context.Context, req *statpb.UsersActivi
 	}
 
 	return &statpb.UsersActivityResponse{Data: data, Tracing: TraceIDOrNew(ctx)}, nil
+}
+
+func (s *StatService) ActiveUsers(ctx context.Context, tag *statpb.WithFromTagRequest) (*statpb.ActiveUsersResponse, error) {
+	if s == nil || s.stat == nil {
+		return nil, status.Error(codes.Internal, "service is not configured")
+	}
+	data, err := s.stat.GetActiveUsers(ctx, tag.Since.AsTime())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to get active users")
+	}
+	return &statpb.ActiveUsersResponse{Count: data, Tracing: TraceIDOrNew(ctx)}, nil
+}
+
+func (s *StatService) OfflineUsers(ctx context.Context, tag *statpb.WithFromTagRequest) (*statpb.OfflineUsersResponse, error) {
+	if s == nil || s.stat == nil {
+		return nil, status.Error(codes.Internal, "service is not configured")
+	}
+	data, err := s.stat.GetOfflineUsers(ctx, tag.Since.AsTime())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to get offline users")
+	}
+	return &statpb.OfflineUsersResponse{Count: data, Tracing: TraceIDOrNew(ctx)}, nil
+}
+
+func (s *StatService) IdeasDay(ctx context.Context, _ *emptypb.Empty) (*statpb.IdeasCountResponse, error) {
+	if s == nil || s.stat == nil {
+		return nil, status.Error(codes.Internal, "service is not configured")
+	}
+	data, err := s.stat.VoteCount(ctx, oClock())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to get vote count")
+	}
+	return &statpb.IdeasCountResponse{Count: data, Tracing: TraceIDOrNew(ctx)}, nil
 }

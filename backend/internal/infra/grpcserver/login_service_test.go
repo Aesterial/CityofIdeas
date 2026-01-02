@@ -1,6 +1,7 @@
 package grpcserver_test
 
 import (
+	userpb "ascendant/backend/internal/gen/user/v1"
 	"context"
 	"testing"
 	"time"
@@ -174,6 +175,10 @@ func (s *sessionsRepoStub) UpdateLastSeen(ctx context.Context, sessionID uuid.UU
 
 type userRepoStub struct {
 	sessionLive time.Duration
+}
+
+func (u *userRepoStub) GetList(ctx context.Context) ([]*userpb.UserSelf, error) {
+	return nil, nil
 }
 
 func (u *userRepoStub) GetUID(ctx context.Context, username string) (uint, error) {

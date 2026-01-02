@@ -140,11 +140,20 @@ func local_request_StatisticsService_IdeasRecap_0(ctx context.Context, marshaler
 
 func request_StatisticsService_ActiveUsers_0(ctx context.Context, marshaler runtime.Marshaler, client StatisticsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
-		protoReq emptypb.Empty
+		protoReq WithFromTagRequest
 		metadata runtime.ServerMetadata
+		err      error
 	)
 	if req.Body != nil {
 		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["since"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "since")
+	}
+	protoReq.Since, err = runtime.Timestamp(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "since", err)
 	}
 	msg, err := client.ActiveUsers(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -152,20 +161,38 @@ func request_StatisticsService_ActiveUsers_0(ctx context.Context, marshaler runt
 
 func local_request_StatisticsService_ActiveUsers_0(ctx context.Context, marshaler runtime.Marshaler, server StatisticsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
-		protoReq emptypb.Empty
+		protoReq WithFromTagRequest
 		metadata runtime.ServerMetadata
+		err      error
 	)
+	val, ok := pathParams["since"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "since")
+	}
+	protoReq.Since, err = runtime.Timestamp(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "since", err)
+	}
 	msg, err := server.ActiveUsers(ctx, &protoReq)
 	return msg, metadata, err
 }
 
 func request_StatisticsService_OfflineUsers_0(ctx context.Context, marshaler runtime.Marshaler, client StatisticsServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
-		protoReq emptypb.Empty
+		protoReq WithFromTagRequest
 		metadata runtime.ServerMetadata
+		err      error
 	)
 	if req.Body != nil {
 		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["since"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "since")
+	}
+	protoReq.Since, err = runtime.Timestamp(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "since", err)
 	}
 	msg, err := client.OfflineUsers(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
@@ -173,9 +200,18 @@ func request_StatisticsService_OfflineUsers_0(ctx context.Context, marshaler run
 
 func local_request_StatisticsService_OfflineUsers_0(ctx context.Context, marshaler runtime.Marshaler, server StatisticsServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
-		protoReq emptypb.Empty
+		protoReq WithFromTagRequest
 		metadata runtime.ServerMetadata
+		err      error
 	)
+	val, ok := pathParams["since"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "since")
+	}
+	protoReq.Since, err = runtime.Timestamp(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "since", err)
+	}
 	msg, err := server.OfflineUsers(ctx, &protoReq)
 	return msg, metadata, err
 }
@@ -367,7 +403,7 @@ func RegisterStatisticsServiceHandlerServer(ctx context.Context, mux *runtime.Se
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/statistics.v1.StatisticsService/ActiveUsers", runtime.WithHTTPPathPattern("/api/statistics/users/active"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/statistics.v1.StatisticsService/ActiveUsers", runtime.WithHTTPPathPattern("/api/statistics/users/active/{since}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -387,7 +423,7 @@ func RegisterStatisticsServiceHandlerServer(ctx context.Context, mux *runtime.Se
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/statistics.v1.StatisticsService/OfflineUsers", runtime.WithHTTPPathPattern("/api/statistics/users/offline"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/statistics.v1.StatisticsService/OfflineUsers", runtime.WithHTTPPathPattern("/api/statistics/users/offline/{since}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -573,7 +609,7 @@ func RegisterStatisticsServiceHandlerClient(ctx context.Context, mux *runtime.Se
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/statistics.v1.StatisticsService/ActiveUsers", runtime.WithHTTPPathPattern("/api/statistics/users/active"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/statistics.v1.StatisticsService/ActiveUsers", runtime.WithHTTPPathPattern("/api/statistics/users/active/{since}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -590,7 +626,7 @@ func RegisterStatisticsServiceHandlerClient(ctx context.Context, mux *runtime.Se
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/statistics.v1.StatisticsService/OfflineUsers", runtime.WithHTTPPathPattern("/api/statistics/users/offline"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/statistics.v1.StatisticsService/OfflineUsers", runtime.WithHTTPPathPattern("/api/statistics/users/offline/{since}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -662,8 +698,8 @@ var (
 	pattern_StatisticsService_TopVoteCategories_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"api", "statistics", "categories", "limit"}, ""))
 	pattern_StatisticsService_IdeasDay_0          = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"api", "statistics", "ideas"}, ""))
 	pattern_StatisticsService_IdeasRecap_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "statistics", "ideas", "recap"}, ""))
-	pattern_StatisticsService_ActiveUsers_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "statistics", "users", "active"}, ""))
-	pattern_StatisticsService_OfflineUsers_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "statistics", "users", "offline"}, ""))
+	pattern_StatisticsService_ActiveUsers_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "statistics", "users", "active", "since"}, ""))
+	pattern_StatisticsService_OfflineUsers_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "statistics", "users", "offline", "since"}, ""))
 	pattern_StatisticsService_UsersActivity_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "statistics", "activity", "users", "limit"}, ""))
 	pattern_StatisticsService_QualityRecap_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "statistics", "quality", "recap"}, ""))
 	pattern_StatisticsService_MediaCoverage_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "statistics", "media", "coverage"}, ""))
