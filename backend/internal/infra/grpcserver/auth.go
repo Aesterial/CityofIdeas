@@ -214,7 +214,7 @@ func tokenFromCookie(values []string) string {
 		name = "ascendant_session"
 	}
 	for _, v := range values {
-		for _, part := range strings.Split(v, ";") {
+		for part := range strings.SplitSeq(v, ";") {
 			kv := strings.SplitN(strings.TrimSpace(part), "=", 2)
 			if len(kv) != 2 {
 				continue

@@ -1,8 +1,13 @@
 package grpcserver
 
 import (
+	"ascendant/backend/internal/app/info/permissions"
+	"ascendant/backend/internal/app/info/sessions"
 	appstatistics "ascendant/backend/internal/app/statistics"
+	permsdomain "ascendant/backend/internal/domain/permissions"
+	"ascendant/backend/internal/domain/user"
 	statpb "ascendant/backend/internal/gen/statistics/v1"
+	"ascendant/backend/internal/infra/logger"
 	"context"
 	"time"
 
@@ -14,6 +19,7 @@ import (
 type StatService struct {
 	statpb.UnimplementedStatisticsServiceServer
 	stat *appstatistics.StatService
+	auth *Authenticator
 }
 
 func oClock() time.Time {
@@ -22,18 +28,34 @@ func oClock() time.Time {
 	return startOfDay
 }
 
-func NewStatService(stat *appstatistics.StatService) *StatService {
-	return &StatService{stat: stat}
+func NewStatService(stat *appstatistics.StatService, ses *sessions.Service, perms *permissions.Service) *StatService {
+	return &StatService{stat: stat, auth: NewAuthenticator(ses, perms)}
+}
+
+func authorize(ctx context.Context, auth *Authenticator) (*user.RequestData, error) {
+	requestor, err := auth.RequireUser(ctx)
+	if err != nil || requestor == nil {
+		return nil, err
+	}
+	if err := auth.RequirePermissions(ctx, requestor.UID, permsdomain.ViewStatistics); err != nil {
+		return nil, err
+	}
+	return requestor, nil
 }
 
 func (s *StatService) VotesDay(ctx context.Context, _ *emptypb.Empty) (*statpb.VoteCountResponse, error) {
 	if s == nil || s.stat == nil {
 		return nil, status.Error(codes.Internal, "service is not configured")
 	}
+	requestor, err := authorize(ctx, s.auth)
+	if err != nil || requestor == nil {
+		return nil, err
+	}
 	count, err := s.stat.VoteCount(ctx, time.Now().Add(-24*time.Hour))
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to get vote count")
 	}
+	logger.Info("Got statistics about vote count last day", "statservice.votesday", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.None, TraceIDOrNew(ctx))
 	return &statpb.VoteCountResponse{Count: count, Tracing: TraceIDOrNew(ctx)}, nil
 }
 
@@ -43,6 +65,10 @@ func (s *StatService) TopVoteCategories(ctx context.Context, req *statpb.Categor
 	}
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request must not be nil")
+	}
+	requestor, err := authorize(ctx, s.auth)
+	if err != nil || requestor == nil {
+		return nil, err
 	}
 	cat, err := s.stat.VoteCategories(ctx, time.Now().Add(-24*7*time.Hour), int(req.Limit))
 	if err != nil {
@@ -58,7 +84,10 @@ func (s *StatService) UsersActivity(ctx context.Context, req *statpb.UsersActivi
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request must not be nil")
 	}
-
+	requestor, err := authorize(ctx, s.auth)
+	if err != nil || requestor == nil {
+		return nil, err
+	}
 	limit := int(req.Limit)
 	if limit <= 0 {
 		limit = 7
@@ -81,6 +110,10 @@ func (s *StatService) ActiveUsers(ctx context.Context, tag *statpb.WithFromTagRe
 	if s == nil || s.stat == nil {
 		return nil, status.Error(codes.Internal, "service is not configured")
 	}
+	requestor, err := authorize(ctx, s.auth)
+	if err != nil || requestor == nil {
+		return nil, err
+	}
 	data, err := s.stat.GetActiveUsers(ctx, tag.Since.AsTime())
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to get active users")
@@ -92,6 +125,10 @@ func (s *StatService) OfflineUsers(ctx context.Context, tag *statpb.WithFromTagR
 	if s == nil || s.stat == nil {
 		return nil, status.Error(codes.Internal, "service is not configured")
 	}
+	requestor, err := authorize(ctx, s.auth)
+	if err != nil || requestor == nil {
+		return nil, err
+	}
 	data, err := s.stat.GetOfflineUsers(ctx, tag.Since.AsTime())
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to get offline users")
@@ -102,6 +139,10 @@ func (s *StatService) OfflineUsers(ctx context.Context, tag *statpb.WithFromTagR
 func (s *StatService) IdeasDay(ctx context.Context, _ *emptypb.Empty) (*statpb.IdeasCountResponse, error) {
 	if s == nil || s.stat == nil {
 		return nil, status.Error(codes.Internal, "service is not configured")
+	}
+	requestor, err := authorize(ctx, s.auth)
+	if err != nil || requestor == nil {
+		return nil, err
 	}
 	data, err := s.stat.VoteCount(ctx, oClock())
 	if err != nil {

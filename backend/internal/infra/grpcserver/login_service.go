@@ -4,6 +4,7 @@ import (
 	loginapp "ascendant/backend/internal/app/auth"
 	logindomain "ascendant/backend/internal/domain/login"
 	loginpb "ascendant/backend/internal/gen/login/v1"
+	"ascendant/backend/internal/infra/logger"
 	"context"
 	"errors"
 	"strings"
@@ -54,6 +55,7 @@ func (s *LoginService) Authorization(ctx context.Context, req *loginpb.AuthReque
 	}
 
 	traceID := TraceIDOrNew(ctx)
+	logger.Info("Successfully authorized", "login.authorization.success", logger.EventActor{Type: logger.User, ID: *uid}, logger.Success, traceID)
 	return &loginpb.AuthResponse{Data: "success", Tracing: traceID}, nil
 }
 
@@ -84,6 +86,7 @@ func (s *LoginService) Register(ctx context.Context, req *loginpb.RegisterReques
 	}
 
 	traceID := TraceIDOrNew(ctx)
+	logger.Info("Successfully registered", "login.authorization.success", logger.EventActor{Type: logger.User, ID: *uid}, logger.Success, traceID)
 	return &loginpb.RegisterResponse{Data: "success", Tracing: traceID}, nil
 }
 

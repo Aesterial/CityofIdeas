@@ -7,7 +7,9 @@ import (
 	usermodifier "ascendant/backend/internal/app/modifier/user"
 	"ascendant/backend/internal/domain/permissions"
 	userpb "ascendant/backend/internal/gen/user/v1"
+	"ascendant/backend/internal/infra/logger"
 	"context"
+	"fmt"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -36,11 +38,15 @@ func (s *UserService) Self(ctx context.Context, _ *emptypb.Empty) (*userpb.UserS
 	if err != nil {
 		return nil, err
 	}
+	if requestor == nil {
+		return nil, status.Error(codes.PermissionDenied, "User not logged in")
+	}
 	u, err := s.info.GetSelf(ctx, requestor.SessionID)
 	if err != nil {
 		return nil, statusFromError(err)
 	}
 	traceID := TraceIDOrNew(ctx)
+	logger.Info("Got information about self", "login.authorization.success", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.Success, traceID)
 	return &userpb.UserSelfResponse{Data: toProtoUserSelf(u), Tracing: traceID}, nil
 }
 
@@ -48,6 +54,9 @@ func (s *UserService) Other(ctx context.Context, req *userpb.OtherUserRequest) (
 	requestor, err := s.auth.RequireUser(ctx)
 	if err != nil {
 		return nil, err
+	}
+	if requestor == nil {
+		return nil, status.Error(codes.PermissionDenied, "User not logged in")
 	}
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request is empty")
@@ -60,6 +69,7 @@ func (s *UserService) Other(ctx context.Context, req *userpb.OtherUserRequest) (
 		return nil, statusFromError(err)
 	}
 	traceID := TraceIDOrNew(ctx)
+	logger.Info(fmt.Sprintf("Got information about user with id: %d", req.UserID), "login.authorization.success", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.Success, traceID)
 	return &userpb.UserPublicResponse{Data: toProtoUserPublic(u), Tracing: traceID}, nil
 }
 
@@ -71,11 +81,17 @@ func (s *UserService) Sessions(ctx context.Context, _ *emptypb.Empty) (*userpb.U
 	if s.sessions == nil {
 		return nil, status.Error(codes.Internal, "sessions service not configured")
 	}
+	traceID := TraceIDOrNew(ctx)
+	if requestor != nil {
+		logger.Info("Requested sessions", "user.sessions.request", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.None, traceID)
+	}
 	list, err := s.sessions.GetSessions(ctx, requestor.UID)
 	if err != nil {
 		return nil, statusFromError(err)
 	}
-	traceID := TraceIDOrNew(ctx)
+	if requestor != nil {
+		logger.Info("Got sessions", "user.sessions.success", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.Success, traceID)
+	}
 	return &userpb.UserSessionsResponse{Data: toProtoUserSessions(list), Tracing: traceID}, nil
 }
 
@@ -93,10 +109,16 @@ func (s *UserService) UpdateSelfName(ctx context.Context, req *userpb.ChangeSelf
 	if s.modifier == nil {
 		return nil, status.Error(codes.Internal, "modifier service not configured")
 	}
+	traceID := TraceIDOrNew(ctx)
+	if requestor != nil {
+		logger.Info("Requested self name update", "user.update_self_name.request", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.None, traceID)
+	}
 	if _, err := s.modifier.UpdateName(ctx, requestor.UID, req.Name); err != nil {
 		return nil, statusFromError(err)
 	}
-	traceID := TraceIDOrNew(ctx)
+	if requestor != nil {
+		logger.Info("Updated self name", "user.update_self_name.success", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.Success, traceID)
+	}
 	return &userpb.EmptyResponse{Tracing: traceID}, nil
 }
 
