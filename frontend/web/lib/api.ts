@@ -181,7 +181,7 @@ async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T
 }
 
-export async function handleBannedUser(options?: { signal?: AbortSignal }) {
+export async function handleBannedUser(options?: { signal?: AbortSignal | null }) {
   if (typeof window === "undefined") {
     return
   }
