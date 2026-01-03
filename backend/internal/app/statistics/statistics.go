@@ -55,3 +55,7 @@ func (s *StatService) NewIdeasCount(ctx context.Context, since time.Time) (uint3
 func (s *StatService) IdeasRecap(ctx context.Context) (*statpb.IdeasApprovalResponse, error) {
 	return s.repo.IdeasRecap(ctx)
 }
+
+func (s *StatService) QualityRecap(ctx context.Context) (*statpb.EditorsGradeResponse, error) {
+	return s.repo.QualityRecap(ctx)
+}

@@ -9,4 +9,5 @@ import (
 type Repository interface {
 	GetProject(ctx context.Context, id uuid.UUID) (*Project, error)
 	GetProjectsByUID(ctx context.Context, uid int) ([]*Project, error)
+	CreateProject(ctx context.Context, project Project) error
 }

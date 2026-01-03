@@ -3,14 +3,13 @@ package db
 import (
 	"ascendant/backend/internal/domain/login"
 	"ascendant/backend/internal/domain/permissions"
-	project_domain "ascendant/backend/internal/domain/projects"
+	projectdomain "ascendant/backend/internal/domain/projects"
 	"ascendant/backend/internal/domain/rank"
 	"ascendant/backend/internal/domain/sessions"
 	"ascendant/backend/internal/domain/statistics"
 	"ascendant/backend/internal/domain/submissions"
 	userpb "ascendant/backend/internal/gen/user/v1"
 
-	//"ascendant/backend/internal/domain/statistics"
 	"ascendant/backend/internal/domain/user"
 	statpb "ascendant/backend/internal/gen/statistics/v1"
 	"ascendant/backend/internal/infra/logger"
@@ -172,32 +171,24 @@ func (u *UserRepository) GetJoinedAT(ctx context.Context, uid uint) (*time.Time,
 }
 
 func (u *UserRepository) GetSettings(ctx context.Context, uid uint) (*user.Settings, error) {
+	var err error
 	rowMain := u.DB.QueryRowContext(ctx,
 		"SELECT (u.settings).session_live_time, u.password, (u.settings).display_name FROM users u WHERE u.uid = $1",
 		uid)
-	if err := rowMain.Err(); err != nil {
+	if err = rowMain.Err(); err != nil {
 		return nil, err
 	}
 	var s user.Settings
 	var displayName sql.NullString
-	if err := rowMain.Scan(&s.SessionLiveTime, &s.Password, &displayName); err != nil {
+	if err = rowMain.Scan(&s.SessionLiveTime, &s.Password, &displayName); err != nil {
 		return nil, err
 	}
 	if displayName.Valid {
 		s.DisplayName = &displayName.String
 	}
-	var a user.Avatar
-	row := u.DB.QueryRowContext(ctx, " SELECT ((u.settings).avatar).content_type, ((u.settings).avatar).data, ((u.settings).avatar).width, ((u.settings).avatar).height, ((u.settings).avatar).size_bytes, ((u.settings).avatar).updated FROM users u WHERE u.uid = $1", uid)
-	if err := row.Err(); err != nil {
+	s.Avatar, err = u.GetAvatar(ctx, uid)
+	if err != nil {
 		return nil, err
-	}
-	if err := row.Scan(&a.ContentType, &a.Data, &a.Width, &a.Height, &a.SizeBytes, &a.Updated); err != nil {
-		return nil, err
-	}
-	if a.Data == nil {
-		s.Avatar = nil
-	} else {
-		s.Avatar = &a
 	}
 	return &s, nil
 }
@@ -256,6 +247,20 @@ func (u *UserRepository) GetUserSessionLiveTime(ctx context.Context, uid uint) (
 	sessionTime.Text = strconv.Itoa(liveTime)
 	sessionTime.Duration = time.Duration(liveTime) * 24 * time.Hour
 	return &sessionTime, nil
+}
+
+func (u *UserRepository) GetAvatar(ctx context.Context, uid uint) (*user.Avatar, error) {
+	if uid == 0 {
+		return nil, errors.New("uid is zero")
+	}
+	var avatar user.Avatar
+	if err := u.DB.QueryRowContext(ctx, "SELECT (p.info).content_type, (p.info).data, (p.info).height, (p.info).width, (p.info).size_bytes FROM pictures p WHERE p.owner = $1 AND p.owner_type = 'user'", uid).Scan(&avatar.ContentType, &avatar.Data, &avatar.Height, &avatar.Width, &avatar.SizeBytes); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &avatar, nil
 }
 
 func (u *UserRepository) IsExists(ctx context.Context, user user.User) (bool, error) {
@@ -349,6 +354,19 @@ func (u *UserRepository) BanInfo(ctx context.Context, uid uint) (*user.BanInfo, 
 		return nil, err
 	}
 	return &info, nil
+}
+
+func (u *UserRepository) AddAvatar(ctx context.Context, uid uint, avatar user.Avatar) error {
+	if uid == 0 {
+		return errors.New("uid is zero")
+	}
+	if avatar.Data == nil {
+		return errors.New("avatar data is nil")
+	}
+	if _, err := u.DB.ExecContext(ctx, "INSERT INTO pictures (owner, owner_type, info) VALUES ($1, $2, ROW($3, $4, $5, $6, $7)::avatar_t)", uid, "user", avatar.ContentType, avatar.Data, avatar.Width, avatar.Height, avatar.SizeBytes); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (l *LoggerRepository) Append(ctx context.Context, event logger.Event) error {
@@ -733,20 +751,42 @@ func (p *PermissionsRepository) SetForRank(ctx context.Context, rank string, per
 	return updateRankPermissions(p.DB, ctx, rank, perms)
 }
 
-func getProject(ctx context.Context, id uuid.UUID, db *sql.DB) (*project_domain.Project, error) {
-	var project project_domain.Project
-	if err := db.QueryRowContext(ctx, "SELECT * FROM projects p WHERE p.id = $1", id).Scan(&project.ID, &project.Author, &project.Info.Title, &project.Info.Description, &project.Info.Photos, &project.Info.Category, &project.Info.Location.City, &project.Info.Location.Street, &project.Info.Location.House, &project.Likes, &project.At); err != nil {
+func getProjectPhotos(ctx context.Context, projId uuid.UUID, db *sql.DB) ([]*user.Avatar, error) {
+	rows, err := db.QueryContext(ctx, "SELECT (p.info).content_type, (p.info).data, (p.info).width, (p.info).height, (p.info).size_bytes FROM pictures p WHERE p.owner = $1 AND p.owner_type = 'project' ", projId.String())
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	avatars := make([]*user.Avatar, 0)
+	for rows.Next() {
+		var avatar user.Avatar
+		if err := rows.Scan(&avatar.ContentType, &avatar.Data, &avatar.Height, &avatar.Width, &avatar.SizeBytes); err != nil {
+			return nil, err
+		}
+		avatars = append(avatars, &avatar)
+	}
+	return avatars, nil
+}
+
+func getProject(ctx context.Context, id uuid.UUID, db *sql.DB) (*projectdomain.Project, error) {
+	var project projectdomain.Project
+	var err error
+	if err = db.QueryRowContext(ctx, "SELECT * FROM projects p WHERE p.id = $1", id).Scan(&project.ID, &project.Author, &project.Info.Title, &project.Info.Description, &project.Info.Category, &project.Info.Location.City, &project.Info.Location.Street, &project.Info.Location.House, &project.Likes, &project.At); err != nil {
+		return nil, err
+	}
+	project.Info.Photos, err = getProjectPhotos(ctx, project.ID, db)
+	if err != nil {
 		return nil, err
 	}
 	return &project, nil
 }
 
-func (p *ProjectsRepository) GetProject(ctx context.Context, id uuid.UUID) (*project_domain.Project, error) {
+func (p *ProjectsRepository) GetProject(ctx context.Context, id uuid.UUID) (*projectdomain.Project, error) {
 	return getProject(ctx, id, p.DB)
 }
 
-func (p *ProjectsRepository) GetProjectsByUID(ctx context.Context, uid int) ([]*project_domain.Project, error) {
-	var projects []*project_domain.Project
+func (p *ProjectsRepository) GetProjectsByUID(ctx context.Context, uid int) ([]*projectdomain.Project, error) {
+	var projects []*projectdomain.Project
 	rows, err := p.DB.QueryContext(ctx, "SELECT p.id FROM projects p WHERE p.author_uid = $1", uid)
 	if err != nil {
 		return nil, err
@@ -771,6 +811,31 @@ func (p *ProjectsRepository) GetProjectsByUID(ctx context.Context, uid int) ([]*
 	return projects, nil
 }
 
+func (p *ProjectsRepository) CreateProject(ctx context.Context, info projectdomain.Project) error {
+	var projectId uuid.UUID
+	if err := p.DB.QueryRowContext(ctx, "INSERT INTO projects (author_uid, info) VALUES ($1, ROW($2, $3, $4::project_categories, ROW($5, $6, $7)::project_location_t)::project_info_t) RETURNING id", info.Author, info.Info.Title, info.Info.Description, info.Info.Category, info.Info.Location.City, info.Info.Location.Street, info.Info.Location.House).Scan(&projectId); err != nil {
+		return err
+	}
+	stmt, err := p.DB.PrepareContext(ctx, "INSERT INTO pictures (owner, owner_type, info) VALUES ($1, $2, ROW($3, $4, $5, $6, $7)::avatar_t)")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	for _, pic := range info.Info.Photos {
+		if pic == nil {
+			continue
+		}
+		if _, err = stmt.Exec(projectId.String(), "project", pic.ContentType, pic.Data, pic.Width, pic.Height, pic.SizeBytes); err != nil {
+			logger.Debug("Failed to save project photo: "+err.Error(), "projects.photos.save")
+			continue
+		}
+	}
+	if _, err := p.DB.ExecContext(ctx, "INSERT INTO submissions (project_id) VALUES ($1)", projectId); err != nil {
+		return err
+	}
+	return nil
+}
+
 var _ statistics.Repository = (*StatisticsRepository)(nil)
 
 func (s *StatisticsRepository) VoteCount(ctx context.Context, since time.Time) (uint32, error) {
@@ -792,7 +857,7 @@ func (s *StatisticsRepository) GetOnlineUsers(ctx context.Context, since time.Ti
 
 	var count uint32
 	err := s.DB.QueryRowContext(ctx,
-		`SELECT COUNT(DISTINCT e.actor_id)
+		`SELECT COUNT(DISTINCT e.actor_id) FILTER ( WHERE e.actor_id != 0 )
 		 FROM events e
 		 WHERE e.at >= $1`, since,
 	).Scan(&count)
@@ -812,7 +877,7 @@ func (s *StatisticsRepository) GetOfflineUsers(ctx context.Context, since time.T
 	err := s.DB.QueryRowContext(ctx, `
 		SELECT
 		  (SELECT COUNT(*) FROM users)::bigint -
-		  (SELECT COUNT(DISTINCT e.actor_id) FROM events e WHERE e.at >= $1)::bigint
+		  (SELECT COUNT(DISTINCT e.actor_id)  FILTER ( WHERE e.actor_id != 0 ) FROM events e WHERE e.at >= $1)::bigint
 	`, since).Scan(&offline)
 	if err != nil {
 		return 0, err
@@ -1027,8 +1092,21 @@ func (s *StatisticsRepository) MediaCoverage(ctx context.Context) (map[int64]*st
 	return make(map[int64]*statpb.MediaCoverageResponseMedia), nil
 }
 
-func (s *StatisticsRepository) QualityRecap(ctx context.Context) ([]*statpb.EditorsGradeResponse, error) {
-	return []*statpb.EditorsGradeResponse{}, nil
+func (s *StatisticsRepository) QualityRecap(ctx context.Context) (*statpb.EditorsGradeResponse, error) {
+	var good, bad uint
+	if err := s.DB.QueryRowContext(ctx, `
+		SELECT 
+		    COUNT (*) FILTER (WHERE rate = 'good') AS good,
+		    COUNT (*) FILTER (WHERE rate = 'bad') AS bad
+		FROM pictures`).Scan(&good, &bad); err != nil {
+		return nil, err
+	}
+	var grade statpb.EditorsGradeResponse
+	var photos statpb.EditorsGradeResponse_Grade
+	photos.Good = uint32(good)
+	photos.Bad = uint32(bad)
+	grade.Photos = &photos
+	return &grade, nil
 }
 
 func (s *SubmissionsRepository) GetList(ctx context.Context) ([]*submissions.Submission, error) {

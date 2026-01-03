@@ -16,6 +16,6 @@ type Repository interface {
 	VoteCategories(ctx context.Context, since time.Time, limit int) ([]*statpb.CategoryRecord, error)
 	VoteCount(ctx context.Context, since time.Time) (uint32, error)
 	IdeasRecap(ctx context.Context) (*statpb.IdeasApprovalResponse, error)
-	QualityRecap(ctx context.Context) ([]*statpb.EditorsGradeResponse, error)
+	QualityRecap(ctx context.Context) (*statpb.EditorsGradeResponse, error)
 	MediaCoverage(ctx context.Context) (map[int64]*statpb.MediaCoverageResponseMedia, error)
 }

@@ -666,7 +666,6 @@ type EditorsGradeResponse struct {
 	state         protoimpl.MessageState      `protogen:"open.v1"`
 	Photos        *EditorsGradeResponse_Grade `protobuf:"bytes,1,opt,name=photos,proto3" json:"photos,omitempty"`
 	Videos        *EditorsGradeResponse_Grade `protobuf:"bytes,2,opt,name=videos,proto3" json:"videos,omitempty"`
-	Graphics      *EditorsGradeResponse_Grade `protobuf:"bytes,3,opt,name=graphics,proto3" json:"graphics,omitempty"`
 	Tracing       string                      `protobuf:"bytes,4,opt,name=tracing,proto3" json:"tracing,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -712,13 +711,6 @@ func (x *EditorsGradeResponse) GetPhotos() *EditorsGradeResponse_Grade {
 func (x *EditorsGradeResponse) GetVideos() *EditorsGradeResponse_Grade {
 	if x != nil {
 		return x.Videos
-	}
-	return nil
-}
-
-func (x *EditorsGradeResponse) GetGraphics() *EditorsGradeResponse_Grade {
-	if x != nil {
-		return x.Graphics
 	}
 	return nil
 }
@@ -1020,11 +1012,10 @@ const file_statistics_domain_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\x03R\x03key\x122\n" +
 	"\x05value\x18\x02 \x01(\v2\x1c.statistics.v1.UsersActivityR\x05value:\x028\x01\")\n" +
 	"\x11CategoriesRequest\x12\x14\n" +
-	"\x05limit\x18\x01 \x01(\rR\x05limit\"\xac\x02\n" +
+	"\x05limit\x18\x01 \x01(\rR\x05limit\"\xe5\x01\n" +
 	"\x14EditorsGradeResponse\x12A\n" +
 	"\x06photos\x18\x01 \x01(\v2).statistics.v1.EditorsGradeResponse.GradeR\x06photos\x12A\n" +
-	"\x06videos\x18\x02 \x01(\v2).statistics.v1.EditorsGradeResponse.GradeR\x06videos\x12E\n" +
-	"\bgraphics\x18\x03 \x01(\v2).statistics.v1.EditorsGradeResponse.GradeR\bgraphics\x12\x18\n" +
+	"\x06videos\x18\x02 \x01(\v2).statistics.v1.EditorsGradeResponse.GradeR\x06videos\x12\x18\n" +
 	"\atracing\x18\x04 \x01(\tR\atracing\x1a-\n" +
 	"\x05Grade\x12\x12\n" +
 	"\x04good\x18\x01 \x01(\rR\x04good\x12\x10\n" +
@@ -1086,16 +1077,15 @@ var file_statistics_domain_proto_depIdxs = []int32{
 	16, // 3: statistics.v1.UsersActivityResponse.data:type_name -> statistics.v1.UsersActivityResponse.DataEntry
 	17, // 4: statistics.v1.EditorsGradeResponse.photos:type_name -> statistics.v1.EditorsGradeResponse.Grade
 	17, // 5: statistics.v1.EditorsGradeResponse.videos:type_name -> statistics.v1.EditorsGradeResponse.Grade
-	17, // 6: statistics.v1.EditorsGradeResponse.graphics:type_name -> statistics.v1.EditorsGradeResponse.Grade
-	19, // 7: statistics.v1.MediaCoverageResponse.medias:type_name -> statistics.v1.MediaCoverageResponse.MediasEntry
-	20, // 8: statistics.v1.WithFromTagRequest.since:type_name -> google.protobuf.Timestamp
-	6,  // 9: statistics.v1.UsersActivityResponse.DataEntry.value:type_name -> statistics.v1.UsersActivity
-	18, // 10: statistics.v1.MediaCoverageResponse.MediasEntry.value:type_name -> statistics.v1.MediaCoverageResponse.media
-	11, // [11:11] is the sub-list for method output_type
-	11, // [11:11] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	19, // 6: statistics.v1.MediaCoverageResponse.medias:type_name -> statistics.v1.MediaCoverageResponse.MediasEntry
+	20, // 7: statistics.v1.WithFromTagRequest.since:type_name -> google.protobuf.Timestamp
+	6,  // 8: statistics.v1.UsersActivityResponse.DataEntry.value:type_name -> statistics.v1.UsersActivity
+	18, // 9: statistics.v1.MediaCoverageResponse.MediasEntry.value:type_name -> statistics.v1.MediaCoverageResponse.media
+	10, // [10:10] is the sub-list for method output_type
+	10, // [10:10] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_statistics_domain_proto_init() }

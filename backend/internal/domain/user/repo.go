@@ -18,10 +18,12 @@ type Repository interface {
 	GetUserByUID(ctx context.Context, uid uint) (*User, error)
 	GetUserByUsername(ctx context.Context, username string) (*User, error)
 	GetUserSessionLiveTime(ctx context.Context, uid uint) (*SessionTime, error)
+	GetAvatar(ctx context.Context, uid uint) (*Avatar, error)
 	UpdateDisplayName(ctx context.Context, uid uint, displayName string) error
 	IsExists(ctx context.Context, user User) (bool, error)
 	IsBanned(ctx context.Context, uid uint) (bool, *BanInfo, error)
 	Ban(ctx context.Context, info BanInfo) error
 	UnBan(ctx context.Context, uid uint) error
 	BanInfo(ctx context.Context, uid uint) (*BanInfo, error)
+	AddAvatar(ctx context.Context, uid uint, avatar Avatar) error
 }

@@ -74,7 +74,6 @@ message EditorsGradeResponse {
 
   Grade photos   = 1;
   Grade videos   = 2;
-  Grade graphics = 3;
 
   string tracing = 4;
 }

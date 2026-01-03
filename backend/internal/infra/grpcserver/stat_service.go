@@ -164,3 +164,19 @@ func (s *StatService) IdeasRecap(ctx context.Context, _ *emptypb.Empty) (*statpb
 	}
 	return s.stat.IdeasRecap(ctx)
 }
+
+func (s *StatService) QualityRecap(ctx context.Context, _ *emptypb.Empty) (*statpb.EditorsGradeResponse, error) {
+	if s == nil || s.stat == nil {
+		return nil, status.Error(codes.Internal, "service is not configured")
+	}
+	requestor, err := authorize(ctx, s.auth)
+	if err != nil || requestor == nil {
+		return nil, err
+	}
+	recap, err := s.stat.QualityRecap(ctx)
+	if err != nil {
+		return nil, err
+	}
+	recap.Tracing = TraceIDOrNew(ctx)
+	return recap, nil
+}

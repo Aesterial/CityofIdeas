@@ -72,12 +72,8 @@ func toProtoAvatar(a *user.Avatar) *userpb.Avatar {
 	if a == nil || a.Data == nil {
 		return nil
 	}
-	contentType := ""
-	if a.ContentType.Valid {
-		contentType = a.ContentType.String
-	}
 	return &userpb.Avatar{
-		ContentType: contentType,
+		ContentType: a.ContentType,
 		Data:        a.Data,
 	}
 }

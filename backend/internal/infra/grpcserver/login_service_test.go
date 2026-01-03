@@ -186,6 +186,16 @@ type userRepoStub struct {
 	sessionLive time.Duration
 }
 
+// AddAvatar implements user.Repository.
+func (u *userRepoStub) AddAvatar(ctx context.Context, uid uint, avatar userdomain.Avatar) error {
+	return nil
+}
+
+// GetAvatar implements user.Repository.
+func (u *userRepoStub) GetAvatar(ctx context.Context, uid uint) (*userdomain.Avatar, error) {
+	return nil, nil
+}
+
 func (u *userRepoStub) BanInfo(ctx context.Context, uid uint) (*userdomain.BanInfo, error) {
 	return nil, nil
 }

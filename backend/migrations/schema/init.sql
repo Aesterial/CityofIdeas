@@ -7,6 +7,8 @@ create type event_result as enum ('success', '-', 'failure');
 create type project_categories as enum ('благоустройство', 'дороги и тротуары', 'освещение', 'детские площадки', 'парки и скверы', 'другое');
 create type project_vote_status as enum ('archived', 'implementing', 'vote in progress', 'closed', 'published', 'in moderation');
 create type submissions_state as enum ('approved', 'declined', 'waiting');
+create type picture_owner_type as enum ('user', 'project', 'unspecified');
+create type picture_rate_state as enum ('good', 'bad', 'neutral');
 
 create type avatar_t as (
     content_type varchar(64),
@@ -26,7 +28,6 @@ create type project_location_t as (
 create type project_info_t as (
     title varchar(32),
     description text,
-    photos avatar_t[], -- фотки проекта
     category project_categories,
     location project_location_t
 );
@@ -110,6 +111,16 @@ create unique index users_username_uq on users (username);
 create unique index users_email_uq on users (lower(((email).address)));
 create index users_rank_name_idx on users (((rank).name));
 create index users_joined_idx on users (joined);
+
+-- pictures (avatars/photos)
+create table pictures (
+    id uuid primary key default pg_catalog.gen_random_uuid(),
+    owner text not null,
+    owner_type picture_owner_type not null default 'unspecified',
+    info avatar_t,
+    rate picture_rate_state not null default 'neutral',
+    at timestamptz default now()
+);
 
 -- projects
 create table projects (
@@ -281,7 +292,7 @@ create table submissions (
     id bigint generated always as identity primary key,
     project_id uuid not null references projects(id),
     state submissions_state not null default 'waiting',
-    reason text
+    reason text default null
 );
 
 create index submissions_project_id_idx on submissions (project_id);

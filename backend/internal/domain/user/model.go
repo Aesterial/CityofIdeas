@@ -16,12 +16,12 @@ type Email struct {
 }
 
 type Avatar struct {
-	ContentType sql.NullString
+	ContentType string
 	Data        []byte
-	Width       sql.NullInt32
-	Height      sql.NullInt32
-	SizeBytes   sql.NullInt32
-	Updated     sql.NullTime
+	Width       int
+	Height      int
+	SizeBytes   int
+	Updated     time.Time
 }
 
 func (a *Avatar) ToPublic() *userpb.Avatar {
@@ -29,7 +29,7 @@ func (a *Avatar) ToPublic() *userpb.Avatar {
 		return nil
 	}
 	var avatar userpb.Avatar
-	avatar.ContentType = a.ContentType.String
+	avatar.ContentType = a.ContentType
 	avatar.Data = a.Data
 	return &avatar
 }
