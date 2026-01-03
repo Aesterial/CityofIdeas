@@ -80,6 +80,9 @@ func (s *LoginService) Register(ctx context.Context, req *loginpb.RegisterReques
 
 	uid, err := s.login.Register(ctx, require)
 	if err != nil {
+		if errorContains(err, "duplicate key value violates unique") {
+			return nil, status.Error(codes.AlreadyExists, "username already taken")
+		}
 		return nil, statusFromError(err)
 	}
 	if uid == nil {

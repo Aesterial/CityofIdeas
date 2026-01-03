@@ -7,6 +7,7 @@ import (
 	"ascendant/backend/internal/domain/user"
 	permspb "ascendant/backend/internal/gen/permissions/v1"
 	userpb "ascendant/backend/internal/gen/user/v1"
+	"strings"
 	"time"
 
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -172,4 +173,8 @@ func mergePermissions(base *permissions.Permissions, in *permspb.Permissions) *p
 	base.ViewPermissions = in.ViewPermissions
 	base.ManagePermissions = in.ManagePermissions
 	return base
+}
+
+func errorContains(err error, req string) bool {
+	return strings.Contains(strings.ToLower(strings.TrimSpace(err.Error())), req)
 }

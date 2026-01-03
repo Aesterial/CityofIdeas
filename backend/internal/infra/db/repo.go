@@ -84,7 +84,7 @@ func NewSubmissionRepository(db *sql.DB) *SubmissionsRepository {
 
 func (u *UserRepository) GetList(ctx context.Context) ([]*userpb.UserPublic, error) {
 	var usrs []*userpb.UserPublic
-	rows, err := u.DB.QueryContext(ctx, "SELECT u.uid, u.username, (u.email).address, (u.email).verified, ((u.settings).avatar).data, ((u.settings).avatar).content_type, (u.rank).name, (u.rank).expires, u.joined FROM users u ORDER BY u.joined")
+	rows, err := u.DB.QueryContext(ctx, "SELECT u.uid, u.username, (u.email).address, (u.email).verified, (u.rank).name, (u.rank).expires, u.joined FROM users u ORDER BY u.joined")
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,11 @@ func (u *UserRepository) GetList(ctx context.Context) ([]*userpb.UserPublic, err
 	}()
 	for rows.Next() {
 		var usr = user.User{Settings: &user.Settings{Avatar: &user.Avatar{}}, Rank: &rank.Rank{}, Email: &user.Email{}}
-		if err := rows.Scan(&usr.UID, &usr.Username, &usr.Email.Address, &usr.Email.Verified, &usr.Settings.Avatar.Data, &usr.Settings.Avatar.ContentType, &usr.Rank.Name, &usr.Rank.Expires, &usr.Joined); err != nil {
+		if err := rows.Scan(&usr.UID, &usr.Username, &usr.Email.Address, &usr.Email.Verified, &usr.Rank.Name, &usr.Rank.Expires, &usr.Joined); err != nil {
+			return nil, err
+		}
+		usr.Settings.Avatar, err = u.GetAvatar(ctx, usr.UID)
+		if err != nil {
 			return nil, err
 		}
 		pub := usr.ToPublic()
@@ -254,12 +258,27 @@ func (u *UserRepository) GetAvatar(ctx context.Context, uid uint) (*user.Avatar,
 		return nil, errors.New("uid is zero")
 	}
 	var avatar user.Avatar
-	if err := u.DB.QueryRowContext(ctx, "SELECT (p.info).content_type, (p.info).data, (p.info).height, (p.info).width, (p.info).size_bytes FROM pictures p WHERE p.owner = $1 AND p.owner_type = 'user'", uid).Scan(&avatar.ContentType, &avatar.Data, &avatar.Height, &avatar.Width, &avatar.SizeBytes); err != nil {
+	var av struct {
+		contentType sql.NullString
+		bytes       []byte
+		height      sql.NullInt32
+		width       sql.NullInt32
+		size        sql.NullInt32
+	}
+	if err := u.DB.QueryRowContext(ctx, "SELECT (p.info).content_type, (p.info).data, (p.info).height, (p.info).width, (p.info).size_bytes FROM pictures p WHERE p.owner = $1 AND p.owner_type = 'user'", uid).Scan(&av.contentType, &av.bytes, &av.height, &av.width, &av.size); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
 	}
+	if av.bytes == nil {
+		return &avatar, nil
+	}
+	avatar.ContentType = av.contentType.String
+	avatar.Data = av.bytes
+	avatar.Height = int(av.height.Int32)
+	avatar.Width = int(av.width.Int32)
+	avatar.SizeBytes = int(av.size.Int32)
 	return &avatar, nil
 }
 
@@ -775,9 +794,21 @@ func getProjectPhotos(ctx context.Context, projId uuid.UUID, db *sql.DB) ([]*use
 	avatars := make([]*user.Avatar, 0)
 	for rows.Next() {
 		var avatar user.Avatar
-		if err := rows.Scan(&avatar.ContentType, &avatar.Data, &avatar.Height, &avatar.Width, &avatar.SizeBytes); err != nil {
+		var av struct {
+			contentType sql.NullString
+			bytes       []byte
+			height      sql.NullInt32
+			width       sql.NullInt32
+			size        sql.NullInt32
+		}
+		if err := rows.Scan(&av.contentType, &av.bytes, &av.height, &av.width, &av.size); err != nil {
 			return nil, err
 		}
+		avatar.ContentType = av.contentType.String
+		avatar.Data = av.bytes
+		avatar.Height = int(av.height.Int32)
+		avatar.Width = int(av.width.Int32)
+		avatar.SizeBytes = int(av.size.Int32)
 		avatars = append(avatars, &avatar)
 	}
 	return avatars, nil
