@@ -1,6 +1,7 @@
 package appstatistics
 
 import (
+	statscheduler "ascendant/backend/internal/app/statistics/scheduler"
 	"ascendant/backend/internal/domain/statistics"
 	statpb "ascendant/backend/internal/gen/statistics/v1"
 	"context"
@@ -13,6 +14,7 @@ type StatService struct {
 }
 
 func New(repo statistics.Repository) *StatService {
+	statscheduler.Run(repo, time.Local)
 	return &StatService{repo}
 }
 

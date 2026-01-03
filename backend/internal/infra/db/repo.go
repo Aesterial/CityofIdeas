@@ -981,6 +981,30 @@ func (s *StatisticsRepository) GetForToday(ctx context.Context) (*statpb.Statist
 	return &stat, nil
 }
 
+func (s *StatisticsRepository) SaveStatisticsRecap(ctx context.Context) error {
+	lastDay := today().Add(-24 * time.Hour)
+	newIdeas, err := s.NewIdeasCount(ctx, lastDay)
+	if err != nil {
+		return err
+	}
+	voteCount, err := s.VoteCount(ctx, lastDay)
+	if err != nil {
+		return err
+	}
+	usersActivity, err := s.UsersActivity(ctx, lastDay)
+	if err != nil {
+		return err
+	}
+	lastActivity, ok := usersActivity[lastDay]
+	if !ok {
+		lastActivity = &statpb.UsersActivity{}
+	}
+	if _, err := s.DB.ExecContext(ctx, "INSERT INTO statistics_recap (at, us_activity, new_ideas, vote_count) VALUES ($1, ROW($1, $2)::users_activity_t, $3, $4)", lastDay, lastActivity.Active, lastActivity.Offline, newIdeas, voteCount); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (s *StatisticsRepository) StatisticsRecap(ctx context.Context, since time.Time) (map[time.Time]*statpb.StatisticsRecap, error) {
 	if since.IsZero() {
 		return nil, errors.New("since is zero")
