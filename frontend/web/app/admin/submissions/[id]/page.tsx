@@ -1,9 +1,9 @@
-﻿"use client"
+﻿"use client";
 
-import { useMemo, useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import {
   CalendarDays,
   ChevronDown,
@@ -15,19 +15,19 @@ import {
   Settings,
   UserCircle2,
   XCircle,
-} from "lucide-react"
-import { Logo } from "@/components/logo"
-import { useAuth } from "@/components/auth-provider"
-import { useLanguage } from "@/components/language-provider"
-import { handleBannedUser } from "@/lib/api"
+} from "lucide-react";
+import { Logo } from "@/components/logo";
+import { useAuth } from "@/components/auth-provider";
+import { useLanguage } from "@/components/language-provider";
+import { handleBannedUser } from "@/lib/api";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -35,24 +35,46 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
-import { statusMeta, submissions, type SubmissionStatus } from "../data"
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { statusMeta, submissions, type SubmissionStatus } from "../data";
 
 const statusBadgeStyles: Record<SubmissionStatus, string> = {
   pending: "bg-amber-500/10 text-amber-700",
   approved: "bg-emerald-500/10 text-emerald-700",
   declined: "bg-rose-500/10 text-rose-700",
-}
+};
 
 type SubmissionDetailPageProps = {
   params: {
-    id: string
-  }
-}
+    id: string;
+  };
+};
 
-const DEFAULT_API_BASE_URL = "http://127.0.0.1:8080"
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/$/, "")
+const DEFAULT_API_BASE_URL = "http://127.0.0.1:8080";
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL
+).replace(/\/$/, "");
+const BANNED_ERROR_MATCH = "user is banned";
+
+const isBannedResponse = (
+  status: number,
+  data: { error?: string; data?: unknown; message?: string } | null,
+  message: string,
+) => {
+  if (status !== 401 && status !== 403) {
+    return false;
+  }
+  const includesBan = (value: unknown) =>
+    typeof value === "string" &&
+    value.toLowerCase().includes(BANNED_ERROR_MATCH);
+  return (
+    includesBan(data?.error) ||
+    includesBan(data?.data) ||
+    includesBan(data?.message) ||
+    includesBan(message)
+  );
+};
 
 async function postDecision(path: string, payload?: unknown) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -62,54 +84,69 @@ async function postDecision(path: string, payload?: unknown) {
       "Content-Type": "application/json",
     },
     body: payload ? JSON.stringify(payload) : undefined,
-  })
+  });
 
   if (response.ok) {
-    return
+    return;
   }
 
-  let message = `Request failed (${response.status})`
-  let data: { error?: string; data?: unknown } | null = null
+  let message = `Request failed (${response.status})`;
+  let data: { error?: string; data?: unknown; message?: string } | null = null;
   try {
-    data = (await response.json()) as { error?: string; data?: unknown }
+    data = (await response.json()) as {
+      error?: string;
+      data?: unknown;
+      message?: string;
+    };
   } catch {
-    const text = await response.text()
+    const text = await response.text();
     if (text) {
-      message = text
+      message = text;
     }
   }
   if (data?.error) {
-    message = data.error
+    message = data.error;
+  } else if (data?.message) {
+    message = data.message;
   }
-  if (response.status === 401 && data?.data === "user is banned") {
-    await handleBannedUser()
+  if (isBannedResponse(response.status, data, message)) {
+    await handleBannedUser();
   }
-  throw new Error(message)
+  throw new Error(message);
 }
 
-export default function SubmissionDetailPage({ params }: SubmissionDetailPageProps) {
-  const router = useRouter()
-  const { logout, user } = useAuth()
-  const { language, setLanguage, t } = useLanguage()
+export default function SubmissionDetailPage({
+  params,
+}: SubmissionDetailPageProps) {
+  const router = useRouter();
+  const { logout, user } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
 
   const handleLogout = async () => {
-    await logout()
-    router.push("/")
-  }
-  const displayName = user?.displayName || user?.username || ""
-  const initials = (displayName || "U").slice(0, 2).toUpperCase()
+    await logout();
+    router.push("/");
+  };
+  const displayName = user?.displayName || user?.username || "";
+  const initials = (displayName || "U").slice(0, 2).toUpperCase();
   const languageOptions = [
     { code: "RU" as const, label: "RU" },
     { code: "EN" as const, label: "EN" },
     { code: "KZ" as const, label: "KZ" },
-  ]
+  ];
 
-  const submission = useMemo(() => submissions.find((item) => item.id === params.id) ?? null, [params.id])
-  const [currentStatus, setCurrentStatus] = useState<SubmissionStatus | null>(submission?.status ?? null)
-  const [actionLoading, setActionLoading] = useState<"approve" | "decline" | null>(null)
-  const [declineOpen, setDeclineOpen] = useState(false)
-  const [declineReason, setDeclineReason] = useState("")
-  const [declineError, setDeclineError] = useState<string | null>(null)
+  const submission = useMemo(
+    () => submissions.find((item) => item.id === params.id) ?? null,
+    [params.id],
+  );
+  const [currentStatus, setCurrentStatus] = useState<SubmissionStatus | null>(
+    submission?.status ?? null,
+  );
+  const [actionLoading, setActionLoading] = useState<
+    "approve" | "decline" | null
+  >(null);
+  const [declineOpen, setDeclineOpen] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
+  const [declineError, setDeclineError] = useState<string | null>(null);
 
   if (!submission) {
     return (
@@ -118,8 +155,12 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
           <Logo className="h-10 w-10 text-foreground" showText={false} />
         </Link>
         <div>
-          <p className="text-lg font-semibold">{t("adminSubmissionNotFoundTitle")}</p>
-          <p className="text-sm text-muted-foreground">{t("adminSubmissionNotFoundSubtitle")}</p>
+          <p className="text-lg font-semibold">
+            {t("adminSubmissionNotFoundTitle")}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {t("adminSubmissionNotFoundSubtitle")}
+          </p>
         </div>
         <Link
           href="/admin/submissions"
@@ -128,65 +169,73 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
           {t("adminSubmissionBackToList")}
         </Link>
       </div>
-    )
+    );
   }
 
-  const activeStatus = currentStatus ?? submission.status
-  const statusInfo = statusMeta[activeStatus]
-  const statusClass = statusBadgeStyles[activeStatus]
+  const activeStatus = currentStatus ?? submission.status;
+  const statusInfo = statusMeta[activeStatus];
+  const statusClass = statusBadgeStyles[activeStatus];
   const statusText =
     activeStatus === "approved"
       ? t("statusApproved")
       : activeStatus === "declined"
         ? t("statusDeclined")
-        : t("statusPending")
-  const isApproving = actionLoading === "approve"
-  const isDeclining = actionLoading === "decline"
+        : t("statusPending");
+  const isApproving = actionLoading === "approve";
+  const isDeclining = actionLoading === "decline";
 
   const handleApprove = async () => {
     if (activeStatus === "approved") {
-      return
+      return;
     }
-    setActionLoading("approve")
+    setActionLoading("approve");
     try {
-      await postDecision(`/api/submissions/${submission.id}/approve`)
-      setCurrentStatus("approved")
+      await postDecision(`/api/submissions/${submission.id}/approve`);
+      setCurrentStatus("approved");
       toast.success(t("adminSubmissionApproveSuccessTitle"), {
         description: t("adminSubmissionApproveSuccessDesc"),
-      })
+      });
     } catch (error) {
       toast.error(t("adminSubmissionApproveErrorTitle"), {
-        description: error instanceof Error ? error.message : t("adminSubmissionApproveErrorDesc"),
-      })
+        description:
+          error instanceof Error
+            ? error.message
+            : t("adminSubmissionApproveErrorDesc"),
+      });
     } finally {
-      setActionLoading(null)
+      setActionLoading(null);
     }
-  }
+  };
 
   const handleDecline = async () => {
-    const reason = declineReason.trim()
+    const reason = declineReason.trim();
     if (!reason) {
-      setDeclineError(t("adminSubmissionDeclineReasonError"))
-      return
+      setDeclineError(t("adminSubmissionDeclineReasonError"));
+      return;
     }
-    setDeclineError(null)
-    setActionLoading("decline")
+    setDeclineError(null);
+    setActionLoading("decline");
     try {
-      await postDecision(`/api/submissions/${submission.id}/decline`, { reason })
-      setCurrentStatus("declined")
-      setDeclineOpen(false)
-      setDeclineReason("")
+      await postDecision(`/api/submissions/${submission.id}/decline`, {
+        reason,
+      });
+      setCurrentStatus("declined");
+      setDeclineOpen(false);
+      setDeclineReason("");
       toast.success(t("adminSubmissionDeclineSuccessTitle"), {
         description: t("adminSubmissionDeclineSuccessDesc"),
-      })
+      });
     } catch (error) {
       toast.error(t("adminSubmissionDeclineErrorTitle"), {
-        description: error instanceof Error ? error.message : t("adminSubmissionDeclineErrorDesc"),
-      })
+        description:
+          error instanceof Error
+            ? error.message
+            : t("adminSubmissionDeclineErrorDesc"),
+      });
     } finally {
-      setActionLoading(null)
+      setActionLoading(null);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
@@ -202,7 +251,9 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
             </Link>
             <div>
               <p className="text-lg font-semibold">{t("adminPanelTitle")}</p>
-              <p className="text-xs text-muted-foreground">{t(statusInfo.labelKey)}</p>
+              <p className="text-xs text-muted-foreground">
+                {t(statusInfo.labelKey)}
+              </p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -219,7 +270,10 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-[90px]">
                 {languageOptions.map((option) => (
-                  <DropdownMenuItem key={option.code} onClick={() => setLanguage(option.code)}>
+                  <DropdownMenuItem
+                    key={option.code}
+                    onClick={() => setLanguage(option.code)}
+                  >
                     {option.label}
                   </DropdownMenuItem>
                 ))}
@@ -232,9 +286,13 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
                   className="flex items-center gap-3 rounded-full border border-border/60 bg-card/90 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
                 >
                   <Avatar className="h-9 w-9">
-                    <AvatarFallback className="text-xs font-semibold">{initials}</AvatarFallback>
+                    <AvatarFallback className="text-xs font-semibold">
+                      {initials}
+                    </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm font-semibold">{displayName || user?.username || "admin"}</span>
+                  <span className="text-sm font-semibold">
+                    {displayName || user?.username || "admin"}
+                  </span>
                   <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 </button>
               </DropdownMenuTrigger>
@@ -248,8 +306,8 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onSelect={(event) => {
-                    event.preventDefault()
-                    void handleLogout()
+                    event.preventDefault();
+                    void handleLogout();
                   }}
                 >
                   <LogOut className="h-4 w-4" />
@@ -280,10 +338,18 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
               <div>
                 <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
                   <span>{submission.category}</span>
-                  <span className={`rounded-full px-2 py-0.5 font-semibold ${statusClass}`}>{statusText}</span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 font-semibold ${statusClass}`}
+                  >
+                    {statusText}
+                  </span>
                 </div>
-                <h1 className="mt-2 text-2xl font-bold sm:text-3xl">{submission.title}</h1>
-                <p className="mt-3 text-sm text-muted-foreground">{submission.summary}</p>
+                <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
+                  {submission.title}
+                </h1>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  {submission.summary}
+                </p>
               </div>
               <Link
                 href="#media"
@@ -297,17 +363,23 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
             <div className="mt-6 grid gap-4 text-sm">
               <div className="flex flex-wrap items-center gap-2">
                 <UserCircle2 className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">{t("adminSubmissionsInfoAuthor")}:</span>
+                <span className="text-muted-foreground">
+                  {t("adminSubmissionsInfoAuthor")}:
+                </span>
                 <span className="font-semibold">{submission.authorName}</span>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">{t("adminSubmissionsInfoDate")}:</span>
+                <span className="text-muted-foreground">
+                  {t("adminSubmissionsInfoDate")}:
+                </span>
                 <span className="font-semibold">{submission.submittedAt}</span>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="text-muted-foreground">{t("adminSubmissionsInfoLocation")}:</span>
+                <span className="text-muted-foreground">
+                  {t("adminSubmissionsInfoLocation")}:
+                </span>
                 <span className="font-semibold">{submission.location}</span>
               </div>
               <div className="text-xs text-muted-foreground">
@@ -319,16 +391,27 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
             </div>
 
             <div className="mt-6 rounded-2xl border border-border/70 bg-background/70 p-5">
-              <p className="text-sm font-semibold">{t("adminSubmissionsDetailsTitle")}</p>
-              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{submission.description}</p>
+              <p className="text-sm font-semibold">
+                {t("adminSubmissionsDetailsTitle")}
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                {submission.description}
+              </p>
             </div>
 
             <div id="media" className="mt-6">
               <p className="text-sm font-semibold">{t("adminMediaTitle")}</p>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
                 {submission.images.map((image) => (
-                  <div key={image} className="relative h-48 overflow-hidden rounded-2xl">
-                    <img src={image} alt={submission.title} className="h-full w-full object-cover" />
+                  <div
+                    key={image}
+                    className="relative h-48 overflow-hidden rounded-2xl"
+                  >
+                    <img
+                      src={image}
+                      alt={submission.title}
+                      className="h-full w-full object-cover"
+                    />
                   </div>
                 ))}
               </div>
@@ -338,8 +421,12 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
           <aside className="rounded-3xl border border-border/70 bg-card/90 p-6 lg:sticky lg:top-24 h-fit">
             <div className="space-y-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{t("labelStatus")}</p>
-                <div className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusClass}`}>
+                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                  {t("labelStatus")}
+                </p>
+                <div
+                  className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusClass}`}
+                >
                   {statusText}
                 </div>
               </div>
@@ -348,7 +435,9 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
                 <button
                   type="button"
                   onClick={handleApprove}
-                  disabled={isApproving || isDeclining || activeStatus === "approved"}
+                  disabled={
+                    isApproving || isDeclining || activeStatus === "approved"
+                  }
                   className="flex items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/30 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <CheckCircle2 className="h-4 w-4" />
@@ -361,14 +450,18 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
                 <button
                   type="button"
                   onClick={() => {
-                    setDeclineError(null)
-                    setDeclineOpen(true)
+                    setDeclineError(null);
+                    setDeclineOpen(true);
                   }}
-                  disabled={isApproving || isDeclining || activeStatus === "declined"}
+                  disabled={
+                    isApproving || isDeclining || activeStatus === "declined"
+                  }
                   className="flex items-center justify-center gap-2 rounded-full border border-border/70 px-4 py-2 text-sm font-semibold text-foreground transition-all duration-300 hover:bg-foreground hover:text-background disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <XCircle className="h-4 w-4" />
-                  {activeStatus === "declined" ? t("adminSubmissionDeclineDone") : t("actionDecline")}
+                  {activeStatus === "declined"
+                    ? t("adminSubmissionDeclineDone")
+                    : t("actionDecline")}
                 </button>
               </div>
 
@@ -383,17 +476,19 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
       <Dialog
         open={declineOpen}
         onOpenChange={(open) => {
-          setDeclineOpen(open)
+          setDeclineOpen(open);
           if (!open) {
-            setDeclineReason("")
-            setDeclineError(null)
+            setDeclineReason("");
+            setDeclineError(null);
           }
         }}
       >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t("adminSubmissionDeclineReasonLabel")}</DialogTitle>
-            <DialogDescription>{t("adminSubmissionDeclineReasonHelp")}</DialogDescription>
+            <DialogDescription>
+              {t("adminSubmissionDeclineReasonHelp")}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
             <Textarea
@@ -402,7 +497,9 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
               placeholder={t("adminSubmissionDeclineReasonPlaceholder")}
               rows={4}
             />
-            {declineError ? <p className="text-sm text-destructive">{declineError}</p> : null}
+            {declineError ? (
+              <p className="text-sm text-destructive">{declineError}</p>
+            ) : null}
           </div>
           <DialogFooter>
             <button
@@ -425,5 +522,5 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

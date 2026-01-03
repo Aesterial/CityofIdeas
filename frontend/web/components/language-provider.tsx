@@ -1,16 +1,22 @@
-"use client"
+"use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 
-type Language = "RU" | "EN" | "KZ"
+type Language = "RU" | "EN" | "KZ";
 
 type Translations = {
   [key: string]: {
-    RU: string
-    EN: string
-    KZ: string
-  }
-}
+    RU: string;
+    EN: string;
+    KZ: string;
+  };
+};
 
 export const translations: Translations = {
   cityOfIdeas: {
@@ -557,6 +563,91 @@ export const translations: Translations = {
     RU: "\u041f\u0440\u0438\u0447\u0438\u043d\u0430 \u0441\u043e\u0445\u0440\u0430\u043d\u044f\u0435\u0442\u0441\u044f \u0432 \u0436\u0443\u0440\u043d\u0430\u043b\u0435 \u0438 \u043f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0435\u0442\u0441\u044f \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044e.",
     EN: "The reason is stored in logs and shown to the user.",
     KZ: "\u0421\u0435\u0431\u0435\u043f \u0436\u0443\u0440\u043d\u0430\u043b\u0434\u0430 \u0441\u0430\u049b\u0442\u0430\u043b\u044b\u043f, \u043f\u0430\u0439\u0434\u0430\u043b\u0430\u043d\u0443\u0448\u044b\u0493\u0430 \u043a\u04e9\u0440\u0441\u0435\u0442\u0456\u043b\u0435\u0434\u0456.",
+  },
+  adminBanReasonRequired: {
+    RU: "\u0423\u043a\u0430\u0436\u0438\u0442\u0435 \u043f\u0440\u0438\u0447\u0438\u043d\u0443 \u0431\u0430\u043d\u0430.",
+    EN: "Provide a ban reason.",
+    KZ: "\u0411\u0430\u043d \u0441\u0435\u0431\u0435\u0431\u0456\u043d \u043a\u04e9\u0440\u0441\u0435\u0442\u0456\u04a3\u0456\u0437.",
+  },
+  adminBanReasonDefault: {
+    RU: "\u0421\u043f\u0430\u043c, \u043c\u0443\u043b\u044c\u0442\u0438\u0430\u043a\u043a\u0430\u0443\u043d\u0442\u044b, \u043f\u043e\u0432\u0442\u043e\u0440\u043d\u044b\u0435 \u0436\u0430\u043b\u043e\u0431\u044b",
+    EN: "Spam, multiple accounts, repeated reports",
+    KZ: "\u0421\u043f\u0430\u043c, \u0431\u0456\u0440\u043d\u0435\u0448\u0435 \u0430\u043a\u043a\u0430\u0443\u043d\u0442, \u049b\u0430\u0439\u0442\u0430\u043b\u0430\u043d\u0430\u0442\u044b\u043d \u0448\u0430\u0493\u044b\u043c\u0434\u0430\u0440",
+  },
+  adminBanReasonSpam: {
+    RU: "\u0421\u043f\u0430\u043c",
+    EN: "Spam",
+    KZ: "\u0421\u043f\u0430\u043c",
+  },
+  adminBanReasonAbuse: {
+    RU: "\u041e\u0441\u043a\u043e\u0440\u0431\u043b\u0435\u043d\u0438\u044f",
+    EN: "Abuse",
+    KZ: "\u049a\u043e\u0440\u043b\u0430\u0443",
+  },
+  adminBanReasonFraud: {
+    RU: "\u041c\u043e\u0448\u0435\u043d\u043d\u0438\u0447\u0435\u0441\u0442\u0432\u043e",
+    EN: "Fraud",
+    KZ: "\u0410\u043b\u0430\u044f\u049b\u0442\u044b\u049b",
+  },
+  adminBanReasonCustom: {
+    RU: "\u0414\u0440\u0443\u0433\u0430\u044f \u043f\u0440\u0438\u0447\u0438\u043d\u0430",
+    EN: "Custom reason",
+    KZ: "\u0411\u0430\u0441\u049b\u0430 \u0441\u0435\u0431\u0435\u043f",
+  },
+  adminBanDialogTitle: {
+    RU: "\u0411\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u043a\u0430 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f",
+    EN: "Ban user",
+    KZ: "\u041f\u0430\u0439\u0434\u0430\u043b\u0430\u043d\u0443\u0448\u044b\u043d\u044b \u0431\u04b1\u0493\u0430\u0442\u0442\u0430\u0443",
+  },
+  adminBanDialogDescription: {
+    RU: "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043f\u0440\u0438\u0447\u0438\u043d\u0443 \u0438 \u0441\u0440\u043e\u043a \u0431\u0430\u043d\u0430 \u0434\u043b\u044f",
+    EN: "Choose a reason and duration for",
+    KZ: "\u0421\u0435\u0431\u0435\u043f \u043f\u0435\u043d \u043c\u0435\u0440\u0437\u0456\u043c\u0434\u0456 \u0442\u0430\u04a3\u0434\u0430\u04a3\u044b\u0437:",
+  },
+  adminBanDurationLabel: {
+    RU: "\u0421\u0440\u043e\u043a \u0431\u0430\u043d\u0430",
+    EN: "Ban duration",
+    KZ: "\u0411\u0430\u043d \u043c\u0435\u0440\u0437\u0456\u043c\u0456",
+  },
+  adminBanDurationPermanent: {
+    RU: "\u041d\u0430\u0432\u0441\u0435\u0433\u0434\u0430",
+    EN: "Permanent",
+    KZ: "\u0422\u04b1\u0440\u0430\u049b\u0442\u044b",
+  },
+  adminBanDurationCustom: {
+    RU: "\u0412\u044b\u0431\u0440\u0430\u0442\u044c \u0434\u0430\u0442\u0443",
+    EN: "Custom date",
+    KZ: "\u041a\u04af\u043d\u0434\u0456 \u0442\u0430\u04a3\u0434\u0430\u0443",
+  },
+  adminBanDuration24h: {
+    RU: "1 \u0434\u0435\u043d\u044c",
+    EN: "1 day",
+    KZ: "1 \u043a\u04af\u043d",
+  },
+  adminBanDuration7d: {
+    RU: "7 \u0434\u043d\u0435\u0439",
+    EN: "7 days",
+    KZ: "7 \u043a\u04af\u043d",
+  },
+  adminBanDuration30d: {
+    RU: "30 \u0434\u043d\u0435\u0439",
+    EN: "30 days",
+    KZ: "30 \u043a\u04af\u043d",
+  },
+  adminBanPickDate: {
+    RU: "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0434\u0430\u0442\u0443",
+    EN: "Pick a date",
+    KZ: "\u041a\u04af\u043d\u0434\u0456 \u0442\u0430\u04a3\u0434\u0430\u04a3\u044b\u0437",
+  },
+  adminBanDateRequired: {
+    RU: "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0434\u0430\u0442\u0443 \u043e\u043a\u043e\u043d\u0447\u0430\u043d\u0438\u044f \u0431\u0430\u043d\u0430.",
+    EN: "Select a ban end date.",
+    KZ: "\u0411\u0430\u043d\u043d\u044b\u04a3 \u0430\u044f\u049b\u0442\u0430\u043b\u0443 \u043a\u04af\u043d\u0456\u043d \u0442\u0430\u04a3\u0434\u0430\u04a3\u044b\u0437.",
+  },
+  adminBanDateInvalid: {
+    RU: "\u0414\u0430\u0442\u0430 \u0431\u0430\u043d\u0430 \u0434\u043e\u043b\u0436\u043d\u0430 \u0431\u044b\u0442\u044c \u0432 \u0431\u0443\u0434\u0443\u0449\u0435\u043c.",
+    EN: "Ban date must be in the future.",
+    KZ: "\u0411\u0430\u043d \u043a\u04af\u043d\u0456 \u0431\u043e\u043b\u0430\u0448\u0430\u049b\u0442\u0430 \u0431\u043e\u043b\u0443\u044b \u043a\u0435\u0440\u0435\u043a.",
   },
   adminModerationChecklistTitle: {
     RU: "\u041a\u043e\u043d\u0442\u0440\u043e\u043b\u044c \u043a\u0430\u0447\u0435\u0441\u0442\u0432\u0430",
@@ -1158,49 +1249,54 @@ export const translations: Translations = {
     EN: "Send",
     KZ: "\u0416\u0456\u0431\u0435\u0440\u0443",
   },
-
-}
+};
 
 interface LanguageContextType {
-  language: Language
-  setLanguage: (lang: Language) => void
-  t: (key: string) => string
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string) => string;
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
+const LanguageContext = createContext<LanguageContextType | undefined>(
+  undefined,
+);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState<Language>("RU")
-  const [mounted, setMounted] = useState(false)
+  const [language, setLanguage] = useState<Language>("RU");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const savedLang = localStorage.getItem("language") as Language
+    const savedLang = localStorage.getItem("language") as Language;
     if (savedLang && ["RU", "EN", "KZ"].includes(savedLang)) {
-      setLanguage(savedLang)
+      setLanguage(savedLang);
     }
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (mounted) {
-      localStorage.setItem("language", language)
+      localStorage.setItem("language", language);
     }
-  }, [language, mounted])
+  }, [language, mounted]);
 
   const t = (key: string): string => {
     if (translations[key]) {
-      return translations[key][language]
+      return translations[key][language];
     }
-    return key
-  }
+    return key;
+  };
 
-  return <LanguageContext.Provider value={{ language, setLanguage, t }}>{children}</LanguageContext.Provider>
+  return (
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+      {children}
+    </LanguageContext.Provider>
+  );
 }
 
 export function useLanguage() {
-  const context = useContext(LanguageContext)
+  const context = useContext(LanguageContext);
   if (context === undefined) {
-    throw new Error("useLanguage must be used within a LanguageProvider")
+    throw new Error("useLanguage must be used within a LanguageProvider");
   }
-  return context
+  return context;
 }

@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import {
   Ban,
   BarChart3,
+  CalendarDays,
   CheckCircle2,
   ChevronDown,
   Globe,
@@ -30,9 +31,11 @@ import { toast } from "sonner";
 import { useAuth } from "@/components/auth-provider";
 import { useLanguage } from "@/components/language-provider";
 import {
+  banUser,
   fetchUserBanInfo,
   fetchUsers,
   handleBannedUser,
+  unbanUser,
   type BanInfo,
 } from "@/lib/api";
 import {
@@ -42,6 +45,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { Calendar } from "@/components/ui/calendar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,7 +53,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Area,
   AreaChart,
@@ -155,6 +173,26 @@ const DEFAULT_API_BASE_URL = "http://127.0.0.1:8080";
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL
 ).replace(/\/$/, "");
+const BANNED_ERROR_MATCH = "user is banned";
+
+const isBannedResponse = (
+  status: number,
+  data: { error?: string; data?: unknown; message?: string } | null,
+  message: string,
+) => {
+  if (status !== 401 && status !== 403) {
+    return false;
+  }
+  const includesBan = (value: unknown) =>
+    typeof value === "string" &&
+    value.toLowerCase().includes(BANNED_ERROR_MATCH);
+  return (
+    includesBan(data?.error) ||
+    includesBan(data?.data) ||
+    includesBan(data?.message) ||
+    includesBan(message)
+  );
+};
 async function requestJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     credentials: "include",
@@ -169,9 +207,13 @@ async function requestJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   }
 
   let message = `Request failed (${response.status})`;
-  let data: { error?: string; data?: unknown } | null = null;
+  let data: { error?: string; data?: unknown; message?: string } | null = null;
   try {
-    data = (await response.json()) as { error?: string; data?: unknown };
+    data = (await response.json()) as {
+      error?: string;
+      data?: unknown;
+      message?: string;
+    };
   } catch {
     const text = await response.text();
     if (text) {
@@ -180,8 +222,10 @@ async function requestJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   }
   if (data?.error) {
     message = data.error;
+  } else if (data?.message) {
+    message = data.message;
   }
-  if (response.status === 401 && data?.data === "user is banned") {
+  if (isBannedResponse(response.status, data, message)) {
     await handleBannedUser({ signal });
   }
   throw new Error(message);
@@ -205,9 +249,17 @@ export default function AdminPage() {
   });
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
-  const [banReason, setBanReason] = useState(
-    "Спам, мультиаккаунты, повторные жалобы",
-  );
+  const [banReasonOption, setBanReasonOption] = useState("default");
+  const [banReason, setBanReason] = useState(() => t("adminBanReasonDefault"));
+  const [banDuration, setBanDuration] = useState(0);
+  const [banUntilDate, setBanUntilDate] = useState<Date | undefined>();
+  const [banDialogOpen, setBanDialogOpen] = useState(false);
+  const [banDialogUser, setBanDialogUser] = useState<User | null>(null);
+  const [banDialogReasonOption, setBanDialogReasonOption] = useState("default");
+  const [banDialogReason, setBanDialogReason] = useState("");
+  const [banDialogDuration, setBanDialogDuration] = useState(0);
+  const [banDialogDate, setBanDialogDate] = useState<Date | undefined>();
+  const [banDialogLoading, setBanDialogLoading] = useState(false);
 
   const [voteCategories, setVoteCategories] = useState<VoteCategory[]>([]);
   const [ideasApproval, setIdeasApproval] = useState<{
@@ -244,6 +296,51 @@ export default function AdminPage() {
 
   const locale =
     language === "KZ" ? "kk-KZ" : language === "RU" ? "ru-RU" : "en-US";
+
+
+
+  const banDateFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(locale, {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }),
+    [locale],
+  );
+
+  const today = useMemo(() => {
+    const value = new Date();
+    value.setHours(0, 0, 0, 0);
+    return value;
+  }, []);
+
+  const resolveBanReason = (option: string, custom: string) => {
+    if (option === "custom") {
+      return custom;
+    }
+    const match = banReasonOptions.find((item) => item.value === option);
+    return match ? match.label : custom;
+  };
+
+  const resolveBanDurationSeconds = (
+    durationValue: number,
+    untilDate?: Date,
+  ) => {
+    if (durationValue !== -1) {
+      return durationValue;
+    }
+    if (!untilDate) {
+      return null;
+    }
+    const end = new Date(untilDate);
+    end.setHours(23, 59, 59, 999);
+    const diffMs = end.getTime() - Date.now();
+    if (diffMs <= 0) {
+      return 0;
+    }
+    return Math.ceil(diffMs / 1000);
+  };
 
   const sidebarItems = useMemo(
     () => [
@@ -307,6 +404,17 @@ export default function AdminPage() {
 
   const activityRangeDays =
     activityRanges.find((range) => range.id === activityRange)?.days ?? 7;
+
+  const banDurations = useMemo(
+    () => [
+      { value: 0, label: t("adminBanDurationPermanent") },
+      { value: 60 * 60 * 24, label: t("adminBanDuration24h") },
+      { value: 60 * 60 * 24 * 7, label: t("adminBanDuration7d") },
+      { value: 60 * 60 * 24 * 30, label: t("adminBanDuration30d") },
+      { value: -1, label: t("adminBanDurationCustom") },
+    ],
+    [t],
+  );
 
   const activityFallback = useMemo(() => {
     const formatter = new Intl.DateTimeFormat(locale, {
@@ -780,21 +888,110 @@ export default function AdminPage() {
     return () => controller.abort();
   }, [t]);
 
-  const handleUserAction = (
+  const updateUserStatus = (userID: number, status: UserStatus) => {
+    setUsers((prev) =>
+      prev.map((item) => (item.userID === userID ? { ...item, status } : item)),
+    );
+  };
+
+  const openBanDialog = (target: User) => {
+    setBanDialogUser(target);
+    setBanDialogReasonOption("default");
+    setBanDialogReason(t("adminBanReasonDefault"));
+    setBanDialogDuration(0);
+    setBanDialogDate(undefined);
+    setBanDialogOpen(true);
+  };
+
+  const handleConfirmBan = async () => {
+    if (!banDialogUser) {
+      return;
+    }
+    const reason = resolveBanReason(
+      banDialogReasonOption,
+      banDialogReason,
+    ).trim();
+    if (!reason) {
+      toast.error(t("adminBanReasonRequired"));
+      return;
+    }
+    const durationSeconds = resolveBanDurationSeconds(
+      banDialogDuration,
+      banDialogDate,
+    );
+    if (banDialogDuration === -1 && durationSeconds == null) {
+      toast.error(t("adminBanDateRequired"));
+      return;
+    }
+    if (banDialogDuration === -1 && durationSeconds <= 0) {
+      toast.error(t("adminBanDateInvalid"));
+      return;
+    }
+    setBanDialogLoading(true);
+    try {
+      await banUser(banDialogUser.userID, reason, durationSeconds ?? 0);
+      updateUserStatus(banDialogUser.userID, "banned");
+      toast.error(t("adminToastUserBlocked"), {
+        description: `${banDialogUser.name} - ${t("adminBanReason")}: ${reason}`,
+      });
+      setBanDialogOpen(false);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : t("adminErrorLoadUsers"),
+      );
+    } finally {
+      setBanDialogLoading(false);
+    }
+  };
+
+  const handleUserAction = async (
     user: User,
     action: "block" | "unblock" | "reset" | "message",
   ) => {
     if (action === "block") {
-      toast.error(t("adminToastUserBlocked"), {
-        description: `${user.name} - ${t("adminBanReason")}: ${banReason}`,
-      });
+      const reason = resolveBanReason(banReasonOption, banReason).trim();
+      if (!reason) {
+        toast.error(t("adminBanReasonRequired"));
+        return;
+      }
+      const durationSeconds = resolveBanDurationSeconds(
+        banDuration,
+        banUntilDate,
+      );
+      if (banDuration === -1 && durationSeconds == null) {
+        toast.error(t("adminBanDateRequired"));
+        return;
+      }
+      if (banDuration === -1 && durationSeconds <= 0) {
+        toast.error(t("adminBanDateInvalid"));
+        return;
+      }
+      try {
+        await banUser(user.userID, reason, durationSeconds ?? 0);
+        updateUserStatus(user.userID, "banned");
+        toast.error(t("adminToastUserBlocked"), {
+          description: `${user.name} - ${t("adminBanReason")}: ${reason}`,
+        });
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : t("adminErrorLoadUsers"),
+        );
+      }
       return;
     }
 
     if (action === "unblock") {
-      toast.success(t("adminToastUserUnblocked"), {
-        description: user.name,
-      });
+      try {
+        await unbanUser(user.userID);
+        updateUserStatus(user.userID, "active");
+        toast.success(t("adminToastUserUnblocked"), {
+          description: user.name,
+        });
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : t("adminErrorLoadUsers"),
+        );
+      }
       return;
     }
 
@@ -816,7 +1013,7 @@ export default function AdminPage() {
       toast.message(t("adminToastSelectUser"));
       return;
     }
-    handleUserAction(selectedUser, action);
+    void handleUserAction(selectedUser, action);
   };
 
   const sidebar = (
@@ -1618,12 +1815,9 @@ export default function AdminPage() {
                                 title={actionTitle}
                                 className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
                                 onClick={() =>
-                                  handleUserAction(
-                                    user,
-                                    user.status === "banned"
-                                      ? "unblock"
-                                      : "block",
-                                  )
+                                  user.status === "banned"
+                                    ? void handleUserAction(user, "unblock")
+                                    : openBanDialog(user)
                                 }
                               >
                                 <ActionIcon className="h-4 w-4" />
@@ -1632,7 +1826,9 @@ export default function AdminPage() {
                                 type="button"
                                 title={t("actionResetPassword")}
                                 className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                                onClick={() => handleUserAction(user, "reset")}
+                                onClick={() =>
+                                  void handleUserAction(user, "reset")
+                                }
                               >
                                 <Shield className="h-4 w-4" />
                               </button>
@@ -1641,7 +1837,7 @@ export default function AdminPage() {
                                 title={t("actionMessage")}
                                 className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
                                 onClick={() =>
-                                  handleUserAction(user, "message")
+                                  void handleUserAction(user, "message")
                                 }
                               >
                                 <MessageSquare className="h-4 w-4" />
@@ -1690,14 +1886,67 @@ export default function AdminPage() {
                         <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                           {t("adminBanReason")}
                         </label>
+                        
                         <textarea
                           className="min-h-[90px] w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
                           value={banReason}
-                          onChange={(event) => setBanReason(event.target.value)}
+                          onChange={(event) => {
+                            setBanReason(event.target.value);
+                            setBanReasonOption("custom");
+                          }}
                         />
                         <p className="text-xs text-muted-foreground">
                           {t("adminBanReasonHint")}
                         </p>
+                        <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                          {t("adminBanDurationLabel")}
+                        </label>
+                        <select
+                          className="w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
+                          value={banDuration}
+                          onChange={(event) => {
+                            const nextValue = Number(event.target.value);
+                            setBanDuration(
+                              Number.isFinite(nextValue) ? nextValue : 0,
+                            );
+                            if (nextValue !== -1) {
+                              setBanUntilDate(undefined);
+                            }
+                          }}
+                        >
+                          {banDurations.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                        {banDuration === -1 ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button
+                                type="button"
+                                className="flex w-full items-center gap-2 rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm text-left"
+                              >
+                                <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                                {banUntilDate
+                                  ? banDateFormatter.format(banUntilDate)
+                                  : t("adminBanPickDate")}
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              align="start"
+                              className="w-auto p-0"
+                            >
+                              <Calendar
+                                mode="single"
+                                selected={banUntilDate}
+                                onSelect={setBanUntilDate}
+                                disabled={{ before: today }}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        ) : null}
                       </div>
                       <div className="mt-4 grid grid-cols-2 gap-3">
                         <button
@@ -1723,53 +1972,113 @@ export default function AdminPage() {
                         </button>
                       </div>
                     </div>
-
-                    <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-semibold">
-                            {t("adminModerationChecklistTitle")}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {t("adminModerationChecklistSubtitle")}
-                          </p>
-                        </div>
-                        <Shield className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <div className="mt-4 space-y-3 text-sm">
-                        {[
-                          {
-                            icon: CheckCircle2,
-                            label: t("adminChecklistApprovals"),
-                          },
-                          {
-                            icon: Shield,
-                            label: t("adminChecklistSecurityAudit"),
-                          },
-                          {
-                            icon: MessageSquare,
-                            label: t("adminChecklistSupportInbox"),
-                          },
-                        ].map((item) => {
-                          const Icon = item.icon;
-
-                          return (
-                            <div
-                              key={item.label}
-                              className="flex items-center gap-2"
-                            >
-                              <Icon className="h-4 w-4" />
-                              <span>{item.label}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
                   </div>
                 </div>
               </motion.section>
             </div>
           </main>
+          <Dialog
+            open={banDialogOpen}
+            onOpenChange={(open) => {
+              setBanDialogOpen(open);
+              if (!open) {
+                setBanDialogUser(null);
+                setBanDialogReasonOption("default");
+                setBanDialogReason("");
+                setBanDialogDuration(0);
+                setBanDialogDate(undefined);
+                setBanDialogLoading(false);
+              }
+            }}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t("adminBanDialogTitle")}</DialogTitle>
+                <DialogDescription>
+                  {t("adminBanDialogDescription")} {banDialogUser?.name ?? ""}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3">
+                <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                  {t("adminBanReason")}
+                </label>
+                
+                <Textarea
+                  value={banDialogReason}
+                  onChange={(event) => {
+                    setBanDialogReason(event.target.value);
+                    setBanDialogReasonOption("custom");
+                  }}
+                  placeholder={t("adminBanReason")}
+                  rows={4}
+                />
+                <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                  {t("adminBanDurationLabel")}
+                </label>
+                <select
+                  className="w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
+                  value={banDialogDuration}
+                  onChange={(event) => {
+                    const nextValue = Number(event.target.value);
+                    setBanDialogDuration(
+                      Number.isFinite(nextValue) ? nextValue : 0,
+                    );
+                    if (nextValue !== -1) {
+                      setBanDialogDate(undefined);
+                    }
+                  }}
+                >
+                  {banDurations.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                {banDialogDuration === -1 ? (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-2 rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm text-left"
+                      >
+                        <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                        {banDialogDate
+                          ? banDateFormatter.format(banDialogDate)
+                          : t("adminBanPickDate")}
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent align="start" className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={banDialogDate}
+                        onSelect={setBanDialogDate}
+                        disabled={{ before: today }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                ) : null}
+              </div>
+              <DialogFooter>
+                <button
+                  type="button"
+                  onClick={() => setBanDialogOpen(false)}
+                  className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
+                  disabled={banDialogLoading}
+                >
+                  {t("adminDialogCancel")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleConfirmBan()}
+                  className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/30 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={banDialogLoading || !banDialogUser}
+                >
+                  {t("actionBlock")}
+                </button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
