@@ -128,6 +128,38 @@ func (s *UserService) UpdateSelfName(ctx context.Context, req *userpb.ChangeSelf
 	return &userpb.EmptyResponse{Tracing: traceID}, nil
 }
 
+func (s *UserService) UpdateSelfAvatar(ctx context.Context, req *userpb.Avatar) (*userpb.EmptyResponse, error) {
+	requestor, err := s.auth.RequireUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.PatchSelfProfile); err != nil {
+		return nil, err
+	}
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is empty")
+	}
+	if s.modifier == nil {
+		return nil, status.Error(codes.Internal, "modifier service not configured")
+	}
+	avatar := fromProtoAvatar(req)
+	if avatar == nil || len(avatar.Data) == 0 {
+		return nil, status.Error(codes.InvalidArgument, "avatar data is empty")
+	}
+
+	traceID := TraceIDOrNew(ctx)
+	if requestor != nil {
+		logger.Info("Requested self avatar update", "user.update_self_avatar.request", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.None, traceID)
+	}
+	if _, err := s.modifier.UpdateAvatar(ctx, requestor.UID, *avatar); err != nil {
+		return nil, statusFromError(err)
+	}
+	if requestor != nil {
+		logger.Info("Updated self avatar", "user.update_self_avatar.success", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.Success, traceID)
+	}
+	return &userpb.EmptyResponse{Tracing: traceID}, nil
+}
+
 func (s *UserService) Ban(ctx context.Context, req *userpb.BanUserRequest) (*userpb.EmptyResponse, error) {
 	requestor, err := s.auth.RequireUser(ctx)
 	if err != nil {

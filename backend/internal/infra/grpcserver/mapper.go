@@ -78,6 +78,18 @@ func toProtoAvatar(a *user.Avatar) *userpb.Avatar {
 	}
 }
 
+func fromProtoAvatar(a *userpb.Avatar) *user.Avatar {
+	if a == nil {
+		return nil
+	}
+	avatar := &user.Avatar{
+		ContentType: a.ContentType,
+		Data:        a.Data,
+		SizeBytes:   len(a.Data),
+	}
+	return avatar
+}
+
 func toProtoUserSessions(sessionsList []*sessions.Session) *userpb.UserSessions {
 	resp := &userpb.UserSessions{}
 	for _, s := range sessionsList {

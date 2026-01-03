@@ -4,6 +4,7 @@ import (
 	"ascendant/backend/internal/domain/user"
 	apperrors "ascendant/backend/internal/shared/errors"
 	"context"
+	"errors"
 	"strconv"
 	"strings"
 )
@@ -53,6 +54,38 @@ func (s *Service) UpdateName(ctx context.Context, id uint, name string) (*user.U
 	}
 	u.Settings.DisplayName = &trimmed
 
+	return u, nil
+}
+
+func (s *Service) UpdateAvatar(ctx context.Context, id uint, avatar user.Avatar) (*user.User, error) {
+	if id == 0 {
+		return nil, apperrors.BuildError(
+			"InvalidUserID",
+			"user id must be greater than zero",
+			map[string]string{"userID": "must be greater than zero"},
+			"",
+		)
+	}
+	if avatar.Data == nil || len(avatar.Data) == 0 {
+		return nil, errors.New("avatar data is empty")
+	}
+
+	u, err := s.repo.GetUserByUID(ctx, id)
+	if err != nil {
+		if isNotFound(err) {
+			return nil, apperrors.UserNotFound(strconv.FormatUint(uint64(id), 10), "")
+		}
+		return nil, err
+	}
+
+	if err := s.repo.AddAvatar(ctx, id, avatar); err != nil {
+		return nil, err
+	}
+
+	if u.Settings == nil {
+		u.Settings = &user.Settings{}
+	}
+	u.Settings.Avatar = &avatar
 	return u, nil
 }
 

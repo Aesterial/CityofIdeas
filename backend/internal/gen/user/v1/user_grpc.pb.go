@@ -29,6 +29,7 @@ const (
 	UserService_BanInfo_FullMethodName          = "/user.v1.UserService/BanInfo"
 	UserService_BanInfoOther_FullMethodName     = "/user.v1.UserService/BanInfoOther"
 	UserService_UpdateSelfName_FullMethodName   = "/user.v1.UserService/UpdateSelfName"
+	UserService_UpdateSelfAvatar_FullMethodName = "/user.v1.UserService/UpdateSelfAvatar"
 	UserService_DeleteSelfAvatar_FullMethodName = "/user.v1.UserService/DeleteSelfAvatar"
 	UserService_DeleteUserAvatar_FullMethodName = "/user.v1.UserService/DeleteUserAvatar"
 	UserService_SendMessage_FullMethodName      = "/user.v1.UserService/SendMessage"
@@ -50,6 +51,7 @@ type UserServiceClient interface {
 	BanInfo(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*BanInfoResponse, error)
 	BanInfoOther(ctx context.Context, in *OtherUserRequest, opts ...grpc.CallOption) (*BanInfoResponse, error)
 	UpdateSelfName(ctx context.Context, in *ChangeSelfNameRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
+	UpdateSelfAvatar(ctx context.Context, in *Avatar, opts ...grpc.CallOption) (*EmptyResponse, error)
 	DeleteSelfAvatar(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*EmptyResponse, error)
 	DeleteUserAvatar(ctx context.Context, in *OtherUserRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
@@ -154,6 +156,16 @@ func (c *userServiceClient) UpdateSelfName(ctx context.Context, in *ChangeSelfNa
 	return out, nil
 }
 
+func (c *userServiceClient) UpdateSelfAvatar(ctx context.Context, in *Avatar, opts ...grpc.CallOption) (*EmptyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EmptyResponse)
+	err := c.cc.Invoke(ctx, UserService_UpdateSelfAvatar_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) DeleteSelfAvatar(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*EmptyResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(EmptyResponse)
@@ -209,6 +221,7 @@ type UserServiceServer interface {
 	BanInfo(context.Context, *emptypb.Empty) (*BanInfoResponse, error)
 	BanInfoOther(context.Context, *OtherUserRequest) (*BanInfoResponse, error)
 	UpdateSelfName(context.Context, *ChangeSelfNameRequest) (*EmptyResponse, error)
+	UpdateSelfAvatar(context.Context, *Avatar) (*EmptyResponse, error)
 	DeleteSelfAvatar(context.Context, *emptypb.Empty) (*EmptyResponse, error)
 	DeleteUserAvatar(context.Context, *OtherUserRequest) (*EmptyResponse, error)
 	SendMessage(context.Context, *SendMessageRequest) (*EmptyResponse, error)
@@ -249,6 +262,9 @@ func (UnimplementedUserServiceServer) BanInfoOther(context.Context, *OtherUserRe
 }
 func (UnimplementedUserServiceServer) UpdateSelfName(context.Context, *ChangeSelfNameRequest) (*EmptyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateSelfName not implemented")
+}
+func (UnimplementedUserServiceServer) UpdateSelfAvatar(context.Context, *Avatar) (*EmptyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateSelfAvatar not implemented")
 }
 func (UnimplementedUserServiceServer) DeleteSelfAvatar(context.Context, *emptypb.Empty) (*EmptyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteSelfAvatar not implemented")
@@ -445,6 +461,24 @@ func _UserService_UpdateSelfName_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_UpdateSelfAvatar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Avatar)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdateSelfAvatar(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UpdateSelfAvatar_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdateSelfAvatar(ctx, req.(*Avatar))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_DeleteSelfAvatar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
@@ -559,6 +593,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateSelfName",
 			Handler:    _UserService_UpdateSelfName_Handler,
+		},
+		{
+			MethodName: "UpdateSelfAvatar",
+			Handler:    _UserService_UpdateSelfAvatar_Handler,
 		},
 		{
 			MethodName: "DeleteSelfAvatar",

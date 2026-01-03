@@ -363,7 +363,22 @@ func (u *UserRepository) AddAvatar(ctx context.Context, uid uint, avatar user.Av
 	if avatar.Data == nil {
 		return errors.New("avatar data is nil")
 	}
-	if _, err := u.DB.ExecContext(ctx, "INSERT INTO pictures (owner, owner_type, info) VALUES ($1, $2, ROW($3, $4, $5, $6, $7)::avatar_t)", uid, "user", avatar.ContentType, avatar.Data, avatar.Width, avatar.Height, avatar.SizeBytes); err != nil {
+	tx, err := u.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback()
+			return
+		}
+		_ = tx.Commit()
+	}()
+
+	if _, err = tx.ExecContext(ctx, "DELETE FROM pictures WHERE owner = $1 AND owner_type = 'user'", uid); err != nil {
+		return err
+	}
+	if _, err = tx.ExecContext(ctx, "INSERT INTO pictures (owner, owner_type, info) VALUES ($1, $2, ROW($3, $4, $5, $6, $7)::avatar_t)", uid, "user", avatar.ContentType, avatar.Data, avatar.Width, avatar.Height, avatar.SizeBytes); err != nil {
 		return err
 	}
 	return nil

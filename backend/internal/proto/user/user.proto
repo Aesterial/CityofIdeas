@@ -51,12 +51,18 @@ service UserService {
       get: "/api/user/{userID}/ban/info"
     };
   }
-  rpc UpdateSelfName(ChangeSelfNameRequest) returns (EmptyResponse) {   
+  rpc UpdateSelfName(ChangeSelfNameRequest) returns (EmptyResponse) {
     option (google.api.http) = {
       patch: "/api/user/change/name/{name}"
     };
   }
-  rpc DeleteSelfAvatar(google.protobuf.Empty) returns (EmptyResponse) { 
+  rpc UpdateSelfAvatar(Avatar) returns (EmptyResponse) {
+    option (google.api.http) = {
+      post: "/api/user/avatar"
+      body: "*"
+    };
+  }
+  rpc DeleteSelfAvatar(google.protobuf.Empty) returns (EmptyResponse) {
     option (google.api.http) = {
       delete: "/api/user/delete/avatar"
     };

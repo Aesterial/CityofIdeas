@@ -8,9 +8,11 @@ import (
 	userinfo "ascendant/backend/internal/app/info/user"
 	loggerservice "ascendant/backend/internal/app/logger"
 	usermodifier "ascendant/backend/internal/app/modifier/user"
+	projectsapp "ascendant/backend/internal/app/projects"
 	appstatistics "ascendant/backend/internal/app/statistics"
 	loginpb "ascendant/backend/internal/gen/login/v1"
 	permspb "ascendant/backend/internal/gen/permissions/v1"
+	projpb "ascendant/backend/internal/gen/projects/v1"
 	statpb "ascendant/backend/internal/gen/statistics/v1"
 	userpb "ascendant/backend/internal/gen/user/v1"
 	"ascendant/backend/internal/infra/db"
@@ -102,6 +104,7 @@ func main() {
 	sessionsRepo := db.NewSessionsRepository(dbConn)
 	permissionsRepo := db.NewPermissionsRepository(dbConn)
 	statisticsRepo := db.NewStatisticsRepository(dbConn)
+	projectsRepo := db.NewProjectsRepository(dbConn)
 
 	loggerServ := loggerservice.New(loggerRepo)
 
@@ -116,11 +119,13 @@ func main() {
 	permissionsService := permissionsinfo.New(permissionsRepo)
 	loginService := loginapp.New(loginRepo, sessionsService, userInfoService)
 	statService := appstatistics.New(statisticsRepo)
+	projectsService := projectsapp.New(projectsRepo)
 
 	loginServer := grpcserver.NewLoginService(loginService, sessionsService, permissionsService, userInfoService)
 	userServer := grpcserver.NewUserService(userInfoService, userModifierService, sessionsService, permissionsService)
 	permissionsServer := grpcserver.NewPermissionsService(permissionsService, sessionsService, userInfoService)
 	statServer := grpcserver.NewStatService(statService, sessionsService, permissionsService, userInfoService)
+	projectServer := grpcserver.NewProjectService(projectsService, sessionsService, permissionsService, userInfoService)
 
 	gateway := runtime.NewServeMux(
 		runtime.WithIncomingHeaderMatcher(gatewayHeaderMatcher),
@@ -140,6 +145,10 @@ func main() {
 	}
 	if err := statpb.RegisterStatisticsServiceHandlerServer(ctx, gateway, statServer); err != nil {
 		logger.Error("Failed to register statistics gateway: "+err.Error(), "service.gateway.register", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
+		return
+	}
+	if err := projpb.RegisterProjectServiceHandlerServer(ctx, gateway, projectServer); err != nil {
+		logger.Error("Failed to register projects gateway: "+err.Error(), "service.gateway.register", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
 		return
 	}
 
@@ -164,6 +173,7 @@ func main() {
 	userpb.RegisterUserServiceServer(grpcServer, userServer)
 	permspb.RegisterPermissionsServiceServer(grpcServer, permissionsServer)
 	statpb.RegisterStatisticsServiceServer(grpcServer, statServer)
+	projpb.RegisterProjectServiceServer(grpcServer, projectServer)
 
 	cors := newCORS(env.Cors.AllowedOrigins)
 	handler := buildHTTPHandler(grpcServer, gateway, cors)
