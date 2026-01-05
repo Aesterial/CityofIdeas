@@ -1055,7 +1055,9 @@ export default function AdminPage() {
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <Logo className="h-9 w-9 text-foreground" showText={false} />
+          <Link href="/" aria-label="Go to main site">
+            <Logo className="h-9 w-9 text-foreground" showText={false} />
+          </Link>
         </div>
         <button
           type="button"

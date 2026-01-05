@@ -1,6 +1,7 @@
 ﻿"use client";
 
-import { useMemo, useState } from "react";
+import { use, useMemo, useState } from "react";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -46,9 +47,9 @@ const statusBadgeStyles: Record<SubmissionStatus, string> = {
 };
 
 type SubmissionDetailPageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 const DEFAULT_API_BASE_URL = "http://127.0.0.1:8080";
@@ -115,9 +116,14 @@ async function postDecision(path: string, payload?: unknown) {
   throw new Error(message);
 }
 
-export default function SubmissionDetailPage({
-  params,
-}: SubmissionDetailPageProps) {
+export default function SubmissionDetailPage({ params }: SubmissionDetailPageProps) {
+  const { id } = use(params);
+
+  const submission = useMemo(
+    () => submissions.find((item) => item.id === id) ?? null,
+    [id]
+  );
+
   const router = useRouter();
   const { logout, user } = useAuth();
   const { language, setLanguage, t } = useLanguage();
@@ -134,10 +140,7 @@ export default function SubmissionDetailPage({
     { code: "KZ" as const, label: "KZ" },
   ];
 
-  const submission = useMemo(
-    () => submissions.find((item) => item.id === params.id) ?? null,
-    [params.id],
-  );
+ 
   const [currentStatus, setCurrentStatus] = useState<SubmissionStatus | null>(
     submission?.status ?? null,
   );
