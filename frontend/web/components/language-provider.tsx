@@ -101,6 +101,17 @@ export const translations: Translations = {
     EN: "Registration",
     KZ: "Тіркелу",
   },
+  welcome: {
+    RU: "Добро пожаловать",
+    EN: "Welcome",
+    KZ: "Қош келдіңіз",
+  },
+  welcomeSubtitle: {
+    RU: "Готовим ваш личный кабинет.",
+    EN: "Preparing your space.",
+    KZ: "Жеке кеңістігіңізді дайындап жатырмыз.",
+  },
+
   email: {
     RU: "Email",
     EN: "Email",

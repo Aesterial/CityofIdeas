@@ -134,7 +134,7 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
   };
   const displayName = user?.displayName || user?.username || "";
   const initials = (displayName || "U").slice(0, 2).toUpperCase();
-  const languageOptions = [
+  const languageOptions = [ 
     { code: "RU" as const, label: "RU" },
     { code: "EN" as const, label: "EN" },
     { code: "KZ" as const, label: "KZ" },
@@ -149,6 +149,9 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
   >(null);
   const [declineOpen, setDeclineOpen] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
+  const [currentDeclineReason, setCurrentDeclineReason] = useState(
+    submission?.declineReason ?? "",
+  );
   const [declineError, setDeclineError] = useState<string | null>(null);
 
   if (!submission) {
@@ -184,6 +187,11 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
       : activeStatus === "declined"
         ? t("statusDeclined")
         : t("statusPending");
+  const declineReasonValue = (
+    currentDeclineReason || submission.declineReason || ""
+  ).trim();
+  const showDeclineReason =
+    activeStatus === "declined" && Boolean(declineReasonValue);
   const isApproving = actionLoading === "approve";
   const isDeclining = actionLoading === "decline";
 
@@ -223,6 +231,7 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
         reason,
       });
       setCurrentStatus("declined");
+      setCurrentDeclineReason(reason);
       setDeclineOpen(false);
       setDeclineReason("");
       toast.success(t("adminSubmissionDeclineSuccessTitle"), {
@@ -401,6 +410,17 @@ export default function SubmissionDetailPage({ params }: SubmissionDetailPagePro
                 {submission.description}
               </p>
             </div>
+
+            {showDeclineReason ? (
+              <div className="mt-6 rounded-2xl border border-border/70 bg-background/70 p-5">
+                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                  {t("adminSubmissionDeclineReasonLabel")}
+                </p>
+                <p className="mt-2 text-sm text-foreground">
+                  {declineReasonValue}
+                </p>
+              </div>
+            ) : null}
 
             <div id="media" className="mt-6">
               <p className="text-sm font-semibold">{t("adminMediaTitle")}</p>
