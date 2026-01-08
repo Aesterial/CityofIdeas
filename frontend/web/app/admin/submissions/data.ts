@@ -1,22 +1,26 @@
-﻿export type SubmissionStatus = "approved" | "declined" | "pending"
+﻿export type SubmissionStatus = "approved" | "declined" | "pending";
 
 export type Submission = {
-  id: string
-  title: string
-  status: SubmissionStatus
-  authorName: string
-  submittedAt: string
-  location: string
-  city: string
-  source: string
-  category: string
-  summary: string
-  description: string
-  coverImage: string
-  images: string[]
-}
+  id: string;
+  title: string;
+  status: SubmissionStatus;
+  declineReason?: string;
+  authorName: string;
+  submittedAt: string;
+  location: string;
+  city: string;
+  source: string;
+  category: string;
+  summary: string;
+  description: string;
+  coverImage: string;
+  images: string[];
+};
 
-export const statusMeta: Record<SubmissionStatus, { labelKey: string; descriptionKey: string }> = {
+export const statusMeta: Record<
+  SubmissionStatus,
+  { labelKey: string; descriptionKey: string }
+> = {
   approved: {
     labelKey: "statusApproved",
     descriptionKey: "adminStatusApprovedDesc",
@@ -29,7 +33,7 @@ export const statusMeta: Record<SubmissionStatus, { labelKey: string; descriptio
     labelKey: "statusDeclined",
     descriptionKey: "adminStatusDeclinedDesc",
   },
-}
+};
 
 export const submissions: Submission[] = [
   {
@@ -46,7 +50,10 @@ export const submissions: Submission[] = [
     description:
       "Сейчас дети переходят дорогу через поток машин без разметки и знаков. Нужны зебра, освещение и понижение бордюров.",
     coverImage: "/busy-street-without-crosswalk.jpg",
-    images: ["/busy-street-without-crosswalk.jpg", "/aerial-view-street-intersection-kemerovo.jpg"],
+    images: [
+      "/busy-street-without-crosswalk.jpg",
+      "/aerial-view-street-intersection-kemerovo.jpg",
+    ],
   },
   {
     id: "sub-1002",
@@ -62,7 +69,10 @@ export const submissions: Submission[] = [
     description:
       "Просим установить 3–4 фонаря у подъездов и на детской площадке. Сейчас освещения нет совсем.",
     coverImage: "/aerial-view-of-city-block-kemerovo.jpg",
-    images: ["/aerial-view-of-city-block-kemerovo.jpg", "/building-entrance-with-awning-kemerovo.jpg"],
+    images: [
+      "/aerial-view-of-city-block-kemerovo.jpg",
+      "/building-entrance-with-awning-kemerovo.jpg",
+    ],
   },
   {
     id: "sub-1003",
@@ -78,7 +88,10 @@ export const submissions: Submission[] = [
     description:
       "Предлагаем заменить старые конструкции и добавить мягкое покрытие. Это снизит травмоопасность.",
     coverImage: "/aerial-view-residential-area-kemerovo.jpg",
-    images: ["/aerial-view-residential-area-kemerovo.jpg", "/aerial-satellite-view-kemerovo-city-block.jpg"],
+    images: [
+      "/aerial-view-residential-area-kemerovo.jpg",
+      "/aerial-satellite-view-kemerovo-city-block.jpg",
+    ],
   },
   {
     id: "sub-1004",
@@ -94,12 +107,16 @@ export const submissions: Submission[] = [
     description:
       "Просим заменить стекла, обновить скамейки и установить навес. Сейчас людям негде укрыться от дождя.",
     coverImage: "/building-entrance-with-awning-kemerovo.jpg",
-    images: ["/building-entrance-with-awning-kemerovo.jpg", "/building-facade-with-broken-window.jpg"],
+    images: [
+      "/building-entrance-with-awning-kemerovo.jpg",
+      "/building-facade-with-broken-window.jpg",
+    ],
   },
   {
     id: "sub-1005",
     title: "Парковка у рынка",
     status: "declined",
+    declineReason: "Предложение не соответствует генплану.",
     authorName: "Сергей Морозов",
     submittedAt: "28 ноября 2025, 18:30",
     location: "ул. Розы Люксембург, 5",
@@ -110,12 +127,16 @@ export const submissions: Submission[] = [
     description:
       "Участок попадает в зеленую зону и не подходит для строительства. Предложение не соответствует генплану.",
     coverImage: "/aerial-satellite-view-residential-kemerovo.jpg",
-    images: ["/aerial-satellite-view-residential-kemerovo.jpg", "/aerial-view-of-city-block-kemerovo.jpg"],
+    images: [
+      "/aerial-satellite-view-residential-kemerovo.jpg",
+      "/aerial-view-of-city-block-kemerovo.jpg",
+    ],
   },
   {
     id: "sub-1006",
-    title: "Киоск на остановке \"Центр\"",
+    title: 'Киоск на остановке "Центр"',
     status: "declined",
+    declineReason: "Локация относится к зоне без торговли.",
     authorName: "Елена Лебедева",
     submittedAt: "25 ноября 2025, 12:05",
     location: "ул. Терешковой, 41",
@@ -126,6 +147,9 @@ export const submissions: Submission[] = [
     description:
       "Место относится к зоне без торговли, установка не согласована. Рекомендуем выбрать другую площадку.",
     coverImage: "/pub-building-facade-harats-kemerovo.jpg",
-    images: ["/pub-building-facade-harats-kemerovo.jpg", "/aerial-view-residential-area-kemerovo.jpg"],
+    images: [
+      "/pub-building-facade-harats-kemerovo.jpg",
+      "/aerial-view-residential-area-kemerovo.jpg",
+    ],
   },
-]
+];

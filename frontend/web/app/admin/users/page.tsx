@@ -190,7 +190,9 @@ export default function AdminUsersPage() {
         const list = await fetchUsers({ signal: controller.signal });
         const banResults = await Promise.allSettled(
           list.map((item) =>
-            fetchUserBanInfo(item.userID, { signal: controller.signal }),
+            fetchUserBanInfo(item.userID, undefined, {
+              signal: controller.signal,
+            }),
           ),
         );
         if (controller.signal.aborted) {
@@ -199,7 +201,7 @@ export default function AdminUsersPage() {
         if (banResults.some((result) => result.status === "rejected")) {
           toast.error(t("adminErrorLoadBanStatuses"));
         }
-        const mapped = list.map((item, index) => {
+        const mapped: User[] = list.map((item, index) => {
           const banInfo =
             banResults[index].status === "fulfilled"
               ? banResults[index].value

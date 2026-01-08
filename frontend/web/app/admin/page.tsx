@@ -31,6 +31,10 @@ import { toast } from "sonner";
 import { useAuth } from "@/components/auth-provider";
 import { useLanguage } from "@/components/language-provider";
 import {
+  TutorialProvider,
+  type TutorialStep,
+} from "@/components/tutorial/tutorial-provider";
+import {
   banUser,
   fetchUserBanInfo,
   fetchUsers,
@@ -85,6 +89,49 @@ const sectionVariants = {
   hidden: { opacity: 0, y: 24 },
   visible: { opacity: 1, y: 0 },
 };
+
+const adminTutorialSteps: TutorialStep[] = [
+  {
+    selector: '[data-tutorial="admin-sidebar"]',
+    text: "\u0421\u0430\u0439\u0434\u0431\u0430\u0440 \u043f\u043e\u043c\u043e\u0433\u0430\u0435\u0442 \u0431\u044b\u0441\u0442\u0440\u043e \u043f\u0435\u0440\u0435\u0445\u043e\u0434\u0438\u0442\u044c \u043c\u0435\u0436\u0434\u0443 \u0440\u0430\u0437\u0434\u0435\u043b\u0430\u043c\u0438.",
+    position: "right",
+  },
+  {
+    selector: '[data-tutorial="admin-theme-toggle"]',
+    text: "\u041f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0430\u0439 \u0442\u0435\u043c\u0443, \u0447\u0442\u043e\u0431\u044b \u043a\u043e\u043c\u0444\u043e\u0440\u0442\u043d\u0435\u0435 \u0447\u0438\u0442\u0430\u0442\u044c \u043e\u0442\u0447\u0435\u0442\u044b.",
+    position: "bottom",
+  },
+  {
+    selector: '[data-tutorial="admin-overview-stats"]',
+    text: "\u0417\u0434\u0435\u0441\u044c \u043a\u043b\u044e\u0447\u0435\u0432\u044b\u0435 \u043c\u0435\u0442\u0440\u0438\u043a\u0438: \u0430\u043a\u0442\u0438\u0432\u043d\u044b\u0435 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0438, \u0438\u0434\u0435\u0438 \u0438 \u0433\u043e\u043b\u043e\u0441\u0430.",
+    position: "bottom",
+  },
+  {
+    selector: '[data-tutorial="admin-access-section"]',
+    text: "\u041a\u043e\u043d\u0442\u0440\u043e\u043b\u044c \u0434\u043e\u0441\u0442\u0443\u043f\u0430 \u0438 \u043c\u043e\u0434\u0435\u0440\u0430\u0446\u0438\u044f \u2014 \u0442\u0443\u0442 \u0443\u043f\u0440\u0430\u0432\u043b\u044f\u0435\u043c \u043f\u0440\u0430\u0432\u0430\u043c\u0438 \u0438 \u0441\u043e\u0441\u0442\u043e\u044f\u043d\u0438\u044f\u043c\u0438 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u043e\u0432.",
+    position: "bottom",
+  },
+  {
+    selector: '[data-tutorial="admin-users-list"]',
+    text: "\u0421\u043f\u0438\u0441\u043e\u043a \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u0439: \u0441\u0442\u0430\u0442\u0443\u0441, \u0430\u043a\u0442\u0438\u0432\u043d\u043e\u0441\u0442\u044c \u0438 \u0431\u044b\u0441\u0442\u0440\u044b\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u044f.",
+    position: "right",
+  },
+  {
+    selector: '[data-tutorial="admin-ban-panel"]',
+    text: "\u0411\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u043a\u0430: \u0441\u043d\u0430\u0447\u0430\u043b\u0430 \u0432\u044b\u0431\u0435\u0440\u0438 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f \u0438 \u0441\u0440\u043e\u043a \u0431\u0430\u043d\u0430.",
+    position: "left",
+  },
+  {
+    selector: '[data-tutorial="admin-ban-reason"]',
+    text: "\u041f\u0440\u0438\u0447\u0438\u043d\u0443 \u0431\u0430\u043d\u0430 \u043f\u0438\u0448\u0438 \u0437\u0434\u0435\u0441\u044c \u2014 \u0442\u0435\u043a\u0441\u0442 \u0443\u0439\u0434\u0435\u0442 \u0432 \u0438\u0441\u0442\u043e\u0440\u0438\u044e \u043c\u043e\u0434\u0435\u0440\u0430\u0446\u0438\u0438.",
+    position: "right",
+  },
+  {
+    selector: '[data-tutorial="admin-ban-actions"]',
+    text: "\u0413\u043e\u0442\u043e\u0432\u043e? \u0416\u043c\u0438 \u00ab\u0417\u0430\u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u0430\u0442\u044c\u00bb, \u0430 \u0434\u043b\u044f \u0441\u043d\u044f\u0442\u0438\u044f \u0431\u0430\u043d\u0430 \u2014 \u00ab\u0420\u0430\u0437\u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u0430\u0442\u044c\u00bb.",
+    position: "top",
+  },
+];
 
 type UserStatus = "active" | "banned";
 
@@ -572,8 +619,14 @@ export default function AdminPage() {
           qualityRecapResult,
           mediaCoverageResult,
         ] = await Promise.allSettled([
-          requestJson<CountResponse>("/api/statistics/votes", controller.signal),
-          requestJson<CountResponse>("/api/statistics/ideas", controller.signal),
+          requestJson<CountResponse>(
+            "/api/statistics/votes",
+            controller.signal,
+          ),
+          requestJson<CountResponse>(
+            "/api/statistics/ideas",
+            controller.signal,
+          ),
           requestJson<CountResponse>(
             `/api/statistics/users/active/${sinceParam}`,
             controller.signal,
@@ -650,7 +703,10 @@ export default function AdminPage() {
           });
         }
 
-        if (categoriesResult.status !== "fulfilled" && categoriesResult.reason) {
+        if (
+          categoriesResult.status !== "fulfilled" &&
+          categoriesResult.reason
+        ) {
           toast.error(t("adminErrorLoadVoteCategories"), {
             description:
               categoriesResult.reason instanceof Error
@@ -659,7 +715,10 @@ export default function AdminPage() {
           });
         }
 
-        if (ideasRecapResult.status !== "fulfilled" && ideasRecapResult.reason) {
+        if (
+          ideasRecapResult.status !== "fulfilled" &&
+          ideasRecapResult.reason
+        ) {
           toast.error(t("adminErrorLoadIdeasRecap"), {
             description:
               ideasRecapResult.reason instanceof Error
@@ -861,7 +920,9 @@ export default function AdminPage() {
           const list = await fetchUsers({ signal: controller.signal });
           const banResults = await Promise.allSettled(
             list.map((item) =>
-              fetchUserBanInfo(item.userID, item.banned, { signal: controller.signal }),
+              fetchUserBanInfo(item.userID, item.banned, {
+                signal: controller.signal,
+              }),
             ),
           );
           if (controller.signal.aborted) {
@@ -1047,6 +1108,7 @@ export default function AdminPage() {
 
   const sidebar = (
     <motion.aside
+      data-tutorial="admin-sidebar"
       initial={{ opacity: 0, x: -24 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -24 }}
@@ -1093,372 +1155,212 @@ export default function AdminPage() {
   );
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255, 255, 255, 0.12),transparent_32%),radial-gradient(circle_at_80%_0%,rgba(151, 151, 151, 0.15),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.02),transparent_50%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.03),transparent_50%)]" />
+    <TutorialProvider steps={adminTutorialSteps} storageKey="admin-tutorial-v1">
+      <div className="relative min-h-screen bg-background text-foreground">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255, 255, 255, 0.12),transparent_32%),radial-gradient(circle_at_80%_0%,rgba(151, 151, 151, 0.15),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.02),transparent_50%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.03),transparent_50%)]" />
 
-      {sidebarOpen ? (
-        <div className="fixed inset-0 z-30 bg-background/70 backdrop-blur lg:hidden">
-          <div className="absolute left-4 top-6">{sidebar}</div>
-        </div>
-      ) : null}
+        {sidebarOpen ? (
+          <div className="fixed inset-0 z-30 bg-background/70 backdrop-blur lg:hidden">
+            <div className="absolute left-4 top-6">{sidebar}</div>
+          </div>
+        ) : null}
 
-      <div className="relative flex">
-        <div className="fixed left-6 top-6 hidden h-[calc(100vh-3rem)] lg:block">
-          {sidebar}
-        </div>
+        <div className="relative flex">
+          <div className="fixed left-6 top-6 hidden h-[calc(100vh-3rem)] lg:block">
+            {sidebar}
+          </div>
 
-        <div className="flex min-h-screen w-full flex-col lg:pl-[320px]  rounded-bl-[48px] overflow-hidden">
-          <header className="sticky top-0 z-20  backdrop-blur">
-            <div className="px-4 py-3 sm:px-6 lg:px-10">
-              <div className="relative overflow-hidden rounded-md border border-border/60 bg-card/80 shadow-[0_20px_40px_-32px_rgba(0,0,0,0.6)] sm:rounded-md">
-                <div className="pointer-events-none absolute inset-x-2 top-0 h-[3px] rounded-md opacity-80 sm:rounded-full" />
-                <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-4 lg:px-6">
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setSidebarOpen(true)}
-                      className="lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/90 text-foreground shadow-sm hover:bg-foreground hover:text-background"
-                      aria-label="Open menu"
-                    >
-                      <Menu className="h-5 w-5" />
-                    </button>
+          <div className="flex min-h-screen w-full flex-col lg:pl-[320px]  rounded-bl-[48px] overflow-hidden">
+            <header className="sticky top-0 z-20  backdrop-blur">
+              <div className="px-4 py-3 sm:px-6 lg:px-10">
+                <div className="relative overflow-hidden rounded-md border border-border/60 bg-card/80 shadow-[0_20px_40px_-32px_rgba(0,0,0,0.6)] sm:rounded-md">
+                  <div className="pointer-events-none absolute inset-x-2 top-0 h-[3px] rounded-md opacity-80 sm:rounded-full" />
+                  <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-4 lg:px-6">
                     <div className="flex items-center gap-3">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                          {t("adminPanel")}
-                        </p>
-                        <p className="text-base font-semibold leading-tight text-foreground">
-                          {t("adminPanelSubtitle")}
-                        </p>
+                      <button
+                        type="button"
+                        onClick={() => setSidebarOpen(true)}
+                        className="lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/90 text-foreground shadow-sm hover:bg-foreground hover:text-background"
+                        aria-label="Open menu"
+                      >
+                        <Menu className="h-5 w-5" />
+                      </button>
+                      <div className="flex items-center gap-3">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                            {t("adminPanel")}
+                          </p>
+                          <p className="text-base font-semibold leading-tight text-foreground">
+                            {t("adminPanelSubtitle")}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
-                    <button
-                      type="button"
-                      onClick={toggleTheme}
-                      className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-border/70 bg-background px-4 text-xs font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
-                    >
-                      {mounted ? (
-                        theme === "light" ? (
-                          <Moon className="h-4 w-4" />
-                        ) : (
-                          <Sun className="h-4 w-4" />
-                        )
-                      ) : null}
-                      {t("adminThemeToggle")}
-                    </button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          type="button"
-                          className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
-                        >
-                          <Globe className="h-4 w-4" />
-                          {language}
-                          <ChevronDown className="h-3 w-3" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="min-w-[90px]">
-                        {languageOptions.map((option) => (
-                          <DropdownMenuItem
-                            key={option.code}
-                            onClick={() => setLanguage(option.code)}
+                    <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+                      <button
+                        type="button"
+                        onClick={toggleTheme}
+                        data-tutorial="admin-theme-toggle"
+                        className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-border/70 bg-background px-4 text-xs font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
+                      >
+                        {mounted ? (
+                          theme === "light" ? (
+                            <Moon className="h-4 w-4" />
+                          ) : (
+                            <Sun className="h-4 w-4" />
+                          )
+                        ) : null}
+                        {t("adminThemeToggle")}
+                      </button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
                           >
-                            {option.label}
+                            <Globe className="h-4 w-4" />
+                            {language}
+                            <ChevronDown className="h-3 w-3" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="min-w-[90px]"
+                        >
+                          {languageOptions.map((option) => (
+                            <DropdownMenuItem
+                              key={option.code}
+                              onClick={() => setLanguage(option.code)}
+                            >
+                              {option.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            className="flex items-center gap-3 rounded-full border border-border/60 bg-background/90 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
+                          >
+                            <Avatar className="h-9 w-9">
+                              <AvatarFallback className="text-xs font-semibold">
+                                {initials}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm font-semibold">
+                              {displayName || user?.username || "admin"}
+                            </span>
+                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56">
+                          <DropdownMenuItem asChild>
+                            <Link href="/account">
+                              <Shield className="h-4 w-4" />
+                              {t("accountSettings")}
+                            </Link>
                           </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          type="button"
-                          className="flex items-center gap-3 rounded-full border border-border/60 bg-background/90 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
-                        >
-                          <Avatar className="h-9 w-9">
-                            <AvatarFallback className="text-xs font-semibold">
-                              {initials}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="text-sm font-semibold">
-                            {displayName || user?.username || "admin"}
-                          </span>
-                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56">
-                        <DropdownMenuItem asChild>
-                          <Link href="/account">
-                            <Shield className="h-4 w-4" />
-                            {t("accountSettings")}
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onSelect={(event) => {
-                            event.preventDefault();
-                            void handleLogout();
-                          }}
-                        >
-                          <LogOut className="h-4 w-4" />
-                          {t("logout")}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onSelect={(event) => {
+                              event.preventDefault();
+                              void handleLogout();
+                            }}
+                          >
+                            <LogOut className="h-4 w-4" />
+                            {t("logout")}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </header>
+            </header>
 
-          <main className="px-4 pb-16 pt-8 sm:px-6 lg:px-10">
-            <div className="mx-auto flex max-w-6xl flex-col gap-10">
-              <motion.section
-                id="overview"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5 }}
-                variants={sectionVariants}
-                className="space-y-6 scroll-mt-32"
-              >
-                <div>
-                  <h2 className="text-3xl font-bold leading-tight">
-                    {t("adminStatsSubtitle")}
-                  </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {t("adminStatsActivitySubtitle")}
-                  </p>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  {statsCards.map((card) => {
-                    const value = statsSummary[card.id];
-                    const displayValue =
-                      value == null ? "-" : value.toLocaleString(locale);
-
-                    return (
-                      <div
-                        key={card.id}
-                        className="rounded-3xl border border-border/70 bg-card/90 p-5 shadow-[0_18px_40px_-30px_rgba(0,0,0,0.5)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_-32px_rgba(0,0,0,0.6)]"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-foreground text-background shadow-lg shadow-foreground/20">
-                            <card.icon className="h-5 w-5" />
-                          </div>
-                          <Sparkles className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                        <div className="mt-4 text-2xl font-bold">
-                          {displayValue}
-                        </div>
-                        <p className="text-sm font-semibold text-muted-foreground">
-                          {card.title}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </motion.section>
-
-              <motion.section
-                id="analytics"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5 }}
-                variants={sectionVariants}
-                className="space-y-6 scroll-mt-32"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-3">
+            <main className="px-4 pb-16 pt-8 sm:px-6 lg:px-10">
+              <div className="mx-auto flex max-w-6xl flex-col gap-10">
+                <motion.section
+                  id="overview"
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.5 }}
+                  variants={sectionVariants}
+                  className="space-y-6 scroll-mt-32"
+                >
                   <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                      {t("adminStatsTitle")}
-                    </p>
-                    <h2 className="text-2xl font-bold">
-                      {t("adminStatsActivityTitle")}
+                    <h2 className="text-3xl font-bold leading-tight">
+                      {t("adminStatsSubtitle")}
                     </h2>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="mt-1 text-sm text-muted-foreground">
                       {t("adminStatsActivitySubtitle")}
                     </p>
                   </div>
-                </div>
+                  <div
+                    className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+                    data-tutorial="admin-overview-stats"
+                  >
+                    {statsCards.map((card) => {
+                      const value = statsSummary[card.id];
+                      const displayValue =
+                        value == null ? "-" : value.toLocaleString(locale);
 
-                <div className="grid gap-6 lg:grid-cols-[1.6fr,1fr]">
-                  <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <p className="text-sm font-semibold">
-                          {t("adminStatsActivityTitle")}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {t("adminStatsActivitySubtitle")}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1 rounded-full border border-border/70 bg-background/60 p-1">
-                        {activityRanges.map((range) => {
-                          const isActive = range.id === activityRange;
-                          return (
-                            <button
-                              key={range.id}
-                              type="button"
-                              className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-300 ${
-                                isActive
-                                  ? "bg-foreground text-background shadow-sm"
-                                  : "text-muted-foreground hover:text-foreground"
-                              }`}
-                              onClick={() => setActivityRange(range.id)}
-                            >
-                              {range.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    <ChartContainer
-                      config={activityConfig}
-                      className="mt-4 h-[220px] sm:h-[260px]"
-                    >
-                      <AreaChart
-                        data={activityData}
-                        margin={{ left: 8, right: 8 }}
-                      >
-                        <defs>
-                          <linearGradient
-                            id="fillActive"
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                          >
-                            <stop
-                              offset="5%"
-                              stopColor="var(--color-chart-1)"
-                              stopOpacity={0.4}
-                            />
-                            <stop
-                              offset="95%"
-                              stopColor="var(--color-chart-1)"
-                              stopOpacity={0.05}
-                            />
-                          </linearGradient>
-                          <linearGradient
-                            id="fillOffline"
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                          >
-                            <stop
-                              offset="5%"
-                              stopColor="var(--color-chart-2)"
-                              stopOpacity={0.35}
-                            />
-                            <stop
-                              offset="95%"
-                              stopColor="var(--color-chart-2)"
-                              stopOpacity={0.05}
-                            />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid vertical={false} />
-                        <XAxis
-                          dataKey="label"
-                          tickLine={false}
-                          axisLine={false}
-                          tick={{ fontSize: 11 }}
-                        />
-                        <YAxis
-                          tickLine={false}
-                          axisLine={false}
-                          width={32}
-                          tick={{ fontSize: 11 }}
-                        />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Area
-                          type="monotone"
-                          dataKey="active"
-                          stroke="var(--color-chart-1)"
-                          fill="url(#fillActive)"
-                          strokeWidth={2}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="offline"
-                          stroke="var(--color-chart-2)"
-                          fill="url(#fillOffline)"
-                          strokeWidth={2}
-                        />
-                        <ChartLegend content={<ChartLegendContent />} />
-                      </AreaChart>
-                    </ChartContainer>
-                  </div>
-
-                  <div className="min-w-0 space-y-6">
-                    <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="text-sm font-semibold">
-                            {t("adminStatsStatusesTitle")}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {t("adminStatsStatusesSubtitle")}
+                      return (
+                        <div
+                          key={card.id}
+                          className="rounded-3xl border border-border/70 bg-card/90 p-5 shadow-[0_18px_40px_-30px_rgba(0,0,0,0.5)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_-32px_rgba(0,0,0,0.6)]"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-foreground text-background shadow-lg shadow-foreground/20">
+                              <card.icon className="h-5 w-5" />
+                            </div>
+                            <Sparkles className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          <div className="mt-4 text-2xl font-bold">
+                            {displayValue}
+                          </div>
+                          <p className="text-sm font-semibold text-muted-foreground">
+                            {card.title}
                           </p>
                         </div>
-                        <Vote className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <ChartContainer
-                        config={{}}
-                        className="mt-4 h-[200px] sm:h-[220px]"
-                      >
-                        <PieChart>
-                          <ChartTooltip
-                            content={<ChartTooltipContent nameKey="status" />}
-                          />
-                          <Pie
-                            data={statusData}
-                            dataKey="value"
-                            nameKey="status"
-                            innerRadius={55}
-                            outerRadius={85}
-                            strokeWidth={2}
-                          >
-                            {statusData.map((entry, index) => (
-                              <Cell
-                                key={entry.status}
-                                fill={`var(--color-chart-${index + 1})`}
-                                stroke="var(--color-background)"
-                              />
-                            ))}
-                          </Pie>
-                        </PieChart>
-                      </ChartContainer>
-                      <div className="mt-3 space-y-2 text-xs text-muted-foreground">
-                        {statusData.map((entry, index) => (
-                          <div
-                            key={entry.status}
-                            className="flex items-center justify-between"
-                          >
-                            <div className="flex items-center gap-2">
-                              <span
-                                className="h-2 w-2 rounded-full"
-                                style={{
-                                  backgroundColor: `var(--color-chart-${index + 1})`,
-                                }}
-                              />
-                              <span>{entry.status}</span>
-                            </div>
-                            <span className="font-semibold text-foreground">
-                              {entry.value}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                      );
+                    })}
+                  </div>
+                </motion.section>
 
-                    <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
-                      <div className="flex items-start justify-between gap-2">
+                <motion.section
+                  id="analytics"
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.5 }}
+                  variants={sectionVariants}
+                  className="space-y-6 scroll-mt-32"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                        {t("adminStatsTitle")}
+                      </p>
+                      <h2 className="text-2xl font-bold">
+                        {t("adminStatsActivityTitle")}
+                      </h2>
+                      <p className="text-sm text-muted-foreground">
+                        {t("adminStatsActivitySubtitle")}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-6 lg:grid-cols-[1.6fr,1fr]">
+                    <div
+                      className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]"
+                      data-tutorial="admin-users-list"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
                         <div>
                           <p className="text-sm font-semibold">
                             {t("adminStatsActivityTitle")}
@@ -1467,648 +1369,830 @@ export default function AdminPage() {
                             {t("adminStatsActivitySubtitle")}
                           </p>
                         </div>
-                        <Users className="h-5 w-5 text-muted-foreground" />
+                        <div className="flex items-center gap-1 rounded-full border border-border/70 bg-background/60 p-1">
+                          {activityRanges.map((range) => {
+                            const isActive = range.id === activityRange;
+                            return (
+                              <button
+                                key={range.id}
+                                type="button"
+                                className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-300 ${
+                                  isActive
+                                    ? "bg-foreground text-background shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
+                                }`}
+                                onClick={() => setActivityRange(range.id)}
+                              >
+                                {range.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <ChartContainer
+                        config={activityConfig}
+                        className="mt-4 h-[220px] sm:h-[260px]"
+                      >
+                        <AreaChart
+                          data={activityData}
+                          margin={{ left: 8, right: 8 }}
+                        >
+                          <defs>
+                            <linearGradient
+                              id="fillActive"
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="1"
+                            >
+                              <stop
+                                offset="5%"
+                                stopColor="var(--color-chart-1)"
+                                stopOpacity={0.4}
+                              />
+                              <stop
+                                offset="95%"
+                                stopColor="var(--color-chart-1)"
+                                stopOpacity={0.05}
+                              />
+                            </linearGradient>
+                            <linearGradient
+                              id="fillOffline"
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="1"
+                            >
+                              <stop
+                                offset="5%"
+                                stopColor="var(--color-chart-2)"
+                                stopOpacity={0.35}
+                              />
+                              <stop
+                                offset="95%"
+                                stopColor="var(--color-chart-2)"
+                                stopOpacity={0.05}
+                              />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid vertical={false} />
+                          <XAxis
+                            dataKey="label"
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{ fontSize: 11 }}
+                          />
+                          <YAxis
+                            tickLine={false}
+                            axisLine={false}
+                            width={32}
+                            tick={{ fontSize: 11 }}
+                          />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Area
+                            type="monotone"
+                            dataKey="active"
+                            stroke="var(--color-chart-1)"
+                            fill="url(#fillActive)"
+                            strokeWidth={2}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="offline"
+                            stroke="var(--color-chart-2)"
+                            fill="url(#fillOffline)"
+                            strokeWidth={2}
+                          />
+                          <ChartLegend content={<ChartLegendContent />} />
+                        </AreaChart>
+                      </ChartContainer>
+                    </div>
+
+                    <div className="min-w-0 space-y-6">
+                      <div
+                        className="rounded-3xl border border-border/70 bg-card/90 p-6"
+                        data-tutorial="admin-ban-panel"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-sm font-semibold">
+                              {t("adminStatsStatusesTitle")}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {t("adminStatsStatusesSubtitle")}
+                            </p>
+                          </div>
+                          <Vote className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <ChartContainer
+                          config={{}}
+                          className="mt-4 h-[200px] sm:h-[220px]"
+                        >
+                          <PieChart>
+                            <ChartTooltip
+                              content={<ChartTooltipContent nameKey="status" />}
+                            />
+                            <Pie
+                              data={statusData}
+                              dataKey="value"
+                              nameKey="status"
+                              innerRadius={55}
+                              outerRadius={85}
+                              strokeWidth={2}
+                            >
+                              {statusData.map((entry, index) => (
+                                <Cell
+                                  key={entry.status}
+                                  fill={`var(--color-chart-${index + 1})`}
+                                  stroke="var(--color-background)"
+                                />
+                              ))}
+                            </Pie>
+                          </PieChart>
+                        </ChartContainer>
+                        <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+                          {statusData.map((entry, index) => (
+                            <div
+                              key={entry.status}
+                              className="flex items-center justify-between"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className="h-2 w-2 rounded-full"
+                                  style={{
+                                    backgroundColor: `var(--color-chart-${index + 1})`,
+                                  }}
+                                />
+                                <span>{entry.status}</span>
+                              </div>
+                              <span className="font-semibold text-foreground">
+                                {entry.value}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <p className="text-sm font-semibold">
+                              {t("adminStatsActivityTitle")}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {t("adminStatsActivitySubtitle")}
+                            </p>
+                          </div>
+                          <Users className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <ChartContainer
+                          config={{}}
+                          className="mt-4 h-[200px] sm:h-[220px]"
+                        >
+                          <PieChart>
+                            <ChartTooltip
+                              content={<ChartTooltipContent nameKey="status" />}
+                            />
+                            <Pie
+                              data={participationData}
+                              dataKey="value"
+                              nameKey="status"
+                              innerRadius={50}
+                              outerRadius={80}
+                              strokeWidth={2}
+                            >
+                              {participationData.map((entry, index) => (
+                                <Cell
+                                  key={entry.status}
+                                  fill={`var(--color-chart-${index + 1})`}
+                                  stroke="var(--color-background)"
+                                />
+                              ))}
+                            </Pie>
+                          </PieChart>
+                        </ChartContainer>
+                        <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+                          {participationData.map((entry, index) => (
+                            <div
+                              key={entry.status}
+                              className="flex items-center justify-between"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className="h-2 w-2 rounded-full"
+                                  style={{
+                                    backgroundColor: `var(--color-chart-${index + 1})`,
+                                  }}
+                                />
+                                <span>{entry.status}</span>
+                              </div>
+                              <span className="font-semibold text-foreground">
+                                {entry.value}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-6 lg:grid-cols-[1.2fr,1fr]">
+                    <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-semibold">
+                            {t("adminStatsVotesByCategoryTitle")}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {t("adminStatsVotesByCategorySubtitle")}
+                          </p>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {t("adminStatsNoteSinceMidnight")}
+                        </span>
+                      </div>
+                      <ChartContainer
+                        config={votesByCategoryConfig}
+                        className="mt-4 h-[220px] sm:h-[240px]"
+                      >
+                        <BarChart
+                          data={votesByCategoryData}
+                          margin={{ left: 8, right: 8 }}
+                        >
+                          <CartesianGrid vertical={false} />
+                          <XAxis
+                            dataKey="category"
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{ fontSize: 11 }}
+                          />
+                          <YAxis
+                            tickLine={false}
+                            axisLine={false}
+                            width={36}
+                            tick={{ fontSize: 11 }}
+                          />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Bar dataKey="votes" radius={[10, 10, 0, 0]}>
+                            {votesByCategoryData.map((item, index) => (
+                              <Cell
+                                key={item.category}
+                                fill={`var(--color-chart-${index + 2})`}
+                              />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ChartContainer>
+                    </div>
+
+                    <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-semibold">
+                            {t("adminMediaQualityTitle")}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {t("adminMediaQualitySubtitle")}
+                          </p>
+                        </div>
+                        <Shield className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <ChartContainer
                         config={{}}
-                        className="mt-4 h-[200px] sm:h-[220px]"
+                        className="mt-4 h-[220px] w-full"
                       >
-                        <PieChart>
-                          <ChartTooltip
-                            content={<ChartTooltipContent nameKey="status" />}
+                        <BarChart
+                          data={qualityData}
+                          layout="vertical"
+                          margin={{ left: 8, right: 8 }}
+                        >
+                          <CartesianGrid horizontal={false} />
+                          <XAxis
+                            type="number"
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{ fontSize: 11 }}
                           />
-                          <Pie
-                            data={participationData}
-                            dataKey="value"
-                            nameKey="status"
-                            innerRadius={50}
-                            outerRadius={80}
-                            strokeWidth={2}
-                          >
-                            {participationData.map((entry, index) => (
+                          <YAxis
+                            type="category"
+                            dataKey="type"
+                            tickLine={false}
+                            axisLine={false}
+                            width={90}
+                            tick={{ fontSize: 11 }}
+                          />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Bar dataKey="score" radius={[0, 10, 10, 0]}>
+                            {qualityData.map((item, index) => (
                               <Cell
-                                key={entry.status}
+                                key={item.type}
                                 fill={`var(--color-chart-${index + 1})`}
-                                stroke="var(--color-background)"
                               />
                             ))}
-                          </Pie>
-                        </PieChart>
+                          </Bar>
+                        </BarChart>
                       </ChartContainer>
-                      <div className="mt-3 space-y-2 text-xs text-muted-foreground">
-                        {participationData.map((entry, index) => (
-                          <div
-                            key={entry.status}
-                            className="flex items-center justify-between"
-                          >
-                            <div className="flex items-center gap-2">
-                              <span
-                                className="h-2 w-2 rounded-full"
-                                style={{
-                                  backgroundColor: `var(--color-chart-${index + 1})`,
-                                }}
+                    </div>
+                  </div>
+                </motion.section>
+
+                <motion.section
+                  id="media"
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.5 }}
+                  variants={sectionVariants}
+                  className="space-y-6 scroll-mt-32"
+                >
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                      {t("adminMediaTitle")}
+                    </p>
+                    <h2 className="text-2xl font-bold">
+                      {t("adminMediaSubtitle")}
+                    </h2>
+                  </div>
+                  <div className="grid gap-6 lg:grid-cols-[1.2fr,1fr]">
+                    <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-semibold">
+                            {t("adminMediaCoverageTitle")}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {t("adminMediaCoverageSubtitle")}
+                          </p>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {t("adminMediaCoverageRange")}
+                        </span>
+                      </div>
+                      <ChartContainer
+                        config={mediaCoverageConfig}
+                        className="mt-4 h-[220px] sm:h-[240px]"
+                      >
+                        <AreaChart
+                          data={mediaCoverageData}
+                          margin={{ left: 8, right: 8 }}
+                        >
+                          <defs>
+                            <linearGradient
+                              id="fillPhotos"
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="1"
+                            >
+                              <stop
+                                offset="5%"
+                                stopColor="var(--color-chart-1)"
+                                stopOpacity={0.35}
                               />
-                              <span>{entry.status}</span>
-                            </div>
-                            <span className="font-semibold text-foreground">
-                              {entry.value}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
+                              <stop
+                                offset="95%"
+                                stopColor="var(--color-chart-1)"
+                                stopOpacity={0.05}
+                              />
+                            </linearGradient>
+                            <linearGradient
+                              id="fillVideos"
+                              x1="0"
+                              y1="0"
+                              x2="0"
+                              y2="1"
+                            >
+                              <stop
+                                offset="5%"
+                                stopColor="var(--color-chart-2)"
+                                stopOpacity={0.35}
+                              />
+                              <stop
+                                offset="95%"
+                                stopColor="var(--color-chart-2)"
+                                stopOpacity={0.05}
+                              />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid vertical={false} />
+                          <XAxis
+                            dataKey="label"
+                            tickLine={false}
+                            axisLine={false}
+                            tick={{ fontSize: 11 }}
+                          />
+                          <YAxis
+                            tickLine={false}
+                            axisLine={false}
+                            width={32}
+                            tick={{ fontSize: 11 }}
+                          />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <Area
+                            type="monotone"
+                            dataKey="photos"
+                            stroke="var(--color-chart-1)"
+                            fill="url(#fillPhotos)"
+                            strokeWidth={2}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="videos"
+                            stroke="var(--color-chart-2)"
+                            fill="url(#fillVideos)"
+                            strokeWidth={2}
+                          />
+                          <ChartLegend content={<ChartLegendContent />} />
+                        </AreaChart>
+                      </ChartContainer>
                     </div>
-                  </div>
-                </div>
 
-                <div className="grid gap-6 lg:grid-cols-[1.2fr,1fr]">
-                  <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <p className="text-sm font-semibold">
-                          {t("adminStatsVotesByCategoryTitle")}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {t("adminStatsVotesByCategorySubtitle")}
-                        </p>
+                    <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-semibold">
+                            {t("adminMediaQualityTitle")}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {t("adminMediaQualitySubtitle")}
+                          </p>
+                        </div>
+                        <Shield className="h-5 w-5 text-muted-foreground" />
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        {t("adminStatsNoteSinceMidnight")}
-                      </span>
-                    </div>
-                    <ChartContainer
-                      config={votesByCategoryConfig}
-                      className="mt-4 h-[220px] sm:h-[240px]"
-                    >
-                      <BarChart
-                        data={votesByCategoryData}
-                        margin={{ left: 8, right: 8 }}
-                      >
-                        <CartesianGrid vertical={false} />
-                        <XAxis
-                          dataKey="category"
-                          tickLine={false}
-                          axisLine={false}
-                          tick={{ fontSize: 11 }}
-                        />
-                        <YAxis
-                          tickLine={false}
-                          axisLine={false}
-                          width={36}
-                          tick={{ fontSize: 11 }}
-                        />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="votes" radius={[10, 10, 0, 0]}>
-                          {votesByCategoryData.map((item, index) => (
-                            <Cell
-                              key={item.category}
-                              fill={`var(--color-chart-${index + 2})`}
-                            />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ChartContainer>
-                  </div>
-
-                  <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="text-sm font-semibold">
-                          {t("adminMediaQualityTitle")}
+                      <div className="mt-4 space-y-3 text-sm text-muted-foreground">
+                        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                          {t("adminMediaCoverageRange")}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {t("adminMediaQualitySubtitle")}
-                        </p>
-                      </div>
-                      <Shield className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <ChartContainer
-                      config={{}}
-                      className="mt-4 h-[220px] w-full"
-                    >
-                      <BarChart
-                        data={qualityData}
-                        layout="vertical"
-                        margin={{ left: 8, right: 8 }}
-                      >
-                        <CartesianGrid horizontal={false} />
-                        <XAxis
-                          type="number"
-                          tickLine={false}
-                          axisLine={false}
-                          tick={{ fontSize: 11 }}
-                        />
-                        <YAxis
-                          type="category"
-                          dataKey="type"
-                          tickLine={false}
-                          axisLine={false}
-                          width={90}
-                          tick={{ fontSize: 11 }}
-                        />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="score" radius={[0, 10, 10, 0]}>
-                          {qualityData.map((item, index) => (
-                            <Cell
-                              key={item.type}
-                              fill={`var(--color-chart-${index + 1})`}
-                            />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ChartContainer>
-                  </div>
-                </div>
-              </motion.section>
-
-              <motion.section
-                id="media"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5 }}
-                variants={sectionVariants}
-                className="space-y-6 scroll-mt-32"
-              >
-                <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                    {t("adminMediaTitle")}
-                  </p>
-                  <h2 className="text-2xl font-bold">
-                    {t("adminMediaSubtitle")}
-                  </h2>
-                </div>
-                <div className="grid gap-6 lg:grid-cols-[1.2fr,1fr]">
-                  <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <p className="text-sm font-semibold">
-                          {t("adminMediaCoverageTitle")}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-sm">
                           {t("adminMediaCoverageSubtitle")}
                         </p>
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        {t("adminMediaCoverageRange")}
-                      </span>
                     </div>
-                    <ChartContainer
-                      config={mediaCoverageConfig}
-                      className="mt-4 h-[220px] sm:h-[240px]"
-                    >
-                      <AreaChart
-                        data={mediaCoverageData}
-                        margin={{ left: 8, right: 8 }}
+                  </div>
+                </motion.section>
+
+                <motion.section
+                  id="users"
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.5 }}
+                  variants={sectionVariants}
+                  className="space-y-6 scroll-mt-32"
+                >
+                  <div
+                    className="flex flex-wrap items-center justify-between gap-4"
+                    data-tutorial="admin-access-section"
+                  >
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                        {t("labelUsers")}
+                      </p>
+                      <h2 className="text-2xl font-bold">
+                        {t("adminAccessModerationTitle")}
+                      </h2>
+                      <p className="text-sm text-muted-foreground">
+                        {t("adminAccessModerationSubtitle")}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Link
+                        href="/admin/users"
+                        className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
                       >
-                        <defs>
-                          <linearGradient
-                            id="fillPhotos"
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                          >
-                            <stop
-                              offset="5%"
-                              stopColor="var(--color-chart-1)"
-                              stopOpacity={0.35}
-                            />
-                            <stop
-                              offset="95%"
-                              stopColor="var(--color-chart-1)"
-                              stopOpacity={0.05}
-                            />
-                          </linearGradient>
-                          <linearGradient
-                            id="fillVideos"
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                          >
-                            <stop
-                              offset="5%"
-                              stopColor="var(--color-chart-2)"
-                              stopOpacity={0.35}
-                            />
-                            <stop
-                              offset="95%"
-                              stopColor="var(--color-chart-2)"
-                              stopOpacity={0.05}
-                            />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid vertical={false} />
-                        <XAxis
-                          dataKey="label"
-                          tickLine={false}
-                          axisLine={false}
-                          tick={{ fontSize: 11 }}
-                        />
-                        <YAxis
-                          tickLine={false}
-                          axisLine={false}
-                          width={32}
-                          tick={{ fontSize: 11 }}
-                        />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Area
-                          type="monotone"
-                          dataKey="photos"
-                          stroke="var(--color-chart-1)"
-                          fill="url(#fillPhotos)"
-                          strokeWidth={2}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="videos"
-                          stroke="var(--color-chart-2)"
-                          fill="url(#fillVideos)"
-                          strokeWidth={2}
-                        />
-                        <ChartLegend content={<ChartLegendContent />} />
-                      </AreaChart>
-                    </ChartContainer>
+                        {t("adminUsersViewAll")}
+                      </Link>
+                      <Link
+                        href="/admin/submissions"
+                        className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+                      >
+                        {t("adminSubmissionsTitle")}
+                      </Link>
+                    </div>
                   </div>
 
-                  <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
+                  <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+                    <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
+                      <div className="flex items-center justify-between">
                         <p className="text-sm font-semibold">
-                          {t("adminMediaQualityTitle")}
+                          {t("adminUsersListTitle")}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {t("adminMediaQualitySubtitle")}
-                        </p>
-                      </div>
-                      <Shield className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <div className="mt-4 space-y-3 text-sm text-muted-foreground">
-                      <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                        {t("adminMediaCoverageRange")}
-                      </p>
-                      <p className="text-sm">
-                        {t("adminMediaCoverageSubtitle")}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </motion.section>
-
-              <motion.section
-                id="users"
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.5 }}
-                variants={sectionVariants}
-                className="space-y-6 scroll-mt-32"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                      {t("labelUsers")}
-                    </p>
-                    <h2 className="text-2xl font-bold">
-                      {t("adminAccessModerationTitle")}
-                    </h2>
-                    <p className="text-sm text-muted-foreground">
-                      {t("adminAccessModerationSubtitle")}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Link
-                      href="/admin/users"
-                      className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
-                    >
-                      {t("adminUsersViewAll")}
-                    </Link>
-                    <Link
-                      href="/admin/submissions"
-                      className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
-                    >
-                      {t("adminSubmissionsTitle")}
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-                  <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-semibold">
-                        {t("adminUsersListTitle")}
-                      </p>
-                      <span className="text-xs text-muted-foreground">
-                        {t("adminUsersListSubtitle")}
-                      </span>
-                    </div>
-                    <div className="mt-4 space-y-3">
-                      {users.slice(0, 6).map((user) => {
-                        const ActionIcon =
-                          user.status === "banned" ? CheckCircle2 : Ban;
-                        const actionTitle =
-                          user.status === "banned"
-                            ? t("actionUnblock")
-                            : t("actionBlock");
-
-                        return (
-                          <div
-                            key={user.id}
-                            className="rounded-2xl border border-border/60 bg-background/70 p-4"
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div>
-                                <p className="break-words text-sm font-semibold">
-                                  {user.name}
-                                </p>
-                                <p className="break-all text-xs text-muted-foreground">
-                                  {user.email}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {user.lastActive}
-                                </p>
-                              </div>
-                              <span
-                                className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                  user.status === "banned"
-                                    ? "bg-destructive/10 text-destructive"
-                                    : "bg-foreground text-background"
-                                }`}
-                              >
-                                {user.status === "banned"
-                                  ? t("statusBanned")
-                                  : t("statusActive")}
-                              </span>
-                            </div>
-                            <div className="mt-3 flex justify-end gap-2">
-                              <button
-                                type="button"
-                                title={actionTitle}
-                                className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                                onClick={() =>
-                                  user.status === "banned"
-                                    ? void handleUserAction(user, "unblock")
-                                    : openBanDialog(user)
-                                }
-                              >
-                                <ActionIcon className="h-4 w-4" />
-                              </button>
-                              <button
-                                type="button"
-                                title={t("actionResetPassword")}
-                                className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                                onClick={() =>
-                                  void handleUserAction(user, "reset")
-                                }
-                              >
-                                <Shield className="h-4 w-4" />
-                              </button>
-                              <button
-                                type="button"
-                                title={t("actionMessage")}
-                                className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                                onClick={() =>
-                                  void handleUserAction(user, "message")
-                                }
-                              >
-                                <MessageSquare className="h-4 w-4" />
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="min-w-0 space-y-6">
-                    <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-semibold">
-                            {t("adminBanCardTitle")}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {t("adminBanCardSubtitle")}
-                          </p>
-                        </div>
-                        <Ban className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">
+                          {t("adminUsersListSubtitle")}
+                        </span>
                       </div>
                       <div className="mt-4 space-y-3">
-                        <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                          {t("adminBanSelectUser")}
-                        </label>
-                        <select
-                          className="w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
-                          value={selectedUserId ?? ""}
-                          onChange={(event) => {
-                            const nextValue = Number(event.target.value);
-                            setSelectedUserId(
-                              Number.isFinite(nextValue) ? nextValue : null,
-                            );
-                          }}
-                        >
-                          <option value="">{t("adminBanSelectUser")}</option>
-                          {users.map((user) => (
-                            <option key={user.id} value={user.userID}>
-                              {user.name}
-                            </option>
-                          ))}
-                        </select>
-                        <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                          {t("adminBanReason")}
-                        </label>
+                        {users.slice(0, 6).map((user) => {
+                          const ActionIcon =
+                            user.status === "banned" ? CheckCircle2 : Ban;
+                          const actionTitle =
+                            user.status === "banned"
+                              ? t("actionUnblock")
+                              : t("actionBlock");
 
-                        <textarea
-                          className="min-h-[90px] w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
-                          value={banReason}
-                          onChange={(event) => {
-                            setBanReason(event.target.value);
-                          }}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          {t("adminBanReasonHint")}
-                        </p>
-                        <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                          {t("adminBanDurationLabel")}
-                        </label>
-                        <select
-                          className="w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
-                          value={banDuration}
-                          onChange={(event) => {
-                            const nextValue = Number(event.target.value);
-                            setBanDuration(
-                              Number.isFinite(nextValue) ? nextValue : 0,
-                            );
-                            if (nextValue !== -1) {
-                              setBanUntilDate(undefined);
-                            }
-                          }}
-                        >
-                          {banDurations.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                        {banDuration === -1 ? (
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <button
-                                type="button"
-                                className="flex w-full items-center gap-2 rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm text-left"
-                              >
-                                <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                                {banUntilDate
-                                  ? banDateFormatter.format(banUntilDate)
-                                  : t("adminBanPickDate")}
-                              </button>
-                            </PopoverTrigger>
-                            <PopoverContent
-                              align="start"
-                              className="w-auto p-0"
+                          return (
+                            <div
+                              key={user.id}
+                              className="rounded-2xl border border-border/60 bg-background/70 p-4"
                             >
-                              <Calendar
-                                mode="single"
-                                selected={banUntilDate}
-                                onSelect={setBanUntilDate}
-                                disabled={{ before: today }}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        ) : null}
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <p className="break-words text-sm font-semibold">
+                                    {user.name}
+                                  </p>
+                                  <p className="break-all text-xs text-muted-foreground">
+                                    {user.email}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {user.lastActive}
+                                  </p>
+                                </div>
+                                <span
+                                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                    user.status === "banned"
+                                      ? "bg-destructive/10 text-destructive"
+                                      : "bg-foreground text-background"
+                                  }`}
+                                >
+                                  {user.status === "banned"
+                                    ? t("statusBanned")
+                                    : t("statusActive")}
+                                </span>
+                              </div>
+                              <div className="mt-3 flex justify-end gap-2">
+                                <button
+                                  type="button"
+                                  title={actionTitle}
+                                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                  onClick={() =>
+                                    user.status === "banned"
+                                      ? void handleUserAction(user, "unblock")
+                                      : openBanDialog(user)
+                                  }
+                                >
+                                  <ActionIcon className="h-4 w-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  title={t("actionResetPassword")}
+                                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                  onClick={() =>
+                                    void handleUserAction(user, "reset")
+                                  }
+                                >
+                                  <Shield className="h-4 w-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  title={t("actionMessage")}
+                                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                  onClick={() =>
+                                    void handleUserAction(user, "message")
+                                  }
+                                >
+                                  <MessageSquare className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                      <div className="mt-4 grid grid-cols-2 gap-3">
-                        <button
-                          type="button"
-                          className="rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/30"
-                          onClick={() => handleSelectedAction("block")}
+                    </div>
+
+                    <div className="min-w-0 space-y-6">
+                      <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold">
+                              {t("adminBanCardTitle")}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {t("adminBanCardSubtitle")}
+                            </p>
+                          </div>
+                          <Ban className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div className="mt-4 space-y-3">
+                          <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                            {t("adminBanSelectUser")}
+                          </label>
+                          <select
+                            className="w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
+                            value={selectedUserId ?? ""}
+                            onChange={(event) => {
+                              const nextValue = Number(event.target.value);
+                              setSelectedUserId(
+                                Number.isFinite(nextValue) ? nextValue : null,
+                              );
+                            }}
+                          >
+                            <option value="">{t("adminBanSelectUser")}</option>
+                            {users.map((user) => (
+                              <option key={user.id} value={user.userID}>
+                                {user.name}
+                              </option>
+                            ))}
+                          </select>
+                          <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                            {t("adminBanReason")}
+                          </label>
+
+                          <textarea
+                            data-tutorial="admin-ban-reason"
+                            className="min-h-[90px] w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
+                            value={banReason}
+                            onChange={(event) => {
+                              setBanReason(event.target.value);
+                            }}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            {t("adminBanReasonHint")}
+                          </p>
+                          <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                            {t("adminBanDurationLabel")}
+                          </label>
+                          <select
+                            className="w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
+                            value={banDuration}
+                            onChange={(event) => {
+                              const nextValue = Number(event.target.value);
+                              setBanDuration(
+                                Number.isFinite(nextValue) ? nextValue : 0,
+                              );
+                              if (nextValue !== -1) {
+                                setBanUntilDate(undefined);
+                              }
+                            }}
+                          >
+                            {banDurations.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                          {banDuration === -1 ? (
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <button
+                                  type="button"
+                                  className="flex w-full items-center gap-2 rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm text-left"
+                                >
+                                  <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                                  {banUntilDate
+                                    ? banDateFormatter.format(banUntilDate)
+                                    : t("adminBanPickDate")}
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent
+                                align="start"
+                                className="w-auto p-0"
+                              >
+                                <Calendar
+                                  mode="single"
+                                  selected={banUntilDate}
+                                  onSelect={setBanUntilDate}
+                                  disabled={{ before: today }}
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          ) : null}
+                        </div>
+                        <div
+                          className="mt-4 grid grid-cols-2 gap-3"
+                          data-tutorial="admin-ban-actions"
                         >
-                          {t("actionBlock")}
-                        </button>
-                        <button
-                          type="button"
-                          className="rounded-full border border-border/70 px-4 py-2 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
-                          onClick={() => handleSelectedAction("unblock")}
-                        >
-                          {t("actionUnblock")}
-                        </button>
-                        <button
-                          type="button"
-                          className="col-span-2 rounded-full border border-border/70 px-4 py-2 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
-                          onClick={() => handleSelectedAction("reset")}
-                        >
-                          {t("actionResetPassword")}
-                        </button>
+                          <button
+                            type="button"
+                            className="rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/30"
+                            onClick={() => handleSelectedAction("block")}
+                          >
+                            {t("actionBlock")}
+                          </button>
+                          <button
+                            type="button"
+                            className="rounded-full border border-border/70 px-4 py-2 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+                            onClick={() => handleSelectedAction("unblock")}
+                          >
+                            {t("actionUnblock")}
+                          </button>
+                          <button
+                            type="button"
+                            className="col-span-2 rounded-full border border-border/70 px-4 py-2 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+                            onClick={() => handleSelectedAction("reset")}
+                          >
+                            {t("actionResetPassword")}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </motion.section>
-            </div>
-          </main>
-          <Dialog
-            open={banDialogOpen}
-            onOpenChange={(open) => {
-              setBanDialogOpen(open);
-              if (!open) {
-                setBanDialogUser(null);
-                setBanDialogReason("");
-                setBanDialogDuration(0);
-                setBanDialogDate(undefined);
-                setBanDialogLoading(false);
-              }
-            }}
-          >
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{t("adminBanDialogTitle")}</DialogTitle>
-                <DialogDescription>
-                  {t("adminBanDialogDescription")} {banDialogUser?.name ?? ""}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-3">
-                <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  {t("adminBanReason")}
-                </label>
-
-                <Textarea
-                  value={banDialogReason}
-                  onChange={(event) => {
-                    setBanDialogReason(event.target.value);
-                  }}
-                  placeholder={t("adminBanReason")}
-                  rows={4}
-                />
-                <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  {t("adminBanDurationLabel")}
-                </label>
-                <select
-                  className="w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
-                  value={banDialogDuration}
-                  onChange={(event) => {
-                    const nextValue = Number(event.target.value);
-                    setBanDialogDuration(
-                      Number.isFinite(nextValue) ? nextValue : 0,
-                    );
-                    if (nextValue !== -1) {
-                      setBanDialogDate(undefined);
-                    }
-                  }}
-                >
-                  {banDurations.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                {banDialogDuration === -1 ? (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className="flex w-full items-center gap-2 rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm text-left"
-                      >
-                        <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                        {banDialogDate
-                          ? banDateFormatter.format(banDialogDate)
-                          : t("adminBanPickDate")}
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent align="start" className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={banDialogDate}
-                        onSelect={setBanDialogDate}
-                        disabled={{ before: today }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                ) : null}
+                </motion.section>
               </div>
-              <DialogFooter>
-                <button
-                  type="button"
-                  onClick={() => setBanDialogOpen(false)}
-                  className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
-                  disabled={banDialogLoading}
-                >
-                  {t("adminDialogCancel")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void handleConfirmBan()}
-                  className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/30 disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={banDialogLoading || !banDialogUser}
-                >
-                  {t("actionBlock")}
-                </button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+            </main>
+            <Dialog
+              open={banDialogOpen}
+              onOpenChange={(open) => {
+                setBanDialogOpen(open);
+                if (!open) {
+                  setBanDialogUser(null);
+                  setBanDialogReason("");
+                  setBanDialogDuration(0);
+                  setBanDialogDate(undefined);
+                  setBanDialogLoading(false);
+                }
+              }}
+            >
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{t("adminBanDialogTitle")}</DialogTitle>
+                  <DialogDescription>
+                    {t("adminBanDialogDescription")} {banDialogUser?.name ?? ""}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                    {t("adminBanReason")}
+                  </label>
+
+                  <Textarea
+                    value={banDialogReason}
+                    onChange={(event) => {
+                      setBanDialogReason(event.target.value);
+                    }}
+                    placeholder={t("adminBanReason")}
+                    rows={4}
+                  />
+                  <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                    {t("adminBanDurationLabel")}
+                  </label>
+                  <select
+                    className="w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
+                    value={banDialogDuration}
+                    onChange={(event) => {
+                      const nextValue = Number(event.target.value);
+                      setBanDialogDuration(
+                        Number.isFinite(nextValue) ? nextValue : 0,
+                      );
+                      if (nextValue !== -1) {
+                        setBanDialogDate(undefined);
+                      }
+                    }}
+                  >
+                    {banDurations.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  {banDialogDuration === -1 ? (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className="flex w-full items-center gap-2 rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm text-left"
+                        >
+                          <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                          {banDialogDate
+                            ? banDateFormatter.format(banDialogDate)
+                            : t("adminBanPickDate")}
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent align="start" className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={banDialogDate}
+                          onSelect={setBanDialogDate}
+                          disabled={{ before: today }}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  ) : null}
+                </div>
+                <DialogFooter>
+                  <button
+                    type="button"
+                    onClick={() => setBanDialogOpen(false)}
+                    className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
+                    disabled={banDialogLoading}
+                  >
+                    {t("adminDialogCancel")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleConfirmBan()}
+                    className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/30 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={banDialogLoading || !banDialogUser}
+                  >
+                    {t("actionBlock")}
+                  </button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </div>
-    </div>
+    </TutorialProvider>
   );
 }

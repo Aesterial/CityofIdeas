@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { AnimatePresence, motion } from "framer-motion"
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronDown,
   Globe,
@@ -17,14 +17,14 @@ import {
   UserCircle,
   Users,
   X,
-} from "lucide-react"
-import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
-import { useAuth } from "./auth-provider"
-import { useLanguage } from "./language-provider"
-import { Logo } from "./logo"
-import { useTheme } from "./theme-provider"
-import { Avatar, AvatarFallback } from "./ui/avatar"
+} from "lucide-react";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { useAuth } from "./auth-provider";
+import { useLanguage } from "./language-provider";
+import { Logo } from "./logo";
+import { useTheme } from "./theme-provider";
+import { Avatar, AvatarFallback } from "./ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,10 +32,18 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu"
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "./ui/sheet"
+} from "./ui/dropdown-menu";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "./ui/sheet";
 
-const cities = [
+export const cities = [
   "Барнаул",
   "Бийск",
   "Рубцовск",
@@ -54,44 +62,44 @@ const cities = [
   "Черногорск",
   "Рефтинский",
   "Чегдомын",
-] as const
+] as const;
 
-type City = (typeof cities)[number]
+export type City = (typeof cities)[number];
 
 const getInitials = (value: string) => {
-  const parts = value.trim().split(/\s+/).filter(Boolean)
+  const parts = value.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) {
-    return "U"
+    return "U";
   }
   if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase()
+    return parts[0].slice(0, 2).toUpperCase();
   }
-  return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
-}
+  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+};
 
 export function Header() {
-  const { theme, toggleTheme } = useTheme()
-  const { language, setLanguage, t } = useLanguage()
-  const { user, status, hasAdminAccess, logout } = useAuth()
-  const [langOpen, setLangOpen] = useState(false)
-  const [cityOpen, setCityOpen] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [mobileCityOpen, setMobileCityOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
-  const [city, setCity] = useState<City>(cities[0])
-  const cityRef = useRef<HTMLDivElement>(null)
-  const displayName = user?.displayName || user?.username || ""
-  const avatarLabel = getInitials(displayName || user?.username || "User")
+  const { theme, toggleTheme } = useTheme();
+  const { language, setLanguage, t } = useLanguage();
+  const { user, status, hasAdminAccess, logout } = useAuth();
+  const [langOpen, setLangOpen] = useState(false);
+  const [cityOpen, setCityOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileCityOpen, setMobileCityOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [city, setCity] = useState<City>(cities[0]);
+  const cityRef = useRef<HTMLDivElement>(null);
+  const displayName = user?.displayName || user?.username || "";
+  const avatarLabel = getInitials(displayName || user?.username || "User");
 
   const handleLogout = async () => {
-    await logout()
-  }
+    await logout();
+  };
 
   const languages = [
     { code: "RU" as const, label: "RU" },
     { code: "EN" as const, label: "EN" },
     { code: "KZ" as const, label: "KZ" },
-  ]
+  ];
 
   const mobileNavItems = [
     { href: "/voting", label: t("voting"), icon: Users },
@@ -100,57 +108,59 @@ export function Header() {
     ...(status === "authenticated"
       ? [{ href: "/account", label: t("account"), icon: UserCircle }]
       : [{ href: "/auth", label: t("login"), icon: LogIn }]),
-    ...(hasAdminAccess ? [{ href: "/admin", label: t("adminPanel"), icon: Shield }] : []),
-  ]
+    ...(hasAdminAccess
+      ? [{ href: "/admin", label: t("adminPanel"), icon: Shield }]
+      : []),
+  ];
 
   useEffect(() => {
-    setMounted(true)
-    const savedCity = localStorage.getItem("city")
+    setMounted(true);
+    const savedCity = localStorage.getItem("city");
     if (savedCity && cities.includes(savedCity as City)) {
-      setCity(savedCity as City)
+      setCity(savedCity as City);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (mounted) {
-      localStorage.setItem("city", city)
+      localStorage.setItem("city", city);
     }
-  }, [city, mounted])
+  }, [city, mounted]);
 
   useEffect(() => {
     if (mobileMenuOpen) {
-      setLangOpen(false)
-      setCityOpen(false)
+      setLangOpen(false);
+      setCityOpen(false);
     } else {
-      setMobileCityOpen(false)
+      setMobileCityOpen(false);
     }
-  }, [mobileMenuOpen])
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     if (!cityOpen) {
-      return
+      return;
     }
 
     const handleClickOutside = (event: MouseEvent) => {
       if (cityRef.current && !cityRef.current.contains(event.target as Node)) {
-        setCityOpen(false)
+        setCityOpen(false);
       }
-    }
+    };
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setCityOpen(false)
+        setCityOpen(false);
       }
-    }
+    };
 
-    document.addEventListener("mousedown", handleClickOutside)
-    document.addEventListener("keydown", handleEscape)
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-      document.removeEventListener("keydown", handleEscape)
-    }
-  }, [cityOpen])
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [cityOpen]);
 
   return (
     <motion.header
@@ -190,8 +200,12 @@ export function Header() {
                     <div className="flex items-center gap-3">
                       <Logo className="h-9 w-9" showText={false} />
                       <div>
-                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Меню</p>
-                        <p className="text-base font-semibold">{t("cityOfIdeas")}</p>
+                        <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                          Меню
+                        </p>
+                        <p className="text-base font-semibold">
+                          {t("cityOfIdeas")}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -203,7 +217,11 @@ export function Header() {
                         aria-label="Toggle theme"
                       >
                         {mounted ? (
-                          theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />
+                          theme === "light" ? (
+                            <Moon className="h-5 w-5" />
+                          ) : (
+                            <Sun className="h-5 w-5" />
+                          )
                         ) : (
                           <span className="block h-5 w-5" aria-hidden="true" />
                         )}
@@ -240,8 +258,12 @@ export function Header() {
                               <MapPin className="h-5 w-5" />
                             </span>
                             <span className="flex flex-col text-left leading-tight">
-                              <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Город</span>
-                              <span className="text-sm font-semibold">{city}</span>
+                              <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                                Город
+                              </span>
+                              <span className="text-sm font-semibold">
+                                {city}
+                              </span>
                             </span>
                           </span>
                           <ChevronDown
@@ -259,13 +281,13 @@ export function Header() {
                             >
                               <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
                                 {cities.map((cityName) => {
-                                  const isActive = cityName === city
+                                  const isActive = cityName === city;
                                   return (
                                     <button
                                       key={cityName}
                                       onClick={() => {
-                                        setCity(cityName)
-                                        setMobileCityOpen(false)
+                                        setCity(cityName);
+                                        setMobileCityOpen(false);
                                       }}
                                       className={`min-w-0 break-words whitespace-normal rounded-xl px-3 py-2 text-xs font-medium transition-colors duration-200 ${
                                         isActive
@@ -275,7 +297,7 @@ export function Header() {
                                     >
                                       {cityName}
                                     </button>
-                                  )
+                                  );
                                 })}
                               </div>
                             </motion.div>
@@ -295,7 +317,9 @@ export function Header() {
                                 <span className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-foreground text-background shadow-lg shadow-foreground/25">
                                   <item.icon className="h-5 w-5" />
                                 </span>
-                                <span className="text-base font-semibold">{item.label}</span>
+                                <span className="text-base font-semibold">
+                                  {item.label}
+                                </span>
                               </span>
                             </Link>
                           </SheetClose>
@@ -303,10 +327,12 @@ export function Header() {
                       </div>
 
                       <div className="rounded-2xl border border-border/60 bg-card/70 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-                        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Язык</p>
+                        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                          Язык
+                        </p>
                         <div className="mt-3 grid grid-cols-3 gap-2">
                           {languages.map((lang) => {
-                            const isActive = language === lang.code
+                            const isActive = language === lang.code;
                             return (
                               <button
                                 key={lang.code}
@@ -319,7 +345,7 @@ export function Header() {
                               >
                                 {lang.label}
                               </button>
-                            )
+                            );
                           })}
                         </div>
                       </div>
@@ -336,23 +362,34 @@ export function Header() {
         </div>
 
         <nav className="hidden lg:flex items-center gap-6">
-          <Link href="/voting" className="text-foreground/70 hover:text-foreground transition-colors duration-300">
+          <Link
+            href="/voting"
+            className="text-foreground/70 hover:text-foreground transition-colors duration-300"
+          >
             {t("voting")}
           </Link>
-          <Link href="/suggest" className="text-foreground/70 hover:text-foreground transition-colors duration-300">
+          <Link
+            href="/suggest"
+            className="text-foreground/70 hover:text-foreground transition-colors duration-300"
+          >
             {t("suggestIdea")}
           </Link>
-          <Link href="/support" className="text-foreground/70 hover:text-foreground transition-colors duration-300">{t("askQuestion")}</Link>
+          <Link
+            href="/support"
+            className="text-foreground/70 hover:text-foreground transition-colors duration-300"
+          >
+            {t("askQuestion")}
+          </Link>
 
           <div className="relative" ref={cityRef}>
             <motion.button
               onClick={() =>
                 setCityOpen((open) => {
-                  const next = !open
+                  const next = !open;
                   if (next) {
-                    setLangOpen(false)
+                    setLangOpen(false);
                   }
-                  return next
+                  return next;
                 })
               }
               className="group relative flex items-center gap-2 rounded-full bg-foreground text-background px-4 py-2 shadow-lg shadow-foreground/20"
@@ -364,7 +401,9 @@ export function Header() {
               <span className="absolute inset-0 rounded-full bg-gradient-to-r from-white/25 via-white/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               <MapPin className="relative h-4 w-4" />
               <span className="relative flex flex-col items-start leading-none">
-                <span className="text-[10px] uppercase tracking-[0.2em] text-background/70">Город</span>
+                <span className="text-[10px] uppercase tracking-[0.2em] text-background/70">
+                  Город
+                </span>
                 <span className="text-sm font-semibold">{city}</span>
               </span>
               <ChevronDown
@@ -387,23 +426,27 @@ export function Header() {
                     <div className="absolute -top-8 right-6 h-20 w-20 rounded-full bg-foreground/10 blur-2xl" />
                     <div className="relative flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-[11px] uppercase tracking-[0.3em] text-foreground/50">Выбор города</p>
-                        <p className="text-sm font-semibold text-foreground">Где вы хотите участвовать?</p>
+                        <p className="text-[11px] uppercase tracking-[0.3em] text-foreground/50">
+                          Выбор города
+                        </p>
+                        <p className="text-sm font-semibold text-foreground">
+                          Где вы хотите участвовать?
+                        </p>
                       </div>
                     </div>
                   </div>
 
                   <div className="mt-4 grid grid-cols-5 gap-2">
                     {cities.map((cityName) => {
-                      const isActive = cityName === city
+                      const isActive = cityName === city;
                       return (
                         <motion.button
                           key={cityName}
                           whileHover={{ y: -2 }}
                           whileTap={{ scale: 0.97 }}
                           onClick={() => {
-                            setCity(cityName)
-                            setCityOpen(false)
+                            setCity(cityName);
+                            setCityOpen(false);
                           }}
                           className={`min-w-0 break-words whitespace-normal rounded-xl px-2 py-2 text-center text-xs font-medium leading-tight transition-colors duration-200 ${
                             isActive
@@ -415,7 +458,7 @@ export function Header() {
                         >
                           {cityName}
                         </motion.button>
-                      )
+                      );
                     })}
                   </div>
                 </motion.div>
@@ -427,11 +470,11 @@ export function Header() {
             <motion.button
               onClick={() =>
                 setLangOpen((open) => {
-                  const next = !open
+                  const next = !open;
                   if (next) {
-                    setCityOpen(false)
+                    setCityOpen(false);
                   }
-                  return next
+                  return next;
                 })
               }
               className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-foreground text-background hover:opacity-80 transition-opacity duration-300"
@@ -440,7 +483,9 @@ export function Header() {
             >
               <Globe className="w-4 h-4" />
               <span className="text-sm font-medium">{language}</span>
-              <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${langOpen ? "rotate-180" : ""}`} />
+              <ChevronDown
+                className={`w-3 h-3 transition-transform duration-200 ${langOpen ? "rotate-180" : ""}`}
+              />
             </motion.button>
 
             <AnimatePresence>
@@ -456,11 +501,13 @@ export function Header() {
                     <button
                       key={lang.code}
                       onClick={() => {
-                        setLanguage(lang.code)
-                        setLangOpen(false)
+                        setLanguage(lang.code);
+                        setLangOpen(false);
                       }}
                       className={`w-full px-4 py-2.5 text-left text-sm font-medium transition-colors duration-200 ${
-                        language === lang.code ? "bg-foreground text-background" : "hover:bg-muted"
+                        language === lang.code
+                          ? "bg-foreground text-background"
+                          : "hover:bg-muted"
                       }`}
                     >
                       {lang.label}
@@ -479,7 +526,11 @@ export function Header() {
             aria-label="Toggle theme"
           >
             {mounted ? (
-              theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />
+              theme === "light" ? (
+                <Moon className="w-5 h-5" />
+              ) : (
+                <Sun className="w-5 h-5" />
+              )
             ) : (
               <span className="block h-5 w-5" aria-hidden="true" />
             )}
@@ -495,16 +546,24 @@ export function Header() {
                   aria-label="Account menu"
                 >
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback className="text-xs font-semibold">{avatarLabel}</AvatarFallback>
+                    <AvatarFallback className="text-xs font-semibold">
+                      {avatarLabel}
+                    </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm font-semibold">{displayName || user.username}</span>
+                  <span className="text-sm font-semibold">
+                    {displayName || user.username}
+                  </span>
                   <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 </motion.button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel className="space-y-1">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{t("account")}</p>
-                  <p className="text-sm font-semibold">{displayName || user.username}</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                    {t("account")}
+                  </p>
+                  <p className="text-sm font-semibold">
+                    {displayName || user.username}
+                  </p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
@@ -515,8 +574,8 @@ export function Header() {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={(event) => {
-                    event.preventDefault()
-                    void handleLogout()
+                    event.preventDefault();
+                    void handleLogout();
                   }}
                 >
                   <LogOut className="h-4 w-4" />
@@ -548,5 +607,5 @@ export function Header() {
         </nav>
       </div>
     </motion.header>
-  )
+  );
 }
