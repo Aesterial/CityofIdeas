@@ -8,6 +8,10 @@ import { GradientButton } from "@/components/gradient-button";
 import { useAuth } from "@/components/auth-provider";
 import { useLanguage } from "@/components/language-provider";
 import {
+  TutorialProvider,
+  type TutorialStep,
+} from "@/components/tutorial/tutorial-provider";
+import {
   fetchProjects,
   fetchSubmissions,
   toggleProjectLike,
@@ -138,6 +142,29 @@ const sortOptions = [
   { id: "likes", label: "По лайкам" },
   { id: "newest", label: "Новые" },
 ] as const;
+
+const votingTutorialSteps: TutorialStep[] = [
+  {
+    selector: '[data-tutorial="voting-hero"]',
+    text: "Здесь общий обзор голосования: сколько идей, голосов и лайков.",
+    position: "bottom",
+  },
+  {
+    selector: '[data-tutorial="voting-filters"]',
+    text: "Фильтры помогают быстро найти проекты по теме и городу.",
+    position: "bottom",
+  },
+  {
+    selector: '[data-tutorial="voting-sort"]',
+    text: "Сортируй идеи по популярности, лайкам или новизне.",
+    position: "bottom",
+  },
+  {
+    selector: '[data-tutorial="voting-list"]',
+    text: "В карточках можно поставить лайк и проголосовать за идею.",
+    position: "top",
+  },
+];
 
 type CityFilter = "all" | string;
 const normalizeKey = (value: string) => value.trim().toLowerCase();
@@ -552,314 +579,316 @@ export default function VotingPage() {
   );
 
   return (
-    <div className="relative min-h-screen bg-background">
-      <Header />
+    <TutorialProvider
+      steps={votingTutorialSteps}
+      storageKey="voting-tutorial-v1"
+    >
+      <div className="relative min-h-screen bg-background">
+        <Header />
 
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-24 right-[-10%] h-72 w-72 rounded-full bg-foreground/5 blur-3xl" />
-        <div className="absolute top-40 left-[-8%] h-64 w-64 rounded-full bg-foreground/10 blur-3xl" />
-        <div className="absolute bottom-0 right-8 h-72 w-72 rounded-full bg-foreground/5 blur-3xl" />
-      </div>
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -top-24 right-[-10%] h-72 w-72 rounded-full bg-foreground/5 blur-3xl" />
+          <div className="absolute top-40 left-[-8%] h-64 w-64 rounded-full bg-foreground/10 blur-3xl" />
+          <div className="absolute bottom-0 right-8 h-72 w-72 rounded-full bg-foreground/5 blur-3xl" />
+        </div>
 
-      <main className="relative pt-24 pb-16 px-4 sm:pt-28 sm:pb-20 sm:px-6">
-        <div className="relative">
-          <motion.aside
-            className="hidden lg:flex lg:fixed lg:left-6 lg:top-28 lg:h-[calc(100vh-7rem)] lg:w-[280px] lg:flex-col lg:gap-6 lg:overflow-y-auto lg:rounded-3xl lg:border lg:border-border/70 lg:bg-background/90 lg:p-5 lg:shadow-[0_16px_40px_-30px_rgba(0,0,0,0.6)] lg:backdrop-blur"
-            initial={{ opacity: 0, x: -16 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            {renderSidebarContent()}
-          </motion.aside>
-
-          <div className="lg:pl-[320px]">
-            <div className="container mx-auto max-w-6xl">
-              <motion.div
-                className="flex flex-col gap-6"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <div className="flex flex-wrap items-center gap-3 text-xs">
-                  <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/80 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    Открытое голосование
-                  </span>
-                  <span className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
-                    Показано {sortedIdeas.length} идей
-                  </span>
-                </div>
-
-                <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                  <div className="max-w-3xl space-y-3">
-                    <h1 className="text-3xl font-bold sm:text-4xl lg:text-5xl">
-                      {t("voting")}
-                    </h1>
-                    <p className="text-sm text-muted-foreground sm:text-base">
-                      Выбирай идеи для своего города и голосуй за лучшие.
-                    </p>
-                  </div>
-
-                  <div className="grid w-full max-w-md grid-cols-1 gap-3 sm:max-w-none sm:grid-cols-3">
-                    <div className="rounded-2xl border border-border/60 bg-card/80 p-3 text-center shadow-[0_16px_36px_-28px_rgba(0,0,0,0.5)]">
-                      <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-                        Идей
-                      </p>
-                      <p className="text-2xl font-semibold">{ideas.length}</p>
-                    </div>
-                    <div className="rounded-2xl border border-border/60 bg-card/80 p-3 text-center shadow-[0_16px_36px_-28px_rgba(0,0,0,0.5)]">
-                      <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-                        Голосов
-                      </p>
-                      <p className="text-2xl font-semibold">{totalVotes}</p>
-                    </div>
-                    <div className="rounded-2xl border border-border/60 bg-card/80 p-3 text-center shadow-[0_16px_36px_-28px_rgba(0,0,0,0.5)]">
-                      <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-                        Лайков
-                      </p>
-                      <p className="text-2xl font-semibold">{totalLikes}</p>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
-              <div className="mt-10 flex flex-col gap-8">
-                <motion.aside
-                  className="space-y-6 lg:hidden"
-                  initial={{ opacity: 0, y: 16 }}
+        <main className="relative pt-24 pb-16 px-4 sm:pt-28 sm:pb-20 sm:px-6">
+          <div className="relative">
+            <div className="lg:pl-[320px]">
+              <div className="container mx-auto max-w-6xl">
+                <motion.div
+                  className="flex flex-col gap-6"
+                  initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
+                  transition={{ duration: 0.5 }}
+                  data-tutorial="voting-hero"
                 >
-                  {renderSidebarContent()}
-                </motion.aside>
+                  <div className="flex flex-wrap items-center gap-3 text-xs">
+                    <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/80 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Открытое голосование
+                    </span>
+                    <span className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
+                      Показано {sortedIdeas.length} идей
+                    </span>
+                  </div>
 
-                <section className="space-y-6">
-                  <motion.div
-                    className="rounded-[2rem] border border-border/60 bg-card/90 px-5 py-4 shadow-[0_18px_40px_-32px_rgba(0,0,0,0.55)]"
-                    initial={{ opacity: 0, y: -10 }}
+                  <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                    <div className="max-w-3xl space-y-3">
+                      <h1 className="text-3xl font-bold sm:text-4xl lg:text-5xl">
+                        {t("voting")}
+                      </h1>
+                      <p className="text-sm text-muted-foreground sm:text-base">
+                        Выбирай идеи для своего города и голосуй за лучшие.
+                      </p>
+                    </div>
+
+                    <div className="grid w-full max-w-md grid-cols-1 gap-3 sm:max-w-none sm:grid-cols-3">
+                      <div className="rounded-2xl border border-border/60 bg-card/80 p-3 text-center shadow-[0_16px_36px_-28px_rgba(0,0,0,0.5)]">
+                        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                          Идей
+                        </p>
+                        <p className="text-2xl font-semibold">{ideas.length}</p>
+                      </div>
+                      <div className="rounded-2xl border border-border/60 bg-card/80 p-3 text-center shadow-[0_16px_36px_-28px_rgba(0,0,0,0.5)]">
+                        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                          Голосов
+                        </p>
+                        <p className="text-2xl font-semibold">{totalVotes}</p>
+                      </div>
+                      <div className="rounded-2xl border border-border/60 bg-card/80 p-3 text-center shadow-[0_16px_36px_-28px_rgba(0,0,0,0.5)]">
+                        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                          Лайков
+                        </p>
+                        <p className="text-2xl font-semibold">{totalLikes}</p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <div className="mt-10 flex flex-col gap-8">
+                  <motion.aside
+                    className="flex flex-col gap-6 lg:fixed lg:left-6 lg:top-28 lg:h-[calc(100vh-7rem)] lg:w-[280px] lg:overflow-y-auto lg:rounded-3xl lg:border lg:border-border/70 lg:bg-background/90 lg:p-5 lg:shadow-[0_16px_40px_-30px_rgba(0,0,0,0.6)] lg:backdrop-blur"
+                    initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4 }}
+                    data-tutorial="voting-filters"
                   >
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-foreground text-background">
-                          <ListFilter className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                            Сортировка
-                          </p>
-                          <p className="text-sm font-semibold">
-                            Выбери режим показа идей
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap gap-2 rounded-full bg-background/70 p-1">
-                        {sortOptions.map((option) => {
-                          const isActive = sortBy === option.id;
-                          return (
-                            <button
-                              key={option.id}
-                              type="button"
-                              onClick={() => setSortBy(option.id)}
-                              className={`rounded-full border px-4 py-2 text-xs font-semibold transition-all duration-300 ${
-                                isActive
-                                  ? "border-foreground bg-foreground text-background shadow-lg shadow-foreground/20"
-                                  : "border-border/70 bg-background/70 text-foreground hover:bg-foreground hover:text-background"
-                              }`}
-                            >
-                              {option.label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
-                      <span className="rounded-full bg-muted/70 px-3 py-1 font-semibold text-muted-foreground">
-                        Показано {sortedIdeas.length} идей
-                      </span>
-                      <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1 font-semibold text-muted-foreground">
-                        {selectedCategoryLabel}
-                      </span>
-                      <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1 font-semibold text-muted-foreground">
-                        {selectedCityLabel}
-                      </span>
-                    </div>
-                  </motion.div>
+                    {renderSidebarContent()}
+                  </motion.aside>
 
-                  {loadError ? (
+                  <section className="space-y-6">
                     <motion.div
-                      className="rounded-[2rem] border border-destructive/50 bg-destructive/10 px-5 py-4 text-sm text-destructive shadow-[0_18px_40px_-32px_rgba(0,0,0,0.45)]"
-                      initial={{ opacity: 0, y: -6 }}
+                      className="rounded-[2rem] border border-border/60 bg-card/90 px-5 py-4 shadow-[0_18px_40px_-32px_rgba(0,0,0,0.55)]"
+                      initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
+                      transition={{ duration: 0.4 }}
+                      data-tutorial="voting-sort"
                     >
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <span>Не удалось загрузить идеи: {loadError}</span>
-                        <button
-                          type="button"
-                          onClick={handleReload}
-                          className="rounded-full border border-destructive/60 px-4 py-2 text-xs font-semibold text-destructive transition-all duration-300 hover:bg-destructive hover:text-destructive-foreground"
-                        >
-                          Повторить
-                        </button>
+                      <div className="flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-foreground text-background">
+                            <ListFilter className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                              Сортировка
+                            </p>
+                            <p className="text-sm font-semibold">
+                              Выбери режим показа идей
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2 rounded-full bg-background/70 p-1">
+                          {sortOptions.map((option) => {
+                            const isActive = sortBy === option.id;
+                            return (
+                              <button
+                                key={option.id}
+                                type="button"
+                                onClick={() => setSortBy(option.id)}
+                                className={`rounded-full border px-4 py-2 text-xs font-semibold transition-all duration-300 ${
+                                  isActive
+                                    ? "border-foreground bg-foreground text-background shadow-lg shadow-foreground/20"
+                                    : "border-border/70 bg-background/70 text-foreground hover:bg-foreground hover:text-background"
+                                }`}
+                              >
+                                {option.label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+                        <span className="rounded-full bg-muted/70 px-3 py-1 font-semibold text-muted-foreground">
+                          Показано {sortedIdeas.length} идей
+                        </span>
+                        <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1 font-semibold text-muted-foreground">
+                          {selectedCategoryLabel}
+                        </span>
+                        <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1 font-semibold text-muted-foreground">
+                          {selectedCityLabel}
+                        </span>
                       </div>
                     </motion.div>
-                  ) : null}
 
-                  <motion.div
-                    key={`${selectedCategory}-${selectedCity}-${sortBy}`}
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="space-y-6"
-                  >
-                    <AnimatePresence mode="popLayout">
-                      {isLoading ? (
-                        <motion.div
-                          key="loading"
-                          variants={cardVariants}
-                          className="rounded-[2rem] border border-dashed border-border/70 bg-card/60 p-6 text-sm text-muted-foreground"
-                        >
-                          Идеи загружаются...
-                        </motion.div>
-                      ) : sortedIdeas.length ? (
-                        sortedIdeas.map((idea) => {
-                          const voteShare = maxVotes
-                            ? Math.round((idea.votes / maxVotes) * 100)
-                            : 0;
-                          return (
-                            <motion.article
-                              key={idea.id}
-                              variants={cardVariants}
-                              layout
-                              className="group relative overflow-hidden rounded-[2.5rem] border border-border/60 bg-card/90 p-6 shadow-[0_20px_50px_-34px_rgba(0,0,0,0.5)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_28px_60px_-36px_rgba(0,0,0,0.6)]"
-                            >
-                              <span className="absolute left-0 top-0 h-full w-1.5 bg-foreground/20" />
-                              <div className="relative flex flex-col gap-6 xl:flex-row">
-                                <div className="flex-1 space-y-4">
-                                  <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
-                                    <span className="rounded-full bg-foreground/10 px-3 py-1 text-foreground">
-                                      {idea.category}
-                                    </span>
-                                    <span className="inline-flex items-center gap-1 rounded-full border border-border/60 px-3 py-1 text-muted-foreground">
-                                      <MapPin className="h-3.5 w-3.5" />
-                                      {idea.city}
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <h3 className="text-xl font-bold sm:text-2xl">
-                                      {idea.title}
-                                    </h3>
-                                    <p className="mt-2 text-sm text-muted-foreground">
-                                      {idea.address}
+                    {loadError ? (
+                      <motion.div
+                        className="rounded-[2rem] border border-destructive/50 bg-destructive/10 px-5 py-4 text-sm text-destructive shadow-[0_18px_40px_-32px_rgba(0,0,0,0.45)]"
+                        initial={{ opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <span>Не удалось загрузить идеи: {loadError}</span>
+                          <button
+                            type="button"
+                            onClick={handleReload}
+                            className="rounded-full border border-destructive/60 px-4 py-2 text-xs font-semibold text-destructive transition-all duration-300 hover:bg-destructive hover:text-destructive-foreground"
+                          >
+                            Повторить
+                          </button>
+                        </div>
+                      </motion.div>
+                    ) : null}
+
+                    <motion.div
+                      key={`${selectedCategory}-${selectedCity}-${sortBy}`}
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="visible"
+                      className="space-y-6"
+                      data-tutorial="voting-list"
+                    >
+                      <AnimatePresence mode="popLayout">
+                        {isLoading ? (
+                          <motion.div
+                            key="loading"
+                            variants={cardVariants}
+                            className="rounded-[2rem] border border-dashed border-border/70 bg-card/60 p-6 text-sm text-muted-foreground"
+                          >
+                            Идеи загружаются...
+                          </motion.div>
+                        ) : sortedIdeas.length ? (
+                          sortedIdeas.map((idea) => {
+                            const voteShare = maxVotes
+                              ? Math.round((idea.votes / maxVotes) * 100)
+                              : 0;
+                            return (
+                              <motion.article
+                                key={idea.id}
+                                variants={cardVariants}
+                                layout
+                                className="group relative overflow-hidden rounded-[2.5rem] border border-border/60 bg-card/90 p-6 shadow-[0_20px_50px_-34px_rgba(0,0,0,0.5)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_28px_60px_-36px_rgba(0,0,0,0.6)]"
+                              >
+                                <span className="absolute left-0 top-0 h-full w-1.5 bg-foreground/20" />
+                                <div className="relative flex flex-col gap-6 xl:flex-row">
+                                  <div className="flex-1 space-y-4">
+                                    <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
+                                      <span className="rounded-full bg-foreground/10 px-3 py-1 text-foreground">
+                                        {idea.category}
+                                      </span>
+                                      <span className="inline-flex items-center gap-1 rounded-full border border-border/60 px-3 py-1 text-muted-foreground">
+                                        <MapPin className="h-3.5 w-3.5" />
+                                        {idea.city}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <h3 className="text-xl font-bold sm:text-2xl">
+                                        {idea.title}
+                                      </h3>
+                                      <p className="mt-2 text-sm text-muted-foreground">
+                                        {idea.address}
+                                      </p>
+                                    </div>
+                                    <p className="text-sm text-foreground/90">
+                                      {idea.description}
                                     </p>
-                                  </div>
-                                  <p className="text-sm text-foreground/90">
-                                    {idea.description}
-                                  </p>
 
-                                  <div className="space-y-2">
-                                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                      <span>{idea.votes} голосов</span>
-                                      <span>{voteShare}%</span>
+                                    <div className="space-y-2">
+                                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                        <span>{idea.votes} голосов</span>
+                                        <span>{voteShare}%</span>
+                                      </div>
+                                      <div className="h-2 w-full rounded-full bg-muted/60">
+                                        <div
+                                          className="h-full rounded-full bg-foreground"
+                                          style={{ width: `${voteShare}%` }}
+                                        />
+                                      </div>
                                     </div>
-                                    <div className="h-2 w-full rounded-full bg-muted/60">
-                                      <div
-                                        className="h-full rounded-full bg-foreground"
-                                        style={{ width: `${voteShare}%` }}
+                                  </div>
+
+                                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:w-64">
+                                    <motion.div
+                                      className="relative h-28 overflow-hidden rounded-2xl border border-border/60 shadow-md sm:h-32"
+                                      whileHover={{ scale: 1.03 }}
+                                      transition={{ duration: 0.3 }}
+                                    >
+                                      <img
+                                        src={
+                                          idea.mapImage || "/placeholder.svg"
+                                        }
+                                        alt={`Карта - ${idea.title}`}
+                                        className="h-full w-full object-cover"
                                       />
-                                    </div>
+                                      <span className="absolute bottom-2 left-2 rounded-full bg-background/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                                        Карта
+                                      </span>
+                                      <div className="absolute bottom-3 right-3 h-3 w-3 rounded-full bg-foreground ring-2 ring-background shadow-lg" />
+                                    </motion.div>
+                                    <motion.div
+                                      className="relative h-28 overflow-hidden rounded-2xl border border-border/60 shadow-md sm:h-32"
+                                      whileHover={{ scale: 1.03 }}
+                                      transition={{ duration: 0.3 }}
+                                    >
+                                      <img
+                                        src={
+                                          idea.photoImage || "/placeholder.svg"
+                                        }
+                                        alt={`Фото - ${idea.title}`}
+                                        className="h-full w-full object-cover"
+                                      />
+                                      <span className="absolute bottom-2 left-2 rounded-full bg-background/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                                        Фото
+                                      </span>
+                                    </motion.div>
                                   </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:w-64">
-                                  <motion.div
-                                    className="relative h-28 overflow-hidden rounded-2xl border border-border/60 shadow-md sm:h-32"
-                                    whileHover={{ scale: 1.03 }}
-                                    transition={{ duration: 0.3 }}
-                                  >
-                                    <img
-                                      src={idea.mapImage || "/placeholder.svg"}
-                                      alt={`Карта - ${idea.title}`}
-                                      className="h-full w-full object-cover"
-                                    />
-                                    <span className="absolute bottom-2 left-2 rounded-full bg-background/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                                      Карта
-                                    </span>
-                                    <div className="absolute bottom-3 right-3 h-3 w-3 rounded-full bg-foreground ring-2 ring-background shadow-lg" />
-                                  </motion.div>
-                                  <motion.div
-                                    className="relative h-28 overflow-hidden rounded-2xl border border-border/60 shadow-md sm:h-32"
-                                    whileHover={{ scale: 1.03 }}
-                                    transition={{ duration: 0.3 }}
-                                  >
-                                    <img
-                                      src={
-                                        idea.photoImage || "/placeholder.svg"
-                                      }
-                                      alt={`Фото - ${idea.title}`}
-                                      className="h-full w-full object-cover"
-                                    />
-                                    <span className="absolute bottom-2 left-2 rounded-full bg-background/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                                      Фото
-                                    </span>
-                                  </motion.div>
-                                </div>
-                              </div>
-
-                              <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-border/60 pt-4">
-                                <motion.button
-                                  onClick={() => toggleLike(idea.id)}
-                                  className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition-all duration-300 ${
-                                    idea.isLiked
-                                      ? "border-foreground bg-foreground text-background"
-                                      : "border-border/70 bg-background/70 text-muted-foreground hover:border-foreground hover:text-foreground"
-                                  }`}
-                                  whileHover={{ scale: 1.05 }}
-                                  whileTap={{ scale: 0.95 }}
-                                >
-                                  <Heart
-                                    className={`h-4 w-4 ${
-                                      idea.isLiked ? "fill-current" : ""
+                                <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-border/60 pt-4">
+                                  <motion.button
+                                    onClick={() => toggleLike(idea.id)}
+                                    className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition-all duration-300 ${
+                                      idea.isLiked
+                                        ? "border-foreground bg-foreground text-background"
+                                        : "border-border/70 bg-background/70 text-muted-foreground hover:border-foreground hover:text-foreground"
                                     }`}
-                                  />
-                                  <span>{idea.likes}</span>
-                                </motion.button>
-
-                                <div className="flex flex-wrap items-center gap-3">
-                                  <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs font-semibold text-muted-foreground">
-                                    {idea.votes} голосов
-                                  </span>
-                                  <GradientButton
-                                    className="px-5 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm"
-                                    onClick={() => handleVote(idea.id)}
-                                    disabled={idea.isVoted}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
                                   >
-                                    {idea.isVoted ? "Голос учтен" : t("vote")}
-                                  </GradientButton>
+                                    <Heart
+                                      className={`h-4 w-4 ${
+                                        idea.isLiked ? "fill-current" : ""
+                                      }`}
+                                    />
+                                    <span>{idea.likes}</span>
+                                  </motion.button>
+
+                                  <div className="flex flex-wrap items-center gap-3">
+                                    <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs font-semibold text-muted-foreground">
+                                      {idea.votes} голосов
+                                    </span>
+                                    <GradientButton
+                                      className="px-5 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm"
+                                      onClick={() => handleVote(idea.id)}
+                                      disabled={idea.isVoted}
+                                    >
+                                      {idea.isVoted ? "Голос учтен" : t("vote")}
+                                    </GradientButton>
+                                  </div>
                                 </div>
-                              </div>
-                            </motion.article>
-                          );
-                        })
-                      ) : (
-                        <motion.div
-                          key="empty"
-                          variants={cardVariants}
-                          className="rounded-[2rem] border border-dashed border-border/70 bg-card/60 p-6 text-sm text-muted-foreground"
-                        >
-                          Идеи по этим фильтрам пока не найдены.
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-                </section>
+                              </motion.article>
+                            );
+                          })
+                        ) : (
+                          <motion.div
+                            key="empty"
+                            variants={cardVariants}
+                            className="rounded-[2rem] border border-dashed border-border/70 bg-card/60 p-6 text-sm text-muted-foreground"
+                          >
+                            Идеи по этим фильтрам пока не найдены.
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  </section>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </TutorialProvider>
   );
 }
