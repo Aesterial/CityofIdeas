@@ -8,12 +8,15 @@ import (
 	"ascendant/backend/internal/domain/sessions"
 	"ascendant/backend/internal/domain/statistics"
 	"ascendant/backend/internal/domain/submissions"
+	"ascendant/backend/internal/domain/verification"
 	userpb "ascendant/backend/internal/gen/user/v1"
+	"fmt"
 
 	"ascendant/backend/internal/domain/user"
 	statpb "ascendant/backend/internal/gen/statistics/v1"
 	"ascendant/backend/internal/infra/logger"
 	"context"
+	"crypto/rand"
 	"database/sql"
 	"errors"
 	"strconv"
@@ -55,6 +58,10 @@ type SubmissionsRepository struct {
 	DB *sql.DB
 }
 
+type VerificationRepository struct {
+	DB *sql.DB
+}
+
 var _ user.Repository = (*UserRepository)(nil)
 
 func NewUserRepository(db *sql.DB) *UserRepository {
@@ -81,6 +88,9 @@ func NewProjectsRepository(db *sql.DB) *ProjectsRepository {
 func NewSubmissionRepository(db *sql.DB) *SubmissionsRepository {
 	return &SubmissionsRepository{DB: db}
 }
+func NewVerificationRepository(db *sql.DB) *VerificationRepository {
+	return &VerificationRepository{DB: db}
+}
 
 func parseRowsToUsers(ctx context.Context, rows *sql.Rows, getAvatar func(context.Context, uint) (*user.Avatar, error), isBanned func(context.Context, uint) (bool, *user.BanInfo, error)) (user.Users, error) {
 	var usrs user.Users
@@ -104,6 +114,25 @@ func parseRowsToUsers(ctx context.Context, rows *sql.Rows, getAvatar func(contex
 		usrs = append(usrs, &usr)
 	}
 	return usrs, nil
+}
+
+const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+func generateString(n int) (string, error) {
+	if n <= 0 {
+		return "", nil
+	}
+
+	b := make([]byte, n)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("rand.Read: %w", err)
+	}
+
+	out := make([]byte, n)
+	for i := 0; i < n; i++ {
+		out[i] = letters[int(b[i])%len(letters)]
+	}
+	return string(out), nil
 }
 
 func (u *UserRepository) GetList(ctx context.Context) ([]*userpb.UserPublic, error) {
@@ -1348,4 +1377,79 @@ func (s *SubmissionsRepository) Decline(ctx context.Context, id int32, reason st
 		return err
 	}
 	return nil
+}
+
+var _ verification.Repository = (*VerificationRepository)(nil)
+
+func (v *VerificationRepository) Create(ctx context.Context, email string, purpose verification.Purpose, ip string, userAgent string, ttl time.Duration) (string, error) {
+	if email == "" || !purpose.IsValid() || ip == "" || userAgent == "" || ttl == 0 {
+		return "", errors.New("invalid params")
+	}
+	token, err := generateString(32)
+	if err != nil {
+		return "", err
+	}
+	if _, err = v.DB.ExecContext(ctx, "INSERT INTO auth_action_tokens ( email, purpose, token_hash, expires_at, ip, user_agent) VALUES ($1, $2, $3, $4, $5, $6)", email, purpose.String(), []byte(token), time.Now().Add(ttl), ip, userAgent); err != nil {
+		return "", err
+	}
+	return token, nil
+}
+
+func (v *VerificationRepository) GetRecord(ctx context.Context, purpose verification.Purpose, token string) (*verification.TokenRecord, error) {
+	if !purpose.IsValid() || token == "" {
+		return nil, errors.New("params in empty")
+	}
+	var record verification.TokenRecord
+	if err := v.DB.QueryRowContext(ctx, "SELECT id, email, purpose, expires_at, used_at FROM auth_action_tokens WHERE token_hash = $1 AND purpose = $2", token, purpose.String()).Scan(
+		&record.ID,
+		&record.Email,
+		&record.Purpose,
+		&record.ExpiresAt,
+		&record.UsedAt,
+	); err != nil {
+		return nil, err
+	}
+	return &record, nil
+}
+
+func (v *VerificationRepository) Consume(ctx context.Context, purpose verification.Purpose, token string) (*verification.TokenRecord, error) {
+	if !purpose.IsValid() || token == "" {
+		return nil, errors.New("invalid params")
+	}
+	var exists bool
+	if err := v.DB.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM auth_action_tokens WHERE token_hash = $1 AND purpose = $2)", token, purpose.String()).Scan(&exists); err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, errors.New("not found")
+	}
+	if _, err := v.DB.ExecContext(ctx, "UPDATE auth_action_tokens SET used_at = $1 WHERE token_hash = $2 AND purpose = $3", time.Now(), token, purpose.String()); err != nil {
+		return nil, err
+	}
+	data, err := v.GetRecord(ctx, purpose, token)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (v *VerificationRepository) BanEmail(ctx context.Context, email string, reason string) error {
+	if email == "" || reason == "" {
+		return errors.New("params is empty")
+	}
+	if _, err := v.DB.ExecContext(ctx, "INSERT INTO banned_emails (email, reason) VALUES ($1, $2)", email, reason); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (v *VerificationRepository) IsBanned(ctx context.Context, email string) (bool, error) {
+	if email == "" {
+		return false, errors.New("param is empty")
+	}
+	var found bool
+	if err := v.DB.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM banned_emails WHERE email = $1)", email).Scan(&found); err != nil {
+		return false, err
+	}
+	return found, nil
 }

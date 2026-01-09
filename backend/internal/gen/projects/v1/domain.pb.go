@@ -92,6 +92,7 @@ const (
 	ProjectVoteStatus_IMPLEMENTING ProjectVoteStatus = 2
 	ProjectVoteStatus_CLOSED       ProjectVoteStatus = 3
 	ProjectVoteStatus_ARCHIVED     ProjectVoteStatus = 4
+	ProjectVoteStatus_INMODERATION ProjectVoteStatus = 5
 )
 
 // Enum value maps for ProjectVoteStatus.
@@ -102,6 +103,7 @@ var (
 		2: "IMPLEMENTING",
 		3: "CLOSED",
 		4: "ARCHIVED",
+		5: "INMODERATION",
 	}
 	ProjectVoteStatus_value = map[string]int32{
 		"PUBLISHED":    0,
@@ -109,6 +111,7 @@ var (
 		"IMPLEMENTING": 2,
 		"CLOSED":       3,
 		"ARCHIVED":     4,
+		"INMODERATION": 5,
 	}
 )
 
@@ -842,14 +845,15 @@ const file_projects_domain_proto_rawDesc = "" +
 	"\bLIGHTING\x10\x03\x12\x0f\n" +
 	"\vPLAYGROUNDS\x10\x04\x12\t\n" +
 	"\x05PARKS\x10\x05\x12\t\n" +
-	"\x05OTHER\x10\x06*\\\n" +
+	"\x05OTHER\x10\x06*n\n" +
 	"\x11ProjectVoteStatus\x12\r\n" +
 	"\tPUBLISHED\x10\x00\x12\f\n" +
 	"\bPROGRESS\x10\x01\x12\x10\n" +
 	"\fIMPLEMENTING\x10\x02\x12\n" +
 	"\n" +
 	"\x06CLOSED\x10\x03\x12\f\n" +
-	"\bARCHIVED\x10\x04B5Z3ascendant/backend/internal/gen/projects/v1;projectsb\x06proto3"
+	"\bARCHIVED\x10\x04\x12\x10\n" +
+	"\fINMODERATION\x10\x05B5Z3ascendant/backend/internal/gen/projects/v1;projectsb\x06proto3"
 
 var (
 	file_projects_domain_proto_rawDescOnce sync.Once

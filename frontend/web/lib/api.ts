@@ -499,7 +499,7 @@ export async function fetchSubmissions(options?: {
 
 export async function toggleProjectLike(projectID: string): Promise<void> {
   const encoded = encodeURIComponent(projectID);
-  await apiRequest(`/api/projects/${encoded}/like`, {
+  await apiRequest(`/api/projects/like/${encoded}`, {
     method: "POST",
     body: JSON.stringify({}),
   });

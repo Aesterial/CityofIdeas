@@ -42,3 +42,18 @@ message VKCallbackResponse {
   string redirect_url = 1;
   string tracing = 2;
 }
+
+message WithEmailRequest {
+    string email = 1;
+}
+
+message VerifyEmailRequest {
+    string email = 1;
+    string token = 2;
+}
+
+message ResetPasswordRequest {
+    string email = 1;
+    string password = 2;
+    string token = 3;
+}

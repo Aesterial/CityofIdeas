@@ -20,11 +20,15 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	LoginService_Authorization_FullMethodName = "/login.v1.LoginService/Authorization"
-	LoginService_Register_FullMethodName      = "/login.v1.LoginService/Register"
-	LoginService_Logout_FullMethodName        = "/login.v1.LoginService/Logout"
-	LoginService_VkStart_FullMethodName       = "/login.v1.LoginService/VkStart"
-	LoginService_VkCallback_FullMethodName    = "/login.v1.LoginService/VkCallback"
+	LoginService_Authorization_FullMethodName      = "/login.v1.LoginService/Authorization"
+	LoginService_Register_FullMethodName           = "/login.v1.LoginService/Register"
+	LoginService_Logout_FullMethodName             = "/login.v1.LoginService/Logout"
+	LoginService_VkStart_FullMethodName            = "/login.v1.LoginService/VkStart"
+	LoginService_VkCallback_FullMethodName         = "/login.v1.LoginService/VkCallback"
+	LoginService_VerifyEmailStart_FullMethodName   = "/login.v1.LoginService/VerifyEmailStart"
+	LoginService_ResetPasswordStart_FullMethodName = "/login.v1.LoginService/ResetPasswordStart"
+	LoginService_VerifyEmail_FullMethodName        = "/login.v1.LoginService/VerifyEmail"
+	LoginService_ResetPassword_FullMethodName      = "/login.v1.LoginService/ResetPassword"
 )
 
 // LoginServiceClient is the client API for LoginService service.
@@ -36,6 +40,10 @@ type LoginServiceClient interface {
 	Logout(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*EmptyResponse, error)
 	VkStart(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*VKStartResponse, error)
 	VkCallback(ctx context.Context, in *VKCallbackRequest, opts ...grpc.CallOption) (*VKCallbackResponse, error)
+	VerifyEmailStart(ctx context.Context, in *WithEmailRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
+	ResetPasswordStart(ctx context.Context, in *WithEmailRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
+	VerifyEmail(ctx context.Context, in *VerifyEmailRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
+	ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
 }
 
 type loginServiceClient struct {
@@ -96,6 +104,46 @@ func (c *loginServiceClient) VkCallback(ctx context.Context, in *VKCallbackReque
 	return out, nil
 }
 
+func (c *loginServiceClient) VerifyEmailStart(ctx context.Context, in *WithEmailRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EmptyResponse)
+	err := c.cc.Invoke(ctx, LoginService_VerifyEmailStart_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *loginServiceClient) ResetPasswordStart(ctx context.Context, in *WithEmailRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EmptyResponse)
+	err := c.cc.Invoke(ctx, LoginService_ResetPasswordStart_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *loginServiceClient) VerifyEmail(ctx context.Context, in *VerifyEmailRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EmptyResponse)
+	err := c.cc.Invoke(ctx, LoginService_VerifyEmail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *loginServiceClient) ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EmptyResponse)
+	err := c.cc.Invoke(ctx, LoginService_ResetPassword_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LoginServiceServer is the server API for LoginService service.
 // All implementations must embed UnimplementedLoginServiceServer
 // for forward compatibility.
@@ -105,6 +153,10 @@ type LoginServiceServer interface {
 	Logout(context.Context, *emptypb.Empty) (*EmptyResponse, error)
 	VkStart(context.Context, *emptypb.Empty) (*VKStartResponse, error)
 	VkCallback(context.Context, *VKCallbackRequest) (*VKCallbackResponse, error)
+	VerifyEmailStart(context.Context, *WithEmailRequest) (*EmptyResponse, error)
+	ResetPasswordStart(context.Context, *WithEmailRequest) (*EmptyResponse, error)
+	VerifyEmail(context.Context, *VerifyEmailRequest) (*EmptyResponse, error)
+	ResetPassword(context.Context, *ResetPasswordRequest) (*EmptyResponse, error)
 	mustEmbedUnimplementedLoginServiceServer()
 }
 
@@ -129,6 +181,18 @@ func (UnimplementedLoginServiceServer) VkStart(context.Context, *emptypb.Empty) 
 }
 func (UnimplementedLoginServiceServer) VkCallback(context.Context, *VKCallbackRequest) (*VKCallbackResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method VkCallback not implemented")
+}
+func (UnimplementedLoginServiceServer) VerifyEmailStart(context.Context, *WithEmailRequest) (*EmptyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method VerifyEmailStart not implemented")
+}
+func (UnimplementedLoginServiceServer) ResetPasswordStart(context.Context, *WithEmailRequest) (*EmptyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResetPasswordStart not implemented")
+}
+func (UnimplementedLoginServiceServer) VerifyEmail(context.Context, *VerifyEmailRequest) (*EmptyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method VerifyEmail not implemented")
+}
+func (UnimplementedLoginServiceServer) ResetPassword(context.Context, *ResetPasswordRequest) (*EmptyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResetPassword not implemented")
 }
 func (UnimplementedLoginServiceServer) mustEmbedUnimplementedLoginServiceServer() {}
 func (UnimplementedLoginServiceServer) testEmbeddedByValue()                      {}
@@ -241,6 +305,78 @@ func _LoginService_VkCallback_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LoginService_VerifyEmailStart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WithEmailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoginServiceServer).VerifyEmailStart(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LoginService_VerifyEmailStart_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoginServiceServer).VerifyEmailStart(ctx, req.(*WithEmailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LoginService_ResetPasswordStart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WithEmailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoginServiceServer).ResetPasswordStart(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LoginService_ResetPasswordStart_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoginServiceServer).ResetPasswordStart(ctx, req.(*WithEmailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LoginService_VerifyEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifyEmailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoginServiceServer).VerifyEmail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LoginService_VerifyEmail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoginServiceServer).VerifyEmail(ctx, req.(*VerifyEmailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LoginService_ResetPassword_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResetPasswordRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoginServiceServer).ResetPassword(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LoginService_ResetPassword_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoginServiceServer).ResetPassword(ctx, req.(*ResetPasswordRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LoginService_ServiceDesc is the grpc.ServiceDesc for LoginService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -267,6 +403,22 @@ var LoginService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "VkCallback",
 			Handler:    _LoginService_VkCallback_Handler,
+		},
+		{
+			MethodName: "VerifyEmailStart",
+			Handler:    _LoginService_VerifyEmailStart_Handler,
+		},
+		{
+			MethodName: "ResetPasswordStart",
+			Handler:    _LoginService_ResetPasswordStart_Handler,
+		},
+		{
+			MethodName: "VerifyEmail",
+			Handler:    _LoginService_VerifyEmail_Handler,
+		},
+		{
+			MethodName: "ResetPassword",
+			Handler:    _LoginService_ResetPassword_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -1,4 +1,5 @@
 create extension if not exists pgcrypto;
+create extension if not exists citext;
 
 -- enums
 create type user_rank as enum ('user', 'staff', 'developer');
@@ -10,6 +11,7 @@ create type submissions_state as enum ('approved', 'declined', 'waiting');
 create type picture_owner_type as enum ('user', 'project', 'unspecified');
 create type picture_rate_state as enum ('good', 'bad', 'neutral');
 create type oauth_service_enum as enum ('vk');
+create type verification_purpose as enum ('verify_email', 'reset_password');
 
 create type picture_t as (
     content_type varchar(64),
@@ -136,6 +138,13 @@ create table user_avatars (
     content_type varchar(64),
     size_bytes bigint,
     updated_at timestamptz not null default now()
+);
+
+create table ranks (
+    name user_rank primary key,
+    color int,
+    description text,
+    permissions permissions_t not null default ROW(true, false, true, false, false, false, true, true, true, false, false, true, true, true, false, true, true, false, false, false, false, false, false, false, false)::permissions_t
 );
 
 create unique index user_avatars_object_key_uq on user_avatars (object_key);
@@ -327,6 +336,34 @@ create table events (
 
     trace_id varchar(255) not null,
     result event_result not null
+);
+
+-- verifications and resets
+create table auth_action_tokens (
+    id bigserial primary key,
+    email citext not null,
+    purpose verification_purpose not null,
+    token_hash bytea not null,
+    created_at timestamptz not null default now(),
+    expires_at timestamptz not null,
+    used_at timestamptz,
+    ip inet,
+    user_agent text
+);
+
+create unique index auth_action_tokens_one_active
+    on auth_action_tokens (email, purpose)
+    where used_at is null;
+
+create index auth_action_tokens_expires_idx on auth_action_tokens (expires_at);
+create index auth_action_tokens_hash_idx on auth_action_tokens (token_hash);
+
+-- banned emails
+create table banned_emails (
+    id bigserial primary key,
+    email citext not null unique,
+    reason text not null default 'email is not valid',
+    created_at timestamptz not null default now()
 );
 
 -- sessions
