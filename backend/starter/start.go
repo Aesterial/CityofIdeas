@@ -7,11 +7,13 @@ import (
 	sessionsinfo "ascendant/backend/internal/app/info/sessions"
 	userinfo "ascendant/backend/internal/app/info/user"
 	loggerservice "ascendant/backend/internal/app/logger"
+	"ascendant/backend/internal/app/mailer"
 	usermodifier "ascendant/backend/internal/app/modifier/user"
 	projectsapp "ascendant/backend/internal/app/projects"
 	appstatistics "ascendant/backend/internal/app/statistics"
 	storageapp "ascendant/backend/internal/app/storage"
 	"ascendant/backend/internal/app/submissions"
+	"ascendant/backend/internal/app/verification"
 	loginpb "ascendant/backend/internal/gen/login/v1"
 	permspb "ascendant/backend/internal/gen/permissions/v1"
 	projpb "ascendant/backend/internal/gen/projects/v1"
@@ -110,6 +112,7 @@ func main() {
 	statisticsRepo := db.NewStatisticsRepository(dbConn)
 	projectsRepo := db.NewProjectsRepository(dbConn)
 	submissionsRepo := db.NewSubmissionRepository(dbConn)
+	verificationRepo := db.NewVerificationRepository(dbConn)
 
 	loggerServ := loggerservice.New(loggerRepo)
 
@@ -126,13 +129,15 @@ func main() {
 	statService := appstatistics.New(statisticsRepo)
 	projectsService := projectsapp.New(projectsRepo)
 	submissionService := submissions.New(submissionsRepo, projectsService, userInfoService)
+	mailerService := mailer.New(env.Mailer.ApiKey, env.Mailer.Name, env.Mailer.Email)
+	verificationService := verification.New(verificationRepo, mailerService)
 	storageService, err := storageapp.New()
 	if err != nil {
 		logger.Error("Failed to init storage: "+err.Error(), "service.storage.init", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
 		return
 	}
 
-	loginServer := grpcserver.NewLoginService(loginService, sessionsService, permissionsService, userInfoService)
+	loginServer := grpcserver.NewLoginService(loginService, sessionsService, permissionsService, userInfoService, verificationService)
 	userServer := grpcserver.NewUserService(userInfoService, userModifierService, sessionsService, permissionsService, storageService)
 	permissionsServer := grpcserver.NewPermissionsService(permissionsService, sessionsService, userInfoService)
 	statServer := grpcserver.NewStatService(statService, sessionsService, permissionsService, userInfoService)

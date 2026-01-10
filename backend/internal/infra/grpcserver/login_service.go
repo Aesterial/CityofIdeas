@@ -5,9 +5,11 @@ import (
 	"ascendant/backend/internal/app/info/permissions"
 	"ascendant/backend/internal/app/info/sessions"
 	userapp "ascendant/backend/internal/app/info/user"
+	"ascendant/backend/internal/app/verification"
 	logindomain "ascendant/backend/internal/domain/login"
 	loginpb "ascendant/backend/internal/gen/login/v1"
 	"ascendant/backend/internal/infra/logger"
+	verdomain "ascendant/backend/internal/domain/verification"
 	"context"
 	"errors"
 	"strings"
@@ -23,10 +25,11 @@ type LoginService struct {
 	loginpb.UnimplementedLoginServiceServer
 	login *loginapp.Service
 	auth  *Authenticator
+	verification *verification.Service
 }
 
-func NewLoginService(login *loginapp.Service, ses *sessions.Service, perms *permissions.Service, us *userapp.Service) *LoginService {
-	return &LoginService{login: login, auth: NewAuthenticator(ses, perms, us)}
+func NewLoginService(login *loginapp.Service, ses *sessions.Service, perms *permissions.Service, us *userapp.Service, ver *verification.Service) *LoginService {
+	return &LoginService{login: login, auth: NewAuthenticator(ses, perms, us), verification: ver}
 }
 
 func (s *LoginService) Authorization(ctx context.Context, req *loginpb.AuthRequest) (*loginpb.AuthResponse, error) {
@@ -111,6 +114,66 @@ func (s *LoginService) Logout(ctx context.Context, _ *emptypb.Empty) (*loginpb.E
 		return nil, statusFromError(err)
 	}
 	return &loginpb.EmptyResponse{Tracing: traceID}, nil
+}
+
+func (s *LoginService) ResetPasswordStart(ctx context.Context, req *loginpb.WithEmailRequest) (*loginpb.EmptyResponse, error) {
+	if s == nil || s.verification == nil {
+		return nil, status.Error(codes.Internal, "verificaion service is not configured")
+	}
+	if req.GetEmail() == "" {
+		return nil, status.Error(codes.InvalidArgument, "email is empty")
+	}
+	banned, err := s.verification.IsBanned(ctx, req.GetEmail())
+	if err != nil {
+		logger.Debug("error while getting banned state: " + err.Error(), "")
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+	if banned {
+		return nil, status.Error(codes.PermissionDenied, "email is banned")
+	}
+	ip, exists := clientIP(ctx)
+	if !exists {
+		return nil, status.Error(codes.InvalidArgument, "ip not found")
+	}
+	token, err := s.verification.Create(ctx, req.GetEmail(), verdomain.PasswordReset, ip, userAgentHash(ctx), 5 * time.Minute)
+	if err != nil {
+		return nil, err
+	}
+	_, err = s.verification.Mailer.SendPasswordReset(ctx, req.GetEmail(), token);
+	if err != nil {
+		return nil, err
+	}
+	return &loginpb.EmptyResponse{Tracing: TraceIDOrNew(ctx)}, nil
+}
+
+func (s *LoginService) VerifyEmailStart(ctx context.Context, req *loginpb.WithEmailRequest) (*loginpb.EmptyResponse, error) {
+	if s == nil || s.verification == nil {
+		return nil, status.Error(codes.Internal, "verification service is not configured")
+	}
+	if req.GetEmail() == "" {
+		return nil, status.Error(codes.InvalidArgument, "email is empty")
+	}
+	banned, err := s.verification.IsBanned(ctx, req.GetEmail())
+	if err != nil {
+		return nil, status.Error(codes.Internal, "internal error")
+	}
+	if banned {
+		return nil, status.Error(codes.PermissionDenied, "email is banned")
+	}
+	ip, exists := clientIP(ctx)
+	if !exists {
+		return nil, status.Error(codes.InvalidArgument, "ip not found")
+	}
+	token, err := s.verification.Create(ctx, req.GetEmail(), verdomain.EmailVerification, ip, userAgentHash(ctx), 5 * time.Minute)
+	if err != nil {
+		logger.Debug("Error while creating verification record: "+err.Error(), "")
+		return nil, status.Error(codes.Internal, "failed to create verification record")
+	}
+	_, err = s.verification.Mailer.SendEmailVerify(ctx, req.GetEmail(), token)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to send verification message")
+	}
+	return &loginpb.EmptyResponse{Tracing: TraceIDOrNew(ctx)}, nil
 }
 
 func (s *LoginService) issueAndStoreSession(ctx context.Context, uid uint) error {

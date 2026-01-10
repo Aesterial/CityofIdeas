@@ -36,6 +36,7 @@ enum ProjectVoteStatus {
   IMPLEMENTING = 2;
   CLOSED = 3;
   ARCHIVED = 4;
+  INMODERATION =5;
 }
 
 message ProjectLocation {

@@ -8,12 +8,15 @@ import (
 	"ascendant/backend/internal/domain/sessions"
 	"ascendant/backend/internal/domain/statistics"
 	"ascendant/backend/internal/domain/submissions"
+	"ascendant/backend/internal/domain/verification"
 	userpb "ascendant/backend/internal/gen/user/v1"
+	"fmt"
 
 	"ascendant/backend/internal/domain/user"
 	statpb "ascendant/backend/internal/gen/statistics/v1"
 	"ascendant/backend/internal/infra/logger"
 	"context"
+	"crypto/rand"
 	"database/sql"
 	"errors"
 	"strconv"
@@ -55,6 +58,10 @@ type SubmissionsRepository struct {
 	DB *sql.DB
 }
 
+type VerificationRepository struct {
+	DB *sql.DB
+}
+
 var _ user.Repository = (*UserRepository)(nil)
 
 func NewUserRepository(db *sql.DB) *UserRepository {
@@ -81,17 +88,225 @@ func NewProjectsRepository(db *sql.DB) *ProjectsRepository {
 func NewSubmissionRepository(db *sql.DB) *SubmissionsRepository {
 	return &SubmissionsRepository{DB: db}
 }
+func NewVerificationRepository(db *sql.DB) *VerificationRepository {
+	return &VerificationRepository{DB: db}
+}
+
+type compositeField struct {
+	Value string
+	Valid bool
+}
+
+func parseComposite(raw string) ([]compositeField, error) {
+	if raw == "" {
+		return nil, errors.New("composite value is empty")
+	}
+	if raw[0] != '(' || raw[len(raw)-1] != ')' {
+		return nil, fmt.Errorf("invalid composite value: %q", raw)
+	}
+	raw = raw[1 : len(raw)-1]
+	var fields []compositeField
+	var buf strings.Builder
+	inQuotes := false
+	escape := false
+	depth := 0
+	fieldQuoted := false
+
+	flush := func() {
+		val := buf.String()
+		if val == "" && !fieldQuoted {
+			fields = append(fields, compositeField{Valid: false})
+		} else {
+			fields = append(fields, compositeField{Value: val, Valid: true})
+		}
+		buf.Reset()
+		fieldQuoted = false
+	}
+
+	for i := 0; i < len(raw); i++ {
+		ch := raw[i]
+		if inQuotes {
+			if escape {
+				buf.WriteByte(ch)
+				escape = false
+				continue
+			}
+			if ch == '\\' {
+				escape = true
+				continue
+			}
+			if ch == '"' {
+				inQuotes = false
+				continue
+			}
+			buf.WriteByte(ch)
+			continue
+		}
+		switch ch {
+		case '"':
+			inQuotes = true
+			if depth == 0 {
+				fieldQuoted = true
+			}
+		case '(':
+			depth++
+			buf.WriteByte(ch)
+		case ')':
+			if depth > 0 {
+				depth--
+			}
+			buf.WriteByte(ch)
+		case ',':
+			if depth == 0 {
+				flush()
+			} else {
+				buf.WriteByte(ch)
+			}
+		default:
+			buf.WriteByte(ch)
+		}
+	}
+	flush()
+	return fields, nil
+}
+
+func parsePostgresBool(raw string) (bool, error) {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "t", "true", "1", "yes", "y":
+		return true, nil
+	case "f", "false", "0", "no", "n":
+		return false, nil
+	default:
+		return false, fmt.Errorf("invalid bool value: %q", raw)
+	}
+}
+
+func parsePostgresTime(raw string) (time.Time, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return time.Time{}, errors.New("time value is empty")
+	}
+	layouts := []string{
+		"2006-01-02 15:04:05.999999999Z07:00",
+		"2006-01-02 15:04:05Z07:00",
+		"2006-01-02 15:04:05.999999999Z07",
+		"2006-01-02 15:04:05Z07",
+		"2006-01-02T15:04:05.999999999Z07:00",
+		"2006-01-02T15:04:05Z07:00",
+		"2006-01-02T15:04:05.999999999Z07",
+		"2006-01-02T15:04:05Z07",
+	}
+	for _, layout := range layouts {
+		if t, err := time.Parse(layout, raw); err == nil {
+			return t, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("unsupported time format: %q", raw)
+}
 
 func parseRowsToUsers(ctx context.Context, rows *sql.Rows, getAvatar func(context.Context, uint) (*user.Avatar, error), isBanned func(context.Context, uint) (bool, *user.BanInfo, error)) (user.Users, error) {
 	var usrs user.Users
 	var err error
+	cols, err := rows.Columns()
+	if err != nil {
+		return nil, err
+	}
 	defer func() {
 		_ = rows.Close()
 	}()
 	for rows.Next() {
 		var usr = user.User{Settings: &user.Settings{Avatar: &user.Avatar{}}, Rank: &rank.Rank{}, Email: &user.Email{}}
-		if err := rows.Scan(&usr.UID, &usr.Username, &usr.Email.Address, &usr.Email.Verified, &usr.Rank.Name, &usr.Rank.Expires, &usr.Joined); err != nil {
-			return nil, err
+		switch len(cols) {
+		case 7:
+			var emailAddress sql.NullString
+			var emailVerified sql.NullBool
+			var rankName sql.NullString
+			var rankExpires sql.NullTime
+			if err := rows.Scan(&usr.UID, &usr.Username, &emailAddress, &emailVerified, &rankName, &rankExpires, &usr.Joined); err != nil {
+				return nil, err
+			}
+			if emailAddress.Valid {
+				usr.Email.Address = emailAddress.String
+			}
+			if emailVerified.Valid {
+				usr.Email.Verified = emailVerified.Bool
+			}
+			if rankName.Valid {
+				usr.Rank.Name = rankName.String
+			}
+			if rankExpires.Valid {
+				usr.Rank.Expires = &rankExpires.Time
+			}
+		case 8:
+			var emailRaw sql.NullString
+			var settingsRaw sql.NullString
+			var rankRaw sql.NullString
+			var permissionsRaw sql.NullString
+			var password sql.NullString
+			if err := rows.Scan(&usr.UID, &usr.Username, &emailRaw, &settingsRaw, &rankRaw, &permissionsRaw, &usr.Joined, &password); err != nil {
+				return nil, err
+			}
+			password.String = ""
+
+			if emailRaw.Valid {
+				fields, err := parseComposite(emailRaw.String)
+				if err != nil {
+					return nil, err
+				}
+				if len(fields) < 2 {
+					return nil, fmt.Errorf("email composite has %d fields", len(fields))
+				}
+				if fields[0].Valid {
+					usr.Email.Address = fields[0].Value
+				}
+				if fields[1].Valid {
+					verified, err := parsePostgresBool(fields[1].Value)
+					if err != nil {
+						return nil, err
+					}
+					usr.Email.Verified = verified
+				}
+			}
+
+			if settingsRaw.Valid {
+				fields, err := parseComposite(settingsRaw.String)
+				if err != nil {
+					return nil, err
+				}
+				if len(fields) >= 1 && fields[0].Valid {
+					displayName := strings.TrimSpace(fields[0].Value)
+					if displayName != "" {
+						usr.Settings.DisplayName = &displayName
+					}
+				}
+				if len(fields) >= 3 && fields[2].Valid && fields[2].Value != "" {
+					liveTime, err := strconv.Atoi(fields[2].Value)
+					if err != nil {
+						return nil, err
+					}
+					usr.Settings.SessionLiveTime = liveTime
+				}
+			}
+
+			if rankRaw.Valid {
+				fields, err := parseComposite(rankRaw.String)
+				if err != nil {
+					return nil, err
+				}
+				if len(fields) >= 1 && fields[0].Valid {
+					usr.Rank.Name = fields[0].Value
+				}
+				if len(fields) >= 2 && fields[1].Valid && fields[1].Value != "" {
+					expiresAt, err := parsePostgresTime(fields[1].Value)
+					if err != nil {
+						return nil, err
+					}
+					usr.Rank.Expires = &expiresAt
+				}
+			}
+			_ = permissionsRaw
+		default:
+			return nil, fmt.Errorf("unexpected users columns count: %d", len(cols))
 		}
 		usr.Settings.Avatar, err = getAvatar(ctx, usr.UID)
 		if err != nil {
@@ -103,7 +318,29 @@ func parseRowsToUsers(ctx context.Context, rows *sql.Rows, getAvatar func(contex
 		}
 		usrs = append(usrs, &usr)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 	return usrs, nil
+}
+
+const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+func generateString(n int) (string, error) {
+	if n <= 0 {
+		return "", nil
+	}
+
+	b := make([]byte, n)
+	if _, err := rand.Read(b); err != nil {
+		return "", fmt.Errorf("rand.Read: %w", err)
+	}
+
+	out := make([]byte, n)
+	for i := range n {
+		out[i] = letters[int(b[i])%len(letters)]
+	}
+	return string(out), nil
 }
 
 func (u *UserRepository) GetList(ctx context.Context) ([]*userpb.UserPublic, error) {
@@ -185,18 +422,20 @@ func (u *UserRepository) GetJoinedAT(ctx context.Context, uid uint) (*time.Time,
 func (u *UserRepository) GetSettings(ctx context.Context, uid uint) (*user.Settings, error) {
 	var err error
 	rowMain := u.DB.QueryRowContext(ctx,
-		"SELECT (u.settings).session_live_time, u.password, (u.settings).display_name FROM users u WHERE u.uid = $1",
+		"SELECT (u.settings).session_live_time, (u.settings).display_name FROM users u WHERE u.uid = $1",
 		uid)
 	if err = rowMain.Err(); err != nil {
 		return nil, err
 	}
 	var s user.Settings
 	var displayName sql.NullString
-	if err = rowMain.Scan(&s.SessionLiveTime, &s.Password, &displayName); err != nil {
+	if err = rowMain.Scan(&s.SessionLiveTime, &displayName); err != nil {
 		return nil, err
 	}
 	if displayName.Valid {
-		s.DisplayName = &displayName.String
+		if displayName.String != "" {
+			s.DisplayName = &displayName.String
+		}
 	}
 	s.Avatar, err = u.GetAvatar(ctx, uid)
 	if err != nil {
@@ -819,7 +1058,7 @@ func getProjectPhotos(ctx context.Context, projId uuid.UUID, db *sql.DB) (user.A
 }
 
 func getWhoLikedProject(ctx context.Context, id uuid.UUID, db *sql.DB) (user.Users, error) {
-	rows, err := db.QueryContext(ctx, "SELECT l.project_id, l.user_uid, l.created_at, u.* FROM project_likes l JOIN users u ON u.uid = l.user_uid WHERE l.project_id = $1 ORDER BY l.created_at DESC OFFSET $2", id, 0)
+	rows, err := db.QueryContext(ctx, "SELECT u.* FROM project_likes l JOIN users u ON u.uid = l.user_uid WHERE l.project_id = $1 ORDER BY l.created_at DESC OFFSET $2", id, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -831,7 +1070,8 @@ func getProject(ctx context.Context, id uuid.UUID, db *sql.DB) (*projectdomain.P
 	var project projectdomain.Project
 	var err error
 	var authorID uint
-	if err = db.QueryRowContext(ctx, "SELECT p.id, p.author_uid, (p.info).title, (p.info).description, (p.info).category, ((p.info).location).city, ((p.info).location).street, ((p.info).location).house, p.likes_count, p.created_at FROM projects p WHERE p.id = $1", id).Scan(&project.ID, &authorID, &project.Info.Title, &project.Info.Description, &project.Info.Category, &project.Info.Location.City, &project.Info.Location.Street, &project.Info.Location.House, &project.Likes, &project.At); err != nil {
+	if err = db.QueryRowContext(ctx, "SELECT p.id, p.author_uid, (p.info).title, (p.info).description, (p.info).category, ((p.info).location).city, ((p.info).location).street, ((p.info).location).house, p.likes_count, p.created_at, p.status FROM projects p WHERE p.id = $1", id).Scan(
+		&project.ID, &authorID, &project.Info.Title, &project.Info.Description, &project.Info.Category, &project.Info.Location.City, &project.Info.Location.Street, &project.Info.Location.House, &project.Likes, &project.At, &project.Status); err != nil {
 		return nil, err
 	}
 	project.Author, err = getProjectAuthor(ctx, authorID, db)
@@ -1281,7 +1521,7 @@ func (s *StatisticsRepository) MediaCoverage(context.Context) (map[int64]*statpb
 func (s *StatisticsRepository) QualityRecap(ctx context.Context) (*statpb.EditorsGradeResponse, error) {
 	var good, bad uint
 	if err := s.DB.QueryRowContext(ctx, `
-		SELECT 
+		SELECT
 		    COUNT (*) FILTER (WHERE rate = 'good') AS good,
 		    COUNT (*) FILTER (WHERE rate = 'bad') AS bad
 		FROM pictures`).Scan(&good, &bad); err != nil {
@@ -1348,4 +1588,79 @@ func (s *SubmissionsRepository) Decline(ctx context.Context, id int32, reason st
 		return err
 	}
 	return nil
+}
+
+var _ verification.Repository = (*VerificationRepository)(nil)
+
+func (v *VerificationRepository) Create(ctx context.Context, email string, purpose verification.Purpose, ip string, userAgent string, ttl time.Duration) (string, error) {
+	if email == "" || !purpose.IsValid() || ip == "" || userAgent == "" || ttl == 0 {
+		return "", errors.New("invalid params")
+	}
+	token, err := generateString(32)
+	if err != nil {
+		return "", err
+	}
+	if _, err = v.DB.ExecContext(ctx, "INSERT INTO auth_action_tokens ( email, purpose, token_hash, expires_at, ip, user_agent) VALUES ($1, $2, $3, $4, $5, $6)", email, purpose.String(), []byte(token), time.Now().Add(ttl), ip, userAgent); err != nil {
+		return "", err
+	}
+	return token, nil
+}
+
+func (v *VerificationRepository) GetRecord(ctx context.Context, purpose verification.Purpose, token string) (*verification.TokenRecord, error) {
+	if !purpose.IsValid() || token == "" {
+		return nil, errors.New("params in empty")
+	}
+	var record verification.TokenRecord
+	if err := v.DB.QueryRowContext(ctx, "SELECT id, email, purpose, expires_at, used_at FROM auth_action_tokens WHERE token_hash = $1 AND purpose = $2", token, purpose.String()).Scan(
+		&record.ID,
+		&record.Email,
+		&record.Purpose,
+		&record.ExpiresAt,
+		&record.UsedAt,
+	); err != nil {
+		return nil, err
+	}
+	return &record, nil
+}
+
+func (v *VerificationRepository) Consume(ctx context.Context, purpose verification.Purpose, token string) (*verification.TokenRecord, error) {
+	if !purpose.IsValid() || token == "" {
+		return nil, errors.New("invalid params")
+	}
+	var exists bool
+	if err := v.DB.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM auth_action_tokens WHERE token_hash = $1 AND purpose = $2)", token, purpose.String()).Scan(&exists); err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, errors.New("not found")
+	}
+	if _, err := v.DB.ExecContext(ctx, "UPDATE auth_action_tokens SET used_at = $1 WHERE token_hash = $2 AND purpose = $3", time.Now(), token, purpose.String()); err != nil {
+		return nil, err
+	}
+	data, err := v.GetRecord(ctx, purpose, token)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (v *VerificationRepository) BanEmail(ctx context.Context, email string, reason string) error {
+	if email == "" || reason == "" {
+		return errors.New("params is empty")
+	}
+	if _, err := v.DB.ExecContext(ctx, "INSERT INTO banned_emails (email, reason) VALUES ($1, $2)", email, reason); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (v *VerificationRepository) IsBanned(ctx context.Context, email string) (bool, error) {
+	if email == "" {
+		return false, errors.New("param is empty")
+	}
+	var found bool
+	if err := v.DB.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM banned_emails WHERE email = $1)", email).Scan(&found); err != nil {
+		return false, err
+	}
+	return found, nil
 }

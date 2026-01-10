@@ -120,7 +120,7 @@ func (s *ProjectService) Get(ctx context.Context, req *projpb.GetRequest) (*proj
 		return nil, err
 	}
 	logger.Info("Requested list of projects", "projects.list.get", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.None, trace)
-	list, err := s.projects.GetProjects(ctx, int(req.Offset), int(req.Limit))
+	list, err := s.projects.GetProjects(ctx, int(req.Offset), int(req.Limit), projectsdomain.WithStatuses(projectsdomain.InProgress.String(), projectsdomain.Published.String()))
 	if err != nil {
 		return nil, err
 	}

@@ -2,6 +2,7 @@ package projects
 
 import (
 	projpb "ascendant/backend/internal/gen/projects/v1"
+	"ascendant/backend/internal/infra/logger"
 	"fmt"
 	"strings"
 	"time"
@@ -55,13 +56,31 @@ func (p projectInfo) ToProto() *projpb.ProjectInfo {
 
 type ProjectVoteStatus string
 
+const (
+	Archived     ProjectVoteStatus = "archived"
+	Implementing ProjectVoteStatus = "implementing"
+	InProgress   ProjectVoteStatus = "vote in progress"
+	Closed       ProjectVoteStatus = "closed"
+	Published    ProjectVoteStatus = "published"
+	OnModeration ProjectVoteStatus = "in moderation"
+)
+
 func (p ProjectVoteStatus) String() string {
 	return string(p)
 }
 
 func (p ProjectVoteStatus) ToProto() projpb.ProjectVoteStatus {
+	logger.Debug("Project vote status: " + p.String(), "")
 	switch p {
-	case "closed":
+	case OnModeration:
+		return projpb.ProjectVoteStatus_INMODERATION
+	case Published:
+		return projpb.ProjectVoteStatus_PUBLISHED
+	case InProgress:
+		return projpb.ProjectVoteStatus_PROGRESS
+	case Implementing:
+		return projpb.ProjectVoteStatus_IMPLEMENTING
+	case Closed:
 		return projpb.ProjectVoteStatus_CLOSED
 	default:
 		return projpb.ProjectVoteStatus_ARCHIVED
