@@ -99,6 +99,11 @@ func ensure() {
 			ForcePathStyle:    parseBool("STORAGE_FORCE_PATH_STYLE", false),
 			PresignTTLSeconds: parseInt("STORAGE_PRESIGN_TTL_SECONDS", 900),
 		},
+		Mailer: domain.Mailer{
+			ApiKey: envValue("MAILER_API_KEY"),
+			Email:  envValue("MAILER_FROM_EMAIL"),
+			Name:   envValue("MAILER_FROM_NAME"),
+		},
 	}
 	env.MarkLoaded()
 }

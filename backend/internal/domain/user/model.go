@@ -54,7 +54,6 @@ type SessionTime struct {
 type Settings struct {
 	DisplayName     *string
 	Avatar          *Avatar
-	Password        *string
 	SessionLiveTime int
 }
 

@@ -29,8 +29,8 @@
   <a href="https://go.dev/">
     <img alt="Go" src="https://img.shields.io/badge/Go-1.25.5-00ADD8?logo=go&logoColor=white">
   </a>
-  <a href="https://kit.svelte.dev/">
-    <img alt="SvelteKit" src="https://img.shields.io/badge/SvelteKit-Vite-FF3E00?logo=svelte&logoColor=white">
+  <a href="https://nextjs.org/">
+    <img alt="Next.js" src="https://img.shields.io/badge/Next.js-React-000000?logo=next.js&logoColor=white">
   </a>
 </p>
 
@@ -61,7 +61,7 @@
 
 Монорепозиторий для веба и бэкенда.
 
-- 🌐 **Web**: SvelteKit + Vite, TypeScript, SSR-ready
+- 🌐 **Web**: Next.js + React, TypeScript, SSR-ready
   `frontend/web`
 - ⚙️ **Backend**: Go workspace (`backend/go.work`)
   `backend/internal` (domain/app/infra/shared) + `backend/starter`
@@ -72,7 +72,7 @@
 
 ```text
 backend/            Go workspace (internal packages + starter entry)
-frontend/web/       SvelteKit app (src/routes, src/lib, static)
+frontend/web/       Next.js app (app/, components/, public/)
 .github/            CI configuration + assets
 ```
 
@@ -102,7 +102,7 @@ npm run dev
 
 ### Backend
 ```sh
-cd oldbackend
+cd backend
 go work sync
 ```
 
@@ -113,8 +113,8 @@ go work sync
 ### Web
 - `npm run dev` — dev-сервер
 - `npm run build` — сборка
-- `npm run preview` — предпросмотр сборки
-- `npm run check` — диагностика Svelte + TS
+- `npm run start` — предпросмотр сборки
+- `npm run lint` — ESLint проверки
 
 ### Backend
 - `go test ./...` (внутри `backend/internal` или `backend/starter`, когда появятся тесты)
@@ -123,14 +123,14 @@ go work sync
 
 ## 🧪 Тестирование
 
-- Web: `npm run check`, далее `*.spec.ts` (Vitest/Playwright) по мере расширения покрытия
+- Web: `npm run lint`, далее `*.spec.tsx` (Vitest/Playwright) по мере расширения покрытия
 - Backend: табличные Go-тесты рядом с пакетами (пример: `internal/app/auth/auth_test.go`)
 
 ---
 
 ## 🔐 Окружение & конфиг
 
-- Web: `.env` в `frontend/web` (по соглашениям Vite)
+- Web: `.env.local` (или `.env`) в `frontend/web` по соглашениям Next.js
 - Backend: конфигурация — в `backend/internal/infra` по мере добавления компонентов
 
 ---

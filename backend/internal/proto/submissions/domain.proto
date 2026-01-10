@@ -20,8 +20,9 @@ message DeclineRequest {
 
 message ListResponse {
   message target {
-    projects.v1.Project info = 1;
-    string state = 2;
+    int32 id = 1;
+    projects.v1.Project info = 2;
+    string state = 3;
   }
   repeated target data = 1;
   string tracing = 2;

@@ -1,6 +1,7 @@
 package verification
 
 import (
+	"ascendant/backend/internal/app/mailer"
 	"ascendant/backend/internal/domain/verification"
 	"context"
 	"errors"
@@ -9,10 +10,11 @@ import (
 
 type Service struct {
 	repo verification.Repository
+	Mailer *mailer.Service
 }
 
-func New(repo verification.Repository) *Service {
-	return &Service{repo: repo}
+func New(repo verification.Repository, m *mailer.Service) *Service {
+	return &Service{repo: repo, Mailer: m}
 }
 
 func (s *Service) Create(ctx context.Context, email string, purpose verification.Purpose, ip string, userAgent string, ttl time.Duration) (token string, err error) {

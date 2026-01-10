@@ -2,6 +2,7 @@ package projects
 
 import (
 	projpb "ascendant/backend/internal/gen/projects/v1"
+	"ascendant/backend/internal/infra/logger"
 	"fmt"
 	"strings"
 	"time"
@@ -69,6 +70,7 @@ func (p ProjectVoteStatus) String() string {
 }
 
 func (p ProjectVoteStatus) ToProto() projpb.ProjectVoteStatus {
+	logger.Debug("Project vote status: " + p.String(), "")
 	switch p {
 	case OnModeration:
 		return projpb.ProjectVoteStatus_INMODERATION

@@ -14,6 +14,7 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"errors"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -286,4 +287,16 @@ func userAgentHash(ctx context.Context) string {
 	}
 	sum := sha256.Sum256([]byte(agent))
 	return hex.EncodeToString(sum[:])
+}
+
+func clientIP(ctx context.Context) (string, bool) {
+	p, ok := peer.FromContext(ctx)
+	if !ok || p.Addr == nil {
+		return "", false
+	}
+	host, _, err := net.SplitHostPort(p.Addr.String())
+	if err == nil {
+		return host, true
+	}
+	return p.Addr.String(), true
 }

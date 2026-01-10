@@ -216,8 +216,9 @@ func (x *ListResponse) GetTracing() string {
 
 type ListResponseTarget struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Info          *v1.Project            `protobuf:"bytes,1,opt,name=info,proto3" json:"info,omitempty"`
-	State         string                 `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
+	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Info          *v1.Project            `protobuf:"bytes,2,opt,name=info,proto3" json:"info,omitempty"`
+	State         string                 `protobuf:"bytes,3,opt,name=state,proto3" json:"state,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -252,6 +253,13 @@ func (*ListResponseTarget) Descriptor() ([]byte, []int) {
 	return file_submissions_domain_proto_rawDescGZIP(), []int{3, 0}
 }
 
+func (x *ListResponseTarget) GetId() int32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
 func (x *ListResponseTarget) GetInfo() *v1.Project {
 	if x != nil {
 		return x.Info
@@ -277,13 +285,14 @@ const file_submissions_domain_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\"8\n" +
 	"\x0eDeclineRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x16\n" +
-	"\x06reason\x18\x02 \x01(\tR\x06reason\"\xab\x01\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\"\xbb\x01\n" +
 	"\fListResponse\x127\n" +
 	"\x04data\x18\x01 \x03(\v2#.submissions.v1.ListResponse.targetR\x04data\x12\x18\n" +
-	"\atracing\x18\x02 \x01(\tR\atracing\x1aH\n" +
-	"\x06target\x12(\n" +
-	"\x04info\x18\x01 \x01(\v2\x14.projects.v1.ProjectR\x04info\x12\x14\n" +
-	"\x05state\x18\x02 \x01(\tR\x05stateB;Z9ascendant/backend/internal/gen/submissions/v1;submissionsb\x06proto3"
+	"\atracing\x18\x02 \x01(\tR\atracing\x1aX\n" +
+	"\x06target\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\x12(\n" +
+	"\x04info\x18\x02 \x01(\v2\x14.projects.v1.ProjectR\x04info\x12\x14\n" +
+	"\x05state\x18\x03 \x01(\tR\x05stateB;Z9ascendant/backend/internal/gen/submissions/v1;submissionsb\x06proto3"
 
 var (
 	file_submissions_domain_proto_rawDescOnce sync.Once

@@ -47,6 +47,12 @@ type Startup struct {
 	HTTPPort string
 }
 
+type Mailer struct {
+	ApiKey string
+	Name   string
+	Email  string
+}
+
 type Environment struct {
 	Startup  Startup
 	TLS      TLS
@@ -55,6 +61,7 @@ type Environment struct {
 	Storage  Storage
 	Cors     CORS
 	Database Database
+	Mailer   Mailer
 
 	load bool
 }
