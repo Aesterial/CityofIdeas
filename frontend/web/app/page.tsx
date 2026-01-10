@@ -268,7 +268,7 @@ export default function HomePage() {
             >
               <div className="relative">
 
-                <div className="relative w-[72vw] max-w-[240px] h-[420px] bg-foreground rounded-[3.5rem] p-3 shadow-2xl sm:w-64 sm:h-[520px] lg:w-72 lg:h-[580px]">
+                <div className="relative w-[72vw] max-w-[280px] h-[420px] bg-foreground rounded-[3.5rem] p-3 shadow-2xl sm:w-64 sm:h-[520px] lg:w-72 lg:h-[580px]">
 
                   <div className="absolute -right-1 top-28 w-1 h-12 bg-foreground rounded-l-sm" />
                   <div className="absolute -left-1 top-24 w-1 h-8 bg-foreground rounded-r-sm" />
