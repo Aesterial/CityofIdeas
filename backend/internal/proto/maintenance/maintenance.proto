@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package maintenance.v1;
+option go_package = "ascendant/backend/internal/gen/maintenance/v1;maintenance";
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "maintenance/domain.proto";
+
+service MaintenanceService {
+    rpc IsActive(google.protobuf.Empty) returns (IsActiveResponse) {
+        option (google.api.http) = {
+            get: "/api/maintenance/active"
+        };
+    }
+    rpc Data(google.protobuf.Empty) returns (DataResponse) {
+        option (google.api.http) = {
+            get: "/api/maintenance/data"
+        };
+    }
+    rpc Start(CreateRequest) returns (Response) {
+        option (google.api.http) = {
+            post: "/api/maintenance/create",
+            body: "*"
+        };
+    }
+    rpc StartPlanned(CreateRequest) returns (Response) {
+        option (google.api.http) = {
+            post: "/api/maintenance/create/{will_start}",
+            body: "*"
+        };
+    }
+    rpc Edit(EditRequest) returns (Response) {
+        option (google.api.http) = {
+            post: "/api/maintenance/{id}/edit",
+            body: "*"
+        };
+    }
+    rpc Cancel(google.protobuf.Empty) returns (Response) {
+        option (google.api.http) = {
+            post: "/api/maintenance/cancel",
+        };
+    }
+}
