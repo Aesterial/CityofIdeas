@@ -19,215 +19,215 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Storage_ReceiveGetPresign_FullMethodName    = "/storage.v1.Storage/ReceiveGetPresign"
-	Storage_ReceivePutPresign_FullMethodName    = "/storage.v1.Storage/ReceivePutPresign"
-	Storage_GetUserAvatarPresign_FullMethodName = "/storage.v1.Storage/GetUserAvatarPresign"
-	Storage_ListProjectAvatars_FullMethodName   = "/storage.v1.Storage/ListProjectAvatars"
+	StorageService_ReceiveGetPresign_FullMethodName    = "/storage.v1.StorageService/ReceiveGetPresign"
+	StorageService_ReceivePutPresign_FullMethodName    = "/storage.v1.StorageService/ReceivePutPresign"
+	StorageService_GetUserAvatarPresign_FullMethodName = "/storage.v1.StorageService/GetUserAvatarPresign"
+	StorageService_ListProjectAvatars_FullMethodName   = "/storage.v1.StorageService/ListProjectAvatars"
 )
 
-// StorageClient is the client API for Storage service.
+// StorageServiceClient is the client API for StorageService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type StorageClient interface {
+type StorageServiceClient interface {
 	ReceiveGetPresign(ctx context.Context, in *PresignGetRequest, opts ...grpc.CallOption) (*PresignResponse, error)
 	ReceivePutPresign(ctx context.Context, in *PresignPutRequest, opts ...grpc.CallOption) (*PresignResponse, error)
 	GetUserAvatarPresign(ctx context.Context, in *UserAvatarRequest, opts ...grpc.CallOption) (*PresignResponse, error)
 	ListProjectAvatars(ctx context.Context, in *ProjectAvatarsRequest, opts ...grpc.CallOption) (*ProjectAvatarsResponse, error)
 }
 
-type storageClient struct {
+type storageServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewStorageClient(cc grpc.ClientConnInterface) StorageClient {
-	return &storageClient{cc}
+func NewStorageServiceClient(cc grpc.ClientConnInterface) StorageServiceClient {
+	return &storageServiceClient{cc}
 }
 
-func (c *storageClient) ReceiveGetPresign(ctx context.Context, in *PresignGetRequest, opts ...grpc.CallOption) (*PresignResponse, error) {
+func (c *storageServiceClient) ReceiveGetPresign(ctx context.Context, in *PresignGetRequest, opts ...grpc.CallOption) (*PresignResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PresignResponse)
-	err := c.cc.Invoke(ctx, Storage_ReceiveGetPresign_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, StorageService_ReceiveGetPresign_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *storageClient) ReceivePutPresign(ctx context.Context, in *PresignPutRequest, opts ...grpc.CallOption) (*PresignResponse, error) {
+func (c *storageServiceClient) ReceivePutPresign(ctx context.Context, in *PresignPutRequest, opts ...grpc.CallOption) (*PresignResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PresignResponse)
-	err := c.cc.Invoke(ctx, Storage_ReceivePutPresign_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, StorageService_ReceivePutPresign_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *storageClient) GetUserAvatarPresign(ctx context.Context, in *UserAvatarRequest, opts ...grpc.CallOption) (*PresignResponse, error) {
+func (c *storageServiceClient) GetUserAvatarPresign(ctx context.Context, in *UserAvatarRequest, opts ...grpc.CallOption) (*PresignResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(PresignResponse)
-	err := c.cc.Invoke(ctx, Storage_GetUserAvatarPresign_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, StorageService_GetUserAvatarPresign_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *storageClient) ListProjectAvatars(ctx context.Context, in *ProjectAvatarsRequest, opts ...grpc.CallOption) (*ProjectAvatarsResponse, error) {
+func (c *storageServiceClient) ListProjectAvatars(ctx context.Context, in *ProjectAvatarsRequest, opts ...grpc.CallOption) (*ProjectAvatarsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ProjectAvatarsResponse)
-	err := c.cc.Invoke(ctx, Storage_ListProjectAvatars_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, StorageService_ListProjectAvatars_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// StorageServer is the server API for Storage service.
-// All implementations must embed UnimplementedStorageServer
+// StorageServiceServer is the server API for StorageService service.
+// All implementations must embed UnimplementedStorageServiceServer
 // for forward compatibility.
-type StorageServer interface {
+type StorageServiceServer interface {
 	ReceiveGetPresign(context.Context, *PresignGetRequest) (*PresignResponse, error)
 	ReceivePutPresign(context.Context, *PresignPutRequest) (*PresignResponse, error)
 	GetUserAvatarPresign(context.Context, *UserAvatarRequest) (*PresignResponse, error)
 	ListProjectAvatars(context.Context, *ProjectAvatarsRequest) (*ProjectAvatarsResponse, error)
-	mustEmbedUnimplementedStorageServer()
+	mustEmbedUnimplementedStorageServiceServer()
 }
 
-// UnimplementedStorageServer must be embedded to have
+// UnimplementedStorageServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedStorageServer struct{}
+type UnimplementedStorageServiceServer struct{}
 
-func (UnimplementedStorageServer) ReceiveGetPresign(context.Context, *PresignGetRequest) (*PresignResponse, error) {
+func (UnimplementedStorageServiceServer) ReceiveGetPresign(context.Context, *PresignGetRequest) (*PresignResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReceiveGetPresign not implemented")
 }
-func (UnimplementedStorageServer) ReceivePutPresign(context.Context, *PresignPutRequest) (*PresignResponse, error) {
+func (UnimplementedStorageServiceServer) ReceivePutPresign(context.Context, *PresignPutRequest) (*PresignResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ReceivePutPresign not implemented")
 }
-func (UnimplementedStorageServer) GetUserAvatarPresign(context.Context, *UserAvatarRequest) (*PresignResponse, error) {
+func (UnimplementedStorageServiceServer) GetUserAvatarPresign(context.Context, *UserAvatarRequest) (*PresignResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetUserAvatarPresign not implemented")
 }
-func (UnimplementedStorageServer) ListProjectAvatars(context.Context, *ProjectAvatarsRequest) (*ProjectAvatarsResponse, error) {
+func (UnimplementedStorageServiceServer) ListProjectAvatars(context.Context, *ProjectAvatarsRequest) (*ProjectAvatarsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListProjectAvatars not implemented")
 }
-func (UnimplementedStorageServer) mustEmbedUnimplementedStorageServer() {}
-func (UnimplementedStorageServer) testEmbeddedByValue()                 {}
+func (UnimplementedStorageServiceServer) mustEmbedUnimplementedStorageServiceServer() {}
+func (UnimplementedStorageServiceServer) testEmbeddedByValue()                        {}
 
-// UnsafeStorageServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to StorageServer will
+// UnsafeStorageServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to StorageServiceServer will
 // result in compilation errors.
-type UnsafeStorageServer interface {
-	mustEmbedUnimplementedStorageServer()
+type UnsafeStorageServiceServer interface {
+	mustEmbedUnimplementedStorageServiceServer()
 }
 
-func RegisterStorageServer(s grpc.ServiceRegistrar, srv StorageServer) {
-	// If the following call panics, it indicates UnimplementedStorageServer was
+func RegisterStorageServiceServer(s grpc.ServiceRegistrar, srv StorageServiceServer) {
+	// If the following call panics, it indicates UnimplementedStorageServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&Storage_ServiceDesc, srv)
+	s.RegisterService(&StorageService_ServiceDesc, srv)
 }
 
-func _Storage_ReceiveGetPresign_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _StorageService_ReceiveGetPresign_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PresignGetRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(StorageServer).ReceiveGetPresign(ctx, in)
+		return srv.(StorageServiceServer).ReceiveGetPresign(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Storage_ReceiveGetPresign_FullMethodName,
+		FullMethod: StorageService_ReceiveGetPresign_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServer).ReceiveGetPresign(ctx, req.(*PresignGetRequest))
+		return srv.(StorageServiceServer).ReceiveGetPresign(ctx, req.(*PresignGetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Storage_ReceivePutPresign_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _StorageService_ReceivePutPresign_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(PresignPutRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(StorageServer).ReceivePutPresign(ctx, in)
+		return srv.(StorageServiceServer).ReceivePutPresign(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Storage_ReceivePutPresign_FullMethodName,
+		FullMethod: StorageService_ReceivePutPresign_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServer).ReceivePutPresign(ctx, req.(*PresignPutRequest))
+		return srv.(StorageServiceServer).ReceivePutPresign(ctx, req.(*PresignPutRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Storage_GetUserAvatarPresign_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _StorageService_GetUserAvatarPresign_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UserAvatarRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(StorageServer).GetUserAvatarPresign(ctx, in)
+		return srv.(StorageServiceServer).GetUserAvatarPresign(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Storage_GetUserAvatarPresign_FullMethodName,
+		FullMethod: StorageService_GetUserAvatarPresign_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServer).GetUserAvatarPresign(ctx, req.(*UserAvatarRequest))
+		return srv.(StorageServiceServer).GetUserAvatarPresign(ctx, req.(*UserAvatarRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Storage_ListProjectAvatars_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _StorageService_ListProjectAvatars_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ProjectAvatarsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(StorageServer).ListProjectAvatars(ctx, in)
+		return srv.(StorageServiceServer).ListProjectAvatars(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Storage_ListProjectAvatars_FullMethodName,
+		FullMethod: StorageService_ListProjectAvatars_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StorageServer).ListProjectAvatars(ctx, req.(*ProjectAvatarsRequest))
+		return srv.(StorageServiceServer).ListProjectAvatars(ctx, req.(*ProjectAvatarsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Storage_ServiceDesc is the grpc.ServiceDesc for Storage service.
+// StorageService_ServiceDesc is the grpc.ServiceDesc for StorageService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Storage_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "storage.v1.Storage",
-	HandlerType: (*StorageServer)(nil),
+var StorageService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "storage.v1.StorageService",
+	HandlerType: (*StorageServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "ReceiveGetPresign",
-			Handler:    _Storage_ReceiveGetPresign_Handler,
+			Handler:    _StorageService_ReceiveGetPresign_Handler,
 		},
 		{
 			MethodName: "ReceivePutPresign",
-			Handler:    _Storage_ReceivePutPresign_Handler,
+			Handler:    _StorageService_ReceivePutPresign_Handler,
 		},
 		{
 			MethodName: "GetUserAvatarPresign",
-			Handler:    _Storage_GetUserAvatarPresign_Handler,
+			Handler:    _StorageService_GetUserAvatarPresign_Handler,
 		},
 		{
 			MethodName: "ListProjectAvatars",
-			Handler:    _Storage_ListProjectAvatars_Handler,
+			Handler:    _StorageService_ListProjectAvatars_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

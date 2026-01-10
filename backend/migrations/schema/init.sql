@@ -152,7 +152,7 @@ create unique index user_avatars_object_key_uq on user_avatars (object_key);
 -- projects
 create table projects (
     id uuid primary key default pg_catalog.gen_random_uuid(),
-    author_uid bigint not null references users(uid) on delete restrict,        
+    author_uid bigint not null references users(uid) on delete restrict,
 
     info project_info_t not null,
     status project_vote_status not null default 'in moderation',
@@ -215,7 +215,7 @@ create table project_likes (
 );
 
 create index project_likes_user_uid_idx on project_likes (user_uid);
-create index project_likes_project_id_idx on project_likes (project_id);        
+create index project_likes_project_id_idx on project_likes (project_id);
 create index project_likes_created_at_idx on project_likes (created_at);
 
 create or replace function toggle_project_like(p_project_id uuid, p_user_uid bigint)
@@ -392,7 +392,7 @@ create type users_activity_t as (
 create table statistics_recap (
     id uuid primary key default pg_catalog.gen_random_uuid(),
     at timestamptz not null,
-    us_activity users_activity_t not null default row(0,0)::users_activity_t,   
+    us_activity users_activity_t not null default row(0,0)::users_activity_t,
     new_ideas bigint not null default 0,
     vote_count bigint not null default 0
 );
@@ -408,6 +408,31 @@ create table submissions (
 
 create index submissions_project_id_idx on submissions (project_id);
 create index submissions_state_idx on submissions (state);
+
+create type maintenance_status as enum ('scheduled', 'in progress', 'completed', 'cancelled');
+create type maintenance_scope as enum ('all', 'auth', 'projects');
+create type maintenance_type as enum ('emergency', 'planned');
+
+create table maintenance (
+    id uuid primary key default pg_catalog.gen_random_uuid(),
+    description text not null,
+    status maintenance_status not null default 'scheduled',
+    scope maintenance_scope not null default 'all',
+    type maintenance_type not null,
+    planned_start_at timestamptz not null,
+    planned_end_at timestamptz not null,
+    actual_start_at timestamptz,
+    actual_end_at timestamptz,
+    created_at timestamptz not null default now(),
+    called_by bigint not null,
+    constraint maintenance_planned_at_check check (planned_end_at > planned_start_at),
+    constraint maintenance_actual_start_check check (actual_end_at is null or actual_start_at is not null),
+    constraint maintenance_actual_end_check check (actual_end_at is null or actual_end_at >= actual_start_at)
+);
+
+create index maintenance_status_idx on maintenance (status);
+create index maintenance_planned_start_at_idx on maintenance (planned_start_at);
+create index maintenance_planned_end_at_idx on maintenance (planned_end_at);
 
 -- load base seed data (psql)
 insert into ranks (name, color, description, permissions)

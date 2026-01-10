@@ -26,8 +26,8 @@ var File_storage_storage_proto protoreflect.FileDescriptor
 const file_storage_storage_proto_rawDesc = "" +
 	"\n" +
 	"\x15storage/storage.proto\x12\n" +
-	"storage.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x14storage/domain.proto2\xff\x03\n" +
-	"\aStorage\x12q\n" +
+	"storage.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x14storage/domain.proto2\x86\x04\n" +
+	"\x0eStorageService\x12q\n" +
 	"\x11ReceiveGetPresign\x12\x1d.storage.v1.PresignGetRequest\x1a\x1b.storage.v1.PresignResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/storage/presign/get\x12q\n" +
 	"\x11ReceivePutPresign\x12\x1d.storage.v1.PresignPutRequest\x1a\x1b.storage.v1.PresignResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/storage/presign/put\x12~\n" +
 	"\x14GetUserAvatarPresign\x12\x1d.storage.v1.UserAvatarRequest\x1a\x1b.storage.v1.PresignResponse\"*\x82\xd3\xe4\x93\x02$\x12\"/api/storage/avatars/user/{userID}\x12\x8d\x01\n" +
@@ -42,14 +42,14 @@ var file_storage_storage_proto_goTypes = []any{
 	(*ProjectAvatarsResponse)(nil), // 5: storage.v1.ProjectAvatarsResponse
 }
 var file_storage_storage_proto_depIdxs = []int32{
-	0, // 0: storage.v1.Storage.ReceiveGetPresign:input_type -> storage.v1.PresignGetRequest
-	1, // 1: storage.v1.Storage.ReceivePutPresign:input_type -> storage.v1.PresignPutRequest
-	2, // 2: storage.v1.Storage.GetUserAvatarPresign:input_type -> storage.v1.UserAvatarRequest
-	3, // 3: storage.v1.Storage.ListProjectAvatars:input_type -> storage.v1.ProjectAvatarsRequest
-	4, // 4: storage.v1.Storage.ReceiveGetPresign:output_type -> storage.v1.PresignResponse
-	4, // 5: storage.v1.Storage.ReceivePutPresign:output_type -> storage.v1.PresignResponse
-	4, // 6: storage.v1.Storage.GetUserAvatarPresign:output_type -> storage.v1.PresignResponse
-	5, // 7: storage.v1.Storage.ListProjectAvatars:output_type -> storage.v1.ProjectAvatarsResponse
+	0, // 0: storage.v1.StorageService.ReceiveGetPresign:input_type -> storage.v1.PresignGetRequest
+	1, // 1: storage.v1.StorageService.ReceivePutPresign:input_type -> storage.v1.PresignPutRequest
+	2, // 2: storage.v1.StorageService.GetUserAvatarPresign:input_type -> storage.v1.UserAvatarRequest
+	3, // 3: storage.v1.StorageService.ListProjectAvatars:input_type -> storage.v1.ProjectAvatarsRequest
+	4, // 4: storage.v1.StorageService.ReceiveGetPresign:output_type -> storage.v1.PresignResponse
+	4, // 5: storage.v1.StorageService.ReceivePutPresign:output_type -> storage.v1.PresignResponse
+	4, // 6: storage.v1.StorageService.GetUserAvatarPresign:output_type -> storage.v1.PresignResponse
+	5, // 7: storage.v1.StorageService.ListProjectAvatars:output_type -> storage.v1.ProjectAvatarsResponse
 	4, // [4:8] is the sub-list for method output_type
 	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name

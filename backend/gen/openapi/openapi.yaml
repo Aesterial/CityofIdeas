@@ -1,0 +1,2080 @@
+openapi: 3.0.3
+info:
+    title: ""
+    version: 0.0.1
+paths:
+    /api/login/authorization:
+        post:
+            tags:
+                - LoginService
+            operationId: LoginService_Authorization
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/AuthRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/AuthResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/login/logout:
+        post:
+            tags:
+                - LoginService
+            operationId: LoginService_Logout
+            requestBody:
+                content:
+                    application/json: {}
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/login/register:
+        post:
+            tags:
+                - LoginService
+            operationId: LoginService_Register
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RegisterRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/RegisterResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/login/reset-password:
+        post:
+            tags:
+                - LoginService
+            operationId: LoginService_ResetPassword
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ResetPasswordRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/login/reset-password/start:
+        post:
+            tags:
+                - LoginService
+            operationId: LoginService_ResetPasswordStart
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/WithEmailRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/login/verify-email:
+        post:
+            tags:
+                - LoginService
+            operationId: LoginService_VerifyEmail
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/VerifyEmailRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/login/verify-email/start:
+        post:
+            tags:
+                - LoginService
+            operationId: LoginService_VerifyEmailStart
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/WithEmailRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/login/vk/callback:
+        get:
+            tags:
+                - LoginService
+            operationId: LoginService_VkCallback
+            parameters:
+                - name: code
+                  in: query
+                  schema:
+                    type: string
+                - name: state
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/VKCallbackResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/login/vk/start:
+        get:
+            tags:
+                - LoginService
+            operationId: LoginService_VkStart
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/VKStartResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/maintenance/active:
+        get:
+            tags:
+                - Service
+            operationId: Service_IsActive
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/IsActiveResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/maintenance/cancel:
+        post:
+            tags:
+                - Service
+            operationId: Service_Cancel
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Response'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/maintenance/create:
+        post:
+            tags:
+                - Service
+            operationId: Service_Start
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Response'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/maintenance/create/{willStart}:
+        post:
+            tags:
+                - Service
+            operationId: Service_StartPlanned
+            parameters:
+                - name: willStart
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                    format: date-time
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Response'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/maintenance/data:
+        get:
+            tags:
+                - Service
+            operationId: Service_Data
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DataResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/maintenance/{id}/edit:
+        post:
+            tags:
+                - Service
+            operationId: Service_Edit
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/EditRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Response'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/permissions/list:
+        get:
+            tags:
+                - PermissionsService
+            operationId: PermissionsService_Get
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PermissionsResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/project/{id}/description/{to}:
+        patch:
+            tags:
+                - ProjectService
+            operationId: ProjectService_ChangeDescription
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: to
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/projects:
+        get:
+            tags:
+                - ProjectService
+            operationId: ProjectService_Get
+            parameters:
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: offset
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/projects/archived:
+        get:
+            tags:
+                - ProjectService
+            operationId: ProjectService_GetArchived
+            parameters:
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: offset
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/GetResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/projects/categories:
+        get:
+            tags:
+                - ProjectService
+            operationId: ProjectService_Categories
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/CategoriesResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/projects/create:
+        post:
+            tags:
+                - ProjectService
+            operationId: ProjectService_Create
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/projects/like/{id}:
+        post:
+            tags:
+                - ProjectService
+            operationId: ProjectService_ToggleLike
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/projects/{id}/delete:
+        delete:
+            tags:
+                - ProjectService
+            operationId: ProjectService_Delete
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/projects/{id}/name/{to}:
+        patch:
+            tags:
+                - ProjectService
+            operationId: ProjectService_ChangeTitle
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: to
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/ranks/create:
+        post:
+            tags:
+                - RanksService
+            operationId: RanksService_Create
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/ranks/{name}/delete:
+        delete:
+            tags:
+                - RanksService
+            operationId: RanksService_Delete
+            parameters:
+                - name: name
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/ranks/{name}/patch:
+        patch:
+            tags:
+                - RanksService
+            operationId: RanksService_Patch
+            parameters:
+                - name: name
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/CreateRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/ranks/{name}/permissions:
+        get:
+            tags:
+                - PermissionsService
+            operationId: PermissionsService_ForRank
+            parameters:
+                - name: name
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PermissionsResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        patch:
+            tags:
+                - PermissionsService
+            operationId: PermissionsService_ChangeForRank
+            parameters:
+                - name: name
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RequestForRankChange'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/statistics/activity/users/{limit}:
+        get:
+            tags:
+                - StatisticsService
+            operationId: StatisticsService_UsersActivity
+            parameters:
+                - name: limit
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UsersActivityResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/statistics/categories/{limit}:
+        get:
+            tags:
+                - StatisticsService
+            operationId: StatisticsService_TopVoteCategories
+            parameters:
+                - name: limit
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/TopByCategoriesResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/statistics/ideas:
+        get:
+            tags:
+                - StatisticsService
+            operationId: StatisticsService_IdeasDay
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/IdeasCountResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/statistics/ideas/recap:
+        get:
+            tags:
+                - StatisticsService
+            operationId: StatisticsService_IdeasRecap
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/IdeasApprovalResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/statistics/media/coverage:
+        get:
+            tags:
+                - StatisticsService
+            operationId: StatisticsService_MediaCoverage
+            parameters:
+                - name: limit
+                  in: query
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MediaCoverageResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/statistics/quality/recap:
+        get:
+            tags:
+                - StatisticsService
+            operationId: StatisticsService_QualityRecap
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EditorsGradeResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/statistics/users/active/{since}:
+        get:
+            tags:
+                - StatisticsService
+            operationId: StatisticsService_ActiveUsers
+            parameters:
+                - name: since
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                    format: date-time
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ActiveUsersResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/statistics/users/offline/{since}:
+        get:
+            tags:
+                - StatisticsService
+            operationId: StatisticsService_OfflineUsers
+            parameters:
+                - name: since
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                    format: date-time
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/OfflineUsersResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/statistics/votes:
+        get:
+            tags:
+                - StatisticsService
+            operationId: StatisticsService_VotesDay
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/VoteCountResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/storage/avatars/project/{projectID}:
+        get:
+            tags:
+                - Storage
+            operationId: Storage_ListProjectAvatars
+            parameters:
+                - name: projectID
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ProjectAvatarsResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/storage/avatars/user/{userID}:
+        get:
+            tags:
+                - Storage
+            operationId: Storage_GetUserAvatarPresign
+            parameters:
+                - name: userID
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+                - name: picID
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PresignResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/storage/presign/get:
+        get:
+            tags:
+                - Storage
+            operationId: Storage_ReceiveGetPresign
+            parameters:
+                - name: key
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PresignResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/storage/presign/put:
+        get:
+            tags:
+                - Storage
+            operationId: Storage_ReceivePutPresign
+            parameters:
+                - name: contentType
+                  in: query
+                  schema:
+                    type: string
+                - name: key
+                  in: query
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PresignResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/submissions/list:
+        get:
+            tags:
+                - SubmissionsService
+            operationId: SubmissionsService_List
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ListResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/submissions/{id}/approve:
+        post:
+            tags:
+                - SubmissionsService
+            operationId: SubmissionsService_Approve
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/ApproveRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DataResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/submissions/{id}/decline:
+        post:
+            tags:
+                - SubmissionsService
+            operationId: SubmissionsService_Decline
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: int32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/DeclineRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DataResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/user:
+        get:
+            tags:
+                - UserService
+            description: Information
+            operationId: UserService_Self
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserSelfResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/user/avatar:
+        post:
+            tags:
+                - UserService
+            operationId: UserService_UpdateSelfAvatar
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/Avatar'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/user/ban/info:
+        get:
+            tags:
+                - UserService
+            operationId: UserService_BanInfo
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BanInfoResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/user/change/name/{name}:
+        patch:
+            tags:
+                - UserService
+            operationId: UserService_UpdateSelfName
+            parameters:
+                - name: name
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/user/delete/avatar:
+        delete:
+            tags:
+                - UserService
+            operationId: UserService_DeleteSelfAvatar
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/user/list:
+        get:
+            tags:
+                - UserService
+            operationId: UserService_Users
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UsersResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/user/messages:
+        get:
+            tags:
+                - UserService
+            operationId: UserService_Messages
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/MessagesResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/user/sessions:
+        get:
+            tags:
+                - UserService
+            operationId: UserService_Sessions
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserSessionsResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/user/{userID}:
+        get:
+            tags:
+                - UserService
+            operationId: UserService_Other
+            parameters:
+                - name: userID
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/UserPublicResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/user/{userID}/ban:
+        post:
+            tags:
+                - UserService
+            description: Management
+            operationId: UserService_Ban
+            parameters:
+                - name: userID
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/BanUserRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/user/{userID}/ban/info:
+        get:
+            tags:
+                - UserService
+            operationId: UserService_BanInfoOther
+            parameters:
+                - name: userID
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/BanInfoResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/user/{userID}/delete/avatar:
+        delete:
+            tags:
+                - UserService
+            operationId: UserService_DeleteUserAvatar
+            parameters:
+                - name: userID
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/user/{userID}/messages/send:
+        post:
+            tags:
+                - UserService
+            operationId: UserService_SendMessage
+            parameters:
+                - name: userID
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/SendMessageRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/user/{userID}/permissions:
+        get:
+            tags:
+                - PermissionsService
+            operationId: PermissionsService_ForUser
+            parameters:
+                - name: userID
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/PermissionsResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+        patch:
+            tags:
+                - PermissionsService
+            operationId: PermissionsService_ChangeForUser
+            parameters:
+                - name: userID
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/RequestForUserChange'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+    /api/user/{userID}/unban:
+        post:
+            tags:
+                - UserService
+            operationId: UserService_Unban
+            parameters:
+                - name: userID
+                  in: path
+                  required: true
+                  schema:
+                    type: integer
+                    format: uint32
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EmptyResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
+components:
+    schemas:
+        ActiveUsersResponse:
+            type: object
+            properties:
+                count:
+                    type: integer
+                    format: uint32
+                tracing:
+                    type: string
+        ApproveRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: int32
+        AuthRequest:
+            type: object
+            properties:
+                usermail:
+                    type: string
+                password:
+                    type: string
+        AuthResponse:
+            type: object
+            properties:
+                data:
+                    type: string
+                tracing:
+                    type: string
+        Avatar:
+            type: object
+            properties:
+                contentType:
+                    type: string
+                data:
+                    type: string
+                    format: bytes
+                url:
+                    type: string
+                key:
+                    type: string
+        BanInfoResponse:
+            type: object
+            properties:
+                id:
+                    type: string
+                executor:
+                    $ref: '#/components/schemas/UserPublic'
+                reason:
+                    type: string
+                at:
+                    type: string
+                    format: date-time
+                expires:
+                    type: string
+                    format: date-time
+                tracing:
+                    type: string
+        BanUserRequest:
+            type: object
+            properties:
+                userID:
+                    type: integer
+                    format: uint32
+                reason:
+                    type: string
+                duration:
+                    pattern: ^-?(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,9})?s$
+                    type: string
+        CategoriesResponse:
+            type: object
+            properties:
+                categories:
+                    type: array
+                    items:
+                        type: string
+                tracing:
+                    type: string
+        CategoryRecord:
+            type: object
+            properties:
+                name:
+                    type: string
+                posts:
+                    type: integer
+                    format: uint32
+        CreateRequest:
+            type: object
+            properties:
+                description:
+                    type: string
+                scope:
+                    type: string
+                willStart:
+                    type: string
+                    format: date-time
+                willEnd:
+                    type: string
+                    format: date-time
+        DataResponse:
+            type: object
+            properties:
+                id:
+                    type: string
+                description:
+                    type: string
+                willEnd:
+                    type: string
+                    format: date-time
+                tracing:
+                    type: string
+        DeclineRequest:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: int32
+                reason:
+                    type: string
+        EditRequest:
+            type: object
+            properties:
+                id:
+                    type: string
+                description:
+                    type: string
+                scope:
+                    type: string
+        EditorsGradeResponse:
+            type: object
+            properties:
+                photos:
+                    $ref: '#/components/schemas/EditorsGradeResponse_Grade'
+                videos:
+                    $ref: '#/components/schemas/EditorsGradeResponse_Grade'
+                tracing:
+                    type: string
+        EditorsGradeResponse_Grade:
+            type: object
+            properties:
+                good:
+                    type: integer
+                    format: uint32
+                bad:
+                    type: integer
+                    format: uint32
+        EmptyResponse:
+            type: object
+            properties:
+                tracing:
+                    type: string
+        GetResponse:
+            type: object
+            properties:
+                projects:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Project'
+                tracing:
+                    type: string
+        GoogleProtobufAny:
+            type: object
+            properties:
+                '@type':
+                    type: string
+                    description: The type of the serialized message.
+            additionalProperties: true
+            description: Contains an arbitrary serialized message along with a @type that describes the type of the serialized message.
+        IdeasApprovalResponse:
+            type: object
+            properties:
+                approved:
+                    type: integer
+                    format: uint32
+                waiting:
+                    type: integer
+                    format: uint32
+                declined:
+                    type: integer
+                    format: uint32
+        IdeasCountResponse:
+            type: object
+            properties:
+                count:
+                    type: integer
+                    format: uint32
+                tracing:
+                    type: string
+        IsActiveResponse:
+            type: object
+            properties:
+                active:
+                    type: boolean
+                tracing:
+                    type: string
+        ListResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/ListResponse_target'
+                tracing:
+                    type: string
+        ListResponse_target:
+            type: object
+            properties:
+                id:
+                    type: integer
+                    format: int32
+                info:
+                    $ref: '#/components/schemas/Project'
+                state:
+                    type: string
+                reason:
+                    type: string
+        MediaCoverageResponse:
+            type: object
+            properties:
+                medias:
+                    type: object
+                    additionalProperties:
+                        $ref: '#/components/schemas/MediaCoverageResponse_media'
+                tracing:
+                    type: string
+        MediaCoverageResponse_media:
+            type: object
+            properties:
+                photos:
+                    type: integer
+                    format: uint32
+                videos:
+                    type: integer
+                    format: uint32
+        Message:
+            type: object
+            properties:
+                from:
+                    type: string
+                text:
+                    type: string
+                at:
+                    type: string
+                    format: date-time
+        MessagesResponse:
+            type: object
+            properties:
+                messages:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Message'
+                tracing:
+                    type: string
+        OfflineUsersResponse:
+            type: object
+            properties:
+                count:
+                    type: integer
+                    format: uint32
+                tracing:
+                    type: string
+        Permissions:
+            type: object
+            properties:
+                viewOtherProfile:
+                    type: boolean
+                patchOtherProfile:
+                    type: boolean
+                patchSelfProfile:
+                    type: boolean
+                deleteSelfProfile:
+                    type: boolean
+                banProfile:
+                    type: boolean
+                unbanProfile:
+                    type: boolean
+                createIdea:
+                    type: boolean
+                patchSelfIdea:
+                    type: boolean
+                deleteSelfIdea:
+                    type: boolean
+                createComment:
+                    type: boolean
+                patchSelfComment:
+                    type: boolean
+                deleteSelfComment:
+                    type: boolean
+                deleteOtherComment:
+                    type: boolean
+                uploadIdeaMediaSelf:
+                    type: boolean
+                deleteIdeaMediaSelf:
+                    type: boolean
+                deleteIdeaMediaOther:
+                    type: boolean
+                moderateIdea:
+                    type: boolean
+                patchIdeaStatus:
+                    type: boolean
+                viewStatistics:
+                    type: boolean
+                viewPermissions:
+                    type: boolean
+                managePermissions:
+                    type: boolean
+        PermissionsResponse:
+            type: object
+            properties:
+                data:
+                    $ref: '#/components/schemas/Permissions'
+                tracing:
+                    type: string
+        PresignResponse:
+            type: object
+            properties:
+                presign:
+                    type: string
+                tracing:
+                    type: string
+        Project:
+            type: object
+            properties:
+                id:
+                    type: string
+                author:
+                    $ref: '#/components/schemas/UserPublic'
+                details:
+                    $ref: '#/components/schemas/ProjectInfo'
+                status:
+                    type: integer
+                    format: enum
+                likesCount:
+                    type: integer
+                    format: int32
+                liked:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/UserPublic'
+                createdAt:
+                    type: string
+                    format: date-time
+        ProjectAvatarsResponse:
+            type: object
+            properties:
+                picIDs:
+                    type: array
+                    items:
+                        type: string
+                tracing:
+                    type: string
+        ProjectInfo:
+            type: object
+            properties:
+                title:
+                    type: string
+                description:
+                    type: string
+                photos:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Avatar'
+                category:
+                    type: integer
+                    format: enum
+                location:
+                    $ref: '#/components/schemas/ProjectLocation'
+        ProjectLocation:
+            type: object
+            properties:
+                city:
+                    type: string
+                street:
+                    type: string
+                house:
+                    type: string
+        Rank:
+            type: object
+            properties:
+                name:
+                    type: string
+                expires:
+                    type: string
+                    format: date-time
+        RegisterRequest:
+            type: object
+            properties:
+                username:
+                    type: string
+                email:
+                    type: string
+                password:
+                    type: string
+        RegisterResponse:
+            type: object
+            properties:
+                data:
+                    type: string
+                tracing:
+                    type: string
+        RequestForRankChange:
+            type: object
+            properties:
+                name:
+                    type: string
+                permissions:
+                    $ref: '#/components/schemas/Permissions'
+        RequestForUserChange:
+            type: object
+            properties:
+                userID:
+                    type: integer
+                    format: uint32
+                permissions:
+                    $ref: '#/components/schemas/Permissions'
+        ResetPasswordRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                password:
+                    type: string
+                token:
+                    type: string
+        Response:
+            type: object
+            properties:
+                tracing:
+                    type: string
+        SendMessageRequest:
+            type: object
+            properties:
+                userID:
+                    type: integer
+                    format: uint32
+                message:
+                    type: string
+        Session:
+            type: object
+            properties:
+                uuid:
+                    type: string
+                uid:
+                    type: integer
+                    format: uint32
+                created:
+                    type: string
+                    format: date-time
+                lastSeen:
+                    type: string
+                    format: date-time
+                expires:
+                    type: string
+                    format: date-time
+        Status:
+            type: object
+            properties:
+                code:
+                    type: integer
+                    description: The status code, which should be an enum value of [google.rpc.Code][google.rpc.Code].
+                    format: int32
+                message:
+                    type: string
+                    description: A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the [google.rpc.Status.details][google.rpc.Status.details] field, or localized by the client.
+                details:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/GoogleProtobufAny'
+                    description: A list of messages that carry the error details.  There is a common set of message types for APIs to use.
+            description: 'The `Status` type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each `Status` message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).'
+        TopByCategoriesResponse:
+            type: object
+            properties:
+                record:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/CategoryRecord'
+                tracing:
+                    type: string
+        UserEmail:
+            type: object
+            properties:
+                address:
+                    type: string
+                verified:
+                    type: boolean
+        UserPublic:
+            type: object
+            properties:
+                userID:
+                    type: integer
+                    format: uint32
+                username:
+                    type: string
+                rank:
+                    $ref: '#/components/schemas/Rank'
+                settings:
+                    $ref: '#/components/schemas/UserPublicSettings'
+                banned:
+                    type: boolean
+                joinedAt:
+                    type: string
+                    format: date-time
+        UserPublicResponse:
+            type: object
+            properties:
+                data:
+                    $ref: '#/components/schemas/UserPublic'
+                tracing:
+                    type: string
+        UserPublicSettings:
+            type: object
+            properties:
+                displayName:
+                    type: string
+                avatar:
+                    $ref: '#/components/schemas/Avatar'
+        UserSelf:
+            type: object
+            properties:
+                public:
+                    $ref: '#/components/schemas/UserPublic'
+                email:
+                    $ref: '#/components/schemas/UserEmail'
+        UserSelfResponse:
+            type: object
+            properties:
+                data:
+                    $ref: '#/components/schemas/UserSelf'
+                tracing:
+                    type: string
+        UserSessions:
+            type: object
+            properties:
+                sessions:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/Session'
+        UserSessionsResponse:
+            type: object
+            properties:
+                data:
+                    $ref: '#/components/schemas/UserSessions'
+                tracing:
+                    type: string
+        UsersActivity:
+            type: object
+            properties:
+                active:
+                    type: integer
+                    format: uint32
+                offline:
+                    type: integer
+                    format: uint32
+        UsersActivityResponse:
+            type: object
+            properties:
+                data:
+                    type: object
+                    additionalProperties:
+                        $ref: '#/components/schemas/UsersActivity'
+                tracing:
+                    type: string
+        UsersResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/UserPublic'
+                tracing:
+                    type: string
+        VKCallbackResponse:
+            type: object
+            properties:
+                redirectUrl:
+                    type: string
+                tracing:
+                    type: string
+        VKStartResponse:
+            type: object
+            properties:
+                authUrl:
+                    type: string
+                state:
+                    type: string
+        VerifyEmailRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+                token:
+                    type: string
+        VoteCountResponse:
+            type: object
+            properties:
+                count:
+                    type: integer
+                    format: uint32
+                tracing:
+                    type: string
+        WithEmailRequest:
+            type: object
+            properties:
+                email:
+                    type: string
+tags:
+    - name: LoginService
+    - name: PermissionsService
+    - name: ProjectService
+    - name: RanksService
+    - name: Service
+    - name: StatisticsService
+    - name: Storage
+    - name: SubmissionsService
+    - name: UserService

@@ -8,6 +8,7 @@ import (
 	"ascendant/backend/internal/domain/permissions"
 	submpb "ascendant/backend/internal/gen/submissions/v1"
 	"context"
+	"strings"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -39,6 +40,9 @@ func (s *SubmissionsService) Approve(ctx context.Context, req *submpb.ApproveReq
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 	if err := s.submissions.Approve(ctx, req.Id); err != nil {
+		if strings.ToLower(err.Error()) == "idea already moderated" {
+			return nil, status.Error(codes.FailedPrecondition, err.Error())
+		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &submpb.DataResponse{Tracing: TraceIDOrNew(ctx)}, nil
@@ -56,6 +60,9 @@ func (s *SubmissionsService) Decline(ctx context.Context, req *submpb.DeclineReq
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 	if err := s.submissions.Decline(ctx, req.Id, req.Reason); err != nil {
+		if strings.ToLower(err.Error()) == "idea already moderated" {
+			return nil, status.Error(codes.FailedPrecondition, err.Error())
+		}
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &submpb.DataResponse{Tracing: TraceIDOrNew(ctx)}, nil

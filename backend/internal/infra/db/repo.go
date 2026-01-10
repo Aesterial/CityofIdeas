@@ -1560,11 +1560,29 @@ func (s *SubmissionsRepository) GetList(ctx context.Context) ([]*submissions.Sub
 	return data, nil
 }
 
+func (s *SubmissionsRepository) AlreadySetted(ctx context.Context, id int32) (bool, error) {
+	if id == 0 {
+		return false, errors.New("invalid id")
+	}
+	var setted bool
+	if err := s.DB.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM submissions WHERE id = $1 AND state <> 'waiting')", id).Scan(&setted); err != nil {
+		return false, err
+	}
+	return setted, nil
+}
+
 func (s *SubmissionsRepository) Approve(ctx context.Context, id int32) error {
 	if id == 0 {
 		return errors.New("invalid id")
 	}
-	_, err := s.DB.ExecContext(ctx, `
+	setted, err := s.AlreadySetted(ctx, id)
+	if err != nil {
+		return err
+	}
+	if setted {
+		return errors.New("idea already moderated")
+	}
+	_, err = s.DB.ExecContext(ctx, `
 		WITH upd AS (
 			UPDATE submissions
 			SET state = 'approved'
@@ -1581,6 +1599,13 @@ func (s *SubmissionsRepository) Approve(ctx context.Context, id int32) error {
 func (s *SubmissionsRepository) Decline(ctx context.Context, id int32, reason string) error {
 	if id == 0 {
 		return errors.New("invalid id")
+	}
+	setted, err := s.AlreadySetted(ctx, id)
+	if err != nil {
+		return err
+	}
+	if setted {
+		return errors.New("idea already moderated")
 	}
 	if _, err := s.DB.ExecContext(ctx, "UPDATE submissions SET state = 'declined', reason = $1 WHERE id = $2", reason, id); err != nil {
 		return err
