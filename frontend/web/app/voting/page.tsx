@@ -732,7 +732,6 @@ export default function VotingPage() {
                                 layout
                                 className="group relative overflow-hidden rounded-[2.5rem] border border-border/60 bg-card/90 p-6 shadow-[0_20px_50px_-34px_rgba(0,0,0,0.5)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_28px_60px_-36px_rgba(0,0,0,0.6)]"
                               >
-                                <span className="absolute left-0 top-0 h-full w-1.5 bg-foreground/20" />
                                 <div className="relative flex flex-col gap-6 xl:flex-row">
                                   <div className="flex-1 space-y-4">
                                     <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
