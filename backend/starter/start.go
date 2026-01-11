@@ -8,6 +8,7 @@ import (
 	userinfo "ascendant/backend/internal/app/info/user"
 	loggerservice "ascendant/backend/internal/app/logger"
 	"ascendant/backend/internal/app/mailer"
+	maintenanceapp "ascendant/backend/internal/app/maintenance"
 	usermodifier "ascendant/backend/internal/app/modifier/user"
 	projectsapp "ascendant/backend/internal/app/projects"
 	appstatistics "ascendant/backend/internal/app/statistics"
@@ -15,6 +16,7 @@ import (
 	"ascendant/backend/internal/app/submissions"
 	"ascendant/backend/internal/app/verification"
 	loginpb "ascendant/backend/internal/gen/login/v1"
+	maintenancepb "ascendant/backend/internal/gen/maintenance/v1"
 	permspb "ascendant/backend/internal/gen/permissions/v1"
 	projpb "ascendant/backend/internal/gen/projects/v1"
 	statpb "ascendant/backend/internal/gen/statistics/v1"
@@ -113,6 +115,7 @@ func main() {
 	projectsRepo := db.NewProjectsRepository(dbConn)
 	submissionsRepo := db.NewSubmissionRepository(dbConn)
 	verificationRepo := db.NewVerificationRepository(dbConn)
+	maintenanceRepo := db.NewMaintenanceRepository(dbConn)
 
 	loggerServ := loggerservice.New(loggerRepo)
 
@@ -128,6 +131,7 @@ func main() {
 	loginService := loginapp.New(loginRepo, sessionsService, userInfoService)
 	statService := appstatistics.New(statisticsRepo)
 	projectsService := projectsapp.New(projectsRepo)
+	maintenanceService := maintenanceapp.New(maintenanceRepo)
 	submissionService := submissions.New(submissionsRepo, projectsService, userInfoService)
 	mailerService := mailer.New(env.Mailer.ApiKey, env.Mailer.Name, env.Mailer.Email)
 	verificationService := verification.New(verificationRepo, mailerService)
@@ -144,6 +148,7 @@ func main() {
 	projectServer := grpcserver.NewProjectService(projectsService, sessionsService, permissionsService, userInfoService)
 	storageServer := grpcserver.NewStorageService(storageService)
 	submissionServer := grpcserver.NewSubmissionsService(submissionService, sessionsService, permissionsService, userInfoService)
+	maintenanceServer := grpcserver.NewMaintenanceService(maintenanceService, sessionsService, permissionsService, userInfoService)
 
 	gateway := runtime.NewServeMux(
 		runtime.WithIncomingHeaderMatcher(gatewayHeaderMatcher),
@@ -169,15 +174,18 @@ func main() {
 		logger.Error("Failed to register projects gateway: "+err.Error(), "service.gateway.register", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
 		return
 	}
-	if err := storagepb.RegisterStorageHandlerServer(ctx, gateway, storageServer); err != nil {
+	if err := storagepb.RegisterStorageServiceHandlerServer(ctx, gateway, storageServer); err != nil {
 		logger.Error("Failed to register storage gateway: "+err.Error(), "service.gateway.register", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
 		return
 	}
 	if err := submpb.RegisterSubmissionsServiceHandlerServer(ctx, gateway, submissionServer); err != nil {
-		logger.Error("Failed to register submissions storage gateway: "+err.Error(), "service.gateway.register", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
+		logger.Error("Failed to register submissions gateway: "+err.Error(), "service.gateway.register", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
 		return
 	}
-
+	if err := maintenancepb.RegisterMaintenanceServiceHandlerServer(ctx, gateway, maintenanceServer); err != nil {
+		logger.Error("Failed to register maintenance gateway: " +err.Error(), "service.gateway.register", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
+		return
+	}
 	grpcPort := normalizePort(env.Startup.GRPCPort, env.Startup.Port, "8080")
 	httpPort := normalizePort(env.Startup.HTTPPort, env.Startup.Port, grpcPort)
 	samePort := grpcPort == httpPort
@@ -200,8 +208,9 @@ func main() {
 	permspb.RegisterPermissionsServiceServer(grpcServer, permissionsServer)
 	statpb.RegisterStatisticsServiceServer(grpcServer, statServer)
 	projpb.RegisterProjectServiceServer(grpcServer, projectServer)
-	storagepb.RegisterStorageServer(grpcServer, storageServer)
+	storagepb.RegisterStorageServiceServer(grpcServer, storageServer)
 	submpb.RegisterSubmissionsServiceServer(grpcServer, submissionServer)
+	maintenancepb.RegisterMaintenanceServiceServer(grpcServer, maintenanceServer)
 
 	cors := newCORS(env.Cors.AllowedOrigins)
 	handler := buildHTTPHandler(grpcServer, gateway, cors)

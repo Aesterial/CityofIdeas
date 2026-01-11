@@ -31,7 +31,7 @@ func Run(repo statistics.Repository, loc *time.Location) (stop func()) {
 		t.Reset(d)
 	}
 
-	safe.Go("statisticsRecapScheduler", func() {
+	safe.Go("statistics recap scheduler", func() {
 		timer := time.NewTimer(time.Hour)
 		defer timer.Stop()
 

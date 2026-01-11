@@ -47,9 +47,9 @@ export const translations: Translations = {
     KZ: "Шешімдер ұсыныңыз",
   },
   heroSubtitle: {
-    RU: "По развитию общественных пространств",
-    EN: "For the development of public spaces",
-    KZ: "Қоғамдық кеңістіктерді дамыту үшін",
+    RU: "Проект по развитию общественных пространств",
+    EN: "Project for the development of public spaces",
+    KZ: "Қоғамдық кеңістіктерді дамыту жобасы",
   },
   start: {
     RU: "Начать",

@@ -32,13 +32,13 @@ service MaintenanceService {
     }
     rpc Edit(EditRequest) returns (Response) {
         option (google.api.http) = {
-            post: "/api/maintenance/{id}/edit",
+            post: "/api/maintenance/edit",
             body: "*"
         };
     }
-    rpc Cancel(google.protobuf.Empty) returns (Response) {
+    rpc Complete(google.protobuf.Empty) returns (Response) {
         option (google.api.http) = {
-            post: "/api/maintenance/cancel",
+            post: "/api/maintenance/complete",
         };
     }
 }

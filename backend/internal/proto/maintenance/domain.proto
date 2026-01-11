@@ -28,7 +28,6 @@ message Response {
 }
 
 message EditRequest {
-    string id = 1;
     optional string description = 2;
     optional string scope = 3;
 }

@@ -409,7 +409,7 @@ create table submissions (
 create index submissions_project_id_idx on submissions (project_id);
 create index submissions_state_idx on submissions (state);
 
-create type maintenance_status as enum ('scheduled', 'in progress', 'completed', 'cancelled');
+create type maintenance_status as enum ('scheduled', 'in progress', 'completed');
 create type maintenance_scope as enum ('all', 'auth', 'projects');
 create type maintenance_type as enum ('emergency', 'planned');
 

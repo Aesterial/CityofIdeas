@@ -2,6 +2,7 @@ package db
 
 import (
 	"ascendant/backend/internal/domain/login"
+	"ascendant/backend/internal/domain/maintenance"
 	"ascendant/backend/internal/domain/permissions"
 	projectdomain "ascendant/backend/internal/domain/projects"
 	"ascendant/backend/internal/domain/rank"
@@ -62,6 +63,10 @@ type VerificationRepository struct {
 	DB *sql.DB
 }
 
+type MaintenanceRepository struct {
+	DB *sql.DB
+}
+
 var _ user.Repository = (*UserRepository)(nil)
 
 func NewUserRepository(db *sql.DB) *UserRepository {
@@ -90,6 +95,9 @@ func NewSubmissionRepository(db *sql.DB) *SubmissionsRepository {
 }
 func NewVerificationRepository(db *sql.DB) *VerificationRepository {
 	return &VerificationRepository{DB: db}
+}
+func NewMaintenanceRepository(db *sql.DB) *MaintenanceRepository {
+	return &MaintenanceRepository{DB: db}
 }
 
 type compositeField struct {
@@ -1030,7 +1038,7 @@ func (p *PermissionsRepository) SetForRank(ctx context.Context, rank string, per
 	return updateRankPermissions(p.DB, ctx, rank, perms)
 }
 
-func getProjectAuthor(ctx context.Context, uid uint, db *sql.DB) (*user.User, error) {
+func getAuthor(ctx context.Context, uid uint, db *sql.DB) (*user.User, error) {
 	usr, err := NewUserRepository(db).GetUserByUID(ctx, uid)
 	if err != nil {
 		return nil, err
@@ -1074,7 +1082,7 @@ func getProject(ctx context.Context, id uuid.UUID, db *sql.DB) (*projectdomain.P
 		&project.ID, &authorID, &project.Info.Title, &project.Info.Description, &project.Info.Category, &project.Info.Location.City, &project.Info.Location.Street, &project.Info.Location.House, &project.Likes, &project.At, &project.Status); err != nil {
 		return nil, err
 	}
-	project.Author, err = getProjectAuthor(ctx, authorID, db)
+	project.Author, err = getAuthor(ctx, authorID, db)
 	if err != nil {
 		return nil, err
 	}
@@ -1686,4 +1694,140 @@ func (v *VerificationRepository) IsBanned(ctx context.Context, email string) (bo
 		return false, err
 	}
 	return found, nil
+}
+
+var _ maintenance.Repository = (*MaintenanceRepository)(nil)
+
+func (m *MaintenanceRepository) CheckIsActive(ctx context.Context) (bool, error) {
+	var active bool
+	if err := m.DB.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM maintenance m WHERE m.status = 'in progress')").Scan(&active); err != nil {
+		return false, err
+	}
+	return active, nil
+}
+
+func (m *MaintenanceRepository) SetActive(ctx context.Context, id uuid.UUID) error {
+	_, err := m.DB.ExecContext(ctx, "UPDATE maintenance SET status = 'in progress', actual_start_at = $1 WHERE id = $2", time.Now(), id)
+	return err
+}
+
+func (m *MaintenanceRepository) IsPlanned(ctx context.Context) (bool, error) {
+	var planned bool
+	if err := m.DB.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM maintenance m WHERE m.status = 'scheduled')").Scan(&planned); err != nil {
+		return false, err
+	}
+	return planned, nil
+}
+
+func (m *MaintenanceRepository) GetData(ctx context.Context) (*maintenance.Information, error) {
+	active, err := m.CheckIsActive(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if !active {
+		return nil, errors.New("maintenance is not active")
+	}
+	var info maintenance.Information
+	var actual_end sql.NullTime
+	var by uint
+	if err := m.DB.QueryRowContext(ctx, "SELECT m.* FROM maintenance m WHERE m.status = 'in progress'").Scan(&info.ID, &info.Description, &info.Status, &info.Scope, &info.Type, &info.Planned.Start, &info.Planned.End, &info.Actual.Start, &actual_end, &info.CreatedAt, &by); err != nil {
+		return nil, err
+	}
+	_ = actual_end
+	info.CalledBy, err = getAuthor(ctx, by, m.DB)
+	if err != nil {
+		return nil, err
+	}
+	return &info, nil
+}
+
+func (m *MaintenanceRepository) Start(ctx context.Context, req maintenance.CreateST, by uint) error {
+	active, err := m.CheckIsActive(ctx)
+	if err != nil {
+		return err
+	}
+	if active {
+		return errors.New("maintenance already active")
+	}
+	var typ string = "planned"
+	var scope string = "all"
+	if req.PlannedStart.IsZero() {
+		req.PlannedStart = time.Now()
+		typ = "emergency"
+	}
+	if req.Scope != nil {
+		scope = *req.Scope
+	}
+	_, err = m.DB.ExecContext(ctx, "INSERT INTO maintenance (description, scope, type, planned_start_at, planned_end_at, called_by) VALUES ($1, $2, $3, $4, $5, $6)", req.Description, scope, typ, req.PlannedStart, req.PlannedEnd, by)
+	return err
+}
+
+func (m *MaintenanceRepository) Edit(ctx context.Context, req maintenance.EditST) error {
+	active, err := m.CheckIsActive(ctx)
+	if err != nil {
+		return err
+	}
+	if !active {
+		return errors.New("maintenance is not active")
+	}
+	if req.Description == nil && req.Scope == nil {
+		return errors.New("params is nil")
+	}
+	if req.Description != nil {
+		if _, err := m.DB.ExecContext(ctx, "UPDATE maintenance SET description = $1 WHERE status = 'in progress'", *req.Description); err != nil {
+			return err
+		}
+	}
+	if req.Scope != nil {
+		if _, err := m.DB.ExecContext(ctx, "UPDATE maintenance SET scope = $1 WHERE status = 'in progress'", *req.Scope); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (m *MaintenanceRepository) Complete(ctx context.Context) error {
+	active, err := m.CheckIsActive(ctx)
+	if err != nil {
+		return err
+	}
+	if !active {
+		return errors.New("maintenance is not active")
+	}
+	if _, err := m.DB.ExecContext(ctx, "UPDATE maintenance SET status = 'completed', actual_end_at = $1 WHERE status = 'in progress'", time.Now()); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *MaintenanceRepository) GetList(ctx context.Context) (maintenance.Informations, error) {
+	var list maintenance.Informations
+	rows, err := m.DB.QueryContext(ctx, "SELECT * FROM maintenance")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var r maintenance.Information
+		var actual_start, actual_end sql.NullTime
+		var calledby uint
+		if err := rows.Scan(&r.ID, &r.Description, &r.Status, &r.Scope, &r.Type, &r.Planned.Start, &r.Planned.End, &actual_start, &actual_end, &r.CreatedAt, &calledby); err != nil {
+			return nil, err
+		}
+		r.CalledBy, err = getAuthor(ctx, calledby, m.DB)
+		if err != nil {
+			return nil, err
+		}
+		if actual_start.Valid {
+			r.Actual.Start = actual_start.Time
+		}
+		if actual_end.Valid {
+			r.Actual.End = actual_end.Time
+		}
+		list = append(list, &r)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return list, nil
 }

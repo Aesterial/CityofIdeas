@@ -1,0 +1,28 @@
+ARG GO_VERSION=1.25
+
+FROM golang:${GO_VERSION}-bookworm AS build
+WORKDIR /app/backend
+
+COPY go.work go.work.sum ./
+COPY internal/go.mod internal/go.sum ./internal/
+COPY starter/go.mod starter/go.sum ./starter/
+
+RUN go work sync
+RUN cd internal && go mod download
+RUN cd starter && go mod download
+
+COPY internal ./internal
+COPY starter ./starter
+
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -o /out/ascendant-backend ./starter
+
+FROM debian:bookworm-slim AS runtime
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY --from=build /out/ascendant-backend /app/ascendant-backend
+
+EXPOSE 8080
+CMD ["./ascendant-backend"]

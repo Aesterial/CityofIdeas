@@ -11,7 +11,7 @@ import (
 )
 
 type StorageService struct {
-	storagepb.UnimplementedStorageServer
+	storagepb.UnimplementedStorageServiceServer
 	storage *storageapp.Service
 }
 

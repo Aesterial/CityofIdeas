@@ -256,7 +256,6 @@ func (x *Response) GetTracing() string {
 
 type EditRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Description   *string                `protobuf:"bytes,2,opt,name=description,proto3,oneof" json:"description,omitempty"`
 	Scope         *string                `protobuf:"bytes,3,opt,name=scope,proto3,oneof" json:"scope,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -291,13 +290,6 @@ func (x *EditRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use EditRequest.ProtoReflect.Descriptor instead.
 func (*EditRequest) Descriptor() ([]byte, []int) {
 	return file_maintenance_domain_proto_rawDescGZIP(), []int{4}
-}
-
-func (x *EditRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
 }
 
 func (x *EditRequest) GetDescription() string {
@@ -335,9 +327,8 @@ const file_maintenance_domain_proto_rawDesc = "" +
 	"\bwill_end\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\awillEndB\b\n" +
 	"\x06_scope\"$\n" +
 	"\bResponse\x12\x18\n" +
-	"\atracing\x18\x01 \x01(\tR\atracing\"y\n" +
-	"\vEditRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12%\n" +
+	"\atracing\x18\x01 \x01(\tR\atracing\"i\n" +
+	"\vEditRequest\x12%\n" +
 	"\vdescription\x18\x02 \x01(\tH\x00R\vdescription\x88\x01\x01\x12\x19\n" +
 	"\x05scope\x18\x03 \x01(\tH\x01R\x05scope\x88\x01\x01B\x0e\n" +
 	"\f_descriptionB\b\n" +

@@ -25,7 +25,7 @@ const (
 	MaintenanceService_Start_FullMethodName        = "/maintenance.v1.MaintenanceService/Start"
 	MaintenanceService_StartPlanned_FullMethodName = "/maintenance.v1.MaintenanceService/StartPlanned"
 	MaintenanceService_Edit_FullMethodName         = "/maintenance.v1.MaintenanceService/Edit"
-	MaintenanceService_Cancel_FullMethodName       = "/maintenance.v1.MaintenanceService/Cancel"
+	MaintenanceService_Complete_FullMethodName     = "/maintenance.v1.MaintenanceService/Complete"
 )
 
 // MaintenanceServiceClient is the client API for MaintenanceService service.
@@ -37,7 +37,7 @@ type MaintenanceServiceClient interface {
 	Start(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*Response, error)
 	StartPlanned(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*Response, error)
 	Edit(ctx context.Context, in *EditRequest, opts ...grpc.CallOption) (*Response, error)
-	Cancel(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Response, error)
+	Complete(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Response, error)
 }
 
 type maintenanceServiceClient struct {
@@ -98,10 +98,10 @@ func (c *maintenanceServiceClient) Edit(ctx context.Context, in *EditRequest, op
 	return out, nil
 }
 
-func (c *maintenanceServiceClient) Cancel(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Response, error) {
+func (c *maintenanceServiceClient) Complete(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Response, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Response)
-	err := c.cc.Invoke(ctx, MaintenanceService_Cancel_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, MaintenanceService_Complete_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ type MaintenanceServiceServer interface {
 	Start(context.Context, *CreateRequest) (*Response, error)
 	StartPlanned(context.Context, *CreateRequest) (*Response, error)
 	Edit(context.Context, *EditRequest) (*Response, error)
-	Cancel(context.Context, *emptypb.Empty) (*Response, error)
+	Complete(context.Context, *emptypb.Empty) (*Response, error)
 	mustEmbedUnimplementedMaintenanceServiceServer()
 }
 
@@ -143,8 +143,8 @@ func (UnimplementedMaintenanceServiceServer) StartPlanned(context.Context, *Crea
 func (UnimplementedMaintenanceServiceServer) Edit(context.Context, *EditRequest) (*Response, error) {
 	return nil, status.Error(codes.Unimplemented, "method Edit not implemented")
 }
-func (UnimplementedMaintenanceServiceServer) Cancel(context.Context, *emptypb.Empty) (*Response, error) {
-	return nil, status.Error(codes.Unimplemented, "method Cancel not implemented")
+func (UnimplementedMaintenanceServiceServer) Complete(context.Context, *emptypb.Empty) (*Response, error) {
+	return nil, status.Error(codes.Unimplemented, "method Complete not implemented")
 }
 func (UnimplementedMaintenanceServiceServer) mustEmbedUnimplementedMaintenanceServiceServer() {}
 func (UnimplementedMaintenanceServiceServer) testEmbeddedByValue()                            {}
@@ -257,20 +257,20 @@ func _MaintenanceService_Edit_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MaintenanceService_Cancel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _MaintenanceService_Complete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MaintenanceServiceServer).Cancel(ctx, in)
+		return srv.(MaintenanceServiceServer).Complete(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: MaintenanceService_Cancel_FullMethodName,
+		FullMethod: MaintenanceService_Complete_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MaintenanceServiceServer).Cancel(ctx, req.(*emptypb.Empty))
+		return srv.(MaintenanceServiceServer).Complete(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -303,8 +303,8 @@ var MaintenanceService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _MaintenanceService_Edit_Handler,
 		},
 		{
-			MethodName: "Cancel",
-			Handler:    _MaintenanceService_Cancel_Handler,
+			MethodName: "Complete",
+			Handler:    _MaintenanceService_Complete_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

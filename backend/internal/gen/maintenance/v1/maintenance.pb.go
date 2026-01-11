@@ -26,14 +26,14 @@ var File_maintenance_maintenance_proto protoreflect.FileDescriptor
 
 const file_maintenance_maintenance_proto_rawDesc = "" +
 	"\n" +
-	"\x1dmaintenance/maintenance.proto\x12\x0emaintenance.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x18maintenance/domain.proto2\xfb\x04\n" +
+	"\x1dmaintenance/maintenance.proto\x12\x0emaintenance.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x18maintenance/domain.proto2\xfa\x04\n" +
 	"\x12MaintenanceService\x12e\n" +
 	"\bIsActive\x12\x16.google.protobuf.Empty\x1a .maintenance.v1.IsActiveResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\x12\x17/api/maintenance/active\x12[\n" +
 	"\x04Data\x12\x16.google.protobuf.Empty\x1a\x1c.maintenance.v1.DataResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/maintenance/data\x12d\n" +
 	"\x05Start\x12\x1d.maintenance.v1.CreateRequest\x1a\x18.maintenance.v1.Response\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/api/maintenance/create\x12x\n" +
-	"\fStartPlanned\x12\x1d.maintenance.v1.CreateRequest\x1a\x18.maintenance.v1.Response\"/\x82\xd3\xe4\x93\x02):\x01*\"$/api/maintenance/create/{will_start}\x12d\n" +
-	"\x04Edit\x12\x1b.maintenance.v1.EditRequest\x1a\x18.maintenance.v1.Response\"%\x82\xd3\xe4\x93\x02\x1f:\x01*\"\x1a/api/maintenance/{id}/edit\x12[\n" +
-	"\x06Cancel\x12\x16.google.protobuf.Empty\x1a\x18.maintenance.v1.Response\"\x1f\x82\xd3\xe4\x93\x02\x19\"\x17/api/maintenance/cancelB;Z9ascendant/backend/internal/gen/maintenance/v1;maintenanceb\x06proto3"
+	"\fStartPlanned\x12\x1d.maintenance.v1.CreateRequest\x1a\x18.maintenance.v1.Response\"/\x82\xd3\xe4\x93\x02):\x01*\"$/api/maintenance/create/{will_start}\x12_\n" +
+	"\x04Edit\x12\x1b.maintenance.v1.EditRequest\x1a\x18.maintenance.v1.Response\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/api/maintenance/edit\x12_\n" +
+	"\bComplete\x12\x16.google.protobuf.Empty\x1a\x18.maintenance.v1.Response\"!\x82\xd3\xe4\x93\x02\x1b\"\x19/api/maintenance/completeB;Z9ascendant/backend/internal/gen/maintenance/v1;maintenanceb\x06proto3"
 
 var file_maintenance_maintenance_proto_goTypes = []any{
 	(*emptypb.Empty)(nil),    // 0: google.protobuf.Empty
@@ -49,13 +49,13 @@ var file_maintenance_maintenance_proto_depIdxs = []int32{
 	1, // 2: maintenance.v1.MaintenanceService.Start:input_type -> maintenance.v1.CreateRequest
 	1, // 3: maintenance.v1.MaintenanceService.StartPlanned:input_type -> maintenance.v1.CreateRequest
 	2, // 4: maintenance.v1.MaintenanceService.Edit:input_type -> maintenance.v1.EditRequest
-	0, // 5: maintenance.v1.MaintenanceService.Cancel:input_type -> google.protobuf.Empty
+	0, // 5: maintenance.v1.MaintenanceService.Complete:input_type -> google.protobuf.Empty
 	3, // 6: maintenance.v1.MaintenanceService.IsActive:output_type -> maintenance.v1.IsActiveResponse
 	4, // 7: maintenance.v1.MaintenanceService.Data:output_type -> maintenance.v1.DataResponse
 	5, // 8: maintenance.v1.MaintenanceService.Start:output_type -> maintenance.v1.Response
 	5, // 9: maintenance.v1.MaintenanceService.StartPlanned:output_type -> maintenance.v1.Response
 	5, // 10: maintenance.v1.MaintenanceService.Edit:output_type -> maintenance.v1.Response
-	5, // 11: maintenance.v1.MaintenanceService.Cancel:output_type -> maintenance.v1.Response
+	5, // 11: maintenance.v1.MaintenanceService.Complete:output_type -> maintenance.v1.Response
 	6, // [6:12] is the sub-list for method output_type
 	0, // [0:6] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
