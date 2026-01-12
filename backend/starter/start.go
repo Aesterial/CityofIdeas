@@ -14,6 +14,7 @@ import (
 	appstatistics "ascendant/backend/internal/app/statistics"
 	storageapp "ascendant/backend/internal/app/storage"
 	"ascendant/backend/internal/app/submissions"
+	"ascendant/backend/internal/app/tickets"
 	"ascendant/backend/internal/app/verification"
 	loginpb "ascendant/backend/internal/gen/login/v1"
 	maintenancepb "ascendant/backend/internal/gen/maintenance/v1"
@@ -23,6 +24,7 @@ import (
 	storagepb "ascendant/backend/internal/gen/storage/v1"
 	submpb "ascendant/backend/internal/gen/submissions/v1"
 	userpb "ascendant/backend/internal/gen/user/v1"
+	tickpb "ascendant/backend/internal/gen/tickets/v1"
 	"ascendant/backend/internal/infra/db"
 	dbtest "ascendant/backend/internal/infra/db/test"
 	"ascendant/backend/internal/infra/grpcserver"
@@ -116,6 +118,7 @@ func main() {
 	submissionsRepo := db.NewSubmissionRepository(dbConn)
 	verificationRepo := db.NewVerificationRepository(dbConn)
 	maintenanceRepo := db.NewMaintenanceRepository(dbConn)
+	ticketsRepo := db.NewTicketsRepository(dbConn)
 
 	loggerServ := loggerservice.New(loggerRepo)
 
@@ -133,6 +136,7 @@ func main() {
 	projectsService := projectsapp.New(projectsRepo)
 	maintenanceService := maintenanceapp.New(maintenanceRepo)
 	submissionService := submissions.New(submissionsRepo, projectsService, userInfoService)
+	ticketsService := tickets.New(ticketsRepo)
 	mailerService := mailer.New(env.Mailer.ApiKey, env.Mailer.Name, env.Mailer.Email)
 	verificationService := verification.New(verificationRepo, mailerService)
 	storageService, err := storageapp.New()
@@ -149,6 +153,7 @@ func main() {
 	storageServer := grpcserver.NewStorageService(storageService)
 	submissionServer := grpcserver.NewSubmissionsService(submissionService, sessionsService, permissionsService, userInfoService)
 	maintenanceServer := grpcserver.NewMaintenanceService(maintenanceService, sessionsService, permissionsService, userInfoService)
+	ticketsServer := grpcserver.NewTicketsService(ticketsService, sessionsService, permissionsService, userInfoService)
 
 	gateway := runtime.NewServeMux(
 		runtime.WithIncomingHeaderMatcher(gatewayHeaderMatcher),
@@ -186,6 +191,11 @@ func main() {
 		logger.Error("Failed to register maintenance gateway: " +err.Error(), "service.gateway.register", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
 		return
 	}
+	if err := tickpb.RegisterTicketsServiceHandlerServer(ctx, gateway, ticketsServer); err != nil {
+		logger.Error("Failed to register tickets gateway: " +err.Error(), "service.gateway.register", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
+		return
+	}
+	
 	grpcPort := normalizePort(env.Startup.GRPCPort, env.Startup.Port, "8080")
 	httpPort := normalizePort(env.Startup.HTTPPort, env.Startup.Port, grpcPort)
 	samePort := grpcPort == httpPort
@@ -211,6 +221,7 @@ func main() {
 	storagepb.RegisterStorageServiceServer(grpcServer, storageServer)
 	submpb.RegisterSubmissionsServiceServer(grpcServer, submissionServer)
 	maintenancepb.RegisterMaintenanceServiceServer(grpcServer, maintenanceServer)
+	tickpb.RegisterTicketsServiceServer(grpcServer, ticketsServer)
 
 	cors := newCORS(env.Cors.AllowedOrigins)
 	handler := buildHTTPHandler(grpcServer, gateway, cors)
