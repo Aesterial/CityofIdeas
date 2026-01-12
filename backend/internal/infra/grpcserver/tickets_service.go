@@ -61,3 +61,35 @@ func (t *TicketsService) Info(ctx context.Context, req *tickpb.TicketInfoRequest
 	}
 	return &tickpb.TicketInfoResponse{Ticket: info.ToProto(), Tracing: TraceIDOrNew(ctx)}, nil
 }
+
+func (t *TicketsService) Messages(ctx context.Context, req *tickpb.TicketInfoRequest) (*tickpb.TicketMessagesResponse, error) {
+	if t == nil || t.serv == nil {
+		return nil, status.Error(codes.Internal, "projects service not configured")
+	}
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is empty")
+	}
+	id, err := uuid.Parse(req.Id)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "id is not correct")
+	}
+	list, err := t.serv.Messages(ctx, id)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to get messages list")
+	}
+	return &tickpb.TicketMessagesResponse{List: list.ToProto(), Tracing: TraceIDOrNew(ctx)}, nil
+}
+
+func (t *TicketsService) MessageCreate(ctx context.Context, req *tickpb.TicketMessageCreate) (*tickpb.EmptyResponse, error) {
+	if t == nil || t.serv == nil {
+		return nil, status.Error(codes.Internal, "projects service not configured")
+	}
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is empty")
+	}
+	id, err := uuid.Parse(req.Id)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "id is not correct")
+	}
+	if err :=
+}

@@ -434,9 +434,9 @@ create index maintenance_status_idx on maintenance (status);
 create index maintenance_planned_start_at_idx on maintenance (planned_start_at);
 create index maintenance_planned_end_at_idx on maintenance (planned_end_at);
 
-create type ticket_status as enum ('в обработке', 'закрыт', 'ожидает')
-create type ticket_topic as enum ('аккаунт и доступ', 'проект и заявка', 'техническая проблема', 'другое')
-create type ticket_close_by as enum ('user', 'staff', 'system')
+create type ticket_status as enum ('в обработке', 'закрыт', 'ожидает');
+create type ticket_topic as enum ('аккаунт и доступ', 'проект и заявка', 'техническая проблема', 'другое');
+create type ticket_close_by as enum ('user', 'staff', 'system');
 
 create table tickets (
     id uuid primary key default pg_catalog.gen_random_uuid(),
@@ -452,7 +452,7 @@ create table tickets (
     closed timestamptz,
     closed_by ticket_close_by,
     close_reason text
-)
+);
 
 create table ticket_messages (
     id bigint generated always as identity primary key,
@@ -460,7 +460,7 @@ create table ticket_messages (
     author bigint not null,
     content text not null,
     at timestamptz not null default now()
-)
+);
 
 create index tickets_status_idx on tickets (status);
 create index tickets_acceptor_idx on tickets (acceptor);

@@ -84,7 +84,7 @@ type Ticket struct {
 	CloseReason string
 }
 
-func (t *Ticket) ToProto() *tickpb.TicketInfo {
+func (t Ticket) ToProto() *tickpb.TicketInfo {
 	return &tickpb.TicketInfo{
 		
 	}
@@ -92,8 +92,12 @@ func (t *Ticket) ToProto() *tickpb.TicketInfo {
 
 type Tickets []*Ticket
 
-func (t *Tickets) ToProto() {
-
+func (t Tickets) ToProto() []*tickpb.TicketInfo {
+	var a []*tickpb.TicketInfo
+	for _, b := range t {
+		a = append(a, b.ToProto())
+	}
+	return a
 }
 
 type TicketMessage struct {
@@ -103,8 +107,18 @@ type TicketMessage struct {
 	At      time.Time
 }
 
+func (tm TicketMessage) ToProto() *tickpb.TicketMessage {
+	return &tickpb.TicketMessage{
+		
+	}
+}
+
 type TicketMessages []*TicketMessage
 
-func (tm *TicketMessages) ToProto() {
-
+func (tm TicketMessages) ToProto() []*tickpb.TicketMessage {
+	var a []*tickpb.TicketMessage
+	for _, b := range tm {
+		a = append(a, b.ToProto())
+	}
+	return a
 }
