@@ -2,11 +2,13 @@
 
 import { useEffect, useState, type FormEvent } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { HelpCircle, Mail, MessageSquare, ShieldCheck, User } from "lucide-react"
 import { Header } from "@/components/header"
 import { GradientButton } from "@/components/gradient-button"
 import { useAuth } from "@/components/auth-provider"
+import { createTicket } from "@/lib/api"
 
 type SupportFormState = {
   name: string
@@ -26,7 +28,8 @@ const categories = [
 ]
 
 export default function SupportPage() {
-  const { user } = useAuth()
+  const router = useRouter()
+  const { user, hasAdminAccess } = useAuth()
   const [formData, setFormData] = useState<SupportFormState>({
     name: "",
     email: "",
@@ -35,7 +38,8 @@ export default function SupportPage() {
     message: "",
   })
   const [errors, setErrors] = useState<SupportFormErrors>({})
-  const [submitted, setSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     if (!user) {
@@ -48,10 +52,13 @@ export default function SupportPage() {
     }))
   }, [user])
 
-  const canManageSupport = ["developer", "staff", "moderator"].includes(user?.rank?.name ?? "")
+  const canManageSupport = hasAdminAccess
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (isSubmitting) {
+      return
+    }
     const nextErrors: SupportFormErrors = {}
 
     if (!formData.email.trim()) {
@@ -65,18 +72,27 @@ export default function SupportPage() {
     }
 
     setErrors(nextErrors)
+    setSubmitError(null)
 
     if (Object.keys(nextErrors).length > 0) {
       return
     }
 
-    setSubmitted(true)
-    setFormData((prev) => ({
-      ...prev,
-      subject: "",
-      message: "",
-      category: categories[0].value,
-    }))
+    setIsSubmitting(true)
+    try {
+      const id = await createTicket({
+        name: formData.name.trim() || undefined,
+        email: formData.email.trim(),
+        subject: formData.subject.trim(),
+        category: formData.category,
+        message: formData.message.trim(),
+      })
+      router.push(`/support/${encodeURIComponent(id)}`)
+    } catch (error) {
+      setSubmitError("Не удалось отправить обращение. Попробуйте еще раз.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -173,15 +189,19 @@ export default function SupportPage() {
                   {errors.message ? <p className="mt-2 text-xs text-destructive">{errors.message}</p> : null}
                 </div>
 
-                {submitted ? (
+                {submitError ? (
                   <p className="rounded-2xl border border-foreground/10 bg-foreground/5 px-4 py-3 text-sm">
-                    Заявка отправлена. Ответ придет на указанный email.
+                    {submitError}
                   </p>
                 ) : null}
 
                 <div className="pt-2">
-                  <GradientButton type="submit" className="w-full justify-center sm:w-auto">
-                    Отправить обращение
+                  <GradientButton
+                    type="submit"
+                    className="w-full justify-center sm:w-auto"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Отправляем..." : "Отправить обращение"}
                   </GradientButton>
                 </div>
               </div>
@@ -196,8 +216,10 @@ export default function SupportPage() {
               <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
                 <p className="text-sm font-semibold">Что дальше?</p>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  После отправки обращение попадет в очередь поддержки. Администратор или модератор
-                  возьмет его в работу и свяжется с вами.
+                  После отправки обращение попадет в очередь поддержки. Специалист возьмет его в работу и свяжется с вами.
+                </p>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Если новых сообщений не будет в течение 48 часов, обращение закроется автоматически.
                 </p>
               </div>
 
@@ -205,14 +227,14 @@ export default function SupportPage() {
                 <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
                   <p className="text-sm font-semibold">Панель поддержки</p>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    У вас есть доступ к очереди заявок. Откройте список и возьмите обращение.
+                    У вас есть доступ к обращениям. Откройте список и возьмите обращение.
                   </p>
                   <Link
-                    href="/support/queue"
+                    href="/admin/support"
                     className="mt-4 inline-flex items-center gap-2 rounded-full border border-border/70 px-4 py-2 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
                   >
                     <ShieldCheck className="h-4 w-4" />
-                    Перейти в очередь
+                    Перейти в поддержку
                   </Link>
                 </div>
               ) : null}

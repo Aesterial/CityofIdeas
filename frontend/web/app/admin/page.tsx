@@ -411,6 +411,12 @@ export default function AdminPage() {
         icon: CheckCircle2,
         href: "/admin/submissions",
       },
+      {
+        id: "support",
+        label: "Поддержка",
+        icon: MessageSquare,
+        href: "/admin/support",
+      },
     ],
     [language, t],
   );

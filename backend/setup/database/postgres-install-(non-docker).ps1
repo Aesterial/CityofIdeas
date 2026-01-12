@@ -128,7 +128,8 @@ function Wait-Port([string]$Host, [int]$Port, [int]$Seconds = 30) {
         } catch {}
         Start-Sleep -Milliseconds 250
     }
-    throw "Порт $Host:$Port не открылся за $Seconds секунд."
+    # FIX: use ${} so "$Host:$Port" doesn't parse as an invalid drive-qualified variable
+    throw "Порт ${Host}:${Port} не открылся за $Seconds секунд."
 }
 
 function Psql-Do {
@@ -274,6 +275,7 @@ if ($WriteMachineEnv) {
 }
 
 Write-Host "OK: PostgreSQL16 (Scoop) установлен и запущен." -ForegroundColor Green
-Write-Host "DB:  $dbHost:$dbPort  name=$dbName user=$dbUser" -ForegroundColor Green
+# FIX: use ${} so "$dbHost:$dbPort" doesn't parse as an invalid drive-qualified variable
+Write-Host "DB:  ${dbHost}:${dbPort}  name=$dbName user=$dbUser" -ForegroundColor Green
 Write-Host "Task: $TaskName" -ForegroundColor Green
 Write-Host "Env file updated: $EnvPath" -ForegroundColor Green

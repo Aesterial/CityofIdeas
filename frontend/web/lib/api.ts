@@ -115,6 +115,17 @@ type ApiSubmissionsResponse = {
   tracing?: string;
 };
 
+export type ApiTicket = Record<string, unknown>;
+export type ApiTicketMessage = Record<string, unknown>;
+
+export type CreateTicketPayload = {
+  name?: string;
+  email?: string;
+  subject: string;
+  category?: string;
+  message: string;
+};
+
 type ApiBanInfoResponse = {
   id?: string;
   reason?: string;
@@ -635,3 +646,178 @@ export async function voteForProject(projectID: string): Promise<void> {
     body: JSON.stringify({}),
   });
 }
+
+const toTicketRecord = (
+  payload: unknown,
+): Record<string, unknown> | null => {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    return null;
+  }
+  return payload as Record<string, unknown>;
+};
+
+const pickTicketId = (payload: unknown): string | null => {
+  if (typeof payload === "string" && payload.trim()) {
+    return payload.trim();
+  }
+  if (typeof payload === "number" && Number.isFinite(payload)) {
+    return String(payload);
+  }
+  const record = toTicketRecord(payload);
+  if (!record) {
+    return null;
+  }
+  const candidates = ["id", "ticketId", "ticket_id", "ticketID"];
+  for (const key of candidates) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return String(value);
+    }
+  }
+  const nested = toTicketRecord(record.data ?? record.ticket ?? record.info);
+  if (!nested) {
+    return null;
+  }
+  for (const key of candidates) {
+    const value = nested[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return String(value);
+    }
+  }
+  return null;
+};
+
+export async function createTicket(
+  payload: CreateTicketPayload,
+): Promise<string> {
+  const subject = payload.subject.trim();
+  const message = payload.message.trim();
+  if (!subject) {
+    throw new Error("Ticket subject is required.");
+  }
+  if (!message) {
+    throw new Error("Ticket message is required.");
+  }
+  const body: Record<string, unknown> = { subject, message };
+  const name = payload.name?.trim();
+  const email = payload.email?.trim();
+  const category = payload.category?.trim();
+  if (name) {
+    body.name = name;
+  }
+  if (email) {
+    body.email = email;
+  }
+  if (category) {
+    body.category = category;
+  }
+
+  const response = await apiRequest<unknown>("/api/tickets/create", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+  const id = pickTicketId(response);
+  if (!id) {
+    throw new Error("Ticket id is missing.");
+  }
+  return id;
+}
+
+export async function fetchTicketInfo(
+  id: string,
+  options?: { signal?: AbortSignal },
+): Promise<ApiTicket | null> {
+  const encoded = encodeURIComponent(id);
+  const payload = await apiRequest<unknown>(`/api/tickets/${encoded}/info`, {
+    method: "GET",
+    signal: options?.signal,
+  });
+  const record = toTicketRecord(payload);
+  if (!record) {
+    return null;
+  }
+  const ticket = toTicketRecord(record.data ?? record.ticket ?? record.info) ?? record;
+  return ticket as ApiTicket;
+}
+
+export async function fetchTicketMessages(
+  id: string,
+  options?: { signal?: AbortSignal },
+): Promise<ApiTicketMessage[]> {
+  const encoded = encodeURIComponent(id);
+  const payload = await apiRequest<unknown>(
+    `/api/tickets/${encoded}/messages/list`,
+    {
+      method: "GET",
+      signal: options?.signal,
+    },
+  );
+  const record = toTicketRecord(payload);
+  const messages = Array.isArray(payload)
+    ? payload
+    : (record?.data ??
+        record?.messages ??
+        record?.list ??
+        record?.items ??
+        record?.message_list ??
+        []);
+  return Array.isArray(messages) ? (messages as ApiTicketMessage[]) : [];
+}
+
+export async function createTicketMessage(
+  id: string,
+  message: string,
+): Promise<void> {
+  const trimmed = message.trim();
+  if (!trimmed) {
+    throw new Error("Ticket message is required.");
+  }
+  const encoded = encodeURIComponent(id);
+  await apiRequest(`/api/tickets/${encoded}/messages/create`, {
+    method: "POST",
+    body: JSON.stringify({ message: trimmed }),
+  });
+}
+
+export async function closeTicket(id: string): Promise<void> {
+  const encoded = encodeURIComponent(id);
+  await apiRequest(`/api/tickets/${encoded}/close`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+}
+
+export async function acceptTicket(id: string): Promise<void> {
+  const encoded = encodeURIComponent(id);
+  await apiRequest(`/api/tickets/${encoded}/accept`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
+}
+
+export async function fetchTickets(options?: {
+  signal?: AbortSignal;
+}): Promise<ApiTicket[]> {
+  const payload = await apiRequest<unknown>("/api/tickets/list", {
+    method: "GET",
+    signal: options?.signal,
+  });
+  const record = toTicketRecord(payload);
+  const tickets = Array.isArray(payload)
+    ? payload
+    : (record?.data ??
+        record?.tickets ??
+        record?.list ??
+        record?.items ??
+        record?.ticket_list ??
+        []);
+  return Array.isArray(tickets) ? (tickets as ApiTicket[]) : [];
+}
+
+  
