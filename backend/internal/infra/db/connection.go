@@ -2,6 +2,7 @@ package db
 
 import (
 	"ascendant/backend/internal/app/config"
+	"ascendant/backend/internal/infra/logger"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -14,5 +15,6 @@ func NewConnection() (*sql.DB, error) {
 	if strings.TrimSpace(db.URL) != "" {
 		return sql.Open("postgres", db.URL)
 	}
+	logger.Debug(fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", db.Host, db.Port, db.User, db.Password, db.Name), "")
 	return sql.Open("postgres", fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", db.Host, db.Port, db.User, db.Password, db.Name))
 }

@@ -1842,23 +1842,57 @@ func (m *MaintenanceRepository) GetList(ctx context.Context) (maintenance.Inform
  
  var _ tickets.Repository = (*TicketsRepository)(nil)
  
-func (t *TicketsRepository) Create(ctx context.Context, name, email string, topic tickets.TicketTopic, brief string) (*uuid.UUID, error) {
-	if name == "" || email == "" || topic == "" || !topic.Valid() || brief == "" {
+func (t *TicketsRepository) Create(ctx context.Context, data tickets.TicketCreationRequestor, topic tickets.TicketTopic, brief string) (*tickets.TicketCreationData, error) {
+	if topic == "" || !topic.Valid() || brief == ""{
+		logger.Debug(fmt.Sprintf("topic: %s, brief: %s", topic.String(), brief), "")
 		return nil, errors.New("params is empty")
 	}
-	var id uuid.UUID
-	if err := t.DB.QueryRowContext(ctx, "INSERT INTO tickets (name, email, topic, brief) VALUES ($1, $2, $3, $4) RETURNING id", name, email, topic, brief).Scan(&id); err != nil {
-		return nil, err
+	if !data.Authorized && (data.Name == "" || data.Email == "") {
+		return nil, errors.New("authorize params is empty")
 	}
-	return &id, nil
+	if data.Authorized {
+		usr, err := getAuthor(ctx, *data.UID, t.DB)
+		if err != nil {
+			return nil, err
+		}
+		data.Name = usr.Username
+		data.Email = usr.Email.Address
+	}
+	var id uuid.UUID
+	if data.Authorized {
+		if err := t.DB.QueryRowContext(ctx, "INSERT INTO tickets (name, email, topic, brief, authorized_uid, authorized) VALUES ($1, $2, $3, $4, $5, true) RETURNING id", data.Name, data.Email, topic, brief, *data.UID).Scan(&id); err != nil {
+			return nil, err
+		}
+	} else {
+		token, err := generateString(32)
+		if err != nil {
+			return nil, err
+		}
+		if err := t.DB.QueryRowContext(ctx, "INSERT INTO tickets (name, email, topic, brief, requestor_token) VALUES ($1, $2, $3, $4, $5) RETURNING id", data.Name, data.Email, topic, brief, token).Scan(&id); err != nil {
+			return nil, err
+		}
+		data.Token = &token
+	}
+	return &tickets.TicketCreationData{ID: id, Token: data.Token}, nil
 }
 
-func (t *TicketsRepository) CreateMessage(ctx context.Context, id uuid.UUID, content string, author uint) error {
-	if content == "" || author == 0 {
-		return errors.New("params is empty")
-	}
-	if _, err := t.DB.ExecContext(ctx, "INSERT INTO ticket_messages (ticket, author, content) VALUES ($1, $2, $3)", id, author, content); err != nil {
+func (t *TicketsRepository) CreateMessage(ctx context.Context, id uuid.UUID, content string, req tickets.TicketDataReq) error {
+	info, err := t.User(ctx, id, req)
+	if err != nil {
 		return err
+	}
+	var by = "user"
+	if info.Authorized {
+		if req.Staff {
+			by = "staff"
+		}
+		if _, err := t.DB.ExecContext(ctx, "INSERT INTO ticket_messages (ticket, author_uid, author_name, author_email, author_type, content) VALUES ($1, $2, $3, $4, $5, $6)", id, *info.UID, info.Name, info.Email, by, content); err != nil {
+			return err
+		}
+	} else {
+		if _, err := t.DB.ExecContext(ctx, "INSERT INTO ticket_messages (ticket, author_name, author_email, author_type, content) VALUES ($1, $2, $3, $4, $5)", id, info.Name, info.Email, by, content); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1949,6 +1983,21 @@ func (t *TicketsRepository) Messages(ctx context.Context, id uuid.UUID) (tickets
 	return messages, nil
 }
 
+func (t *TicketsRepository) IsReqValid(ctx context.Context, id uuid.UUID, token tickets.TicketDataReq) (bool, error) {
+	var exists bool
+	if token.Token != nil {
+		if err := t.DB.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM tickets WHERE requestor_token = $1)", *token.Token).Scan(&exists); err != nil {
+			return false, err
+		}
+	}
+	if token.UID != nil {
+		if err := t.DB.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM tickets WHERE authorized_uid = $1)", *token.UID).Scan(&exists); err != nil {
+			return false, err
+		}
+	}
+	return exists, nil
+}
+
 func (t *TicketsRepository) Close(ctx context.Context, id uuid.UUID, by tickets.TicketClosedBy, reason string) error {
 	if by == "" || !by.Valid() {
 		return errors.New("params is incorrect")
@@ -1960,4 +2009,28 @@ func (t *TicketsRepository) Close(ctx context.Context, id uuid.UUID, by tickets.
 		return err
 	}
 	return nil
+}
+
+func (t *TicketsRepository) User(ctx context.Context, id uuid.UUID, req tickets.TicketDataReq) (*tickets.TicketUserData, error) {
+	valid, err := t.IsReqValid(ctx, id, req)
+	if err != nil {
+		return nil, err
+	}
+	if !valid {
+		return nil, errors.New("don't have access")
+	}
+	var data tickets.TicketUserData
+	if req.Token != nil {
+		if err := t.DB.QueryRowContext(ctx, "SELECT name, email FROM tickets WHERE requestor_token = $1", *req.Token).Scan(&data.Name, &data.Email); err != nil {
+			return nil, err
+		}
+	}
+	if req.UID != nil {
+		if err := t.DB.QueryRowContext(ctx, "SELECT name, email FROM tickets WHERE authorized_uid = $1", *req.UID).Scan(&data.Name, &data.Email); err != nil {
+			return nil, err
+		}
+		data.Authorized = true
+		data.UID = req.UID
+	}
+	return &data, nil
 }

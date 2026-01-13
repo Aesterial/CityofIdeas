@@ -1,5 +1,14 @@
+{
+  email aesterialproject@gmail.com
+}
+
 aesterial.xyz, www.aesterial.xyz {
-  tls /etc/caddy/ssl/cf_or.crt /etc/caddy/ssl/cf_or.key
+  tls {
+    issuer acme {
+      dir https://acme-v02.api.letsencrypt.org/directory
+    }
+  }
+
   encode gzip
 
   @api path /api/*

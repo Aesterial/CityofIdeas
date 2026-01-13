@@ -10,7 +10,8 @@ import "tickets/domain.proto";
 service TicketsService {
     rpc Create(CreateRequest) returns (CreateResponse) {
         option (google.api.http) = {
-            get: "/api/tickets/create"
+            post: "/api/tickets/create"
+            body: "*"
         };
     }
     rpc Info(TicketInfoRequest) returns (TicketInfoResponse) {
@@ -43,6 +44,11 @@ service TicketsService {
     rpc List(google.protobuf.Empty) returns (TicketsListResponse) {
         option (google.api.http) = {
             get: "/api/tickets/list"
+        };
+    }
+    rpc IsValid(IsValidRequest) returns (IsValidResponse) {
+        option (google.api.http) = {
+            get: "/api/tickets/{id}/requestor/{token}"
         };
     }
 }

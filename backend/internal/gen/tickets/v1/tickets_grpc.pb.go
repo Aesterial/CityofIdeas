@@ -27,6 +27,7 @@ const (
 	TicketsService_CloseTicket_FullMethodName   = "/tickets.v1.TicketsService/CloseTicket"
 	TicketsService_AcceptTicket_FullMethodName  = "/tickets.v1.TicketsService/AcceptTicket"
 	TicketsService_List_FullMethodName          = "/tickets.v1.TicketsService/List"
+	TicketsService_IsValid_FullMethodName       = "/tickets.v1.TicketsService/IsValid"
 )
 
 // TicketsServiceClient is the client API for TicketsService service.
@@ -40,6 +41,7 @@ type TicketsServiceClient interface {
 	CloseTicket(ctx context.Context, in *CloseTicketRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
 	AcceptTicket(ctx context.Context, in *TicketInfoRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
 	List(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*TicketsListResponse, error)
+	IsValid(ctx context.Context, in *IsValidRequest, opts ...grpc.CallOption) (*IsValidResponse, error)
 }
 
 type ticketsServiceClient struct {
@@ -120,6 +122,16 @@ func (c *ticketsServiceClient) List(ctx context.Context, in *emptypb.Empty, opts
 	return out, nil
 }
 
+func (c *ticketsServiceClient) IsValid(ctx context.Context, in *IsValidRequest, opts ...grpc.CallOption) (*IsValidResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IsValidResponse)
+	err := c.cc.Invoke(ctx, TicketsService_IsValid_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TicketsServiceServer is the server API for TicketsService service.
 // All implementations must embed UnimplementedTicketsServiceServer
 // for forward compatibility.
@@ -131,6 +143,7 @@ type TicketsServiceServer interface {
 	CloseTicket(context.Context, *CloseTicketRequest) (*EmptyResponse, error)
 	AcceptTicket(context.Context, *TicketInfoRequest) (*EmptyResponse, error)
 	List(context.Context, *emptypb.Empty) (*TicketsListResponse, error)
+	IsValid(context.Context, *IsValidRequest) (*IsValidResponse, error)
 	mustEmbedUnimplementedTicketsServiceServer()
 }
 
@@ -161,6 +174,9 @@ func (UnimplementedTicketsServiceServer) AcceptTicket(context.Context, *TicketIn
 }
 func (UnimplementedTicketsServiceServer) List(context.Context, *emptypb.Empty) (*TicketsListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedTicketsServiceServer) IsValid(context.Context, *IsValidRequest) (*IsValidResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method IsValid not implemented")
 }
 func (UnimplementedTicketsServiceServer) mustEmbedUnimplementedTicketsServiceServer() {}
 func (UnimplementedTicketsServiceServer) testEmbeddedByValue()                        {}
@@ -309,6 +325,24 @@ func _TicketsService_List_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TicketsService_IsValid_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IsValidRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TicketsServiceServer).IsValid(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TicketsService_IsValid_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TicketsServiceServer).IsValid(ctx, req.(*IsValidRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TicketsService_ServiceDesc is the grpc.ServiceDesc for TicketsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -343,6 +377,10 @@ var TicketsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "List",
 			Handler:    _TicketsService_List_Handler,
+		},
+		{
+			MethodName: "IsValid",
+			Handler:    _TicketsService_IsValid_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -48,7 +48,6 @@ services:
       - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - /opt/aesterial/ssl:/etc/caddy/ssl:ro
       - caddy_data:/data
       - caddy_config:/config
     networks: [appnet]

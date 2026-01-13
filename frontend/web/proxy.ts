@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 export function proxy(request: NextRequest) {
+  return NextResponse.next();
   const { pathname } = request.nextUrl;
   if (pathname === "/technics" || pathname.startsWith("/technics/")) {
     return NextResponse.next();

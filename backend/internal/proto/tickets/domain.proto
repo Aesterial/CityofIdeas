@@ -15,12 +15,8 @@ message CreateRequest {
 
 message CreateResponse {
     string id = 1;
-    string tracing = 2;
-}
-
-message CreateMessageRequest {
-    string id = 1;
-    string content = 2;
+    optional string token = 2;
+    string tracing = 3;
 }
 
 message TicketInfoRequest {
@@ -69,6 +65,7 @@ message TicketMessagesResponse {
 message TicketMessageCreate {
     string id = 1;
     string content = 2;
+    string token = 3;
 }
 
 message EmptyResponse {
@@ -78,4 +75,14 @@ message EmptyResponse {
 message CloseTicketRequest {
     string id = 1;
     optional string reason = 2;
+}
+
+message IsValidRequest {
+    string id = 1;
+    string token = 2;
+}
+
+message IsValidResponse {
+    bool valid = 1;
+    string tracing = 2;
 }

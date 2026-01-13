@@ -10,6 +10,7 @@ import (
 	tickpb "ascendant/backend/internal/gen/tickets/v1"
 	"ascendant/backend/internal/infra/logger"
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -34,15 +35,27 @@ func (t *TicketsService) Create(ctx context.Context, req *tickpb.CreateRequest) 
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request is empty")
 	}
-	id, err := t.serv.Create(ctx, req.GetName(), req.GetEmail(), ticketsdomain.TicketTopic(req.GetTopic()), req.GetBrief())
+	requestor := ticketsdomain.TicketCreationRequestor{
+		Name:  req.GetName(),
+		Email: req.GetEmail(),
+	}
+	if authUser, err := t.auth.RequireUser(ctx); err == nil && authUser != nil {
+		requestor.Authorized = true
+		requestor.UID = &authUser.UID
+	}
+	data, err := t.serv.Create(ctx, requestor, ticketsdomain.TicketTopic(req.GetTopic()), req.GetBrief())
 	if err != nil {
 		logger.Debug("error in creation ticket: "+err.Error(), "")
 		return nil, status.Error(codes.Internal, "failed to create ticket")
 	}
-	if id == nil {
+	if data == nil {
 		return nil, status.Error(codes.Internal, "failed to create ticket")
 	}
-	return &tickpb.CreateResponse{Id: id.String(), Tracing: TraceIDOrNew(ctx)}, nil
+	return &tickpb.CreateResponse{
+		Id:      data.ID.String(),
+		Token:   data.Token,
+		Tracing: TraceIDOrNew(ctx),
+	}, nil
 }
 
 func (t *TicketsService) Info(ctx context.Context, req *tickpb.TicketInfoRequest) (*tickpb.TicketInfoResponse, error) {
@@ -52,7 +65,7 @@ func (t *TicketsService) Info(ctx context.Context, req *tickpb.TicketInfoRequest
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request is empty")
 	}
-	id, err := uuid.Parse(req.Id)
+	id, err := uuid.Parse(req.GetId())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "id is not correct")
 	}
@@ -71,7 +84,7 @@ func (t *TicketsService) Messages(ctx context.Context, req *tickpb.TicketInfoReq
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request is empty")
 	}
-	id, err := uuid.Parse(req.Id)
+	id, err := uuid.Parse(req.GetId())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "id is not correct")
 	}
@@ -89,11 +102,22 @@ func (t *TicketsService) MessageCreate(ctx context.Context, req *tickpb.TicketMe
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request is empty")
 	}
-	id, err := uuid.Parse(req.Id)
+	id, err := uuid.Parse(req.GetId())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "id is not correct")
 	}
-	if err := t.serv.CreateMessage(ctx, id, req.Content, 0); err != nil {
+	var dataReq ticketsdomain.TicketDataReq
+	if authUser, err := t.auth.RequireUser(ctx); err == nil && authUser != nil {
+		dataReq.UID = &authUser.UID
+	} else {
+		token := req.GetToken()
+		if token == "" {
+			return nil, status.Error(codes.InvalidArgument, "token is required")
+		}
+		dataReq.Token = &token
+	}
+	if err := t.serv.CreateMessage(ctx, id, req.Content, dataReq); err != nil {
+		logger.Debug(fmt.Sprintf("failed to create message: "+err.Error()), "")
 		return nil, status.Error(codes.Internal, "failed to create")
 	}
 	return &tickpb.EmptyResponse{Tracing: TraceIDOrNew(ctx)}, nil
@@ -106,7 +130,7 @@ func (t *TicketsService) CloseTicket(ctx context.Context, req *tickpb.CloseTicke
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request is empty")
 	}
-	id, err := uuid.Parse(req.Id)
+	id, err := uuid.Parse(req.GetId())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "id is not correct")
 	}
@@ -141,7 +165,7 @@ func (t *TicketsService) AcceptTicket(ctx context.Context, req *tickpb.TicketInf
 	if err := t.auth.RequirePermissions(ctx, requestor.UID, permsdomain.CreateIdea); err != nil {
 		return nil, err
 	}
-	id, err := uuid.Parse(req.Id)
+	id, err := uuid.Parse(req.GetId())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "id is not correct")
 	}
@@ -149,4 +173,34 @@ func (t *TicketsService) AcceptTicket(ctx context.Context, req *tickpb.TicketInf
 		return nil, status.Error(codes.Internal, "Failed to accept")
 	}
 	return &tickpb.EmptyResponse{Tracing: TraceIDOrNew(ctx)}, nil
+}
+
+// Только для не авторизованных пользователей
+func (t *TicketsService) IsValid(ctx context.Context, req *tickpb.IsValidRequest) (*tickpb.IsValidResponse, error) {
+	if t == nil || t.serv == nil {
+		return nil, status.Error(codes.Internal, "projects service not configured")
+	}
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "request is empty")
+	}
+	requestor, err := t.auth.RequireUser(ctx)
+	if err == nil || requestor != nil {
+		return nil, status.Error(codes.InvalidArgument, "user registered")
+	}
+	id, err := uuid.Parse(req.GetId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "id is not correct")
+	}
+	token := req.GetToken()
+	if token == "" {
+		return nil, status.Error(codes.InvalidArgument, "token is required")
+	}
+	exists, err := t.serv.IsReqValid(ctx, id, ticketsdomain.TicketDataReq{
+		Token: &token,
+	})
+	if err != nil {
+		logger.Debug("failed to check is requestor valid: "+err.Error(), "")
+		return nil, status.Error(codes.Internal, "failed to check")
+	}
+	return &tickpb.IsValidResponse{Valid: exists, Tracing: TraceIDOrNew(ctx)}, nil
 }

@@ -3,6 +3,8 @@ package tickets
 import (
 	"ascendant/backend/internal/domain/user"
 	tickpb "ascendant/backend/internal/gen/tickets/v1"
+	"ascendant/backend/internal/infra/logger"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,7 +22,7 @@ func (t TicketStatus) Valid() bool {
 	switch t {
 	case InProcessStatus, ClosedStatus, WaitingStatus:
 		return true
-	default:	
+	default:
 		return false
 	}
 }
@@ -30,10 +32,13 @@ func (t TicketTopic) String() string {
 }
 
 func (t TicketTopic) Valid() bool {
+	logger.Debug(fmt.Sprintf("checking topic is valid for: %s", t.String()), "")
 	switch t {
 	case AccountTopic, ProjectTopic, TechnicalTopic, OtherTopic:
+		logger.Debug("topic is valid", "")
 		return true
 	default:
+		logger.Debug("topic is not valid", "")
 		return false
 	}
 }
@@ -85,9 +90,7 @@ type Ticket struct {
 }
 
 func (t Ticket) ToProto() *tickpb.TicketInfo {
-	return &tickpb.TicketInfo{
-		
-	}
+	return &tickpb.TicketInfo{}
 }
 
 type Tickets []*Ticket
@@ -108,9 +111,7 @@ type TicketMessage struct {
 }
 
 func (tm TicketMessage) ToProto() *tickpb.TicketMessage {
-	return &tickpb.TicketMessage{
-		
-	}
+	return &tickpb.TicketMessage{}
 }
 
 type TicketMessages []*TicketMessage
@@ -121,4 +122,30 @@ func (tm TicketMessages) ToProto() []*tickpb.TicketMessage {
 		a = append(a, b.ToProto())
 	}
 	return a
+}
+
+type TicketCreationData struct {
+	ID    uuid.UUID
+	Token *string
+}
+
+type TicketCreationRequestor struct {
+	Authorized bool
+	UID        *uint
+	Name       string
+	Email      string
+	Token      *string
+}
+
+type TicketDataReq struct {
+	UID *uint
+	Token *string
+	Staff bool
+}
+
+type TicketUserData struct {
+	Authorized bool
+	UID *uint
+	Name string
+	Email string
 }
