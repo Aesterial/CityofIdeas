@@ -42,6 +42,7 @@ import {
   unbanUser,
   type BanInfo,
 } from "@/lib/api";
+import { API_BASE_URL } from "@/lib/api-base";
 import {
   ChartContainer,
   ChartLegend,
@@ -215,10 +216,6 @@ const isBanActive = (banInfo: BanInfo | null) => {
   return expiresAt > Date.now();
 };
 
-const DEFAULT_API_BASE_URL = "";
-const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL
-).replace(/\/$/, "");
 const BANNED_ERROR_MATCH = "user is banned";
 
 const isBannedResponse = (

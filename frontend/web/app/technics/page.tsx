@@ -1,10 +1,141 @@
 "use client";
-
 import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
+import { API_BASE_URL } from "@/lib/api-base";
 
 export const dynamic = "force-static";
 
+type MaintenanceData = {
+  id?: string;
+  description?: string;
+  will_end?: string;
+};
+
+const DEFAULT_DESCRIPTION =
+  "Мы обновляем сайт, чтобы он работал быстрее и стабильнее. Попробуй зайти чуть позже — всё вернём как можно скорее.";
+const DEFAULT_REQUEST_ID = "MAINTENANCE_MODE_0";
+
+const pluralRules = new Intl.PluralRules("ru");
+const unitLabels = {
+  second: { one: "секунду", few: "секунды", many: "секунд", other: "секунды" },
+  minute: { one: "минуту", few: "минуты", many: "минут", other: "минуты" },
+  hour: { one: "час", few: "часа", many: "часов", other: "часа" },
+  day: { one: "день", few: "дня", many: "дней", other: "дня" },
+  month: { one: "месяц", few: "месяца", many: "месяцев", other: "месяца" },
+  year: { one: "год", few: "года", many: "лет", other: "года" },
+};
+
+const formatUnit = (value: number, unit: keyof typeof unitLabels) => {
+  const form = pluralRules.select(value);
+  const label = unitLabels[unit][form] ?? unitLabels[unit].other;
+  return `${value} ${label}`;
+};
+
+const formatTimeLeft = (value?: string) => {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return "скоро";
+  }
+  const end = new Date(trimmed);
+  if (Number.isNaN(end.getTime())) {
+    return "скоро";
+  }
+  const diffMs = end.getTime() - Date.now();
+  if (diffMs <= 0) {
+    return "скоро";
+  }
+  const seconds = Math.ceil(diffMs / 1000);
+  if (seconds < 60) {
+    return formatUnit(seconds, "second");
+  }
+  const minutes = Math.ceil(seconds / 60);
+  if (minutes < 60) {
+    return formatUnit(minutes, "minute");
+  }
+  const hours = Math.ceil(minutes / 60);
+  if (hours < 24) {
+    return formatUnit(hours, "hour");
+  }
+  const days = Math.ceil(hours / 24);
+  if (days < 30) {
+    return formatUnit(days, "day");
+  }
+  const months = Math.ceil(days / 30);
+  if (months < 12) {
+    return formatUnit(months, "month");
+  }
+  const years = Math.ceil(months / 12);
+  return formatUnit(years, "year");
+};
+
+const normalizeMaintenance = (payload: unknown): MaintenanceData | null => {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+  const record = payload as Record<string, unknown>;
+  const nested =
+    record.data && typeof record.data === "object"
+      ? (record.data as Record<string, unknown>)
+      : null;
+  const source = nested ?? record;
+  const id =
+    typeof source.id === "string"
+      ? source.id
+      : typeof source.tracing === "string"
+        ? source.tracing
+        : undefined;
+  const description =
+    typeof source.description === "string" ? source.description : undefined;
+  const willEnd =
+    typeof source.will_end === "string"
+      ? source.will_end
+      : typeof source.willEnd === "string"
+        ? source.willEnd
+        : undefined;
+  if (!id && !description && !willEnd) {
+    return null;
+  }
+  return { id, description, will_end: willEnd };
+};
+
 export default function MaintenancePage() {
+  const [maintenance, setMaintenance] = useState<MaintenanceData | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const load = async () => {
+      try {
+        const baseUrl = API_BASE_URL;
+        const response = await fetch(`${baseUrl}/api/maintenance/data`, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          return;
+        }
+        const payload = (await response.json()) as unknown;
+        const normalized = normalizeMaintenance(payload);
+        if (normalized) {
+          setMaintenance(normalized);
+        }
+      } catch {
+        return;
+      }
+    };
+    void load();
+    return () => controller.abort();
+  }, []);
+
+  const description = maintenance?.description?.trim() || DEFAULT_DESCRIPTION;
+  const requestId = maintenance?.id?.trim() || DEFAULT_REQUEST_ID;
+  const timeLeft = useMemo(
+    () => formatTimeLeft(maintenance?.will_end),
+    [maintenance?.will_end],
+  );
+
   return (
     <main className="relative min-h-dvh bg-background text-foreground">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -12,7 +143,6 @@ export default function MaintenancePage() {
         <div className="absolute -bottom-28 left-10 h-72 w-72 rounded-full bg-foreground/5 blur-3xl" />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent" />
       </div>
-
       <div className="relative mx-auto flex min-h-dvh max-w-6xl items-center justify-center px-4 py-10 sm:px-6">
         <div className="grid w-full items-center gap-8 lg:grid-cols-2 lg:gap-10">
           <section className="order-2 lg:order-1">
@@ -26,14 +156,20 @@ export default function MaintenancePage() {
             </h1>
 
             <p className="mt-4 max-w-xl text-base text-foreground/70 sm:text-lg">
-              Мы обновляем сайт, чтобы он работал быстрее и стабильнее. Попробуй
-              зайти чуть позже — всё вернём как можно скорее.
+              {description}
             </p>
 
             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
               <button
                 type="button"
-                onClick={() => window.location.reload()}
+                onClick={() => {
+                  const url = new URL(window.location.href);
+                  url.searchParams.set(
+                    "maintenanceRefresh",
+                    String(Date.now()),
+                  );
+                  window.location.assign(url.toString());
+                }}
                 className="inline-flex items-center justify-center rounded-full border border-foreground bg-foreground px-5 py-3 text-sm font-semibold text-background transition hover:opacity-90"
               >
                 Обновить страницу
@@ -41,10 +177,8 @@ export default function MaintenancePage() {
             </div>
 
             <p className="mt-6 text-xs text-foreground/55">
-              Код ошибки:{" "}
-              <span className="font-mono text-foreground/70">
-                MAINTENANCE_MODE_0
-              </span>
+              ID запроса:{" "}
+              <span className="font-mono text-foreground/70">{requestId}</span>
             </p>
           </section>
 
@@ -68,8 +202,10 @@ export default function MaintenancePage() {
                   <p className="text-sm font-semibold truncate">
                     Мы скоро вернёмся 👋
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground truncate">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     Идёт обновление. Спасибо за терпение.
+                    <br />
+                    Закончим примерно через: {timeLeft}
                   </p>
                 </div>
               </div>

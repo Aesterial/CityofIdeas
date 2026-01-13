@@ -5,7 +5,6 @@ import (
 
 	"ascendant/backend/internal/domain/user"
 	"ascendant/backend/internal/gen/maintenance/v1"
-	"ascendant/backend/internal/infra/logger"
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -72,7 +71,6 @@ func (i Informations) CanStart(mark time.Time) (uuid.UUID, bool) {
 	var id uuid.UUID
 	for _, element := range i {
 		if element.Planned.Start.Before(mark) {
-			logger.Debug("good for mark, status: " + string(element.Status), "")
 			if element.Status == ScheduledStatus {
 				id = element.ID
 				found = true

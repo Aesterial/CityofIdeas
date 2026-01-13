@@ -1,3 +1,5 @@
+import { API_BASE_URL } from "@/lib/api-base";
+
 export type RegisterPayload = {
   username: string;
   password: string;
@@ -192,11 +194,6 @@ function toAvatar(value: unknown): ApiAvatar | undefined {
   }
   return { contentType, data };
 }
-
-const DEFAULT_API_BASE_URL = "";
-const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL
-).replace(/\/$/, "");
 
 const BAN_STORAGE_KEY = "banInfo";
 const BANNED_ERROR_MATCH = "user is banned";

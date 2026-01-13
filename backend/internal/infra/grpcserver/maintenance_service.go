@@ -31,13 +31,6 @@ func (s *MaintenanceService) IsActive(ctx context.Context, _ *emptypb.Empty) (*m
 	if s == nil || s.serv == nil {
 		return nil, status.Error(codes.Internal, "maintenance service is not configured")
 	}
-	requestor, err := s.auth.RequireUser(ctx)
-	if err != nil || requestor == nil {
-		if err != nil {
-			logger.Debug("Error while getting user: " + err.Error(), "")
-		}
-		return nil, status.Error(codes.PermissionDenied, "user not authentificated")
-	}
 	active, err := s.serv.CheckIsActive(ctx)
 	if err != nil {
 		logger.Debug("failed to check: " + err.Error(), "")
@@ -49,13 +42,6 @@ func (s *MaintenanceService) IsActive(ctx context.Context, _ *emptypb.Empty) (*m
 func (s *MaintenanceService) Data(ctx context.Context, _ *emptypb.Empty) (*maintpb.DataResponse, error) {
 	if s == nil || s.serv == nil {
 		return nil, status.Error(codes.Internal, "maintenance service is not configured")
-	}
-	requestor, err := s.auth.RequireUser(ctx)
-	if err != nil || requestor == nil {
-		if err != nil {
-			logger.Debug("Error while getting user: " + err.Error(), "")
-		}
-		return nil, status.Error(codes.PermissionDenied, "user not authentificated")
 	}
 	data, err := s.serv.GetData(ctx)
 	if err != nil {
@@ -83,6 +69,7 @@ func (s *MaintenanceService) Start(ctx context.Context, req *maintpb.CreateReque
 	}
 	// TODO: add permission check
 	if err := s.serv.Start(ctx, maintdomain.CreateST{Description: req.Description, Scope: req.Scope, PlannedStart: time.Time{}, PlannedEnd: req.WillEnd.AsTime()}, requestor.UID); err != nil {
+		logger.Debug("failed to create maintenance: " + err.Error(), "")
 		return nil, status.Error(codes.Internal, "failed to create maintenance")
 	}
 	return &maintpb.Response{Tracing: TraceIDOrNew(ctx)}, nil
