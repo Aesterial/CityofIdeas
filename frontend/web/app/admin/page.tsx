@@ -215,7 +215,7 @@ const isBanActive = (banInfo: BanInfo | null) => {
   return expiresAt > Date.now();
 };
 
-const DEFAULT_API_BASE_URL = "http://127.0.0.1:8080";
+const DEFAULT_API_BASE_URL = "";
 const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL
 ).replace(/\/$/, "");

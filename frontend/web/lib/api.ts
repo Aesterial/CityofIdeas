@@ -194,9 +194,10 @@ function toAvatar(value: unknown): ApiAvatar | undefined {
   return { contentType, data };
 }
 
-const DEFAULT_API_BASE_URL = "http://127.0.0.1:8080";
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL;
+const DEFAULT_API_BASE_URL = "";
+const API_BASE_URL = (
+  process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API_BASE_URL
+).replace(/\/$/, "");
 
 const BAN_STORAGE_KEY = "banInfo";
 const BANNED_ERROR_MATCH = "user is banned";
@@ -647,9 +648,7 @@ export async function voteForProject(projectID: string): Promise<void> {
   });
 }
 
-const toTicketRecord = (
-  payload: unknown,
-): Record<string, unknown> | null => {
+const toTicketRecord = (payload: unknown): Record<string, unknown> | null => {
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
     return null;
   }
@@ -742,7 +741,8 @@ export async function fetchTicketInfo(
   if (!record) {
     return null;
   }
-  const ticket = toTicketRecord(record.data ?? record.ticket ?? record.info) ?? record;
+  const ticket =
+    toTicketRecord(record.data ?? record.ticket ?? record.info) ?? record;
   return ticket as ApiTicket;
 }
 
@@ -762,11 +762,11 @@ export async function fetchTicketMessages(
   const messages = Array.isArray(payload)
     ? payload
     : (record?.data ??
-        record?.messages ??
-        record?.list ??
-        record?.items ??
-        record?.message_list ??
-        []);
+      record?.messages ??
+      record?.list ??
+      record?.items ??
+      record?.message_list ??
+      []);
   return Array.isArray(messages) ? (messages as ApiTicketMessage[]) : [];
 }
 
@@ -812,12 +812,10 @@ export async function fetchTickets(options?: {
   const tickets = Array.isArray(payload)
     ? payload
     : (record?.data ??
-        record?.tickets ??
-        record?.list ??
-        record?.items ??
-        record?.ticket_list ??
-        []);
+      record?.tickets ??
+      record?.list ??
+      record?.items ??
+      record?.ticket_list ??
+      []);
   return Array.isArray(tickets) ? (tickets as ApiTicket[]) : [];
 }
-
-  
