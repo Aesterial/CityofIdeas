@@ -21,10 +21,10 @@ type SupportFormState = {
 type SupportFormErrors = Partial<Record<keyof SupportFormState, string>>
 
 const categories = [
-  { value: "account", label: "Аккаунт и доступ" },
-  { value: "project", label: "Проект или заявка" },
-  { value: "technical", label: "Техническая проблема" },
-  { value: "other", label: "Другое" },
+  { value: "Аккаунт и доступ", label: "Аккаунт и доступ" },
+  { value: "Проект или заявка", label: "Проект или заявка" },
+  { value: "Техническая проблема", label: "Техническая проблема" },
+  { value: "Другое", label: "Другое" },
 ]
 
 export default function SupportPage() {
@@ -80,12 +80,14 @@ export default function SupportPage() {
 
     setIsSubmitting(true)
     try {
+      const subject = formData.subject.trim()
+      const message = formData.message.trim()
+      const brief = [subject, message].filter(Boolean).join("\n\n")
       const id = await createTicket({
         name: formData.name.trim() || undefined,
         email: formData.email.trim(),
-        subject: formData.subject.trim(),
-        category: formData.category,
-        message: formData.message.trim(),
+        topic: formData.category,
+        brief,
       })
       router.push(`/support/${encodeURIComponent(id)}`)
     } catch (error) {

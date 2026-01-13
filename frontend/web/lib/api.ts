@@ -121,9 +121,8 @@ export type ApiTicketMessage = Record<string, unknown>;
 export type CreateTicketPayload = {
   name?: string;
   email?: string;
-  subject: string;
-  category?: string;
-  message: string;
+  topic: string;
+  brief: string;
 };
 
 type ApiBanInfoResponse = {
@@ -695,26 +694,22 @@ const pickTicketId = (payload: unknown): string | null => {
 export async function createTicket(
   payload: CreateTicketPayload,
 ): Promise<string> {
-  const subject = payload.subject.trim();
-  const message = payload.message.trim();
-  if (!subject) {
-    throw new Error("Ticket subject is required.");
+  const topic = payload.topic.trim();
+  const brief = payload.brief.trim();
+  if (!topic) {
+    throw new Error("Ticket topic is required.");
   }
-  if (!message) {
-    throw new Error("Ticket message is required.");
+  if (!brief) {
+    throw new Error("Ticket brief is required.");
   }
-  const body: Record<string, unknown> = { subject, message };
+  const body: Record<string, unknown> = { topic, brief };
   const name = payload.name?.trim();
   const email = payload.email?.trim();
-  const category = payload.category?.trim();
   if (name) {
     body.name = name;
   }
   if (email) {
     body.email = email;
-  }
-  if (category) {
-    body.category = category;
   }
 
   const response = await apiRequest<unknown>("/api/tickets/create", {

@@ -205,8 +205,15 @@ export const mapTicket = (payload: ApiTicket): Ticket | null => {
     return null;
   }
 
-  const subject = pickString(record, ["subject", "title", "topic", "theme"]);
-  const category = pickString(record, ["category", "type", "department"]);
+  const topic = pickString(record, ["topic", "category", "type", "department"]);
+  const brief = pickString(record, ["brief", "message", "content", "body", "description"]);
+  const fallbackSubject = brief
+    .split("\n")
+    .map((line) => line.trim())
+    .find((line) => line.length > 0) ?? "";
+  const subject =
+    pickString(record, ["subject", "title", "theme"]) || fallbackSubject || topic;
+  const category = topic || undefined;
 
   const createdAt = toDateString(
     record.createdAt ?? record.created_at ?? record.created ?? record.createdOn ?? record.created_on,
