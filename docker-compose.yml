@@ -1,5 +1,5 @@
 services:
-  backend:
+  aesterial_backend:
     image: ivanskem/aesterial-jcup:backend-latest
     volumes:
       - ./db.ca.crt:/certs/ca.crt:ro
@@ -27,7 +27,7 @@ services:
       MAILER_FROM_EMAIL: ${MAILER_FROM_EMAIL}
       MAILER_FROM_NAME: ${MAILER_FROM_NAME}
 
-  frontend:
+  aesterial_frontend:
     image: ivanskem/aesterial-jcup:frontend-latest
     restart: unless-stopped
     environment:
@@ -38,7 +38,7 @@ services:
     expose:
       - "3000"
     depends_on:
-      - backend
+      - aesterial_backend
 
   caddy:
     image: caddy:2-alpine
@@ -52,8 +52,8 @@ services:
       - caddy_config:/config
     networks: [appnet]
     depends_on:
-      - frontend
-      - backend
+      - aesterial_frontend
+      - aesterial_backend
 
 networks:
   appnet:

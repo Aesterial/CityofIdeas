@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  backend:
+  aesterial_backend:
     image: ivanskem/aesterial-jcup:backend-latest
     networks: [appnet]
     volumes:
@@ -42,7 +42,7 @@ services:
       restart_policy:
         condition: on-failure
 
-  frontend:
+  aesterial_frontend:
     image: ivanskem/aesterial-jcup:frontend-latest
     networks: [appnet]
     environment:

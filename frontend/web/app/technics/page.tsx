@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { API_BASE_URL } from "@/lib/api-base";
 
@@ -16,6 +17,7 @@ const DEFAULT_DESCRIPTION =
 const DEFAULT_REQUEST_ID = "MAINTENANCE_MODE_0";
 
 const pluralRules = new Intl.PluralRules("ru");
+type PluralForm = "one" | "few" | "many" | "other";
 const unitLabels = {
   second: { one: "секунду", few: "секунды", many: "секунд", other: "секунды" },
   minute: { one: "минуту", few: "минуты", many: "минут", other: "минуты" },
@@ -27,7 +29,11 @@ const unitLabels = {
 
 const formatUnit = (value: number, unit: keyof typeof unitLabels) => {
   const form = pluralRules.select(value);
-  const label = unitLabels[unit][form] ?? unitLabels[unit].other;
+  const normalizedForm: PluralForm =
+    form === "one" || form === "few" || form === "many" || form === "other"
+      ? form
+      : "other";
+  const label = unitLabels[unit][normalizedForm];
   return `${value} ${label}`;
 };
 
@@ -101,6 +107,7 @@ const normalizeMaintenance = (payload: unknown): MaintenanceData | null => {
 export default function MaintenancePage() {
   const [maintenance, setMaintenance] = useState<MaintenanceData | null>(null);
   const [hasMaintenance, setHasMaintenance] = useState<boolean | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -135,6 +142,12 @@ export default function MaintenancePage() {
     void load();
     return () => controller.abort();
   }, []);
+
+  useEffect(() => {
+    if (hasMaintenance === false) {
+      router.replace("/");
+    }
+  }, [hasMaintenance, router]);
 
   const hasMaintenanceData = hasMaintenance !== false;
   const description = maintenance?.description?.trim() || DEFAULT_DESCRIPTION;
