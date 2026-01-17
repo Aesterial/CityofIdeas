@@ -5,6 +5,7 @@ import (
 	sessionsapp "ascendant/backend/internal/app/info/sessions"
 	userapp "ascendant/backend/internal/app/info/user"
 	projectsapp "ascendant/backend/internal/app/projects"
+	storageapp "ascendant/backend/internal/app/storage"
 	permsdomain "ascendant/backend/internal/domain/permissions"
 	projectsdomain "ascendant/backend/internal/domain/projects"
 	"ascendant/backend/internal/domain/user"
@@ -32,12 +33,14 @@ type ProjectService struct {
 	projpb.UnimplementedProjectServiceServer
 	projects *projectsapp.Service
 	auth     *Authenticator
+	storage  *storageapp.Service
 }
 
-func NewProjectService(projects *projectsapp.Service, sess *sessionsapp.Service, perms *permissionsapp.Service, us *userapp.Service) *ProjectService {
+func NewProjectService(projects *projectsapp.Service, sess *sessionsapp.Service, perms *permissionsapp.Service, us *userapp.Service, storage *storageapp.Service) *ProjectService {
 	return &ProjectService{
 		projects: projects,
 		auth:     NewAuthenticator(sess, perms, us),
+		storage:  storage,
 	}
 }
 
@@ -79,6 +82,20 @@ func (s *ProjectService) Create(ctx context.Context, req *projpb.CreateRequest) 
 		avatar := fromProtoAvatar(photo)
 		if avatar == nil {
 			continue
+		}
+		key := strings.TrimSpace(avatar.Key)
+		if key == "" {
+			return nil, status.Error(codes.InvalidArgument, "photo key is empty")
+		}
+		if s.storage == nil {
+			return nil, status.Error(codes.Internal, "storage service not configured")
+		}
+		exists, err := s.storage.Exists(ctx, key)
+		if err != nil {
+			return nil, status.Error(codes.Internal, "failed to validate project photo object")
+		}
+		if !exists {
+			return nil, status.Error(codes.NotFound, "project photo object not found")
 		}
 		project.Info.Photos = append(project.Info.Photos, avatar)
 	}
@@ -124,7 +141,9 @@ func (s *ProjectService) Get(ctx context.Context, req *projpb.GetRequest) (*proj
 	if err != nil {
 		return nil, err
 	}
-	return &projpb.GetResponse{Projects: list.ToProto(), Tracing: TraceIDOrNew(ctx)}, nil
+	projects := list.ToProto()
+	applyPresignedProjectsURLs(ctx, s.storage, projects)
+	return &projpb.GetResponse{Projects: projects, Tracing: TraceIDOrNew(ctx)}, nil
 }
 
 func (s *ProjectService) GetArchived(ctx context.Context, req *projpb.GetRequest) (*projpb.GetResponse, error) {
@@ -141,7 +160,9 @@ func (s *ProjectService) GetArchived(ctx context.Context, req *projpb.GetRequest
 	if err != nil {
 		return nil, err
 	}
-	return &projpb.GetResponse{Projects: list.ToProto(), Tracing: TraceIDOrNew(ctx)}, nil
+	projects := list.ToProto()
+	applyPresignedProjectsURLs(ctx, s.storage, projects)
+	return &projpb.GetResponse{Projects: projects, Tracing: TraceIDOrNew(ctx)}, nil
 }
 
 func (s *ProjectService) ToggleLike(ctx context.Context, req *projpb.LikeRequest) (*projpb.EmptyResponse, error) {

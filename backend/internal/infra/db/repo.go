@@ -987,7 +987,12 @@ func getAuthor(ctx context.Context, uid uint, db *sql.DB) (*user.User, error) {
 }
 
 func getProjectPhotos(ctx context.Context, projId uuid.UUID, db *sql.DB) (user.Avatars, error) {
-	rows, err := db.QueryContext(ctx, "SELECT (p.info).content_type, (p.info).pic_id, (p.info).size_bytes, (p.info).updated FROM pictures p WHERE p.owner = $1 AND p.owner_type = 'project' ", projId.String())
+	rows, err := db.QueryContext(ctx, `
+		SELECT p.object_key, p.content_type, p.size_bytes, p.created_at
+		FROM project_photos p
+		WHERE p.project_id = $1
+		ORDER BY p.created_at
+	`, projId)
 	if err != nil {
 		return nil, err
 	}
@@ -996,9 +1001,26 @@ func getProjectPhotos(ctx context.Context, projId uuid.UUID, db *sql.DB) (user.A
 	}()
 	avatars := make([]*user.Avatar, 0)
 	for rows.Next() {
-		var avatar user.Avatar
-		if err := rows.Scan(&avatar.ContentType, &avatar.Key, &avatar.SizeBytes, &avatar.Updated); err != nil {
+		var record struct {
+			key         sql.NullString
+			contentType sql.NullString
+			sizeBytes   sql.NullInt64
+			createdAt   sql.NullTime
+		}
+		if err := rows.Scan(&record.key, &record.contentType, &record.sizeBytes, &record.createdAt); err != nil {
 			return nil, err
+		}
+		if !record.key.Valid || strings.TrimSpace(record.key.String) == "" {
+			continue
+		}
+		var avatar user.Avatar
+		avatar.Key = record.key.String
+		avatar.ContentType = record.contentType.String
+		if record.sizeBytes.Valid {
+			avatar.SizeBytes = int(record.sizeBytes.Int64)
+		}
+		if record.createdAt.Valid {
+			avatar.Updated = record.createdAt.Time
 		}
 		avatars = append(avatars, &avatar)
 	}
@@ -1102,20 +1124,28 @@ func (p *ProjectsRepository) CreateProject(ctx context.Context, info projectdoma
 	if err := p.DB.QueryRowContext(ctx, "INSERT INTO projects (author_uid, info) VALUES ($1, ROW($2, $3, $4::project_categories, ROW($5, $6, $7)::project_location_t)::project_info_t) RETURNING id", info.Author.UID, info.Info.Title, info.Info.Description, info.Info.Category, info.Info.Location.City, info.Info.Location.Street, info.Info.Location.House).Scan(&projectId); err != nil {
 		return err
 	}
-	//stmt, err := p.DB.PrepareContext(ctx, "INSERT INTO pictures (owner, owner_type, info) VALUES ($1, $2, ROW($3, $4, $5, $6, $7)::picture_t)")
-	//if err != nil {
-	//	return err
-	//}
-	//defer stmt.Close()
-	//for _, pic := range info.Info.Photos {
-	//	if pic == nil {
-	//		continue
-	//	}
-	//	if _, err = stmt.Exec(projectId.String(), "project", pic.ContentType, pic.Data, pic.Width, pic.Height, pic.SizeBytes); err != nil {
-	//		logger.Debug("Failed to save project photo: "+err.Error(), "projects.photos.save")
-	//		continue
-	//	}
-	//}
+	if len(info.Info.Photos) > 0 {
+		stmt, err := p.DB.PrepareContext(ctx, `
+			INSERT INTO project_photos (project_id, object_key, content_type, size_bytes, created_at)
+			VALUES ($1, $2, $3, $4, now())
+		`)
+		if err != nil {
+			return err
+		}
+		defer stmt.Close()
+		for _, photo := range info.Info.Photos {
+			if photo == nil {
+				continue
+			}
+			key := strings.TrimSpace(photo.Key)
+			if key == "" {
+				return errors.New("project photo key is empty")
+			}
+			if _, err = stmt.Exec(projectId, key, strings.TrimSpace(photo.ContentType), photo.SizeBytes); err != nil {
+				return err
+			}
+		}
+	}
 	if _, err := p.DB.ExecContext(ctx, "INSERT INTO submissions (project_id) VALUES ($1)", projectId); err != nil {
 		return err
 	}

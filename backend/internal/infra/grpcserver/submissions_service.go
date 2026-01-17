@@ -4,6 +4,7 @@ import (
 	permissionsapp "ascendant/backend/internal/app/info/permissions"
 	sessionsapp "ascendant/backend/internal/app/info/sessions"
 	userapp "ascendant/backend/internal/app/info/user"
+	storageapp "ascendant/backend/internal/app/storage"
 	"ascendant/backend/internal/app/submissions"
 	"ascendant/backend/internal/domain/permissions"
 	submpb "ascendant/backend/internal/gen/submissions/v1"
@@ -19,12 +20,14 @@ type SubmissionsService struct {
 	submpb.UnimplementedSubmissionsServiceServer
 	submissions *submissions.Service
 	auth        *Authenticator
+	storage     *storageapp.Service
 }
 
-func NewSubmissionsService(submissions *submissions.Service, sess *sessionsapp.Service, perms *permissionsapp.Service, us *userapp.Service) *SubmissionsService {
+func NewSubmissionsService(submissions *submissions.Service, sess *sessionsapp.Service, perms *permissionsapp.Service, us *userapp.Service, storage *storageapp.Service) *SubmissionsService {
 	return &SubmissionsService{
 		submissions: submissions,
 		auth:        NewAuthenticator(sess, perms, us),
+		storage:     storage,
 	}
 }
 
@@ -82,6 +85,12 @@ func (s *SubmissionsService) List(ctx context.Context, _ *emptypb.Empty) (*submp
 	list, err := s.submissions.GetList(ctx)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
+	}
+	for _, item := range list {
+		if item == nil || item.Info == nil {
+			continue
+		}
+		applyPresignedProjectURLs(ctx, s.storage, item.Info)
 	}
 	return &submpb.ListResponse{Data: list, Tracing: TraceIDOrNew(ctx)}, nil
 }

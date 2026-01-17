@@ -302,18 +302,8 @@ func (s *UserService) DeleteUserAvatar(ctx context.Context, req *userpb.OtherUse
 }
 
 func (s *UserService) applyAvatarURL(ctx context.Context, u *userpb.UserPublic) {
-	if s == nil || s.storage == nil || u == nil || u.Settings == nil || u.Settings.Avatar == nil {
+	if s == nil || s.storage == nil {
 		return
 	}
-	key := strings.TrimSpace(u.Settings.Avatar.Key)
-	if key == "" {
-		return
-	}
-	url, err := s.storage.PresignGet(ctx, key)
-	if err != nil || strings.TrimSpace(url) == "" {
-		return
-	}
-	u.Settings.Avatar.Url = url
-	u.Settings.Avatar.Data = nil
-	u.Settings.Avatar.Key = ""
+	applyPresignedUserAvatarURL(ctx, s.storage, u)
 }
