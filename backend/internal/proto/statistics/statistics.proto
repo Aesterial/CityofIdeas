@@ -1,56 +1,39 @@
 syntax = "proto3";
 
 package statistics.v1;
-option go_package = "ascendant/backend/internal/gen/statistics/v1;statistics";
 
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "statistics/domain.proto";
 
+option go_package = "ascendant/backend/internal/gen/statistics/v1;statistics";
+
 service StatisticsService {
   rpc VotesDay(google.protobuf.Empty) returns (VoteCountResponse) {
-    option (google.api.http) = {
-      get: "/api/statistics/votes"
-    };
+    option (google.api.http) = {get: "/api/statistics/votes"};
   }
   rpc TopVoteCategories(CategoriesRequest) returns (TopByCategoriesResponse) {
-    option (google.api.http) = {
-      get: "/api/statistics/categories/{limit}"
-    };
+    option (google.api.http) = {get: "/api/statistics/categories/{limit}"};
   }
   rpc IdeasDay(google.protobuf.Empty) returns (IdeasCountResponse) {
-    option (google.api.http) = {
-      get: "/api/statistics/ideas"
-    };
+    option (google.api.http) = {get: "/api/statistics/ideas"};
   }
   rpc IdeasRecap(google.protobuf.Empty) returns (IdeasApprovalResponse) {
-    option (google.api.http) = {
-      get: "/api/statistics/ideas/recap"
-    };
+    option (google.api.http) = {get: "/api/statistics/ideas/recap"};
   }
   rpc ActiveUsers(WithFromTagRequest) returns (ActiveUsersResponse) {
-    option (google.api.http) = {
-      get: "/api/statistics/users/active/{since}"
-    };
+    option (google.api.http) = {get: "/api/statistics/users/active/{since}"};
   }
   rpc OfflineUsers(WithFromTagRequest) returns (OfflineUsersResponse) {
-    option (google.api.http) = {
-      get: "/api/statistics/users/offline/{since}"
-    };
+    option (google.api.http) = {get: "/api/statistics/users/offline/{since}"};
   }
   rpc UsersActivity(UsersActivityRequest) returns (UsersActivityResponse) {
-    option (google.api.http) = {
-      get: "/api/statistics/activity/users/{limit}"
-    };
+    option (google.api.http) = {get: "/api/statistics/activity/users/{limit}"};
   }
   rpc QualityRecap(google.protobuf.Empty) returns (EditorsGradeResponse) {
-    option (google.api.http) = {
-      get: "/api/statistics/quality/recap"
-    };
+    option (google.api.http) = {get: "/api/statistics/quality/recap"};
   }
   rpc MediaCoverage(MediaCoverageRequest) returns (MediaCoverageResponse) {
-    option (google.api.http) = {
-      get: "/api/statistics/media/coverage"
-    };
+    option (google.api.http) = {get: "/api/statistics/media/coverage"};
   }
 }

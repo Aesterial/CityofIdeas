@@ -1009,7 +1009,7 @@ do $$
             insert into users (username, email, rank, permissions, password)
             values (
                        'admin',
-                       row('admin@ascendant.ru', true)::users_email_t,
+                       row('admin@aesterial.xyz', true)::users_email_t,
                        row('staff', null)::users_rank_t,
                        (select r.permissions from ranks r where r.name = 'staff'),
                        v_password_hash

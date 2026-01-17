@@ -121,7 +121,7 @@ export default function MaintenancePage() {
           },
           signal: controller.signal,
         });
-        if (response.status === 404) {
+        if (response.status === 503) {
           setMaintenance(null);
           setHasMaintenance(false);
           return;

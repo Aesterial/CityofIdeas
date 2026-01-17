@@ -1,27 +1,22 @@
 syntax = "proto3";
 
 package projects.v1;
-option go_package = "ascendant/backend/internal/gen/projects/v1;projects";
 
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "projects/domain.proto";
 
+option go_package = "ascendant/backend/internal/gen/projects/v1;projects";
+
 service ProjectService {
   rpc Get(GetRequest) returns (GetResponse) {
-    option (google.api.http) = {
-      get: "/api/projects"
-    };
+    option (google.api.http) = {get: "/api/projects"};
   }
   rpc GetTop(GetTopRequest) returns (GetResponse) {
-    option (google.api.http) = {
-      get: "/api/projects/top"
-    };
+    option (google.api.http) = {get: "/api/projects/top"};
   }
   rpc GetArchived(GetRequest) returns (GetResponse) {
-    option (google.api.http) = {
-      get: "/api/projects/archived"
-    };
+    option (google.api.http) = {get: "/api/projects/archived"};
   }
   rpc Create(CreateRequest) returns (EmptyResponse) {
     option (google.api.http) = {
@@ -30,28 +25,18 @@ service ProjectService {
     };
   }
   rpc ChangeTitle(ChangeRequest) returns (EmptyResponse) {
-    option (google.api.http) = {
-      patch: "/api/projects/{id}/name/{to}"
-    };
+    option (google.api.http) = {patch: "/api/projects/{id}/name/{to}"};
   }
-  rpc ChangeDescription(ChangeRequest) returns (EmptyResponse) {        
-    option (google.api.http) = {
-      patch: "/api/project/{id}/description/{to}"
-    };
+  rpc ChangeDescription(ChangeRequest) returns (EmptyResponse) {
+    option (google.api.http) = {patch: "/api/project/{id}/description/{to}"};
   }
   rpc Delete(RequestWithID) returns (EmptyResponse) {
-    option (google.api.http) = {
-      delete: "/api/projects/{id}/delete"
-    };
+    option (google.api.http) = {delete: "/api/projects/{id}/delete"};
   }
   rpc Categories(google.protobuf.Empty) returns (CategoriesResponse) {
-    option (google.api.http) = {
-      get: "/api/projects/categories"
-    };
+    option (google.api.http) = {get: "/api/projects/categories"};
   }
   rpc ToggleLike(LikeRequest) returns (EmptyResponse) {
-    option (google.api.http) = {
-      post: "/api/projects/like/{id}"
-    };
+    option (google.api.http) = {post: "/api/projects/like/{id}"};
   }
 }

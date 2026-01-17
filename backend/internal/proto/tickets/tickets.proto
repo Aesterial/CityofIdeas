@@ -1,54 +1,44 @@
 syntax = "proto3";
 package tickets.v1;
 
-option go_package = "ascendant/backend/internal/gen/tickets/v1;tickets";
-
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "tickets/domain.proto";
 
+option go_package = "ascendant/backend/internal/gen/tickets/v1;tickets";
+
 service TicketsService {
-    rpc Create(CreateRequest) returns (CreateResponse) {
-        option (google.api.http) = {
-            post: "/api/tickets/create"
-            body: "*"
-        };
-    }
-    rpc Info(TicketInfoRequest) returns (TicketInfoResponse) {
-        option (google.api.http) = {
-            get: "/api/tickets/{id}/info"
-        };
-    }
-    rpc Messages(TicketInfoRequest) returns (TicketMessagesResponse) {
-        option (google.api.http) = {
-            get: "/api/tickets/{id}/messages/list"
-        };
-    }
-    rpc MessageCreate(TicketMessageCreate) returns (EmptyResponse) {
-        option (google.api.http) = {
-            post: "/api/tickets/{id}/messages/create"
-            body: "*"
-        };
-    }
-    rpc CloseTicket(CloseTicketRequest) returns (EmptyResponse) {
-        option (google.api.http) = {
-            post: "/api/tickets/{id}/close"
-            body: "*"
-        };
-    }
-    rpc AcceptTicket(TicketInfoRequest) returns (EmptyResponse) {
-        option (google.api.http) = {
-            post: "/api/tickets/{id}/accept"
-        };
-    }
-    rpc List(google.protobuf.Empty) returns (TicketsListResponse) {
-        option (google.api.http) = {
-            get: "/api/tickets/list"
-        };
-    }
-    rpc IsValid(IsValidRequest) returns (IsValidResponse) {
-        option (google.api.http) = {
-            get: "/api/tickets/{id}/requestor/{token}"
-        };
-    }
+  rpc Create(CreateRequest) returns (CreateResponse) {
+    option (google.api.http) = {
+      post: "/api/tickets/create"
+      body: "*"
+    };
+  }
+  rpc Info(TicketInfoRequest) returns (TicketInfoResponse) {
+    option (google.api.http) = {get: "/api/tickets/{id}/info"};
+  }
+  rpc Messages(TicketInfoRequest) returns (TicketMessagesResponse) {
+    option (google.api.http) = {get: "/api/tickets/{id}/messages/list"};
+  }
+  rpc MessageCreate(TicketMessageCreate) returns (EmptyResponse) {
+    option (google.api.http) = {
+      post: "/api/tickets/{id}/messages/create"
+      body: "*"
+    };
+  }
+  rpc CloseTicket(CloseTicketRequest) returns (EmptyResponse) {
+    option (google.api.http) = {
+      post: "/api/tickets/{id}/close"
+      body: "*"
+    };
+  }
+  rpc AcceptTicket(TicketInfoRequest) returns (EmptyResponse) {
+    option (google.api.http) = {post: "/api/tickets/{id}/accept"};
+  }
+  rpc List(google.protobuf.Empty) returns (TicketsListResponse) {
+    option (google.api.http) = {get: "/api/tickets/list"};
+  }
+  rpc IsValid(IsValidRequest) returns (IsValidResponse) {
+    option (google.api.http) = {get: "/api/tickets/{id}/requestor/{token}"};
+  }
 }

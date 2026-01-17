@@ -1,11 +1,12 @@
 syntax = "proto3";
 
 package login.v1;
-option go_package = "ascendant/backend/internal/gen/login/v1;login";
 
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "login/domain.proto";
+
+option go_package = "ascendant/backend/internal/gen/login/v1;login";
 
 service LoginService {
   rpc Authorization(AuthRequest) returns (AuthResponse) {
@@ -27,37 +28,33 @@ service LoginService {
     };
   }
   rpc VkStart(google.protobuf.Empty) returns (VKStartResponse) {
-    option (google.api.http) = {
-      get: "/api/login/vk/start"
-    };
+    option (google.api.http) = {get: "/api/login/vk/start"};
   }
   rpc VkCallback(VKCallbackRequest) returns (VKCallbackResponse) {
-    option (google.api.http) = {
-      get: "/api/login/vk/callback"
-    };
+    option (google.api.http) = {get: "/api/login/vk/callback"};
   }
   rpc VerifyEmailStart(WithEmailRequest) returns (EmptyResponse) {
     option (google.api.http) = {
-        post: "/api/login/verify-email/start",
-        body: "*"
+      post: "/api/login/verify-email/start"
+      body: "*"
     };
   }
   rpc ResetPasswordStart(WithEmailRequest) returns (EmptyResponse) {
     option (google.api.http) = {
-        post: "/api/login/reset-password/start",
-        body: "*"
+      post: "/api/login/reset-password/start"
+      body: "*"
     };
   }
   rpc VerifyEmail(VerifyEmailRequest) returns (EmptyResponse) {
     option (google.api.http) = {
-        post: "/api/login/verify-email",
-        body: "*"
+      post: "/api/login/verify-email"
+      body: "*"
     };
   }
   rpc ResetPassword(ResetPasswordRequest) returns (EmptyResponse) {
     option (google.api.http) = {
-        post: "/api/login/reset-password",
-        body: "*"
+      post: "/api/login/reset-password"
+      body: "*"
     };
   }
 }

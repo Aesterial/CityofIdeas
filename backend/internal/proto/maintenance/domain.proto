@@ -1,33 +1,35 @@
 syntax = "proto3";
 
 package maintenance.v1;
+
 import "google/protobuf/timestamp.proto";
+
 option go_package = "ascendant/backend/internal/gen/maintenance/v1;maintenance";
 
-message IsActiveResponse {
-    bool active = 1;
-    string tracing = 2;
+message IsSomethingResponse {
+  bool has = 1;
+  string tracing = 2;
 }
 
 message DataResponse {
-    string id = 1;
-    string description = 2;
-    google.protobuf.Timestamp will_end = 3; 
-    string tracing = 4;
+  string id = 1;
+  string description = 2;
+  google.protobuf.Timestamp will_end = 3;
+  string tracing = 4;
 }
 
 message CreateRequest {
-    string description = 1;
-    optional string scope = 2;
-    google.protobuf.Timestamp will_start = 3;
-    google.protobuf.Timestamp will_end = 4;
+  string description = 1;
+  optional string scope = 2;
+  google.protobuf.Timestamp will_start = 3;
+  google.protobuf.Timestamp will_end = 4;
 }
 
 message Response {
-    string tracing = 1;
+  string tracing = 1;
 }
 
 message EditRequest {
-    optional string description = 2;
-    optional string scope = 3;
+  optional string description = 2;
+  optional string scope = 3;
 }

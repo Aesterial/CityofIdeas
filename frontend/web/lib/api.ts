@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "@/lib/api-base";
+import { StatusCodes} from "http-status-codes"
 
 export type RegisterPayload = {
   username: string;
@@ -431,7 +432,7 @@ export async function fetchUserBanInfo(
       expires: payload.expires ?? null,
     };
   } catch (error) {
-    if (error instanceof ApiError && error.status === 404) {
+    if (error instanceof ApiError && error.status === StatusCodes.SERVICE_UNAVAILABLE) {
       return null;
     }
     throw error;

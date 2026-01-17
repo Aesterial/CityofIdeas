@@ -27,7 +27,7 @@ func NewMaintenanceService(s *maintenance.Service, ses *sessions.Service, perms 
 	return &MaintenanceService{serv: s, auth: NewAuthenticator(ses, perms, us)}
 }
 
-func (s *MaintenanceService) IsActive(ctx context.Context, _ *emptypb.Empty) (*maintpb.IsActiveResponse, error) {
+func (s *MaintenanceService) IsActive(ctx context.Context, _ *emptypb.Empty) (*maintpb.IsSomethingResponse, error) {
 	if s == nil || s.serv == nil {
 		return nil, status.Error(codes.Internal, "maintenance service is not configured")
 	}
@@ -36,7 +36,18 @@ func (s *MaintenanceService) IsActive(ctx context.Context, _ *emptypb.Empty) (*m
 		logger.Debug("failed to check: " + err.Error(), "")
 		return nil, status.Error(codes.Internal, "failed to check")
 	}
-	return &maintpb.IsActiveResponse{Active: active, Tracing: TraceIDOrNew(ctx)}, nil
+	return &maintpb.IsSomethingResponse{Has: active, Tracing: TraceIDOrNew(ctx)}, nil
+}
+
+func (s *MaintenanceService) IsPlanned(ctx context.Context, _ *emptypb.Empty) (*maintpb.IsSomethingResponse, error) {
+	if s == nil || s.serv == nil {
+		return nil, status.Error(codes.Internal, "maintenance service is not configured")
+	}
+	planned, err := s.serv.IsPlanned(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to check")
+	}
+	return &maintpb.IsSomethingResponse{Has: planned, Tracing: TraceIDOrNew(ctx)}, nil
 }
 
 func (s *MaintenanceService) Data(ctx context.Context, _ *emptypb.Empty) (*maintpb.DataResponse, error) {
@@ -46,7 +57,7 @@ func (s *MaintenanceService) Data(ctx context.Context, _ *emptypb.Empty) (*maint
 	data, err := s.serv.GetData(ctx)
 	if err != nil {
 		if err.Error() == "maintenance is not active" {
-			return nil, status.Error(codes.NotFound, err.Error())
+			return nil, status.Error(codes.Unavailable, err.Error())
 		}
 		logger.Debug("Failed to get maintenance data: " + err.Error(), "")
 		return nil, status.Error(codes.Internal, "failed to get data")

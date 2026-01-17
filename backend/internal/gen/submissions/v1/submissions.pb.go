@@ -26,7 +26,7 @@ var File_submissions_submissions_proto protoreflect.FileDescriptor
 
 const file_submissions_submissions_proto_rawDesc = "" +
 	"\n" +
-	"\x1dsubmissions/submissions.proto\x12\x0esubmissions.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x18submissions/domain.proto2\xd7\x02\n" +
+	"\x1dsubmissions/submissions.proto\x12\x0esubmissions.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x18submissions/domain.proto2\xd7\x02\n" +
 	"\x12SubmissionsService\x12[\n" +
 	"\x04List\x12\x16.google.protobuf.Empty\x1a\x1c.submissions.v1.ListResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/submissions/list\x12q\n" +
 	"\aApprove\x12\x1e.submissions.v1.ApproveRequest\x1a\x1c.submissions.v1.DataResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/submissions/{id}/approve\x12q\n" +

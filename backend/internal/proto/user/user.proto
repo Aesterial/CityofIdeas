@@ -1,35 +1,26 @@
 syntax = "proto3";
 
 package user.v1;
-option go_package = "ascendant/backend/internal/gen/user/v1;user";
 
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "user/domain.proto";
 
+option go_package = "ascendant/backend/internal/gen/user/v1;user";
+
 service UserService {
-  // Information
   rpc Self(google.protobuf.Empty) returns (UserSelfResponse) {
-    option (google.api.http) = {
-      get: "/api/user"
-    };
+    option (google.api.http) = {get: "/api/user"};
   }
   rpc Other(OtherUserRequest) returns (UserPublicResponse) {
-    option (google.api.http) = {
-      get: "/api/user/{userID}"
-    };
+    option (google.api.http) = {get: "/api/user/{userID}"};
   }
   rpc Users(google.protobuf.Empty) returns (UsersResponse) {
-    option (google.api.http) = {
-      get: "/api/user/list"
-    };
+    option (google.api.http) = {get: "/api/user/list"};
   }
   rpc Sessions(google.protobuf.Empty) returns (UserSessionsResponse) {
-    option (google.api.http) = {
-      get: "/api/user/sessions"
-    };
+    option (google.api.http) = {get: "/api/user/sessions"};
   }
-  // Management
   rpc Ban(BanUserRequest) returns (EmptyResponse) {
     option (google.api.http) = {
       post: "/api/user/{userID}/ban"
@@ -37,24 +28,16 @@ service UserService {
     };
   }
   rpc Unban(OtherUserRequest) returns (EmptyResponse) {
-    option (google.api.http) = {
-      post: "/api/user/{userID}/unban"
-    };
+    option (google.api.http) = {post: "/api/user/{userID}/unban"};
   }
   rpc BanInfo(google.protobuf.Empty) returns (BanInfoResponse) {
-    option (google.api.http) = {
-      get: "/api/user/ban/info"
-    };
+    option (google.api.http) = {get: "/api/user/ban/info"};
   }
   rpc BanInfoOther(OtherUserRequest) returns (BanInfoResponse) {
-    option (google.api.http) = {
-      get: "/api/user/{userID}/ban/info"
-    };
+    option (google.api.http) = {get: "/api/user/{userID}/ban/info"};
   }
   rpc UpdateSelfName(ChangeSelfNameRequest) returns (EmptyResponse) {
-    option (google.api.http) = {
-      patch: "/api/user/change/name/{name}"
-    };
+    option (google.api.http) = {patch: "/api/user/change/name/{name}"};
   }
   rpc UpdateSelfAvatar(Avatar) returns (EmptyResponse) {
     option (google.api.http) = {
@@ -63,14 +46,10 @@ service UserService {
     };
   }
   rpc DeleteSelfAvatar(google.protobuf.Empty) returns (EmptyResponse) {
-    option (google.api.http) = {
-      delete: "/api/user/delete/avatar"
-    };
+    option (google.api.http) = {delete: "/api/user/delete/avatar"};
   }
   rpc DeleteUserAvatar(OtherUserRequest) returns (EmptyResponse) {
-    option (google.api.http) = {
-      delete: "/api/user/{userID}/delete/avatar"
-    };
+    option (google.api.http) = {delete: "/api/user/{userID}/delete/avatar"};
   }
   rpc SendMessage(SendMessageRequest) returns (EmptyResponse) {
     option (google.api.http) = {
@@ -79,14 +58,9 @@ service UserService {
     };
   }
   rpc Messages(google.protobuf.Empty) returns (MessagesResponse) {
-    option (google.api.http) = {
-      get: "/api/user/messages"
-    };
+    option (google.api.http) = {get: "/api/user/messages"};
   }
-  rpc Permissions()
   rpc HasPermissions(HasPermissionRequest) returns (HasPermissionResponse) {
-    option (google.api.http) = {
-      get: "/api/user/{userID}/permissions/has/{perm}"
-    };
+    option (google.api.http) = {get: "/api/user/{userID}/permissions/has/{perm}"};
   }
 }

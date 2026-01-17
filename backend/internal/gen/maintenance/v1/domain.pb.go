@@ -22,28 +22,28 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type IsActiveResponse struct {
+type IsSomethingResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Active        bool                   `protobuf:"varint,1,opt,name=active,proto3" json:"active,omitempty"`
+	Has           bool                   `protobuf:"varint,1,opt,name=has,proto3" json:"has,omitempty"`
 	Tracing       string                 `protobuf:"bytes,2,opt,name=tracing,proto3" json:"tracing,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *IsActiveResponse) Reset() {
-	*x = IsActiveResponse{}
+func (x *IsSomethingResponse) Reset() {
+	*x = IsSomethingResponse{}
 	mi := &file_maintenance_domain_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *IsActiveResponse) String() string {
+func (x *IsSomethingResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*IsActiveResponse) ProtoMessage() {}
+func (*IsSomethingResponse) ProtoMessage() {}
 
-func (x *IsActiveResponse) ProtoReflect() protoreflect.Message {
+func (x *IsSomethingResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_maintenance_domain_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -55,19 +55,19 @@ func (x *IsActiveResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use IsActiveResponse.ProtoReflect.Descriptor instead.
-func (*IsActiveResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use IsSomethingResponse.ProtoReflect.Descriptor instead.
+func (*IsSomethingResponse) Descriptor() ([]byte, []int) {
 	return file_maintenance_domain_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *IsActiveResponse) GetActive() bool {
+func (x *IsSomethingResponse) GetHas() bool {
 	if x != nil {
-		return x.Active
+		return x.Has
 	}
 	return false
 }
 
-func (x *IsActiveResponse) GetTracing() string {
+func (x *IsSomethingResponse) GetTracing() string {
 	if x != nil {
 		return x.Tracing
 	}
@@ -310,9 +310,9 @@ var File_maintenance_domain_proto protoreflect.FileDescriptor
 
 const file_maintenance_domain_proto_rawDesc = "" +
 	"\n" +
-	"\x18maintenance/domain.proto\x12\x0emaintenance.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"D\n" +
-	"\x10IsActiveResponse\x12\x16\n" +
-	"\x06active\x18\x01 \x01(\bR\x06active\x12\x18\n" +
+	"\x18maintenance/domain.proto\x12\x0emaintenance.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"A\n" +
+	"\x13IsSomethingResponse\x12\x10\n" +
+	"\x03has\x18\x01 \x01(\bR\x03has\x12\x18\n" +
 	"\atracing\x18\x02 \x01(\tR\atracing\"\x91\x01\n" +
 	"\fDataResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12 \n" +
@@ -348,7 +348,7 @@ func file_maintenance_domain_proto_rawDescGZIP() []byte {
 
 var file_maintenance_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_maintenance_domain_proto_goTypes = []any{
-	(*IsActiveResponse)(nil),      // 0: maintenance.v1.IsActiveResponse
+	(*IsSomethingResponse)(nil),   // 0: maintenance.v1.IsSomethingResponse
 	(*DataResponse)(nil),          // 1: maintenance.v1.DataResponse
 	(*CreateRequest)(nil),         // 2: maintenance.v1.CreateRequest
 	(*Response)(nil),              // 3: maintenance.v1.Response

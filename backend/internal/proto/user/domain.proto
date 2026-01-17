@@ -1,10 +1,11 @@
 syntax = "proto3";
 
 package user.v1;
-option go_package = "ascendant/backend/internal/gen/user/v1;user";
 
-import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "ascendant/backend/internal/gen/user/v1;user";
 
 message UserPublic {
   uint32 userID = 1;
@@ -15,7 +16,7 @@ message UserPublic {
   google.protobuf.Timestamp joinedAt = 6;
 }
 
-message UserSelf{
+message UserSelf {
   UserPublic public = 1;
   UserEmail email = 2;
 }
@@ -27,7 +28,7 @@ message Avatar {
   string key = 4;
 }
 
-message UserSettings  {
+message UserSettings {
   optional string displayName = 1;
   optional Avatar avatar = 2;
   int32 sessionLiveTime = 3;
@@ -38,12 +39,12 @@ message UserPublicSettings {
   optional Avatar avatar = 2;
 }
 
-message Rank  {
+message Rank {
   string name = 1;
   optional google.protobuf.Timestamp expires = 2;
 }
 
-message UserEmail  {
+message UserEmail {
   string address = 1;
   bool verified = 2;
 }

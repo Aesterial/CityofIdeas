@@ -1,30 +1,22 @@
 syntax = "proto3";
 package storage.v1;
 
-option go_package = "ascendant/backend/internal/gen/storage/v1;storage";
-
 import "google/api/annotations.proto";
 import "storage/domain.proto";
 
+option go_package = "ascendant/backend/internal/gen/storage/v1;storage";
+
 service StorageService {
   rpc ReceiveGetPresign(PresignGetRequest) returns (PresignResponse) {
-    option (google.api.http) = {
-      get: "/api/storage/presign/get"
-    };
+    option (google.api.http) = {get: "/api/storage/presign/get"};
   }
   rpc ReceivePutPresign(PresignPutRequest) returns (PresignResponse) {
-    option (google.api.http) = {
-      get: "/api/storage/presign/put"
-    };
+    option (google.api.http) = {get: "/api/storage/presign/put"};
   }
   rpc GetUserAvatarPresign(UserAvatarRequest) returns (PresignResponse) {
-    option (google.api.http) = {
-      get: "/api/storage/avatars/user/{userID}"
-    };
+    option (google.api.http) = {get: "/api/storage/avatars/user/{userID}"};
   }
   rpc ListProjectAvatars(ProjectAvatarsRequest) returns (ProjectAvatarsResponse) {
-    option (google.api.http) = {
-      get: "/api/storage/avatars/project/{projectID}"
-    };
+    option (google.api.http) = {get: "/api/storage/avatars/project/{projectID}"};
   }
 }

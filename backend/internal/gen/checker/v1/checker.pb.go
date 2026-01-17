@@ -27,7 +27,7 @@ var File_checker_checker_proto protoreflect.FileDescriptor
 const file_checker_checker_proto_rawDesc = "" +
 	"\n" +
 	"\x15checker/checker.proto\x12\n" +
-	"checker.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x14checker/domain.proto2c\n" +
+	"checker.v1\x1a\x14checker/domain.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto2c\n" +
 	"\x0eCheckerService\x12Q\n" +
 	"\x06Health\x12\x16.google.protobuf.Empty\x1a\x1a.checker.v1.HealthResponse\"\x13\x82\xd3\xe4\x93\x02\r\x12\v/api/healthB3Z1ascendant/backend/internal/gen/checker/v1;checkerb\x06proto3"
 

@@ -34,18 +34,17 @@ const (
 	UserService_DeleteUserAvatar_FullMethodName = "/user.v1.UserService/DeleteUserAvatar"
 	UserService_SendMessage_FullMethodName      = "/user.v1.UserService/SendMessage"
 	UserService_Messages_FullMethodName         = "/user.v1.UserService/Messages"
+	UserService_HasPermissions_FullMethodName   = "/user.v1.UserService/HasPermissions"
 )
 
 // UserServiceClient is the client API for UserService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
-	// Information
 	Self(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*UserSelfResponse, error)
 	Other(ctx context.Context, in *OtherUserRequest, opts ...grpc.CallOption) (*UserPublicResponse, error)
 	Users(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*UsersResponse, error)
 	Sessions(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*UserSessionsResponse, error)
-	// Management
 	Ban(ctx context.Context, in *BanUserRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
 	Unban(ctx context.Context, in *OtherUserRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
 	BanInfo(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*BanInfoResponse, error)
@@ -56,6 +55,7 @@ type UserServiceClient interface {
 	DeleteUserAvatar(ctx context.Context, in *OtherUserRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
 	SendMessage(ctx context.Context, in *SendMessageRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
 	Messages(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*MessagesResponse, error)
+	HasPermissions(ctx context.Context, in *HasPermissionRequest, opts ...grpc.CallOption) (*HasPermissionResponse, error)
 }
 
 type userServiceClient struct {
@@ -206,16 +206,24 @@ func (c *userServiceClient) Messages(ctx context.Context, in *emptypb.Empty, opt
 	return out, nil
 }
 
+func (c *userServiceClient) HasPermissions(ctx context.Context, in *HasPermissionRequest, opts ...grpc.CallOption) (*HasPermissionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HasPermissionResponse)
+	err := c.cc.Invoke(ctx, UserService_HasPermissions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
 type UserServiceServer interface {
-	// Information
 	Self(context.Context, *emptypb.Empty) (*UserSelfResponse, error)
 	Other(context.Context, *OtherUserRequest) (*UserPublicResponse, error)
 	Users(context.Context, *emptypb.Empty) (*UsersResponse, error)
 	Sessions(context.Context, *emptypb.Empty) (*UserSessionsResponse, error)
-	// Management
 	Ban(context.Context, *BanUserRequest) (*EmptyResponse, error)
 	Unban(context.Context, *OtherUserRequest) (*EmptyResponse, error)
 	BanInfo(context.Context, *emptypb.Empty) (*BanInfoResponse, error)
@@ -226,6 +234,7 @@ type UserServiceServer interface {
 	DeleteUserAvatar(context.Context, *OtherUserRequest) (*EmptyResponse, error)
 	SendMessage(context.Context, *SendMessageRequest) (*EmptyResponse, error)
 	Messages(context.Context, *emptypb.Empty) (*MessagesResponse, error)
+	HasPermissions(context.Context, *HasPermissionRequest) (*HasPermissionResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -277,6 +286,9 @@ func (UnimplementedUserServiceServer) SendMessage(context.Context, *SendMessageR
 }
 func (UnimplementedUserServiceServer) Messages(context.Context, *emptypb.Empty) (*MessagesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Messages not implemented")
+}
+func (UnimplementedUserServiceServer) HasPermissions(context.Context, *HasPermissionRequest) (*HasPermissionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method HasPermissions not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -551,6 +563,24 @@ func _UserService_Messages_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_HasPermissions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HasPermissionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).HasPermissions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_HasPermissions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).HasPermissions(ctx, req.(*HasPermissionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -613,6 +643,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Messages",
 			Handler:    _UserService_Messages_Handler,
+		},
+		{
+			MethodName: "HasPermissions",
+			Handler:    _UserService_HasPermissions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

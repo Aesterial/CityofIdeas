@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	MaintenanceService_IsActive_FullMethodName     = "/maintenance.v1.MaintenanceService/IsActive"
+	MaintenanceService_IsPlanned_FullMethodName    = "/maintenance.v1.MaintenanceService/IsPlanned"
 	MaintenanceService_Data_FullMethodName         = "/maintenance.v1.MaintenanceService/Data"
 	MaintenanceService_Start_FullMethodName        = "/maintenance.v1.MaintenanceService/Start"
 	MaintenanceService_StartPlanned_FullMethodName = "/maintenance.v1.MaintenanceService/StartPlanned"
@@ -32,7 +33,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MaintenanceServiceClient interface {
-	IsActive(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*IsActiveResponse, error)
+	IsActive(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*IsSomethingResponse, error)
+	IsPlanned(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*IsSomethingResponse, error)
 	Data(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*DataResponse, error)
 	Start(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*Response, error)
 	StartPlanned(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*Response, error)
@@ -48,10 +50,20 @@ func NewMaintenanceServiceClient(cc grpc.ClientConnInterface) MaintenanceService
 	return &maintenanceServiceClient{cc}
 }
 
-func (c *maintenanceServiceClient) IsActive(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*IsActiveResponse, error) {
+func (c *maintenanceServiceClient) IsActive(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*IsSomethingResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(IsActiveResponse)
+	out := new(IsSomethingResponse)
 	err := c.cc.Invoke(ctx, MaintenanceService_IsActive_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *maintenanceServiceClient) IsPlanned(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*IsSomethingResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IsSomethingResponse)
+	err := c.cc.Invoke(ctx, MaintenanceService_IsPlanned_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +124,8 @@ func (c *maintenanceServiceClient) Complete(ctx context.Context, in *emptypb.Emp
 // All implementations must embed UnimplementedMaintenanceServiceServer
 // for forward compatibility.
 type MaintenanceServiceServer interface {
-	IsActive(context.Context, *emptypb.Empty) (*IsActiveResponse, error)
+	IsActive(context.Context, *emptypb.Empty) (*IsSomethingResponse, error)
+	IsPlanned(context.Context, *emptypb.Empty) (*IsSomethingResponse, error)
 	Data(context.Context, *emptypb.Empty) (*DataResponse, error)
 	Start(context.Context, *CreateRequest) (*Response, error)
 	StartPlanned(context.Context, *CreateRequest) (*Response, error)
@@ -128,8 +141,11 @@ type MaintenanceServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedMaintenanceServiceServer struct{}
 
-func (UnimplementedMaintenanceServiceServer) IsActive(context.Context, *emptypb.Empty) (*IsActiveResponse, error) {
+func (UnimplementedMaintenanceServiceServer) IsActive(context.Context, *emptypb.Empty) (*IsSomethingResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method IsActive not implemented")
+}
+func (UnimplementedMaintenanceServiceServer) IsPlanned(context.Context, *emptypb.Empty) (*IsSomethingResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method IsPlanned not implemented")
 }
 func (UnimplementedMaintenanceServiceServer) Data(context.Context, *emptypb.Empty) (*DataResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Data not implemented")
@@ -181,6 +197,24 @@ func _MaintenanceService_IsActive_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(MaintenanceServiceServer).IsActive(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MaintenanceService_IsPlanned_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MaintenanceServiceServer).IsPlanned(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MaintenanceService_IsPlanned_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MaintenanceServiceServer).IsPlanned(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -285,6 +319,10 @@ var MaintenanceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IsActive",
 			Handler:    _MaintenanceService_IsActive_Handler,
+		},
+		{
+			MethodName: "IsPlanned",
+			Handler:    _MaintenanceService_IsPlanned_Handler,
 		},
 		{
 			MethodName: "Data",

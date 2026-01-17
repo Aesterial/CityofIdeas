@@ -1,10 +1,11 @@
 syntax = "proto3";
 
 package projects.v1;
-option go_package = "ascendant/backend/internal/gen/projects/v1;projects";
 
 import "google/protobuf/timestamp.proto";
 import "user/domain.proto";
+
+option go_package = "ascendant/backend/internal/gen/projects/v1;projects";
 
 message GetRequest {
   int32 limit = 1;
@@ -40,7 +41,7 @@ enum ProjectVoteStatus {
   IMPLEMENTING = 2;
   CLOSED = 3;
   ARCHIVED = 4;
-  INMODERATION =5;
+  INMODERATION = 5;
 }
 
 message ProjectLocation {

@@ -1,10 +1,11 @@
 syntax = "proto3";
 
 package ranks.v1;
-option go_package = "ascendant/backend/internal/gen/ranks/v1;ranks";
 
 import "google/api/annotations.proto";
 import "ranks/domain.proto";
+
+option go_package = "ascendant/backend/internal/gen/ranks/v1;ranks";
 
 service RanksService {
   rpc Create(CreateRequest) returns (EmptyResponse) {
@@ -20,8 +21,6 @@ service RanksService {
     };
   }
   rpc Delete(DeleteRequest) returns (EmptyResponse) {
-    option (google.api.http) = {
-      delete: "/api/ranks/{name}/delete",
-    };
+    option (google.api.http) = {delete: "/api/ranks/{name}/delete"};
   }
 }

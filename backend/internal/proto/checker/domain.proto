@@ -1,8 +1,9 @@
 syntax = "proto3";
 
 package checker.v1;
+
 option go_package = "ascendant/backend/internal/gen/checker/v1;checker";
 
 message HealthResponse {
-    bool alive = 1;
+  bool alive = 1;
 }

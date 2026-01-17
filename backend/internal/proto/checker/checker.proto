@@ -1,16 +1,15 @@
 syntax = "proto3";
 
 package checker.v1;
-option go_package = "ascendant/backend/internal/gen/checker/v1;checker";
 
+import "checker/domain.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
-import "checker/domain.proto";
+
+option go_package = "ascendant/backend/internal/gen/checker/v1;checker";
 
 service CheckerService {
-    rpc Health(google.protobuf.Empty) returns (HealthResponse) {
-        option (google.api.http) = {
-            get: "/api/health"
-        };
-    }
+  rpc Health(google.protobuf.Empty) returns (HealthResponse) {
+    option (google.api.http) = {get: "/api/health"};
+  }
 }
