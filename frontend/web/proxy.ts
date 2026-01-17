@@ -11,6 +11,9 @@ let cachedAt = 0;
 let pendingRequest: Promise<boolean> | null = null;
 let requestToken = 0;
 
+// Maintenance checks are temporarily disabled; short-circuit to avoid network.
+const DISABLE_MAINTENANCE_CHECKS = true;
+
 const stripTrailingSlash = (value: string) => value.replace(/\/$/, "");
 
 const ensureHttps = (value: string) => {
@@ -146,6 +149,9 @@ const getMaintenanceActive = async (
 };
 
 export async function proxy(request: NextRequest) {
+  if (DISABLE_MAINTENANCE_CHECKS) {
+    return NextResponse.next();
+  }
   const { pathname, searchParams } = request.nextUrl;
   const forceRefresh = searchParams.has(REFRESH_PARAM);
   if (pathname === "/technics" || pathname.startsWith("/technics/")) {
