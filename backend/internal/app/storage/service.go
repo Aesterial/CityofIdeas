@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"ascendant/backend/internal/app/config"
+	"Aesterial/backend/internal/app/config"
 	"context"
 	"errors"
 	"path"

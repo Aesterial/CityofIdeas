@@ -1,7 +1,7 @@
 package sessions
 
 import (
-	"ascendant/backend/internal/domain/sessions"
+	"Aesterial/backend/internal/domain/sessions"
 	"context"
 	"errors"
 	"time"

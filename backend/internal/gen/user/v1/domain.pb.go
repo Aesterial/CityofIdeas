@@ -3662,7 +3662,7 @@ const file_user_domain_proto_rawDesc = "" +
 	"\x03set\x18\x05 \x01(\v2;.user.v1.Permissions.users_permissions_t.moderation_t.set_tR\x03set\x1a-\n" +
 	"\x05set_t\x12\x10\n" +
 	"\x03all\x18\x01 \x01(\bR\x03all\x12\x12\n" +
-	"\x04rank\x18\x02 \x01(\bR\x04rankB-Z+ascendant/backend/internal/gen/user/v1;userb\x06proto3"
+	"\x04rank\x18\x02 \x01(\bR\x04rankB-Z+Aesterial/backend/internal/gen/user/v1;userb\x06proto3"
 
 var (
 	file_user_domain_proto_rawDescOnce sync.Once

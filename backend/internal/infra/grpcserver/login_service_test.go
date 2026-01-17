@@ -1,22 +1,22 @@
 package grpcserver_test
 
 import (
-	"ascendant/backend/internal/domain/permissions"
-	userpb "ascendant/backend/internal/gen/user/v1"
+	"Aesterial/backend/internal/domain/permissions"
+	userpb "Aesterial/backend/internal/gen/user/v1"
 	"context"
 	"testing"
 	"time"
 
-	loginapp "ascendant/backend/internal/app/auth"
-	permsapp "ascendant/backend/internal/app/info/permissions"
-	sessionsapp "ascendant/backend/internal/app/info/sessions"
-	userinfo "ascendant/backend/internal/app/info/user"
-	logindomain "ascendant/backend/internal/domain/login"
-	rankdomain "ascendant/backend/internal/domain/rank"
-	sessionsdomain "ascendant/backend/internal/domain/sessions"
-	userdomain "ascendant/backend/internal/domain/user"
-	loginpb "ascendant/backend/internal/gen/login/v1"
-	grpcserver "ascendant/backend/internal/infra/grpcserver"
+	loginapp "Aesterial/backend/internal/app/auth"
+	permsapp "Aesterial/backend/internal/app/info/permissions"
+	sessionsapp "Aesterial/backend/internal/app/info/sessions"
+	userinfo "Aesterial/backend/internal/app/info/user"
+	logindomain "Aesterial/backend/internal/domain/login"
+	rankdomain "Aesterial/backend/internal/domain/rank"
+	sessionsdomain "Aesterial/backend/internal/domain/sessions"
+	userdomain "Aesterial/backend/internal/domain/user"
+	loginpb "Aesterial/backend/internal/gen/login/v1"
+	grpcserver "Aesterial/backend/internal/infra/grpcserver"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
@@ -25,7 +25,7 @@ import (
 
 func TestRegister(t *testing.T) {
 	t.Setenv("COOKIES_SECRET", "test-secret")
-	t.Setenv("COOKIES_NAME", "ascendant_session")
+	t.Setenv("COOKIES_NAME", "Aesterial_session")
 
 	loginRepo := &loginRepoStub{registerUID: 42}
 	sessionsRepo := &sessionsRepoStub{}
@@ -56,7 +56,7 @@ func TestRegister(t *testing.T) {
 
 func TestAuthorization(t *testing.T) {
 	t.Setenv("COOKIES_SECRET", "test-secret")
-	t.Setenv("COOKIES_NAME", "ascendant_session")
+	t.Setenv("COOKIES_NAME", "Aesterial_session")
 
 	loginRepo := &loginRepoStub{authUID: 7}
 	sessionsRepo := &sessionsRepoStub{}

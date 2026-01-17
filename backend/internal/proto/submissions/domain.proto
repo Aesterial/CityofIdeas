@@ -4,7 +4,7 @@ package submissions.v1;
 
 import "projects/domain.proto";
 
-option go_package = "ascendant/backend/internal/gen/submissions/v1;submissions";
+option go_package = "Aesterial/backend/internal/gen/submissions/v1;submissions";
 
 message DataResponse {
   string tracing = 1;

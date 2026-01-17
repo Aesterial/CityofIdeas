@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	loggercolor "ascendant/backend/internal/infra/logger/color"
+	loggercolor "Aesterial/backend/internal/infra/logger/color"
 
 	"github.com/google/uuid"
 )

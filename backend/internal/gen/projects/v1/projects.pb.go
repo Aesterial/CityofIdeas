@@ -38,7 +38,7 @@ const file_projects_projects_proto_rawDesc = "" +
 	"\n" +
 	"Categories\x12\x16.google.protobuf.Empty\x1a\x1f.projects.v1.CategoriesResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/projects/categories\x12c\n" +
 	"\n" +
-	"ToggleLike\x12\x18.projects.v1.LikeRequest\x1a\x1a.projects.v1.EmptyResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\"\x17/api/projects/like/{id}B5Z3ascendant/backend/internal/gen/projects/v1;projectsb\x06proto3"
+	"ToggleLike\x12\x18.projects.v1.LikeRequest\x1a\x1a.projects.v1.EmptyResponse\"\x1f\x82\xd3\xe4\x93\x02\x19\"\x17/api/projects/like/{id}B5Z3Aesterial/backend/internal/gen/projects/v1;projectsb\x06proto3"
 
 var file_projects_projects_proto_goTypes = []any{
 	(*GetRequest)(nil),         // 0: projects.v1.GetRequest

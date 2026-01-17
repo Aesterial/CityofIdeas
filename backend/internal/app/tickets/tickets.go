@@ -1,7 +1,7 @@
 package tickets
 
 import (
-	"ascendant/backend/internal/domain/tickets"
+	"Aesterial/backend/internal/domain/tickets"
 	"context"
 
 	"github.com/google/uuid"

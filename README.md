@@ -1,10 +1,10 @@
-﻿<h1 align="center">Ascendant</h1>
+﻿<h1 align="center">Aesterial</h1>
 
 <p align="center">
-  <img src="./.github/assets/logo.svg" width="120" alt="Ascendant">
+  <img src="./.github/assets/logo.svg" width="120" alt="Aesterial">
 </p>
 
-<h3 align="center">Ascendant · Основной репозиторий</h3>
+<h3 align="center">Aesterial · Основной репозиторий</h3>
 
 <p align="center">
   🏙️ «ГОРОД ИДЕЙ» — современный цифровой инструмент, который помогает жителям <b>предлагать идеи</b>, <b>оценивать проекты</b> и <b>формировать совместное видение</b> будущего города
@@ -38,7 +38,7 @@
 
 ## 📚 О проекте
 
-**Ascendant** — проект для участия в **J-cup.fm** по задаче:
+**Aesterial** — проект для участия в **J-cup.fm** по задаче:
 
 > **«ГОРОД ИДЕЙ: ИНТЕРАКТИВНАЯ КАРТА ПРЕДЛОЖЕНИЙ ЖИТЕЛЕЙ»**  
 > Решения в области развития городской среды и цифрового взаимодействия с жителями.  

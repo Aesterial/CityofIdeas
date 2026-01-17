@@ -34,7 +34,7 @@ const file_maintenance_maintenance_proto_rawDesc = "" +
 	"\x05Start\x12\x1d.maintenance.v1.CreateRequest\x1a\x18.maintenance.v1.Response\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/api/maintenance/create\x12x\n" +
 	"\fStartPlanned\x12\x1d.maintenance.v1.CreateRequest\x1a\x18.maintenance.v1.Response\"/\x82\xd3\xe4\x93\x02):\x01*\"$/api/maintenance/create/{will_start}\x12_\n" +
 	"\x04Edit\x12\x1b.maintenance.v1.EditRequest\x1a\x18.maintenance.v1.Response\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/api/maintenance/edit\x12_\n" +
-	"\bComplete\x12\x16.google.protobuf.Empty\x1a\x18.maintenance.v1.Response\"!\x82\xd3\xe4\x93\x02\x1b\"\x19/api/maintenance/completeB;Z9ascendant/backend/internal/gen/maintenance/v1;maintenanceb\x06proto3"
+	"\bComplete\x12\x16.google.protobuf.Empty\x1a\x18.maintenance.v1.Response\"!\x82\xd3\xe4\x93\x02\x1b\"\x19/api/maintenance/completeB;Z9Aesterial/backend/internal/gen/maintenance/v1;maintenanceb\x06proto3"
 
 var file_maintenance_maintenance_proto_goTypes = []any{
 	(*emptypb.Empty)(nil),       // 0: google.protobuf.Empty

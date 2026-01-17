@@ -24,7 +24,7 @@ var File_verification_domain_proto protoreflect.FileDescriptor
 
 const file_verification_domain_proto_rawDesc = "" +
 	"\n" +
-	"\x19verification/domain.proto\x12\x0fverification.v1B=Z;ascendant/backend/internal/gen/verification/v1;verificationb\x06proto3"
+	"\x19verification/domain.proto\x12\x0fverification.v1B=Z;Aesterial/backend/internal/gen/verification/v1;verificationb\x06proto3"
 
 var file_verification_domain_proto_goTypes = []any{}
 var file_verification_domain_proto_depIdxs = []int32{

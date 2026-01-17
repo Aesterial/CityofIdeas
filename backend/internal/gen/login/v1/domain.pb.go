@@ -630,7 +630,7 @@ const file_login_domain_proto_rawDesc = "" +
 	"\x14ResetPasswordRequest\x12\x14\n" +
 	"\x05email\x18\x01 \x01(\tR\x05email\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\x12\x14\n" +
-	"\x05token\x18\x03 \x01(\tR\x05tokenB/Z-ascendant/backend/internal/gen/login/v1;loginb\x06proto3"
+	"\x05token\x18\x03 \x01(\tR\x05tokenB/Z-Aesterial/backend/internal/gen/login/v1;loginb\x06proto3"
 
 var (
 	file_login_domain_proto_rawDescOnce sync.Once

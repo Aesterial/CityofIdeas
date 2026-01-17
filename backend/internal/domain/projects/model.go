@@ -1,13 +1,13 @@
 package projects
 
 import (
-	projpb "ascendant/backend/internal/gen/projects/v1"
-	"ascendant/backend/internal/infra/logger"
+	projpb "Aesterial/backend/internal/gen/projects/v1"
+	"Aesterial/backend/internal/infra/logger"
 	"fmt"
 	"strings"
 	"time"
 
-	"ascendant/backend/internal/domain/user"
+	"Aesterial/backend/internal/domain/user"
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"

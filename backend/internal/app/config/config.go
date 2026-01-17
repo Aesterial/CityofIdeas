@@ -1,7 +1,7 @@
 package config
 
 import (
-	domain "ascendant/backend/internal/domain/config"
+	domain "Aesterial/backend/internal/domain/config"
 	"os"
 	"strconv"
 	"strings"

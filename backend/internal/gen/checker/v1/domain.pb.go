@@ -72,7 +72,7 @@ const file_checker_domain_proto_rawDesc = "" +
 	"\x14checker/domain.proto\x12\n" +
 	"checker.v1\"&\n" +
 	"\x0eHealthResponse\x12\x14\n" +
-	"\x05alive\x18\x01 \x01(\bR\x05aliveB3Z1ascendant/backend/internal/gen/checker/v1;checkerb\x06proto3"
+	"\x05alive\x18\x01 \x01(\bR\x05aliveB3Z1Aesterial/backend/internal/gen/checker/v1;checkerb\x06proto3"
 
 var (
 	file_checker_domain_proto_rawDescOnce sync.Once

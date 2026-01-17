@@ -4,7 +4,7 @@ package storage.v1;
 import "google/api/annotations.proto";
 import "storage/domain.proto";
 
-option go_package = "ascendant/backend/internal/gen/storage/v1;storage";
+option go_package = "Aesterial/backend/internal/gen/storage/v1;storage";
 
 service StorageService {
   rpc ReceiveGetPresign(PresignGetRequest) returns (PresignResponse) {

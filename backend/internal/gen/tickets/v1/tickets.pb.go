@@ -36,7 +36,7 @@ const file_tickets_tickets_proto_rawDesc = "" +
 	"\vCloseTicket\x12\x1e.tickets.v1.CloseTicketRequest\x1a\x19.tickets.v1.EmptyResponse\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/api/tickets/{id}/close\x12j\n" +
 	"\fAcceptTicket\x12\x1d.tickets.v1.TicketInfoRequest\x1a\x19.tickets.v1.EmptyResponse\" \x82\xd3\xe4\x93\x02\x1a\"\x18/api/tickets/{id}/accept\x12Z\n" +
 	"\x04List\x12\x16.google.protobuf.Empty\x1a\x1f.tickets.v1.TicketsListResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/api/tickets/list\x12o\n" +
-	"\aIsValid\x12\x1a.tickets.v1.IsValidRequest\x1a\x1b.tickets.v1.IsValidResponse\"+\x82\xd3\xe4\x93\x02%\x12#/api/tickets/{id}/requestor/{token}B3Z1ascendant/backend/internal/gen/tickets/v1;ticketsb\x06proto3"
+	"\aIsValid\x12\x1a.tickets.v1.IsValidRequest\x1a\x1b.tickets.v1.IsValidResponse\"+\x82\xd3\xe4\x93\x02%\x12#/api/tickets/{id}/requestor/{token}B3Z1Aesterial/backend/internal/gen/tickets/v1;ticketsb\x06proto3"
 
 var file_tickets_tickets_proto_goTypes = []any{
 	(*CreateRequest)(nil),          // 0: tickets.v1.CreateRequest

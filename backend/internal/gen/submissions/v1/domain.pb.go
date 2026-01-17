@@ -7,7 +7,7 @@
 package submissions
 
 import (
-	v1 "ascendant/backend/internal/gen/projects/v1"
+	v1 "Aesterial/backend/internal/gen/projects/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -301,7 +301,7 @@ const file_submissions_domain_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12(\n" +
 	"\x04info\x18\x02 \x01(\v2\x14.projects.v1.ProjectR\x04info\x12\x14\n" +
 	"\x05state\x18\x03 \x01(\tR\x05state\x12\x16\n" +
-	"\x06reason\x18\x04 \x01(\tR\x06reasonB;Z9ascendant/backend/internal/gen/submissions/v1;submissionsb\x06proto3"
+	"\x06reason\x18\x04 \x01(\tR\x06reasonB;Z9Aesterial/backend/internal/gen/submissions/v1;submissionsb\x06proto3"
 
 var (
 	file_submissions_domain_proto_rawDescOnce sync.Once

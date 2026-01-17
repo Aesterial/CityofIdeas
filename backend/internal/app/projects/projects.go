@@ -1,7 +1,7 @@
 package projects
 
 import (
-	"ascendant/backend/internal/domain/projects"
+	"Aesterial/backend/internal/domain/projects"
 	"context"
 	"errors"
 	"strings"

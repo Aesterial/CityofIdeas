@@ -1,12 +1,12 @@
 package grpcserver
 
 import (
-	"ascendant/backend/internal/domain/permissions"
-	"ascendant/backend/internal/domain/rank"
-	"ascendant/backend/internal/domain/sessions"
-	"ascendant/backend/internal/domain/user"
-	permspb "ascendant/backend/internal/gen/permissions/v1"
-	userpb "ascendant/backend/internal/gen/user/v1"
+	"Aesterial/backend/internal/domain/permissions"
+	"Aesterial/backend/internal/domain/rank"
+	"Aesterial/backend/internal/domain/sessions"
+	"Aesterial/backend/internal/domain/user"
+	permspb "Aesterial/backend/internal/gen/permissions/v1"
+	userpb "Aesterial/backend/internal/gen/user/v1"
 	"strings"
 	"time"
 

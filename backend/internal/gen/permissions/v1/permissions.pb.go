@@ -32,7 +32,7 @@ const file_permissions_permissions_proto_rawDesc = "" +
 	"\aForUser\x12\x1e.permissions.v1.RequestForUser\x1a#.permissions.v1.PermissionsResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/api/user/{userID}/permissions\x12~\n" +
 	"\rChangeForRank\x12$.permissions.v1.RequestForRankChange\x1a\x1d.permissions.v1.EmptyResponse\"(\x82\xd3\xe4\x93\x02\":\x01*2\x1d/api/ranks/{name}/permissions\x12\x7f\n" +
 	"\rChangeForUser\x12$.permissions.v1.RequestForUserChange\x1a\x1d.permissions.v1.EmptyResponse\")\x82\xd3\xe4\x93\x02#:\x01*2\x1e/api/user/{userID}/permissions\x12a\n" +
-	"\x03Get\x12\x16.google.protobuf.Empty\x1a#.permissions.v1.PermissionsResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/permissions/listB;Z9ascendant/backend/internal/gen/permissions/v1;permissionsb\x06proto3"
+	"\x03Get\x12\x16.google.protobuf.Empty\x1a#.permissions.v1.PermissionsResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/permissions/listB;Z9Aesterial/backend/internal/gen/permissions/v1;permissionsb\x06proto3"
 
 var file_permissions_permissions_proto_goTypes = []any{
 	(*RequestForRank)(nil),       // 0: permissions.v1.RequestForRank

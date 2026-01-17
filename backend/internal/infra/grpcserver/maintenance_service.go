@@ -1,13 +1,13 @@
 package grpcserver
 
 import (
-	"ascendant/backend/internal/app/info/permissions"
-	"ascendant/backend/internal/app/info/sessions"
-	userapp "ascendant/backend/internal/app/info/user"
-	"ascendant/backend/internal/app/maintenance"
-	maintdomain "ascendant/backend/internal/domain/maintenance"
-	maintpb "ascendant/backend/internal/gen/maintenance/v1"
-	"ascendant/backend/internal/infra/logger"
+	"Aesterial/backend/internal/app/info/permissions"
+	"Aesterial/backend/internal/app/info/sessions"
+	userapp "Aesterial/backend/internal/app/info/user"
+	"Aesterial/backend/internal/app/maintenance"
+	maintdomain "Aesterial/backend/internal/domain/maintenance"
+	maintpb "Aesterial/backend/internal/gen/maintenance/v1"
+	"Aesterial/backend/internal/infra/logger"
 	"time"
 
 	"context"

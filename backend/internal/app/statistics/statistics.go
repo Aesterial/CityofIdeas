@@ -1,9 +1,9 @@
 package appstatistics
 
 import (
-	statscheduler "ascendant/backend/internal/app/statistics/scheduler"
-	"ascendant/backend/internal/domain/statistics"
-	statpb "ascendant/backend/internal/gen/statistics/v1"
+	statscheduler "Aesterial/backend/internal/app/statistics/scheduler"
+	"Aesterial/backend/internal/domain/statistics"
+	statpb "Aesterial/backend/internal/gen/statistics/v1"
 	"context"
 	"errors"
 	"time"

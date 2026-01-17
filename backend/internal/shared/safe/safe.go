@@ -1,7 +1,7 @@
 package safe
 
 import (
-	"ascendant/backend/internal/infra/logger"
+	"Aesterial/backend/internal/infra/logger"
 	"fmt"
 	"runtime/debug"
 )

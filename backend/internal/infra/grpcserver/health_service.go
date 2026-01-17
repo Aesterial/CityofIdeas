@@ -3,7 +3,7 @@ package grpcserver
 import (
 	"context"
 
-	checkerpb "ascendant/backend/internal/gen/checker/v1"
+	checkerpb "Aesterial/backend/internal/gen/checker/v1"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 

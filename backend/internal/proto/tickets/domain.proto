@@ -4,7 +4,7 @@ package tickets.v1;
 import "google/protobuf/timestamp.proto";
 import "user/domain.proto";
 
-option go_package = "ascendant/backend/internal/gen/tickets/v1;tickets";
+option go_package = "Aesterial/backend/internal/gen/tickets/v1;tickets";
 
 message CreateRequest {
   string name = 1;

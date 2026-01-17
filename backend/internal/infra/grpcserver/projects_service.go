@@ -1,16 +1,16 @@
 package grpcserver
 
 import (
-	permissionsapp "ascendant/backend/internal/app/info/permissions"
-	sessionsapp "ascendant/backend/internal/app/info/sessions"
-	userapp "ascendant/backend/internal/app/info/user"
-	projectsapp "ascendant/backend/internal/app/projects"
-	storageapp "ascendant/backend/internal/app/storage"
-	permsdomain "ascendant/backend/internal/domain/permissions"
-	projectsdomain "ascendant/backend/internal/domain/projects"
-	"ascendant/backend/internal/domain/user"
-	projpb "ascendant/backend/internal/gen/projects/v1"
-	"ascendant/backend/internal/infra/logger"
+	permissionsapp "Aesterial/backend/internal/app/info/permissions"
+	sessionsapp "Aesterial/backend/internal/app/info/sessions"
+	userapp "Aesterial/backend/internal/app/info/user"
+	projectsapp "Aesterial/backend/internal/app/projects"
+	storageapp "Aesterial/backend/internal/app/storage"
+	permsdomain "Aesterial/backend/internal/domain/permissions"
+	projectsdomain "Aesterial/backend/internal/domain/projects"
+	"Aesterial/backend/internal/domain/user"
+	projpb "Aesterial/backend/internal/gen/projects/v1"
+	"Aesterial/backend/internal/infra/logger"
 	"context"
 	"strings"
 

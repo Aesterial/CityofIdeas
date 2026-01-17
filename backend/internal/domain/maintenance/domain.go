@@ -3,8 +3,8 @@ package maintenance
 import (
 	"time"
 
-	"ascendant/backend/internal/domain/user"
-	"ascendant/backend/internal/gen/maintenance/v1"
+	"Aesterial/backend/internal/domain/user"
+	"Aesterial/backend/internal/gen/maintenance/v1"
 
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"

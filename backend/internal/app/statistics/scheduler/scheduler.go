@@ -1,9 +1,9 @@
 package scheduler
 
 import (
-	"ascendant/backend/internal/domain/statistics"
-	"ascendant/backend/internal/infra/logger"
-	"ascendant/backend/internal/shared/safe"
+	"Aesterial/backend/internal/domain/statistics"
+	"Aesterial/backend/internal/infra/logger"
+	"Aesterial/backend/internal/shared/safe"
 	"context"
 	"time"
 )

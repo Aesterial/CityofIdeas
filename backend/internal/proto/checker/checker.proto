@@ -6,7 +6,7 @@ import "checker/domain.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 
-option go_package = "ascendant/backend/internal/gen/checker/v1;checker";
+option go_package = "Aesterial/backend/internal/gen/checker/v1;checker";
 
 service CheckerService {
   rpc Health(google.protobuf.Empty) returns (HealthResponse) {

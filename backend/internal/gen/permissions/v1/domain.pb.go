@@ -559,7 +559,7 @@ const file_permissions_domain_proto_rawDesc = "" +
 	"\x04data\x18\x01 \x01(\v2\x1b.permissions.v1.PermissionsR\x04data\x12\x18\n" +
 	"\atracing\x18\x02 \x01(\tR\atracing\")\n" +
 	"\rEmptyResponse\x12\x18\n" +
-	"\atracing\x18\x01 \x01(\tR\atracingB;Z9ascendant/backend/internal/gen/permissions/v1;permissionsb\x06proto3"
+	"\atracing\x18\x01 \x01(\tR\atracingB;Z9Aesterial/backend/internal/gen/permissions/v1;permissionsb\x06proto3"
 
 var (
 	file_permissions_domain_proto_rawDescOnce sync.Once

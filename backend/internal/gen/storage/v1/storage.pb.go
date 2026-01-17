@@ -31,7 +31,7 @@ const file_storage_storage_proto_rawDesc = "" +
 	"\x11ReceiveGetPresign\x12\x1d.storage.v1.PresignGetRequest\x1a\x1b.storage.v1.PresignResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/storage/presign/get\x12q\n" +
 	"\x11ReceivePutPresign\x12\x1d.storage.v1.PresignPutRequest\x1a\x1b.storage.v1.PresignResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/storage/presign/put\x12~\n" +
 	"\x14GetUserAvatarPresign\x12\x1d.storage.v1.UserAvatarRequest\x1a\x1b.storage.v1.PresignResponse\"*\x82\xd3\xe4\x93\x02$\x12\"/api/storage/avatars/user/{userID}\x12\x8d\x01\n" +
-	"\x12ListProjectAvatars\x12!.storage.v1.ProjectAvatarsRequest\x1a\".storage.v1.ProjectAvatarsResponse\"0\x82\xd3\xe4\x93\x02*\x12(/api/storage/avatars/project/{projectID}B3Z1ascendant/backend/internal/gen/storage/v1;storageb\x06proto3"
+	"\x12ListProjectAvatars\x12!.storage.v1.ProjectAvatarsRequest\x1a\".storage.v1.ProjectAvatarsResponse\"0\x82\xd3\xe4\x93\x02*\x12(/api/storage/avatars/project/{projectID}B3Z1Aesterial/backend/internal/gen/storage/v1;storageb\x06proto3"
 
 var file_storage_storage_proto_goTypes = []any{
 	(*PresignGetRequest)(nil),      // 0: storage.v1.PresignGetRequest

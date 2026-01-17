@@ -1032,7 +1032,7 @@ const file_statistics_domain_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\x03R\x03key\x12@\n" +
 	"\x05value\x18\x02 \x01(\v2*.statistics.v1.MediaCoverageResponse.mediaR\x05value:\x028\x01\"F\n" +
 	"\x12WithFromTagRequest\x120\n" +
-	"\x05since\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x05sinceB9Z7ascendant/backend/internal/gen/statistics/v1;statisticsb\x06proto3"
+	"\x05since\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x05sinceB9Z7Aesterial/backend/internal/gen/statistics/v1;statisticsb\x06proto3"
 
 var (
 	file_statistics_domain_proto_rawDescOnce sync.Once

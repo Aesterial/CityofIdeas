@@ -1,8 +1,8 @@
 package user
 
 import (
-	"ascendant/backend/internal/domain/rank"
-	userpb "ascendant/backend/internal/gen/user/v1"
+	"Aesterial/backend/internal/domain/rank"
+	userpb "Aesterial/backend/internal/gen/user/v1"
 	"database/sql"
 	"strings"
 	"time"

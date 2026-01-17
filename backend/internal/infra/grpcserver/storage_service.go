@@ -1,8 +1,8 @@
 package grpcserver
 
 import (
-	storageapp "ascendant/backend/internal/app/storage"
-	storagepb "ascendant/backend/internal/gen/storage/v1"
+	storageapp "Aesterial/backend/internal/app/storage"
+	storagepb "Aesterial/backend/internal/gen/storage/v1"
 	"context"
 	"strings"
 

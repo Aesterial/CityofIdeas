@@ -7,7 +7,7 @@
 package tickets
 
 import (
-	v1 "ascendant/backend/internal/gen/user/v1"
+	v1 "Aesterial/backend/internal/gen/user/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -937,7 +937,7 @@ const file_tickets_domain_proto_rawDesc = "" +
 	"\x05token\x18\x02 \x01(\tR\x05token\"A\n" +
 	"\x0fIsValidResponse\x12\x14\n" +
 	"\x05valid\x18\x01 \x01(\bR\x05valid\x12\x18\n" +
-	"\atracing\x18\x02 \x01(\tR\atracingB3Z1ascendant/backend/internal/gen/tickets/v1;ticketsb\x06proto3"
+	"\atracing\x18\x02 \x01(\tR\atracingB3Z1Aesterial/backend/internal/gen/tickets/v1;ticketsb\x06proto3"
 
 var (
 	file_tickets_domain_proto_rawDescOnce sync.Once

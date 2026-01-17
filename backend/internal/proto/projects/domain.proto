@@ -5,7 +5,7 @@ package projects.v1;
 import "google/protobuf/timestamp.proto";
 import "user/domain.proto";
 
-option go_package = "ascendant/backend/internal/gen/projects/v1;projects";
+option go_package = "Aesterial/backend/internal/gen/projects/v1;projects";
 
 message GetRequest {
   int32 limit = 1;

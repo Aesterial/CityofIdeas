@@ -1,8 +1,8 @@
 package login
 
 import (
-	domain "ascendant/backend/internal/domain/login"
-	apperrors "ascendant/backend/internal/shared/errors"
+	domain "Aesterial/backend/internal/domain/login"
+	apperrors "Aesterial/backend/internal/shared/errors"
 	"context"
 	"net/http"
 	"strconv"

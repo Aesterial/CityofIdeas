@@ -1,8 +1,8 @@
 package user
 
 import (
-	"ascendant/backend/internal/domain/user"
-	apperrors "ascendant/backend/internal/shared/errors"
+	"Aesterial/backend/internal/domain/user"
+	apperrors "Aesterial/backend/internal/shared/errors"
 	"context"
 	"errors"
 	"strconv"

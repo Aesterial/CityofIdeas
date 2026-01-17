@@ -1,12 +1,12 @@
 package user
 
 import (
-	"ascendant/backend/internal/domain/rank"
-	"ascendant/backend/internal/domain/sessions"
-	"ascendant/backend/internal/domain/user"
-	userpb "ascendant/backend/internal/gen/user/v1"
-	"ascendant/backend/internal/infra/logger"
-	apperrors "ascendant/backend/internal/shared/errors"
+	"Aesterial/backend/internal/domain/rank"
+	"Aesterial/backend/internal/domain/sessions"
+	"Aesterial/backend/internal/domain/user"
+	userpb "Aesterial/backend/internal/gen/user/v1"
+	"Aesterial/backend/internal/infra/logger"
+	apperrors "Aesterial/backend/internal/shared/errors"
 	"context"
 	"errors"
 	"fmt"

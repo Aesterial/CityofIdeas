@@ -6,7 +6,7 @@ import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "projects/domain.proto";
 
-option go_package = "ascendant/backend/internal/gen/projects/v1;projects";
+option go_package = "Aesterial/backend/internal/gen/projects/v1;projects";
 
 service ProjectService {
   rpc Get(GetRequest) returns (GetResponse) {

@@ -37,7 +37,7 @@ const file_login_authorization_proto_rawDesc = "" +
 	"\x10VerifyEmailStart\x12\x1a.login.v1.WithEmailRequest\x1a\x17.login.v1.EmptyResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/login/verify-email/start\x12u\n" +
 	"\x12ResetPasswordStart\x12\x1a.login.v1.WithEmailRequest\x1a\x17.login.v1.EmptyResponse\"*\x82\xd3\xe4\x93\x02$:\x01*\"\x1f/api/login/reset-password/start\x12h\n" +
 	"\vVerifyEmail\x12\x1c.login.v1.VerifyEmailRequest\x1a\x17.login.v1.EmptyResponse\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*\"\x17/api/login/verify-email\x12n\n" +
-	"\rResetPassword\x12\x1e.login.v1.ResetPasswordRequest\x1a\x17.login.v1.EmptyResponse\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/login/reset-passwordB/Z-ascendant/backend/internal/gen/login/v1;loginb\x06proto3"
+	"\rResetPassword\x12\x1e.login.v1.ResetPasswordRequest\x1a\x17.login.v1.EmptyResponse\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/login/reset-passwordB/Z-Aesterial/backend/internal/gen/login/v1;loginb\x06proto3"
 
 var file_login_authorization_proto_goTypes = []any{
 	(*AuthRequest)(nil),          // 0: login.v1.AuthRequest

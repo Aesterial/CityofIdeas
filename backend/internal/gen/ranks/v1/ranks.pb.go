@@ -29,7 +29,7 @@ const file_ranks_ranks_proto_rawDesc = "" +
 	"\fRanksService\x12X\n" +
 	"\x06Create\x12\x17.ranks.v1.CreateRequest\x1a\x17.ranks.v1.EmptyResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/api/ranks/create\x12]\n" +
 	"\x05Patch\x12\x17.ranks.v1.CreateRequest\x1a\x17.ranks.v1.EmptyResponse\"\"\x82\xd3\xe4\x93\x02\x1c:\x01*2\x17/api/ranks/{name}/patch\x12\\\n" +
-	"\x06Delete\x12\x17.ranks.v1.DeleteRequest\x1a\x17.ranks.v1.EmptyResponse\" \x82\xd3\xe4\x93\x02\x1a*\x18/api/ranks/{name}/deleteB/Z-ascendant/backend/internal/gen/ranks/v1;ranksb\x06proto3"
+	"\x06Delete\x12\x17.ranks.v1.DeleteRequest\x1a\x17.ranks.v1.EmptyResponse\" \x82\xd3\xe4\x93\x02\x1a*\x18/api/ranks/{name}/deleteB/Z-Aesterial/backend/internal/gen/ranks/v1;ranksb\x06proto3"
 
 var file_ranks_ranks_proto_goTypes = []any{
 	(*CreateRequest)(nil), // 0: ranks.v1.CreateRequest

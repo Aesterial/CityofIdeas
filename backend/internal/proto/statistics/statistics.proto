@@ -6,7 +6,7 @@ import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "statistics/domain.proto";
 
-option go_package = "ascendant/backend/internal/gen/statistics/v1;statistics";
+option go_package = "Aesterial/backend/internal/gen/statistics/v1;statistics";
 
 service StatisticsService {
   rpc VotesDay(google.protobuf.Empty) returns (VoteCountResponse) {

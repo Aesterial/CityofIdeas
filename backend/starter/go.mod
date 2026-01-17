@@ -1,4 +1,4 @@
-module ascendant/backend/start
+module Aesterial/backend/start
 
 go 1.25
 

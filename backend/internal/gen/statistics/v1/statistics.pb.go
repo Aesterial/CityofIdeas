@@ -37,7 +37,7 @@ const file_statistics_statistics_proto_rawDesc = "" +
 	"\fOfflineUsers\x12!.statistics.v1.WithFromTagRequest\x1a#.statistics.v1.OfflineUsersResponse\"-\x82\xd3\xe4\x93\x02'\x12%/api/statistics/users/offline/{since}\x12\x8a\x01\n" +
 	"\rUsersActivity\x12#.statistics.v1.UsersActivityRequest\x1a$.statistics.v1.UsersActivityResponse\".\x82\xd3\xe4\x93\x02(\x12&/api/statistics/activity/users/{limit}\x12r\n" +
 	"\fQualityRecap\x12\x16.google.protobuf.Empty\x1a#.statistics.v1.EditorsGradeResponse\"%\x82\xd3\xe4\x93\x02\x1f\x12\x1d/api/statistics/quality/recap\x12\x82\x01\n" +
-	"\rMediaCoverage\x12#.statistics.v1.MediaCoverageRequest\x1a$.statistics.v1.MediaCoverageResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/api/statistics/media/coverageB9Z7ascendant/backend/internal/gen/statistics/v1;statisticsb\x06proto3"
+	"\rMediaCoverage\x12#.statistics.v1.MediaCoverageRequest\x1a$.statistics.v1.MediaCoverageResponse\"&\x82\xd3\xe4\x93\x02 \x12\x1e/api/statistics/media/coverageB9Z7Aesterial/backend/internal/gen/statistics/v1;statisticsb\x06proto3"
 
 var file_statistics_statistics_proto_goTypes = []any{
 	(*emptypb.Empty)(nil),           // 0: google.protobuf.Empty

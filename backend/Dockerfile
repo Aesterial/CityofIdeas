@@ -14,7 +14,7 @@ RUN cd starter && go mod download
 COPY internal ./internal
 COPY starter ./starter
 
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -o /out/ascendant-backend ./starter
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -o /out/Aesterial-backend ./starter
 
 FROM debian:bookworm-slim AS runtime
 RUN apt-get update \
@@ -22,7 +22,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --from=build /out/ascendant-backend /app/ascendant-backend
+COPY --from=build /out/Aesterial-backend /app/Aesterial-backend
 
 EXPOSE 8080
-CMD ["./ascendant-backend"]
+CMD ["./Aesterial-backend"]

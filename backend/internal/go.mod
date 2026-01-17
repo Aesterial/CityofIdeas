@@ -1,4 +1,4 @@
-module ascendant/backend/internal
+module Aesterial/backend/internal
 
 go 1.25
 

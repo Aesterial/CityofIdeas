@@ -1,9 +1,9 @@
 package login
 
 import (
-	"ascendant/backend/internal/app/info/sessions"
-	"ascendant/backend/internal/app/info/user"
-	domain "ascendant/backend/internal/domain/login"
+	"Aesterial/backend/internal/app/info/sessions"
+	"Aesterial/backend/internal/app/info/user"
+	domain "Aesterial/backend/internal/domain/login"
 
 	"golang.org/x/crypto/bcrypt"
 )

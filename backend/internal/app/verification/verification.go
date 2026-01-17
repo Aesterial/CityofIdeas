@@ -1,8 +1,8 @@
 package verification
 
 import (
-	"ascendant/backend/internal/app/mailer"
-	"ascendant/backend/internal/domain/verification"
+	"Aesterial/backend/internal/app/mailer"
+	"Aesterial/backend/internal/domain/verification"
 	"context"
 	"errors"
 	"time"

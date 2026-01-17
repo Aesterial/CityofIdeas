@@ -1,7 +1,7 @@
 package grpcserver
 
 import (
-	apperrors "ascendant/backend/internal/shared/errors"
+	apperrors "Aesterial/backend/internal/shared/errors"
 	"errors"
 	"strconv"
 	"strings"

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"ascendant/backend/internal/infra/logger"
+	"Aesterial/backend/internal/infra/logger"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc"

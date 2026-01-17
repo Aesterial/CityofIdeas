@@ -338,7 +338,7 @@ const file_storage_domain_proto_rawDesc = "" +
 	"\tprojectID\x18\x01 \x01(\tR\tprojectID\"J\n" +
 	"\x16ProjectAvatarsResponse\x12\x16\n" +
 	"\x06picIDs\x18\x01 \x03(\tR\x06picIDs\x12\x18\n" +
-	"\atracing\x18\x02 \x01(\tR\atracingB3Z1ascendant/backend/internal/gen/storage/v1;storageb\x06proto3"
+	"\atracing\x18\x02 \x01(\tR\atracingB3Z1Aesterial/backend/internal/gen/storage/v1;storageb\x06proto3"
 
 var (
 	file_storage_domain_proto_rawDescOnce sync.Once

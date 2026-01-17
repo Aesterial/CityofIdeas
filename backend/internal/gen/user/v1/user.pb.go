@@ -42,7 +42,7 @@ const file_user_user_proto_rawDesc = "" +
 	"\x10DeleteUserAvatar\x12\x19.user.v1.OtherUserRequest\x1a\x16.user.v1.EmptyResponse\"(\x82\xd3\xe4\x93\x02\"* /api/user/{userID}/delete/avatar\x12o\n" +
 	"\vSendMessage\x12\x1b.user.v1.SendMessageRequest\x1a\x16.user.v1.EmptyResponse\"+\x82\xd3\xe4\x93\x02%:\x01*\" /api/user/{userID}/messages/send\x12Y\n" +
 	"\bMessages\x12\x16.google.protobuf.Empty\x1a\x19.user.v1.MessagesResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/api/user/messages\x12\x82\x01\n" +
-	"\x0eHasPermissions\x12\x1d.user.v1.HasPermissionRequest\x1a\x1e.user.v1.HasPermissionResponse\"1\x82\xd3\xe4\x93\x02+\x12)/api/user/{userID}/permissions/has/{perm}B-Z+ascendant/backend/internal/gen/user/v1;userb\x06proto3"
+	"\x0eHasPermissions\x12\x1d.user.v1.HasPermissionRequest\x1a\x1e.user.v1.HasPermissionResponse\"1\x82\xd3\xe4\x93\x02+\x12)/api/user/{userID}/permissions/has/{perm}B-Z+Aesterial/backend/internal/gen/user/v1;userb\x06proto3"
 
 var file_user_user_proto_goTypes = []any{
 	(*emptypb.Empty)(nil),         // 0: google.protobuf.Empty

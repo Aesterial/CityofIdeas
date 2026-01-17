@@ -7,7 +7,7 @@
 package ranks
 
 import (
-	v1 "ascendant/backend/internal/gen/permissions/v1"
+	v1 "Aesterial/backend/internal/gen/permissions/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -192,7 +192,7 @@ const file_ranks_domain_proto_rawDesc = "" +
 	"\rDeleteRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\")\n" +
 	"\rEmptyResponse\x12\x18\n" +
-	"\atracing\x18\x01 \x01(\tR\atracingB/Z-ascendant/backend/internal/gen/ranks/v1;ranksb\x06proto3"
+	"\atracing\x18\x01 \x01(\tR\atracingB/Z-Aesterial/backend/internal/gen/ranks/v1;ranksb\x06proto3"
 
 var (
 	file_ranks_domain_proto_rawDescOnce sync.Once

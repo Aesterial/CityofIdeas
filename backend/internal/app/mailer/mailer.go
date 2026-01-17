@@ -1,7 +1,7 @@
 package mailer
 
 import (
-	"ascendant/backend/internal/app/config"
+	"Aesterial/backend/internal/app/config"
 	"context"
 	"fmt"
 	"net/url"

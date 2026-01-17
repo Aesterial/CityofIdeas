@@ -1,9 +1,9 @@
 package tickets
 
 import (
-	"ascendant/backend/internal/domain/user"
-	tickpb "ascendant/backend/internal/gen/tickets/v1"
-	"ascendant/backend/internal/infra/logger"
+	"Aesterial/backend/internal/domain/user"
+	tickpb "Aesterial/backend/internal/gen/tickets/v1"
+	"Aesterial/backend/internal/infra/logger"
 	"fmt"
 	"time"
 

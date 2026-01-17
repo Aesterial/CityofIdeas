@@ -7,7 +7,7 @@
 package projects
 
 import (
-	v1 "ascendant/backend/internal/gen/user/v1"
+	v1 "Aesterial/backend/internal/gen/user/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -899,7 +899,7 @@ const file_projects_domain_proto_rawDesc = "" +
 	"\n" +
 	"\x06CLOSED\x10\x03\x12\f\n" +
 	"\bARCHIVED\x10\x04\x12\x10\n" +
-	"\fINMODERATION\x10\x05B5Z3ascendant/backend/internal/gen/projects/v1;projectsb\x06proto3"
+	"\fINMODERATION\x10\x05B5Z3Aesterial/backend/internal/gen/projects/v1;projectsb\x06proto3"
 
 var (
 	file_projects_domain_proto_rawDescOnce sync.Once

@@ -1,9 +1,9 @@
 package grpcserver
 
 import (
-	storageapp "ascendant/backend/internal/app/storage"
-	projpb "ascendant/backend/internal/gen/projects/v1"
-	userpb "ascendant/backend/internal/gen/user/v1"
+	storageapp "Aesterial/backend/internal/app/storage"
+	projpb "Aesterial/backend/internal/gen/projects/v1"
+	userpb "Aesterial/backend/internal/gen/user/v1"
 	"context"
 	"strings"
 )

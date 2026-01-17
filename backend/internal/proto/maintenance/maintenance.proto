@@ -6,7 +6,7 @@ import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "maintenance/domain.proto";
 
-option go_package = "ascendant/backend/internal/gen/maintenance/v1;maintenance";
+option go_package = "Aesterial/backend/internal/gen/maintenance/v1;maintenance";
 
 service MaintenanceService {
   rpc IsActive(google.protobuf.Empty) returns (IsSomethingResponse) {

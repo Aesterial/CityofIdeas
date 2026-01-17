@@ -30,7 +30,7 @@ const file_submissions_submissions_proto_rawDesc = "" +
 	"\x12SubmissionsService\x12[\n" +
 	"\x04List\x12\x16.google.protobuf.Empty\x1a\x1c.submissions.v1.ListResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/submissions/list\x12q\n" +
 	"\aApprove\x12\x1e.submissions.v1.ApproveRequest\x1a\x1c.submissions.v1.DataResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/submissions/{id}/approve\x12q\n" +
-	"\aDecline\x12\x1e.submissions.v1.DeclineRequest\x1a\x1c.submissions.v1.DataResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/submissions/{id}/declineB;Z9ascendant/backend/internal/gen/submissions/v1;submissionsb\x06proto3"
+	"\aDecline\x12\x1e.submissions.v1.DeclineRequest\x1a\x1c.submissions.v1.DataResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/submissions/{id}/declineB;Z9Aesterial/backend/internal/gen/submissions/v1;submissionsb\x06proto3"
 
 var file_submissions_submissions_proto_goTypes = []any{
 	(*emptypb.Empty)(nil),  // 0: google.protobuf.Empty

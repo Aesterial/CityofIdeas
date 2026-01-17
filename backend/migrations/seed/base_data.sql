@@ -120,7 +120,7 @@ begin
     into v_uid
     from users u
     where u.username = 'admin'
-        or lower((u.email).address) = 'admin@ascendant.ru'
+        or lower((u.email).address) = 'admin@Aesterial.ru'
     limit 1;
 
     if v_uid is null then
@@ -130,7 +130,7 @@ begin
         insert into users (username, email, rank, permissions, password)
         values (
             'admin',
-            row('admin@ascendant.ru', true)::users_email_t,
+            row('admin@Aesterial.ru', true)::users_email_t,
             row('staff', null)::users_rank_t,
             (select r.permissions from ranks r where r.name = 'staff'),
             v_password_hash
@@ -138,7 +138,7 @@ begin
         returning uid into v_uid;
 
         insert into seed_credentials (username, email, password)
-        values ('admin', 'admin@ascendant.ru', v_password)
+        values ('admin', 'admin@Aesterial.ru', v_password)
         on conflict (username) do update
         set
             email = excluded.email,

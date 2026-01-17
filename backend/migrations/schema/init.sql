@@ -999,7 +999,7 @@ do $$
         into v_uid
         from users u
         where u.username = 'admin'
-           or lower((u.email).address) = 'admin@ascendant.ru'
+           or lower((u.email).address) = 'admin@Aesterial.ru'
         limit 1;
 
         if v_uid is null then
@@ -1017,7 +1017,7 @@ do $$
             returning uid into v_uid;
 
             insert into seed_credentials (username, email, password)
-            values ('admin', 'admin@ascendant.ru', v_password)
+            values ('admin', 'admin@Aesterial.ru', v_password)
             on conflict (username) do update
                 set
                     email = excluded.email,

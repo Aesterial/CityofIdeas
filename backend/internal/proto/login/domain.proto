@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package login.v1;
 
-option go_package = "ascendant/backend/internal/gen/login/v1;login";
+option go_package = "Aesterial/backend/internal/gen/login/v1;login";
 
 message AuthRequest {
   string usermail = 1;

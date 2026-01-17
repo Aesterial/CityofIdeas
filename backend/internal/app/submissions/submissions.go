@@ -1,12 +1,12 @@
 package submissions
 
 import (
-	"ascendant/backend/internal/domain/projects"
-	"ascendant/backend/internal/domain/submissions"
-	"ascendant/backend/internal/domain/user"
-	projpb "ascendant/backend/internal/gen/projects/v1"
-	submpb "ascendant/backend/internal/gen/submissions/v1"
-	userpb "ascendant/backend/internal/gen/user/v1"
+	"Aesterial/backend/internal/domain/projects"
+	"Aesterial/backend/internal/domain/submissions"
+	"Aesterial/backend/internal/domain/user"
+	projpb "Aesterial/backend/internal/gen/projects/v1"
+	submpb "Aesterial/backend/internal/gen/submissions/v1"
+	userpb "Aesterial/backend/internal/gen/user/v1"
 	"context"
 	"errors"
 	"strings"

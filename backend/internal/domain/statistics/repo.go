@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-import statpb "ascendant/backend/internal/gen/statistics/v1"
+import statpb "Aesterial/backend/internal/gen/statistics/v1"
 
 type Repository interface {
 	GetOfflineUsers(ctx context.Context, since time.Time) (uint32, error)

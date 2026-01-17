@@ -1,8 +1,8 @@
 package db
 
 import (
-	"ascendant/backend/internal/app/config"
-	"ascendant/backend/internal/infra/logger"
+	"Aesterial/backend/internal/app/config"
+	"Aesterial/backend/internal/infra/logger"
 	"database/sql"
 	"fmt"
 	"net/url"

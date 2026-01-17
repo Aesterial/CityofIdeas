@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"ascendant/backend/internal/infra/grpcserver"
-	"ascendant/backend/internal/infra/logger"
+	"Aesterial/backend/internal/infra/grpcserver"
+	"Aesterial/backend/internal/infra/logger"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"

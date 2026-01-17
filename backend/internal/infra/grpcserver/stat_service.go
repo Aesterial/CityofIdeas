@@ -1,14 +1,14 @@
 package grpcserver
 
 import (
-	"ascendant/backend/internal/app/info/permissions"
-	"ascendant/backend/internal/app/info/sessions"
-	userapp "ascendant/backend/internal/app/info/user"
-	appstatistics "ascendant/backend/internal/app/statistics"
-	permsdomain "ascendant/backend/internal/domain/permissions"
-	"ascendant/backend/internal/domain/user"
-	statpb "ascendant/backend/internal/gen/statistics/v1"
-	"ascendant/backend/internal/infra/logger"
+	"Aesterial/backend/internal/app/info/permissions"
+	"Aesterial/backend/internal/app/info/sessions"
+	userapp "Aesterial/backend/internal/app/info/user"
+	appstatistics "Aesterial/backend/internal/app/statistics"
+	permsdomain "Aesterial/backend/internal/domain/permissions"
+	"Aesterial/backend/internal/domain/user"
+	statpb "Aesterial/backend/internal/gen/statistics/v1"
+	"Aesterial/backend/internal/infra/logger"
 	"context"
 	"time"
 

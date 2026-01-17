@@ -332,7 +332,7 @@ const file_maintenance_domain_proto_rawDesc = "" +
 	"\vdescription\x18\x02 \x01(\tH\x00R\vdescription\x88\x01\x01\x12\x19\n" +
 	"\x05scope\x18\x03 \x01(\tH\x01R\x05scope\x88\x01\x01B\x0e\n" +
 	"\f_descriptionB\b\n" +
-	"\x06_scopeB;Z9ascendant/backend/internal/gen/maintenance/v1;maintenanceb\x06proto3"
+	"\x06_scopeB;Z9Aesterial/backend/internal/gen/maintenance/v1;maintenanceb\x06proto3"
 
 var (
 	file_maintenance_domain_proto_rawDescOnce sync.Once

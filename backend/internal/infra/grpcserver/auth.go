@@ -1,14 +1,14 @@
 package grpcserver
 
 import (
-	"ascendant/backend/internal/app/config"
-	permissionsapp "ascendant/backend/internal/app/info/permissions"
-	sessionsapp "ascendant/backend/internal/app/info/sessions"
-	userapp "ascendant/backend/internal/app/info/user"
-	"ascendant/backend/internal/domain/permissions"
-	"ascendant/backend/internal/domain/user"
-	"ascendant/backend/internal/infra/logger"
-	"ascendant/backend/internal/shared/types"
+	"Aesterial/backend/internal/app/config"
+	permissionsapp "Aesterial/backend/internal/app/info/permissions"
+	sessionsapp "Aesterial/backend/internal/app/info/sessions"
+	userapp "Aesterial/backend/internal/app/info/user"
+	"Aesterial/backend/internal/domain/permissions"
+	"Aesterial/backend/internal/domain/user"
+	"Aesterial/backend/internal/infra/logger"
+	"Aesterial/backend/internal/shared/types"
 	"context"
 	"crypto/sha256"
 	"database/sql"
@@ -127,9 +127,9 @@ func issueSessionToken(sessionID string, ttl time.Duration) (string, error) {
 	claims := &types.CookieClaims{
 		ID: sessionID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "ascendant",
+			Issuer:    "Aesterial",
 			Subject:   "session",
-			Audience:  jwt.ClaimStrings{"ascendant-web"},
+			Audience:  jwt.ClaimStrings{"Aesterial-web"},
 			IssuedAt:  jwt.NewNumericDate(now),
 			NotBefore: jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(ttl)),
@@ -142,7 +142,7 @@ func issueSessionToken(sessionID string, ttl time.Duration) (string, error) {
 func setSessionCookieHeader(ctx context.Context, token string, ttl time.Duration) error {
 	name := config.Get().Cookies.Name
 	if name == "" {
-		name = "ascendant_session"
+		name = "Aesterial_session"
 	}
 	secure := config.Get().Cookies.Secure
 	if token == "" {
@@ -221,7 +221,7 @@ func tokenFromAuthorization(values []string) string {
 func tokenFromCookie(values []string) string {
 	name := config.Get().Cookies.Name
 	if name == "" {
-		name = "ascendant_session"
+		name = "Aesterial_session"
 	}
 	for _, v := range values {
 		for part := range strings.SplitSeq(v, ";") {

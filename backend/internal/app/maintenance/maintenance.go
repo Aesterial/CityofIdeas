@@ -1,8 +1,8 @@
 package maintenance
 
 import (
-	scheduler "ascendant/backend/internal/app/maintenance/scheduler"
-	"ascendant/backend/internal/domain/maintenance"
+	scheduler "Aesterial/backend/internal/app/maintenance/scheduler"
+	"Aesterial/backend/internal/domain/maintenance"
 	"context"
 	"errors"
 	"time"

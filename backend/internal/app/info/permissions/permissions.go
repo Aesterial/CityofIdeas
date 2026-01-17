@@ -1,7 +1,7 @@
 package permissions
 
 import (
-	"ascendant/backend/internal/domain/permissions"
+	"Aesterial/backend/internal/domain/permissions"
 	"context"
 	"errors"
 )
