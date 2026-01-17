@@ -2,14 +2,10 @@ import { AuthProvider } from "@/components/auth-provider"
 import { LanguageProvider } from "@/components/language-provider"
 import { PageLoader } from "@/components/page-loader"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Analytics } from "@vercel/analytics/next"
 import type { Metadata } from "next"
 import { Days_One } from "next/font/google"
 import type React from "react"
 import "./globals.css"
-
-
-
 
 const daysOne = Days_One({
   weight: "400",
@@ -41,7 +37,6 @@ export default function RootLayout({
             </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>
-        <Analytics />
       </body>
     </html>
   )
