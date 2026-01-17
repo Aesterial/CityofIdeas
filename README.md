@@ -23,7 +23,7 @@
   <a href="LICENSE">
     <img alt="License" src="https://img.shields.io/badge/License-MIT-2ea44f">
   </a>
-  <a href="https://github.com/4scendant/Website/actions">
+  <a href="https://github.com/Aesterial/Website/actions">
     <img alt="CI" src="https://img.shields.io/badge/CI-GitHub_Actions-2088FF?logo=githubactions&logoColor=white">
   </a>
   <a href="https://go.dev/">
@@ -89,7 +89,7 @@ frontend/web/       Next.js app (app/, components/, public/)
 
 Клонирование:
 ```sh
-git clone https://github.com/4scendant/Website.git
+git clone https://github.com/Aesterial/Website.git
 cd Website
 ```
 
