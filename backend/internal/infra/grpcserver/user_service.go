@@ -72,7 +72,7 @@ func (s *UserService) Other(ctx context.Context, req *userpb.OtherUserRequest) (
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "request is empty")
 	}
-	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.ViewOtherProfile); err != nil {
+	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.UsersViewProfilePublic); err != nil {
 		return nil, err
 	}
 	u, err := s.info.GetByID(ctx, uint(req.UserID))
@@ -113,7 +113,7 @@ func (s *UserService) UpdateSelfName(ctx context.Context, req *userpb.ChangeSelf
 	if err != nil {
 		return nil, err
 	}
-	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.PatchSelfProfile); err != nil {
+	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.UsersSettingsChangeNameOwn); err != nil {
 		return nil, err
 	}
 	if req == nil {
@@ -140,7 +140,7 @@ func (s *UserService) UpdateSelfAvatar(ctx context.Context, req *userpb.Avatar) 
 	if err != nil {
 		return nil, err
 	}
-	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.PatchSelfProfile); err != nil {
+	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.UsersSettingsDeleteAvatarOwn); err != nil {
 		return nil, err
 	}
 	if req == nil {
@@ -189,7 +189,7 @@ func (s *UserService) Ban(ctx context.Context, req *userpb.BanUserRequest) (*use
 	if requestor == nil {
 		return nil, status.Error(codes.PermissionDenied, "User not logged in")
 	}
-	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.BanProfile); err != nil {
+	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.UsersModerationBan); err != nil {
 		return nil, err
 	}
 	err = s.info.Ban(ctx, user.BanInfo{Executor: requestor.UID, Target: uint(req.UserID), Reason: req.Reason, Expire: time.Now().Add(req.Duration.AsDuration())})
@@ -204,7 +204,7 @@ func (s *UserService) Unban(ctx context.Context, req *userpb.OtherUserRequest) (
 	if requestor == nil {
 		return nil, status.Error(codes.PermissionDenied, "User not logged in")
 	}
-	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.BanProfile); err != nil {
+	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.UsersModerationUnban); err != nil {
 		return nil, err
 	}
 	err = s.info.UnBan(ctx, uint(req.UserID))
@@ -259,7 +259,7 @@ func (s *UserService) BanInfoOther(ctx context.Context, req *userpb.OtherUserReq
 	if requestor == nil {
 		return nil, status.Error(codes.PermissionDenied, "User not logged in")
 	}
-	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.BanProfile); err != nil {
+	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.UsersModerationBan); err != nil {
 		return nil, err
 	}
 	info, err := s.info.BanInfo(ctx, uint(req.UserID))
@@ -280,7 +280,7 @@ func (s *UserService) Users(ctx context.Context, _ *emptypb.Empty) (*userpb.User
 	if requestor == nil {
 		return nil, status.Error(codes.PermissionDenied, "User not logged in")
 	}
-	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.ViewStatistics); err != nil {
+	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.StatisticsAll); err != nil {
 		return nil, err
 	}
 	info, err := s.info.GetList(ctx)

@@ -8,7 +8,8 @@ import (
 
 type Repository interface {
 	GetProject(ctx context.Context, id uuid.UUID) (*Project, error)
-	GetProjectsByUID(ctx context.Context, uid int) ([]*Project, error)
+	GetProjectsByUID(ctx context.Context, uid int) (Projects, error)
+	GetTopProjects(ctx context.Context, limit int, city string) (Projects, error)
 	GetProjects(ctx context.Context, offset int, limit int, opts ...ProjectOption) (Projects, error)
 	GetCategories(ctx context.Context) ([]string, error)
 	CreateProject(ctx context.Context, project Project) error

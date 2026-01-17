@@ -797,8 +797,10 @@ func (x *IsValidResponse) GetTracing() string {
 
 type TicketInfoCreatorST struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
+	Name          *string                `protobuf:"bytes,1,opt,name=name,proto3,oneof" json:"name,omitempty"`
+	Email         *string                `protobuf:"bytes,2,opt,name=email,proto3,oneof" json:"email,omitempty"`
+	UserID        *int32                 `protobuf:"varint,3,opt,name=userID,proto3,oneof" json:"userID,omitempty"`
+	Authorized    bool                   `protobuf:"varint,4,opt,name=authorized,proto3" json:"authorized,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -834,17 +836,31 @@ func (*TicketInfoCreatorST) Descriptor() ([]byte, []int) {
 }
 
 func (x *TicketInfoCreatorST) GetName() string {
-	if x != nil {
-		return x.Name
+	if x != nil && x.Name != nil {
+		return *x.Name
 	}
 	return ""
 }
 
 func (x *TicketInfoCreatorST) GetEmail() string {
-	if x != nil {
-		return x.Email
+	if x != nil && x.Email != nil {
+		return *x.Email
 	}
 	return ""
+}
+
+func (x *TicketInfoCreatorST) GetUserID() int32 {
+	if x != nil && x.UserID != nil {
+		return *x.UserID
+	}
+	return 0
+}
+
+func (x *TicketInfoCreatorST) GetAuthorized() bool {
+	if x != nil {
+		return x.Authorized
+	}
+	return false
 }
 
 var File_tickets_domain_proto protoreflect.FileDescriptor
@@ -864,7 +880,7 @@ const file_tickets_domain_proto_rawDesc = "" +
 	"\atracing\x18\x03 \x01(\tR\atracingB\b\n" +
 	"\x06_token\"#\n" +
 	"\x11TicketInfoRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\x98\x04\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"\xfe\x04\n" +
 	"\n" +
 	"TicketInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12:\n" +
@@ -880,10 +896,17 @@ const file_tickets_domain_proto_rawDesc = "" +
 	"\bclosedAt\x18\t \x01(\v2\x1a.google.protobuf.TimestampH\x01R\bclosedAt\x88\x01\x01\x12\x1b\n" +
 	"\tclosed_by\x18\n" +
 	" \x01(\tR\bclosedBy\x12!\n" +
-	"\fclose_reason\x18\v \x01(\tR\vcloseReason\x1a5\n" +
-	"\tcreatorST\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
-	"\x05email\x18\x02 \x01(\tR\x05emailB\r\n" +
+	"\fclose_reason\x18\v \x01(\tR\vcloseReason\x1a\x9a\x01\n" +
+	"\tcreatorST\x12\x17\n" +
+	"\x04name\x18\x01 \x01(\tH\x00R\x04name\x88\x01\x01\x12\x19\n" +
+	"\x05email\x18\x02 \x01(\tH\x01R\x05email\x88\x01\x01\x12\x1b\n" +
+	"\x06userID\x18\x03 \x01(\x05H\x02R\x06userID\x88\x01\x01\x12\x1e\n" +
+	"\n" +
+	"authorized\x18\x04 \x01(\bR\n" +
+	"authorizedB\a\n" +
+	"\x05_nameB\b\n" +
+	"\x06_emailB\t\n" +
+	"\a_userIDB\r\n" +
 	"\v_acceptedAtB\v\n" +
 	"\t_closedAt\"^\n" +
 	"\x12TicketInfoResponse\x12.\n" +
@@ -973,6 +996,7 @@ func file_tickets_domain_proto_init() {
 	file_tickets_domain_proto_msgTypes[1].OneofWrappers = []any{}
 	file_tickets_domain_proto_msgTypes[3].OneofWrappers = []any{}
 	file_tickets_domain_proto_msgTypes[10].OneofWrappers = []any{}
+	file_tickets_domain_proto_msgTypes[13].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

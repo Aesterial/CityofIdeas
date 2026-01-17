@@ -65,11 +65,18 @@ func (s *Service) GetArchivedProjects(ctx context.Context, offset int, limit int
 	return s.repo.GetProjects(ctx, offset, limit, projects.WithStatus("archived"))
 }
 
-func (s *Service) GetProjectsByUID(ctx context.Context, uid int) ([]*projects.Project, error) {
+func (s *Service) GetProjectsByUID(ctx context.Context, uid int) (projects.Projects, error) {
 	if s == nil || s.repo == nil {
 		return nil, errors.New("projects service not configured")
 	}
 	return s.repo.GetProjectsByUID(ctx, uid)
+}
+
+func (s *Service) GetTopProjects(ctx context.Context, limit int, city string) (projects.Projects, error) {
+	if s == nil || s.repo == nil {
+		return nil, errors.New("projects service not configured")
+	}
+	return s.repo.GetTopProjects(ctx, limit, city)
 }
 
 func (s *Service) GetProject(ctx context.Context, id uuid.UUID) (*projects.Project, error) {

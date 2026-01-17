@@ -36,7 +36,7 @@ func (s *SubmissionsService) Approve(ctx context.Context, req *submpb.ApproveReq
 	if err != nil || requestor == nil {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
-	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.BanProfile); err != nil {
+	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.SubmissionsAccept); err != nil {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 	if err := s.submissions.Approve(ctx, req.Id); err != nil {
@@ -56,7 +56,7 @@ func (s *SubmissionsService) Decline(ctx context.Context, req *submpb.DeclineReq
 	if err != nil || requestor == nil {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
-	if err = s.auth.RequirePermissions(ctx, requestor.UID, permissions.BanProfile); err != nil {
+	if err = s.auth.RequirePermissions(ctx, requestor.UID, permissions.SubmissionsDecline); err != nil {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 	if err := s.submissions.Decline(ctx, req.Id, req.Reason); err != nil {
@@ -76,7 +76,7 @@ func (s *SubmissionsService) List(ctx context.Context, _ *emptypb.Empty) (*submp
 	if err != nil || requestor == nil {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
-	if err = s.auth.RequirePermissions(ctx, requestor.UID, permissions.BanProfile); err != nil {
+	if err = s.auth.RequirePermissions(ctx, requestor.UID, permissions.SubmissionsView); err != nil {
 		return nil, status.Error(codes.PermissionDenied, "permission denied")
 	}
 	list, err := s.submissions.GetList(ctx)

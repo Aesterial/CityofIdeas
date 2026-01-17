@@ -12,7 +12,9 @@ import (
 	"ascendant/backend/internal/domain/tickets"
 	"ascendant/backend/internal/domain/verification"
 	userpb "ascendant/backend/internal/gen/user/v1"
+	"encoding/json"
 	"fmt"
+	"sort"
 
 	"ascendant/backend/internal/domain/user"
 	statpb "ascendant/backend/internal/gen/statistics/v1"
@@ -840,186 +842,128 @@ func (s *SessionsRepository) UpdateLastSeen(ctx context.Context, sessionID uuid.
 }
 
 func fetchPermissions(row *sql.Row) (*permissions.Permissions, error) {
+	var raw []byte
+	if err := row.Scan(&raw); err != nil {
+		return nil, err
+	}
+	if len(raw) == 0 {
+		return &permissions.Permissions{}, nil
+	}
 	var perm permissions.Permissions
-	if err := row.Scan(
-		&perm.ViewOtherProfile,
-		&perm.PatchOtherProfile,
-		&perm.PatchSelfProfile,
-		&perm.DeleteSelfProfile,
-		&perm.BanProfile,
-		&perm.UnBanProfile,
-
-		&perm.CreateIdea,
-		&perm.PatchSelfIdea,
-		&perm.DeleteSelfIdea,
-		&perm.PatchOtherIdea,
-		&perm.DeleteOtherIdea,
-
-		&perm.CreateComment,
-		&perm.PatchSelfComment,
-		&perm.DeleteSelfComment,
-		&perm.DeleteOtherComment,
-
-		&perm.UploadIdeaMediaSelf,
-		&perm.DeleteIdeaMediaSelf,
-		&perm.DeleteIdeaMediaOther,
-
-		&perm.ModerateIdea,
-		&perm.ModerateCommentHide,
-		&perm.ModerateCommentUnhide,
-
-		&perm.PatchIdeaStatusAdmin,
-		&perm.ViewStatistics,
-		&perm.ViewPermissions,
-		&perm.ManagePermissions,
-	); err != nil {
+	if err := json.Unmarshal(raw, &perm); err != nil {
 		return nil, err
 	}
 	return &perm, nil
 }
 
-func updateUserPermissions(DB *sql.DB, ctx context.Context, usr uint, perms *permissions.Permissions) error {
-	_, err := DB.ExecContext(ctx, `
+func updateUserPermission(DB *sql.DB, ctx context.Context, usr uint, perm string, state bool) error {
+	res, err := DB.ExecContext(ctx, `
 		UPDATE users u
-		SET permissions = ROW(
-			$1, $2, $3, $4, $5,
-			$6, $7, $8, $9, $10,
-			$11, $12, $13, $14, $15,
-			$16, $17, $18, $19, $20,
-			$21, $22, $23, $24, $25
-		)::permissions_t
-		WHERE u.uid = $26`,
-		perms.ViewOtherProfile,
-		perms.PatchOtherProfile,
-		perms.PatchSelfProfile,
-		perms.DeleteSelfProfile,
-		perms.BanProfile,
-		perms.UnBanProfile,
-		perms.CreateIdea,
-		perms.PatchSelfIdea,
-		perms.DeleteSelfIdea,
-		perms.PatchOtherIdea,
-		perms.DeleteOtherIdea,
-		perms.CreateComment,
-		perms.PatchSelfComment,
-		perms.DeleteSelfComment,
-		perms.DeleteOtherComment,
-		perms.UploadIdeaMediaSelf,
-		perms.DeleteIdeaMediaSelf,
-		perms.DeleteIdeaMediaOther,
-		perms.ModerateIdea,
-		perms.ModerateCommentHide,
-		perms.ModerateCommentUnhide,
-		perms.PatchIdeaStatusAdmin,
-		perms.ViewStatistics,
-		perms.ViewPermissions,
-		perms.ManagePermissions,
-		usr,
-	)
-	return err
+		SET permissions = perm_set(u.permissions, $1, $2)
+		WHERE u.uid = $3
+	`, perm, state, usr)
+	if err != nil {
+		return err
+	}
+
+	if n, _ := res.RowsAffected(); n == 0 {
+		return sql.ErrNoRows
+	}
+
+	return nil
 }
 
 func updateRankPermissions(DB *sql.DB, ctx context.Context, rank string, perms *permissions.Permissions) error {
-	_, err := DB.ExecContext(ctx, `
+	payload, err := json.Marshal(perms)
+	if err != nil {
+		return err
+	}
+	_, err = DB.ExecContext(ctx, `
 		UPDATE ranks r
-		SET permissions = ROW(
-			$1, $2, $3, $4, $5,
-			$6, $7, $8, $9, $10,
-			$11, $12, $13, $14, $15,
-			$16, $17, $18, $19, $20,
-			$21, $22, $23, $24, $25
-		)::permissions_t
-		WHERE r.name = $26`,
-		perms.ViewOtherProfile,
-		perms.PatchOtherProfile,
-		perms.PatchSelfProfile,
-		perms.DeleteSelfProfile,
-		perms.BanProfile,
-		perms.UnBanProfile,
-		perms.CreateIdea,
-		perms.PatchSelfIdea,
-		perms.DeleteSelfIdea,
-		perms.PatchOtherIdea,
-		perms.DeleteOtherIdea,
-		perms.CreateComment,
-		perms.PatchSelfComment,
-		perms.DeleteSelfComment,
-		perms.DeleteOtherComment,
-		perms.UploadIdeaMediaSelf,
-		perms.DeleteIdeaMediaSelf,
-		perms.DeleteIdeaMediaOther,
-		perms.ModerateIdea,
-		perms.ModerateCommentHide,
-		perms.ModerateCommentUnhide,
-		perms.PatchIdeaStatusAdmin,
-		perms.ViewStatistics,
-		perms.ViewPermissions,
-		perms.ManagePermissions,
-		rank,
-	)
+		SET permissions = jsonb_populate_record(null::permissions_t, $1::jsonb)
+		WHERE r.name = $2
+	`, payload, rank)
 	return err
 }
 
+func updateRankPermission(DB *sql.DB, ctx context.Context, rank string, perm permissions.Permission, state bool) error {
+	res, err := DB.ExecContext(ctx, `
+		UPDATE ranks r
+		SET permissions = perm_set(r.permissions, $1, $2)
+		WHERE r.name = $3
+	`, string(perm), state, rank)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
+func updateUserPermissions(DB *sql.DB, ctx context.Context, usr uint, perms *permissions.Permissions) error {
+	payload, err := json.Marshal(perms)
+	if err != nil {
+		return err
+	}
+	res, err := DB.ExecContext(ctx, `
+		UPDATE users u
+		SET permissions = jsonb_populate_record(null::permissions_t, $1::jsonb)
+		WHERE u.uid = $2
+	`, payload, usr)
+	if err != nil {
+		return err
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
 func (p *PermissionsRepository) GetForRank(ctx context.Context, rank string) (*permissions.Permissions, error) {
-	row := p.DB.QueryRowContext(ctx, "SELECT (r.permissions).* FROM ranks r WHERE r.name = $1", rank)
+	row := p.DB.QueryRowContext(ctx, "SELECT to_jsonb(r.permissions) FROM ranks r WHERE r.name = $1", rank)
 	return fetchPermissions(row)
 }
 
 func (p *PermissionsRepository) GetForUser(ctx context.Context, uid uint) (*permissions.Permissions, error) {
-	row := p.DB.QueryRowContext(ctx, "SELECT (u.permissions).* FROM users u WHERE u.uid = $1", uid)
+	row := p.DB.QueryRowContext(ctx, "SELECT to_jsonb(u.permissions) FROM users u WHERE u.uid = $1", uid)
 	return fetchPermissions(row)
 }
 
 func (p *PermissionsRepository) Has(ctx context.Context, uid uint, need permissions.Permission) (bool, error) {
-	perms, err := p.GetForUser(ctx, uid)
-	if err != nil {
+	row := p.DB.QueryRowContext(ctx, `
+		SELECT perm_allowed(u.permissions, $1)
+		FROM users u
+		WHERE u.uid = $2
+	`, string(need), uid)
+	var allowed bool
+	if err := row.Scan(&allowed); err != nil {
 		return false, err
 	}
-	return perms.Has(need)
+	return allowed, nil
 }
 
 func (p *PermissionsRepository) HasAll(ctx context.Context, uid uint, need ...permissions.Permission) (bool, error) {
-	perms, err := p.GetForUser(ctx, uid)
-	if err != nil {
-		return false, err
+	if len(need) == 0 {
+		return false, errors.New("permissions list is empty")
 	}
-
-	for _, n := range need {
-		ok := perms.HasBool(n)
-		if !ok {
-			return false, nil
+	for _, perm := range need {
+		ok, err := p.Has(ctx, uid, perm)
+		if err != nil || !ok {
+			return false, err
 		}
 	}
 	return true, nil
 }
 
 func (p *PermissionsRepository) ChangeForUser(ctx context.Context, uid uint, need permissions.Permission, state bool) error {
-	perms, err := p.GetForUser(ctx, uid)
-	if err != nil {
-		return err
-	}
-	if err = perms.Set(need, state); err != nil {
-		return err
-	}
-	if err = updateUserPermissions(p.DB, ctx, uid, perms); err != nil {
-		return err
-	}
-	return nil
+	return updateUserPermission(p.DB, ctx, uid, string(need), state)
 }
 
 func (p *PermissionsRepository) ChangeForRank(ctx context.Context, rank string, need permissions.Permission, state bool) error {
-	perms, err := p.GetForRank(ctx, rank)
-	if err != nil {
-		return err
-	}
-	if err = perms.Set(need, state); err != nil {
-		return err
-	}
-	if err = updateRankPermissions(p.DB, ctx, rank, perms); err != nil {
-		return err
-	}
-	return nil
+	return updateRankPermission(p.DB, ctx, rank, need, state)
 }
+
 func (p *PermissionsRepository) SetForUser(ctx context.Context, uid uint, perms *permissions.Permissions) error {
 	if perms == nil {
 		return errors.New("permissions is nil")
@@ -1100,7 +1044,34 @@ func (p *ProjectsRepository) GetProject(ctx context.Context, id uuid.UUID) (*pro
 	return getProject(ctx, id, p.DB)
 }
 
-func (p *ProjectsRepository) GetProjectsByUID(ctx context.Context, uid int) ([]*projectdomain.Project, error) {
+func (p *ProjectsRepository) GetTopProjects(ctx context.Context, limit int, city string) (projectdomain.Projects, error) {
+	projects, err := p.GetProjects(ctx, 0, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Slice(projects, func(i, j int) bool {
+		return projects[i].Likes < projects[j].Likes
+	})
+
+	if limit > 0 && len(projects) > limit {
+		projects = projects[:limit]
+	}
+
+	if city != "" {
+		filtered := make(projectdomain.Projects, 0, len(projects))
+		for _, proj := range projects {
+			if proj.Info.Location.City == city {
+				filtered = append(filtered, proj)
+			}
+		}
+		projects = filtered
+	}
+
+	return projects, nil
+}
+
+func (p *ProjectsRepository) GetProjectsByUID(ctx context.Context, uid int) (projectdomain.Projects, error) {
 	var projects []*projectdomain.Project
 	rows, err := p.DB.QueryContext(ctx, "SELECT p.id FROM projects p WHERE p.author_uid = $1", uid)
 	if err != nil {
@@ -1724,12 +1695,12 @@ func (m *MaintenanceRepository) GetData(ctx context.Context) (*maintenance.Infor
 		return nil, errors.New("maintenance is not active")
 	}
 	var info maintenance.Information
-	var actual_end sql.NullTime
+	var actualEnd sql.NullTime
 	var by uint
-	if err := m.DB.QueryRowContext(ctx, "SELECT m.* FROM maintenance m WHERE m.status = 'in progress'").Scan(&info.ID, &info.Description, &info.Status, &info.Scope, &info.Type, &info.Planned.Start, &info.Planned.End, &info.Actual.Start, &actual_end, &info.CreatedAt, &by); err != nil {
+	if err := m.DB.QueryRowContext(ctx, "SELECT m.* FROM maintenance m WHERE m.status = 'in progress'").Scan(&info.ID, &info.Description, &info.Status, &info.Scope, &info.Type, &info.Planned.Start, &info.Planned.End, &info.Actual.Start, &actualEnd, &info.CreatedAt, &by); err != nil {
 		return nil, err
 	}
-	_ = actual_end
+	_ = actualEnd
 	info.CalledBy, err = getAuthor(ctx, by, m.DB)
 	if err != nil {
 		return nil, err
@@ -1802,23 +1773,25 @@ func (m *MaintenanceRepository) GetList(ctx context.Context) (maintenance.Inform
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 	for rows.Next() {
 		var r maintenance.Information
-		var actual_start, actual_end sql.NullTime
+		var actualStart, actualEnd sql.NullTime
 		var calledby uint
-		if err := rows.Scan(&r.ID, &r.Description, &r.Status, &r.Scope, &r.Type, &r.Planned.Start, &r.Planned.End, &actual_start, &actual_end, &r.CreatedAt, &calledby); err != nil {
+		if err := rows.Scan(&r.ID, &r.Description, &r.Status, &r.Scope, &r.Type, &r.Planned.Start, &r.Planned.End, &actualStart, &actualEnd, &r.CreatedAt, &calledby); err != nil {
 			return nil, err
 		}
 		r.CalledBy, err = getAuthor(ctx, calledby, m.DB)
 		if err != nil {
 			return nil, err
 		}
-		if actual_start.Valid {
-			r.Actual.Start = actual_start.Time
+		if actualStart.Valid {
+			r.Actual.Start = actualStart.Time
 		}
-		if actual_end.Valid {
-			r.Actual.End = actual_end.Time
+		if actualEnd.Valid {
+			r.Actual.End = actualEnd.Time
 		}
 		list = append(list, &r)
 	}
@@ -1838,12 +1811,12 @@ func (m *MaintenanceRepository) GetList(ctx context.Context) (maintenance.Inform
 	Messages(ctx context.Context, id uuid.UUID) ([]*TicketMessage, error)
 	Close(ctx context.Context, id uuid.UUID, by string) error
  }
- */
- 
- var _ tickets.Repository = (*TicketsRepository)(nil)
- 
+*/
+
+var _ tickets.Repository = (*TicketsRepository)(nil)
+
 func (t *TicketsRepository) Create(ctx context.Context, data tickets.TicketCreationRequestor, topic tickets.TicketTopic, brief string) (*tickets.TicketCreationData, error) {
-	if topic == "" || !topic.Valid() || brief == ""{
+	if topic == "" || !topic.Valid() || brief == "" {
 		logger.Debug(fmt.Sprintf("topic: %s, brief: %s", topic.String(), brief), "")
 		return nil, errors.New("params is empty")
 	}
@@ -1855,8 +1828,10 @@ func (t *TicketsRepository) Create(ctx context.Context, data tickets.TicketCreat
 		if err != nil {
 			return nil, err
 		}
-		data.Name = usr.Username
-		data.Email = usr.Email.Address
+		if usr != nil {
+			data.Name = usr.Username
+			data.Email = usr.Email.Address
+		}
 	}
 	var id uuid.UUID
 	if data.Authorized {
@@ -1897,11 +1872,29 @@ func (t *TicketsRepository) CreateMessage(ctx context.Context, id uuid.UUID, con
 	return nil
 }
 
+func (t *TicketsRepository) Accepted(ctx context.Context, id uuid.UUID) (bool, error) {
+	var inProgress bool
+	err := t.DB.QueryRowContext(ctx, `SELECT status = 'в обработке' FROM tickets WHERE id = $1`, id).Scan(&inProgress)
+	if err != nil {
+		return false, err
+	}
+	return inProgress, nil
+}
+
 func (t *TicketsRepository) Accept(ctx context.Context, id uuid.UUID, who uint) error {
+	accepted, err := t.Accepted(ctx, id)
+	if err != nil {
+		return err
+	}
+	if accepted {
+		logger.Debug("ticket already accepted", "")
+		return errors.New("ticket already accepted")
+	}
+	logger.Debug("ticket not accepted", "")
 	if who == 0 {
 		return errors.New("params is empty")
 	}
-	if _, err := t.DB.ExecContext(ctx, "UPDATE tickets SET acceptor = $1, accepted = $2 WHERE id = $3", who, time.Now(), id); err != nil {
+	if _, err := t.DB.ExecContext(ctx, "UPDATE tickets SET acceptor = $1, accepted = $2, status = $3 WHERE id = $4", who, time.Now(), tickets.InProcessStatus.String(), id); err != nil {
 		return err
 	}
 	return nil
@@ -1911,34 +1904,75 @@ type scanner interface {
 	Scan(...any) error
 }
 
-func (tr *TicketsRepository) parseTicket(ctx context.Context, scanner scanner) (*tickets.Ticket, error) {
-	var t tickets.Ticket
+func (t *TicketsRepository) parseTicket(ctx context.Context, scanner scanner) (*tickets.Ticket, error) {
+	var tr tickets.Ticket
 	var acceptor sql.NullInt64
 	var accepted, closed sql.NullTime
-	var closedBy, closeReason sql.NullString
+	var closedBy, closeReason, requestorToken sql.NullString
+	var authorizedUID sql.NullInt64
 	var err error
-	if err = scanner.Scan(&t.Id, &t.Creator.Name, &t.Creator.Email, &t.Mcount, &acceptor, &t.Status, &t.Topic, &t.Brief, &t.CreatedAt, &accepted, &closed, &closedBy, &closeReason); err != nil {
+
+	if err = scanner.Scan(
+		&tr.Id,
+		&tr.Creator.Name,
+		&tr.Creator.Email,
+		&tr.Creator.Authorized,
+		&authorizedUID,
+		&requestorToken,
+		&tr.Mcount,
+		&acceptor,
+		&tr.Status,
+		&tr.Topic,
+		&tr.Brief,
+		&tr.CreatedAt,
+		&accepted,
+		&closed,
+		&closedBy,
+		&closeReason,
+	); err != nil {
 		return nil, err
 	}
-	if accepted.Valid {
-		t.AcceptedAt = &accepted.Time
+
+	if authorizedUID.Valid && tr.Creator.Authorized {
+		uid := uint(authorizedUID.Int64)
+		tr.Creator.UID = &uid
 	}
+
+	if requestorToken.Valid {
+		tr.Creator.Token = &requestorToken.String
+	}
+
+	if accepted.Valid {
+		v := tickets.NullAt(accepted.Time)
+		tr.AcceptedAt = &v
+	} else {
+		tr.AcceptedAt = nil
+	}
+
 	if acceptor.Valid {
-		t.Acceptor, err = getAuthor(ctx, uint(acceptor.Int64), tr.DB)
+		tr.Acceptor, err = getAuthor(ctx, uint(acceptor.Int64), t.DB)
 		if err != nil {
 			return nil, err
 		}
 	}
+
 	if closed.Valid {
-		t.ClosedAt = &closed.Time
+		v := tickets.NullAt(closed.Time)
+		tr.ClosedAt = &v
+	} else {
+		tr.ClosedAt = nil
 	}
+
 	if closedBy.Valid {
-		t.CloseBy = tickets.TicketClosedBy(closedBy.String)
+		tr.CloseBy = tickets.TicketClosedBy(closedBy.String)
 	}
+
 	if closeReason.Valid {
-		t.CloseReason = closeReason.String
+		tr.CloseReason = closeReason.String
 	}
-	return &t, nil
+	fmt.Println("ticket: ")
+	fmt.Println(tr)
+	return &tr, nil
 }
 
 func (t *TicketsRepository) Info(ctx context.Context, id uuid.UUID) (*tickets.Ticket, error) {
@@ -1955,7 +1989,9 @@ func (t *TicketsRepository) List(ctx context.Context) (tickets.Tickets, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 	for rows.Next() {
 		info, err := t.parseTicket(ctx, rows)
 		if err != nil {
@@ -1966,32 +2002,85 @@ func (t *TicketsRepository) List(ctx context.Context) (tickets.Tickets, error) {
 	return ts, nil
 }
 
+func (t *TicketsRepository) parseMessage(scanner scanner) (*tickets.TicketMessage, error) {
+	var message tickets.TicketMessage
+	var authorType string
+	var authorName, authorEmail sql.NullString
+	var authorUID sql.NullInt64
+	if err := scanner.Scan(&message.ID, &message.TicketID, &authorType, &authorUID, &authorName, &authorEmail, &message.Content, &message.At); err != nil {
+		return nil, err
+	}
+	var author tickets.TicketMessageAuthor
+	atype := tickets.TicketMessageAuthorType(authorType)
+	if !atype.Valid() {
+		return nil, errors.New("invalid author type")
+	}
+	switch atype {
+	case tickets.AuthorStaff:
+		author.Authorized = true
+		author.UID = &authorUID.Int64
+	case tickets.AuthorUser:
+		if authorUID.Valid {
+			author.Authorized = true
+			author.UID = &authorUID.Int64
+		} else {
+			author.Authorized = false
+			author.AuthorName = &authorName.String
+			author.AuthorEmail = &authorEmail.String
+		}
+	case tickets.AuthorSystem:
+		name := "aesterial Tickets System"
+		email := "aesterial@tickets"
+		author.AuthorName = &name
+		author.AuthorEmail = &email
+	}
+	message.Author = &author
+	return &message, nil
+}
+
 func (t *TicketsRepository) Messages(ctx context.Context, id uuid.UUID) (tickets.TicketMessages, error) {
 	var messages tickets.TicketMessages
-	rows, err := t.DB.QueryContext(ctx, "SELECT m.id, m.author, m.content, m.at FROM ticket_messages m WHERE m.ticket = $1", id)
+	rows, err := t.DB.QueryContext(ctx, "SELECT m.* FROM ticket_messages m WHERE m.ticket = $1", id)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 	for rows.Next() {
-		var message tickets.TicketMessage
-		if err := rows.Scan(&message.ID, &message.Author, &message.Content, &message.At); err != nil {
+		message, err := t.parseMessage(rows)
+		if err != nil {
 			return nil, err
 		}
-		messages = append(messages, &message)
+		messages = append(messages, message)
 	}
 	return messages, nil
+}
+
+func (t *TicketsRepository) GetLatestMessage(ctx context.Context, id uuid.UUID) (*tickets.TicketMessage, error) {
+	rows, err := t.DB.QueryContext(ctx, "SELECT * FROM ticket_messages WHERE ticket = $1 ORDER BY at DESC, id DESC LIMIT 1", id)
+	if err != nil {
+		return nil, err
+	}
+	var message *tickets.TicketMessage
+	for rows.Next() {
+		message, err = t.parseMessage(rows)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return message, nil
 }
 
 func (t *TicketsRepository) IsReqValid(ctx context.Context, id uuid.UUID, token tickets.TicketDataReq) (bool, error) {
 	var exists bool
 	if token.Token != nil {
-		if err := t.DB.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM tickets WHERE requestor_token = $1)", *token.Token).Scan(&exists); err != nil {
+		if err := t.DB.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM tickets WHERE requestor_token = $1 AND id = $2)", *token.Token, id).Scan(&exists); err != nil {
 			return false, err
 		}
 	}
 	if token.UID != nil {
-		if err := t.DB.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM tickets WHERE authorized_uid = $1)", *token.UID).Scan(&exists); err != nil {
+		if err := t.DB.QueryRowContext(ctx, "SELECT EXISTS (SELECT 1 FROM tickets WHERE authorized_uid = $1 AND id = $2)", *token.UID, id).Scan(&exists); err != nil {
 			return false, err
 		}
 	}
@@ -2005,7 +2094,7 @@ func (t *TicketsRepository) Close(ctx context.Context, id uuid.UUID, by tickets.
 	if by != tickets.ClosedByUser && reason == "" {
 		return errors.New("reason not provided")
 	}
-	if _, err := t.DB.ExecContext(ctx, "UPDATE tickets SET closed = NOW(), close_by = $1, close_reason = $2", by, reason); err != nil {
+	if _, err := t.DB.ExecContext(ctx, "UPDATE tickets SET closed = NOW(), closed_by = $1, close_reason = $2 WHERE id = $3", by.String(), reason, id); err != nil {
 		return err
 	}
 	return nil

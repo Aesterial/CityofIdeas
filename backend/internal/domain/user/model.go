@@ -69,7 +69,10 @@ type User struct {
 
 type Users []*User
 
-func (u User) ToPublic() *userpb.UserPublic {
+func (u *User) ToPublic() *userpb.UserPublic {
+	if u == nil {
+		return nil
+	}
 	rankExpires := func() *timestamppb.Timestamp {
 		if u.Rank.Expires == nil {
 			return nil

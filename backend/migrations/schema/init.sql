@@ -2,7 +2,7 @@ create extension if not exists pgcrypto;
 create extension if not exists citext;
 
 -- enums
-create type user_rank as enum ('user', 'staff', 'developer');
+create type user_rank as enum ('user', 'staff', 'support', 'moderator', 'developer', 'root');
 create type event_level as enum ('info', 'warn', 'error', 'critical');
 create type event_result as enum ('success', '-', 'failure');
 create type project_categories as enum ('благоустройство', 'дороги и тротуары', 'освещение', 'детские площадки', 'парки и скверы', 'другое');
@@ -33,39 +33,261 @@ create type project_info_t as (
     location project_location_t
 );
 
-create type permissions_t as (
-    view_other_profile              boolean,
-    patch_other_profile             boolean,
-    patch_self_profile              boolean,
-    delete_self_profile             boolean,
-    ban_profile                     boolean,
-    unban_profile                   boolean,
+-- projects.*
+create type projects_update_permissions_t as ("all" boolean, own boolean, "any" boolean);
+create type projects_archive_permissions_t as (own boolean, "any" boolean);
+create type projects_delete_permissions_t as ("all" boolean, own boolean, "any" boolean);
 
-    create_idea                     boolean,
-    patch_self_idea                 boolean,
-    delete_self_idea                boolean,
-
-    patch_other_idea                boolean,
-    delete_other_idea               boolean,
-
-    create_comment                  boolean,
-    patch_self_comment              boolean,
-    delete_self_comment             boolean,
-    delete_other_comment            boolean,
-
-    upload_idea_media_self          boolean,
-    delete_idea_media_self          boolean,
-    delete_idea_media_other         boolean,
-
-    moderate_idea                   boolean,
-    moderate_comment_hide           boolean,
-    moderate_comment_unhide         boolean,
-
-    patch_idea_status_admin         boolean,
-    view_statistics                 boolean,
-    view_permissions                boolean,
-    manage_permissions              boolean
+create type projects_permissions_t as (
+  "all"    boolean,  -- projects.*
+  "create" boolean,
+  "view"   boolean,
+  vote   boolean,
+  "update" projects_update_permissions_t,   -- projects.update.*
+  archive projects_archive_permissions_t,   -- projects.archive.own/any
+  "delete" projects_delete_permissions_t    -- projects.delete.*
 );
+
+-- tickets.*
+create type tickets_view_list_permissions_t as (own boolean, "any" boolean);
+
+create type tickets_message_create_permissions_t as ("all" boolean, accepted boolean, "any" boolean);
+create type tickets_message_t as ("create" tickets_message_create_permissions_t); -- tickets.message.create.*
+
+create type tickets_close_permissions_t as ("all" boolean, accepted boolean, "any" boolean);
+
+create type tickets_permissions_t as (
+  "all"      boolean, -- tickets.*
+  "create"   boolean,
+  view_list tickets_view_list_permissions_t, -- tickets.view_list.own/any
+  accept   boolean,
+  message  tickets_message_t,    -- tickets.message.create.*
+  "close"  tickets_close_permissions_t       -- tickets.close.*
+);
+
+-- submissions.*
+create type submissions_permissions_t as ("all" boolean, "view" boolean, accept boolean, decline boolean);
+
+-- statistics.*
+create type statistics_activity_users_t as (period boolean);             -- statistics.activity.users.period
+create type statistics_activity_permissions_t as ("all" boolean, users statistics_activity_users_t);
+
+create type statistics_submissions_permissions_t as ("all" boolean, recap boolean);    -- statistics.submissions.recap
+
+create type statistics_votes_categories_t as (top boolean);              -- statistics.votes.categories.top
+create type statistics_votes_permissions_t as ("all" boolean, categories statistics_votes_categories_t);
+
+create type statistics_media_permissions_t as ("all" boolean, quality boolean, volume boolean);
+
+create type statistics_permissions_t as (
+  "all"        boolean,  -- statistics.*
+  activity   statistics_activity_permissions_t,
+  submissions statistics_submissions_permissions_t,
+  votes      statistics_votes_permissions_t,
+  media      statistics_media_permissions_t
+);
+
+-- users.*
+create type users_view_profile_t as (public boolean, privacy boolean);
+create type users_view_permissions_t as ("all" boolean, profile users_view_profile_t); -- users.view.*
+
+create type users_settings_change_name_t as (own boolean, "any" boolean);  -- users.settings.change.name.own/any
+create type users_settings_change_description_t as (own boolean);        -- users.settings.change.description.own
+create type users_settings_change_permissions_t as (
+  name        users_settings_change_name_t,
+  description users_settings_change_description_t
+);
+
+create type users_settings_delete_profile_t as (own boolean);
+create type users_settings_delete_avatar_t as (own boolean, "any" boolean);
+create type users_settings_delete_description_t as (own boolean, "any" boolean);
+create type users_settings_delete_permissions_t as (
+  profile     users_settings_delete_profile_t,
+  avatar      users_settings_delete_avatar_t,
+  description users_settings_delete_description_t
+);
+
+create type users_settings_reset_password_t as (own boolean, "any" boolean);
+create type users_settings_reset_permissions_t as ("all" boolean, password users_settings_reset_password_t); -- users.settings.reset.*
+
+create type users_settings_permissions_t as (
+  "all"    boolean, -- users.settings.*
+  "change" users_settings_change_permissions_t,
+  "delete" users_settings_delete_permissions_t,
+  reset  users_settings_reset_permissions_t
+);
+
+create type users_moderation_set_permissions_t as ("all" boolean, rank boolean); -- users.moderation.set.*
+create type users_moderation_permissions_t as (
+  "all"         boolean, -- users.moderation.*
+  ban         boolean,
+  ban_forever boolean,
+  unban       boolean,
+  "set"       users_moderation_set_permissions_t
+);
+
+create type users_permissions_t as (
+  "all"       boolean, -- users.*
+  "view"    users_view_permissions_t,
+  settings  users_settings_permissions_t,
+  moderation users_moderation_permissions_t
+);
+
+-- ranks.*
+create type ranks_permissions_t as (
+  "all"               boolean, -- ranks.*
+  permissions_change boolean,
+  "add"             boolean,
+  "delete"          boolean,
+  edit              boolean
+);
+
+-- root .*
+create type permissions_t as (
+  "all"        boolean, -- .* (global wildcard)
+  projects   projects_permissions_t,
+  tickets    tickets_permissions_t,
+  submissions submissions_permissions_t,
+  statistics statistics_permissions_t,
+  users      users_permissions_t,
+  ranks      ranks_permissions_t
+);
+
+create or replace function permissions_empty()
+returns permissions_t
+language sql
+immutable
+as $$
+select row(
+  false,
+  row(
+      false,
+      false,
+      false,
+      false,
+      row(false, false, false)::projects_update_permissions_t,
+      row(false, false)::projects_archive_permissions_t,
+      row(false, false, false)::projects_delete_permissions_t
+  )::projects_permissions_t,
+  row(
+      false,
+      false,
+      row(false,false)::tickets_view_list_permissions_t,
+      false,
+      row(row(false,false,false)::tickets_message_create_permissions_t)::tickets_message_t,
+      row(false,false,false)::tickets_close_permissions_t
+  )::tickets_permissions_t,
+  row(false,false,false,false)::submissions_permissions_t,
+  row(
+      false,
+      row(false, row(false)::statistics_activity_users_t)::statistics_activity_permissions_t,
+      row(false,false)::statistics_submissions_permissions_t,
+      row(false, row(false)::statistics_votes_categories_t)::statistics_votes_permissions_t,
+      row(false,false,false)::statistics_media_permissions_t
+  )::statistics_permissions_t,
+  row(
+      false,
+      row(false, row(false, false)::users_view_profile_t)::users_view_permissions_t,
+      row(
+          false,
+          row(
+              row(false, false)::users_settings_change_name_t,
+              row(false)::users_settings_change_description_t
+          )::users_settings_change_permissions_t,
+          row(
+              row(false)::users_settings_delete_profile_t,
+              row(false, false)::users_settings_delete_avatar_t,
+              row(false, false)::users_settings_delete_description_t
+          )::users_settings_delete_permissions_t,
+          row(false, row(false, false)::users_settings_reset_password_t)::users_settings_reset_permissions_t
+      )::users_settings_permissions_t,
+      row(
+          false, false, false, false,
+          row(false, false)::users_moderation_set_permissions_t
+      )::users_moderation_permissions_t
+  )::users_permissions_t,
+  row(false,false,false,false,false)::ranks_permissions_t
+)::permissions_t;
+$$;
+
+create or replace function perm_norm_path(p text)
+returns text[]
+language plpgsql
+immutable
+as $$
+declare
+  parts text[];
+begin
+  if p is null or btrim(p) = '' then
+    return array[]::text[];
+  end if;
+
+  if lower(btrim(p)) in ('*','.*') then
+    return array['all'];
+  end if;
+
+  parts := string_to_array(lower(btrim(p)), '.');
+  if parts[array_length(parts,1)] = '*' then
+    return parts[1:array_length(parts,1)-1] || array['all'];
+  end if;
+
+  return parts;
+end;
+$$;
+
+create or replace function perm_allowed(perms permissions_t, perm text)
+returns boolean
+language plpgsql
+immutable
+as $$
+declare
+  path text[] := perm_norm_path(perm);
+  j jsonb := to_jsonb(perms);
+  i int;
+  prefix text[];
+  v jsonb;
+begin
+  if path is null or array_length(path,1) is null then
+    return false;
+  end if;
+
+  if (j -> 'all') = 'true'::jsonb then
+    return true;
+  end if;
+
+  for i in 1..array_length(path,1) loop
+    prefix := path[1:i];
+    v := jsonb_extract_path(j, variadic (prefix || array['all']));
+    if v = 'true'::jsonb then
+      return true;
+    end if;
+  end loop;
+
+  v := jsonb_extract_path(j, variadic path);
+  return v = 'true'::jsonb;
+end;
+$$;
+
+create or replace function perm_set(p permissions_t, perm text, state boolean)
+returns permissions_t
+language plpgsql
+immutable
+as $$
+declare
+  path text[] := perm_norm_path(perm);
+  j jsonb := to_jsonb(p);
+  outj jsonb;
+begin
+  if path is null or array_length(path,1) is null then
+    return p;
+  end if;
+
+  outj := jsonb_set(j, path, to_jsonb(state), true);
+
+  -- обратно в composite
+  return jsonb_populate_record(null::permissions_t, outj);
+end;
+$$;
 
 create type users_email_t as (
     address varchar(255),
@@ -91,7 +313,7 @@ create table users (
     email users_email_t not null default ROW('', false)::users_email_t,
     settings user_settings_t not null default ROW('', ROW(NULL, NULL, NULL, NULL)::picture_t, 30)::user_settings_t,
     rank users_rank_t not null default ROW('user', NULL)::users_rank_t,
-    permissions permissions_t not null default ROW(true, false, true, false, false, false, true, true, true, false, false, true, true, true, false, true, true, false, false, false, false, false, false, false, false)::permissions_t,
+    permissions permissions_t not null default permissions_empty(),
 
     joined timestamptz not null default now(),
 
@@ -144,7 +366,7 @@ create table ranks (
     name user_rank primary key,
     color int,
     description text,
-    permissions permissions_t not null default ROW(true, false, true, false, false, false, true, true, true, false, false, true, true, true, false, true, true, false, false, false, false, false, false, false, false)::permissions_t
+    permissions permissions_t not null default permissions_empty()
 );
 
 create unique index user_avatars_object_key_uq on user_avatars (object_key);
@@ -492,110 +714,272 @@ create unique index tickets_requestor_token_uq
   on tickets (requestor_token)
   where requestor_token is not null;
 
--- load base seed data (psql)
-insert into ranks (name, color, description, permissions)
-values
-    (
-        'user',
-        null,
-        'Default user',
-        row(
-            true,
+-- USER
+INSERT INTO ranks(name, color, description, permissions)
+VALUES (
+    'user'::user_rank,
+    11184810, -- #AAAAAA
+    'Regular user',
+    ROW(
+        false, -- root_all
+        -- projects
+        ROW(
+            false, -- projects.all
+            true,  -- create
+            true,  -- view
+            true,  -- vote
+            ROW(false, true,  false)::projects_update_permissions_t,  -- update: own
+            ROW(true,  false)::projects_archive_permissions_t,        -- archive: own
+            ROW(false, true,  false)::projects_delete_permissions_t   -- delete: own
+        )::projects_permissions_t,
+        -- tickets
+        ROW(
+            false, -- tickets.all
+            true,  -- create
+            ROW(true, false)::tickets_view_list_permissions_t,        -- view_list: own
+            false, -- accept
+            ROW(ROW(false, true, false)::tickets_message_create_permissions_t)::tickets_message_t, -- message: accepted
+            ROW(false, true, false)::tickets_close_permissions_t           -- close: accepted
+        )::tickets_permissions_t,
+        -- submissions
+        ROW(false, false, false, false)::submissions_permissions_t,
+        -- statistics
+        ROW(
+            false,
+            ROW(false, ROW(false)::statistics_activity_users_t)::statistics_activity_permissions_t,
+            ROW(false,false)::statistics_submissions_permissions_t,
+            ROW(false, ROW(false)::statistics_votes_categories_t)::statistics_votes_permissions_t,
+            ROW(false,false,false)::statistics_media_permissions_t
+        )::statistics_permissions_t,
+        -- users
+        ROW(
+            false,
+            ROW(false, ROW(true, false)::users_view_profile_t)::users_view_permissions_t, -- public yes, privacy no
+            ROW(
+                false,
+                ROW(ROW(true, false)::users_settings_change_name_t, ROW(true)::users_settings_change_description_t)::users_settings_change_permissions_t,
+                ROW(ROW(true)::users_settings_delete_profile_t, ROW(true, false)::users_settings_delete_avatar_t, ROW(true, false)::users_settings_delete_description_t)::users_settings_delete_permissions_t,
+                ROW(false, ROW(true, false)::users_settings_reset_password_t)::users_settings_reset_permissions_t
+            )::users_settings_permissions_t,
+            ROW(
+                false, false, false, false,
+                ROW(false, false)::users_moderation_set_permissions_t
+            )::users_moderation_permissions_t
+        )::users_permissions_t,
+        -- ranks mgmt
+        ROW(false, false, false, false, false)::ranks_permissions_t
+    )::permissions_t
+);
+
+-- SUPPORT (тикеты обрабатывать + модерировать идеи)
+INSERT INTO ranks(name, color, description, permissions)
+VALUES (
+    'support'::user_rank,
+    34303, -- #0085FF (пример)
+    'Support: process tickets + moderate ideas',
+    ROW(
+        false, -- root_all
+        -- projects (наследуем user + добавляем any для update/archive)
+        ROW(
+            false,
+            true, true, true,
+            ROW(false, true,  true)::projects_update_permissions_t,  -- update: own + any
+            ROW(true,  true )::projects_archive_permissions_t,       -- archive: own + any
+            ROW(false, true,  false)::projects_delete_permissions_t  -- delete: только own (как у user)
+        )::projects_permissions_t,
+        -- tickets (наследуем user + добавляем очередь/accept/message any)
+        ROW(
             false,
             true,
+            ROW(true, true)::tickets_view_list_permissions_t, -- own + any
+            true, -- accept
+            ROW(ROW(false, true, true)::tickets_message_create_permissions_t)::tickets_message_t, -- accepted + any
+            ROW(false, true, false)::tickets_close_permissions_t          -- close: accepted
+        )::tickets_permissions_t,
+        -- submissions (модерация идей)
+        ROW(false, true, true, true)::submissions_permissions_t,
+        -- statistics (нет)
+        ROW(
             false,
+            ROW(false, ROW(false)::statistics_activity_users_t)::statistics_activity_permissions_t,
+            ROW(false,false)::statistics_submissions_permissions_t,
+            ROW(false, ROW(false)::statistics_votes_categories_t)::statistics_votes_permissions_t,
+            ROW(false,false,false)::statistics_media_permissions_t
+        )::statistics_permissions_t,
+        -- users (наследуем user; PII пока нет)
+        ROW(
             false,
+            ROW(false, ROW(true, false)::users_view_profile_t)::users_view_permissions_t,
+            ROW(
+                false,
+                ROW(ROW(true, false)::users_settings_change_name_t, ROW(true)::users_settings_change_description_t)::users_settings_change_permissions_t,
+                ROW(ROW(true)::users_settings_delete_profile_t, ROW(true, false)::users_settings_delete_avatar_t, ROW(true, false)::users_settings_delete_description_t)::users_settings_delete_permissions_t,
+                ROW(false, ROW(true, false)::users_settings_reset_password_t)::users_settings_reset_permissions_t
+            )::users_settings_permissions_t,
+            ROW(
+                false, false, false, false,
+                ROW(false, false)::users_moderation_set_permissions_t
+            )::users_moderation_permissions_t
+        )::users_permissions_t,
+        -- ranks mgmt
+        ROW(false, false, false, false, false)::ranks_permissions_t
+    )::permissions_t
+);
+
+-- MODERATOR
+INSERT INTO ranks(name, color, description, permissions)
+VALUES (
+    'moderator'::user_rank,
+    16753920, -- #FFA500 (пример)
+    'Moderator: user moderation + content moderation',
+    ROW(
+        false, -- root_all
+        -- projects (наследуем support + delete.any)
+        ROW(
+            false,
+            true, true, true,
+            ROW(false, true, true)::projects_update_permissions_t,
+            ROW(true,  true)::projects_archive_permissions_t,
+            ROW(false, true, true)::projects_delete_permissions_t -- own + any
+        )::projects_permissions_t,
+        -- tickets (наследуем support + close.any)
+        ROW(
             false,
             true,
+            ROW(true, true)::tickets_view_list_permissions_t,
             true,
-            true,
+            ROW(ROW(false, true, true)::tickets_message_create_permissions_t)::tickets_message_t,
+            ROW(false, true, true)::tickets_close_permissions_t -- accepted + any
+        )::tickets_permissions_t,
+        -- submissions (как у support)
+        ROW(false, true, true, true)::submissions_permissions_t,
+        -- statistics (нет)
+        ROW(
             false,
+            ROW(false, ROW(false)::statistics_activity_users_t)::statistics_activity_permissions_t,
+            ROW(false,false)::statistics_submissions_permissions_t,
+            ROW(false, ROW(false)::statistics_votes_categories_t)::statistics_votes_permissions_t,
+            ROW(false,false,false)::statistics_media_permissions_t
+        )::statistics_permissions_t,
+        -- users (добавляем PII + ban/unban)
+        ROW(
+            false,
+            ROW(false, ROW(true, true)::users_view_profile_t)::users_view_permissions_t, -- public + privacy
+            ROW(
+                false,
+                ROW(ROW(true, false)::users_settings_change_name_t, ROW(true)::users_settings_change_description_t)::users_settings_change_permissions_t,
+                ROW(ROW(true)::users_settings_delete_profile_t, ROW(true, false)::users_settings_delete_avatar_t, ROW(true, false)::users_settings_delete_description_t)::users_settings_delete_permissions_t,
+                ROW(false, ROW(true, false)::users_settings_reset_password_t)::users_settings_reset_permissions_t
+            )::users_settings_permissions_t,
+            ROW(
+                false,
+                true,  -- ban
+                true,  -- ban_forever
+                true,  -- unban
+                ROW(false, false)::users_moderation_set_permissions_t -- set.rank НЕ даём
+            )::users_moderation_permissions_t
+        )::users_permissions_t,
+        -- ranks mgmt (нет)
+        ROW(false, false, false, false, false)::ranks_permissions_t
+    )::permissions_t
+);
+
+-- STAFF (шире доступ, но без управления рангами/правами)
+INSERT INTO ranks(name, color, description, permissions)
+VALUES (
+    'staff'::user_rank,
+    8388736, -- #8000C0 (пример)
+    'Staff: operations + statistics + account support',
+    ROW(
+        false, -- root_all
+        -- projects (как moderator)
+        ROW(
+            false,
+            true, true, true,
+            ROW(false, true, true)::projects_update_permissions_t,
+            ROW(true,  true)::projects_archive_permissions_t,
+            ROW(false, true, true)::projects_delete_permissions_t
+        )::projects_permissions_t,
+        -- tickets (как moderator)
+        ROW(
             false,
             true,
+            ROW(true, true)::tickets_view_list_permissions_t,
             true,
-            true,
+            ROW(ROW(false, true, true)::tickets_message_create_permissions_t)::tickets_message_t,
+            ROW(false, true, true)::tickets_close_permissions_t
+        )::tickets_permissions_t,
+        -- submissions (как moderator)
+        ROW(false, true, true, true)::submissions_permissions_t,
+        -- statistics (statistics.*)
+        ROW(
+            true, -- statistics.all = true
+            ROW(false, ROW(false)::statistics_activity_users_t)::statistics_activity_permissions_t,
+            ROW(false,false)::statistics_submissions_permissions_t,
+            ROW(false, ROW(false)::statistics_votes_categories_t)::statistics_votes_permissions_t,
+            ROW(false,false,false)::statistics_media_permissions_t
+        )::statistics_permissions_t,
+        -- users (как moderator + сброс/правки для any где есть ключи)
+        ROW(
             false,
-            true,
-            true,
+            ROW(false, ROW(true, true)::users_view_profile_t)::users_view_permissions_t,
+            ROW(
+                false,
+                ROW(ROW(true, true)::users_settings_change_name_t, ROW(true)::users_settings_change_description_t)::users_settings_change_permissions_t, -- name.any = true
+                ROW(ROW(true)::users_settings_delete_profile_t, ROW(true, true)::users_settings_delete_avatar_t, ROW(true, true)::users_settings_delete_description_t)::users_settings_delete_permissions_t, -- avatar.any/desc.any = true
+                ROW(true, ROW(true, true)::users_settings_reset_password_t)::users_settings_reset_permissions_t -- reset.* + password any
+            )::users_settings_permissions_t,
+            ROW(
+                false,
+                true, true, true,
+                ROW(false, false)::users_moderation_set_permissions_t
+            )::users_moderation_permissions_t
+        )::users_permissions_t,
+        -- ranks mgmt (нет)
+        ROW(false, false, false, false, false)::ranks_permissions_t
+    )::permissions_t
+);
+
+-- ROOT (.*)
+INSERT INTO ranks(name, color, description, permissions)
+VALUES (
+    'root'::user_rank,
+    16711680, -- #FF0000 (пример)
+    'Root: full access (.*)',
+    ROW(
+        true, -- root_all = true (.*)
+        ROW(false,false,false,false,
+            ROW(false,false,false)::projects_update_permissions_t,
+            ROW(false,false)::projects_archive_permissions_t,
+            ROW(false,false,false)::projects_delete_permissions_t
+        )::projects_permissions_t,
+        ROW(false,false,
+            ROW(false,false)::tickets_view_list_permissions_t,
             false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false
-            )::permissions_t
-    ),
-    (
-        'staff',
-        null,
-        'Staff member',
-        row(
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            false
-            )::permissions_t
-    ),
-    (
-        'developer',
-        null,
-        'Developer',
-        row(
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true
-            )::permissions_t
-    )
-on conflict (name) do update
-    set
-        color = excluded.color,
-        description = excluded.description,
-        permissions = excluded.permissions;
+            ROW(ROW(false,false,false)::tickets_message_create_permissions_t)::tickets_message_t,
+            ROW(false,false,false)::tickets_close_permissions_t
+        )::tickets_permissions_t,
+        ROW(false,false,false,false)::submissions_permissions_t,
+        ROW(false,
+            ROW(false, ROW(false)::statistics_activity_users_t)::statistics_activity_permissions_t,
+            ROW(false,false)::statistics_submissions_permissions_t,
+            ROW(false, ROW(false)::statistics_votes_categories_t)::statistics_votes_permissions_t,
+            ROW(false,false,false)::statistics_media_permissions_t
+        )::statistics_permissions_t,
+        ROW(false,
+            ROW(false, ROW(false, false)::users_view_profile_t)::users_view_permissions_t,
+            ROW(false,
+                ROW(ROW(false, false)::users_settings_change_name_t, ROW(false)::users_settings_change_description_t)::users_settings_change_permissions_t,
+                ROW(ROW(false)::users_settings_delete_profile_t, ROW(false, false)::users_settings_delete_avatar_t, ROW(false, false)::users_settings_delete_description_t)::users_settings_delete_permissions_t,
+                ROW(false, ROW(false, false)::users_settings_reset_password_t)::users_settings_reset_permissions_t
+            )::users_settings_permissions_t,
+            ROW(false,false,false,false,
+                ROW(false,false)::users_moderation_set_permissions_t
+            )::users_moderation_permissions_t
+        )::users_permissions_t,
+        ROW(false,false,false,false,false)::ranks_permissions_t
+    )::permissions_t
+);
 
 create table if not exists seed_credentials (
                                                 username varchar(64) primary key,

@@ -26,9 +26,10 @@ var File_projects_projects_proto protoreflect.FileDescriptor
 
 const file_projects_projects_proto_rawDesc = "" +
 	"\n" +
-	"\x17projects/projects.proto\x12\vprojects.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x15projects/domain.proto2\xbf\x06\n" +
+	"\x17projects/projects.proto\x12\vprojects.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x15projects/domain.proto2\x9a\a\n" +
 	"\x0eProjectService\x12O\n" +
-	"\x03Get\x12\x17.projects.v1.GetRequest\x1a\x18.projects.v1.GetResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/api/projects\x12`\n" +
+	"\x03Get\x12\x17.projects.v1.GetRequest\x1a\x18.projects.v1.GetResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/api/projects\x12Y\n" +
+	"\x06GetTop\x12\x1a.projects.v1.GetTopRequest\x1a\x18.projects.v1.GetResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/api/projects/top\x12`\n" +
 	"\vGetArchived\x12\x17.projects.v1.GetRequest\x1a\x18.projects.v1.GetResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/projects/archived\x12a\n" +
 	"\x06Create\x12\x1a.projects.v1.CreateRequest\x1a\x1a.projects.v1.EmptyResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/api/projects/create\x12k\n" +
 	"\vChangeTitle\x12\x1a.projects.v1.ChangeRequest\x1a\x1a.projects.v1.EmptyResponse\"$\x82\xd3\xe4\x93\x02\x1e2\x1c/api/projects/{id}/name/{to}\x12w\n" +
@@ -41,34 +42,37 @@ const file_projects_projects_proto_rawDesc = "" +
 
 var file_projects_projects_proto_goTypes = []any{
 	(*GetRequest)(nil),         // 0: projects.v1.GetRequest
-	(*CreateRequest)(nil),      // 1: projects.v1.CreateRequest
-	(*ChangeRequest)(nil),      // 2: projects.v1.ChangeRequest
-	(*RequestWithID)(nil),      // 3: projects.v1.RequestWithID
-	(*emptypb.Empty)(nil),      // 4: google.protobuf.Empty
-	(*LikeRequest)(nil),        // 5: projects.v1.LikeRequest
-	(*GetResponse)(nil),        // 6: projects.v1.GetResponse
-	(*EmptyResponse)(nil),      // 7: projects.v1.EmptyResponse
-	(*CategoriesResponse)(nil), // 8: projects.v1.CategoriesResponse
+	(*GetTopRequest)(nil),      // 1: projects.v1.GetTopRequest
+	(*CreateRequest)(nil),      // 2: projects.v1.CreateRequest
+	(*ChangeRequest)(nil),      // 3: projects.v1.ChangeRequest
+	(*RequestWithID)(nil),      // 4: projects.v1.RequestWithID
+	(*emptypb.Empty)(nil),      // 5: google.protobuf.Empty
+	(*LikeRequest)(nil),        // 6: projects.v1.LikeRequest
+	(*GetResponse)(nil),        // 7: projects.v1.GetResponse
+	(*EmptyResponse)(nil),      // 8: projects.v1.EmptyResponse
+	(*CategoriesResponse)(nil), // 9: projects.v1.CategoriesResponse
 }
 var file_projects_projects_proto_depIdxs = []int32{
 	0, // 0: projects.v1.ProjectService.Get:input_type -> projects.v1.GetRequest
-	0, // 1: projects.v1.ProjectService.GetArchived:input_type -> projects.v1.GetRequest
-	1, // 2: projects.v1.ProjectService.Create:input_type -> projects.v1.CreateRequest
-	2, // 3: projects.v1.ProjectService.ChangeTitle:input_type -> projects.v1.ChangeRequest
-	2, // 4: projects.v1.ProjectService.ChangeDescription:input_type -> projects.v1.ChangeRequest
-	3, // 5: projects.v1.ProjectService.Delete:input_type -> projects.v1.RequestWithID
-	4, // 6: projects.v1.ProjectService.Categories:input_type -> google.protobuf.Empty
-	5, // 7: projects.v1.ProjectService.ToggleLike:input_type -> projects.v1.LikeRequest
-	6, // 8: projects.v1.ProjectService.Get:output_type -> projects.v1.GetResponse
-	6, // 9: projects.v1.ProjectService.GetArchived:output_type -> projects.v1.GetResponse
-	7, // 10: projects.v1.ProjectService.Create:output_type -> projects.v1.EmptyResponse
-	7, // 11: projects.v1.ProjectService.ChangeTitle:output_type -> projects.v1.EmptyResponse
-	7, // 12: projects.v1.ProjectService.ChangeDescription:output_type -> projects.v1.EmptyResponse
-	7, // 13: projects.v1.ProjectService.Delete:output_type -> projects.v1.EmptyResponse
-	8, // 14: projects.v1.ProjectService.Categories:output_type -> projects.v1.CategoriesResponse
-	7, // 15: projects.v1.ProjectService.ToggleLike:output_type -> projects.v1.EmptyResponse
-	8, // [8:16] is the sub-list for method output_type
-	0, // [0:8] is the sub-list for method input_type
+	1, // 1: projects.v1.ProjectService.GetTop:input_type -> projects.v1.GetTopRequest
+	0, // 2: projects.v1.ProjectService.GetArchived:input_type -> projects.v1.GetRequest
+	2, // 3: projects.v1.ProjectService.Create:input_type -> projects.v1.CreateRequest
+	3, // 4: projects.v1.ProjectService.ChangeTitle:input_type -> projects.v1.ChangeRequest
+	3, // 5: projects.v1.ProjectService.ChangeDescription:input_type -> projects.v1.ChangeRequest
+	4, // 6: projects.v1.ProjectService.Delete:input_type -> projects.v1.RequestWithID
+	5, // 7: projects.v1.ProjectService.Categories:input_type -> google.protobuf.Empty
+	6, // 8: projects.v1.ProjectService.ToggleLike:input_type -> projects.v1.LikeRequest
+	7, // 9: projects.v1.ProjectService.Get:output_type -> projects.v1.GetResponse
+	7, // 10: projects.v1.ProjectService.GetTop:output_type -> projects.v1.GetResponse
+	7, // 11: projects.v1.ProjectService.GetArchived:output_type -> projects.v1.GetResponse
+	8, // 12: projects.v1.ProjectService.Create:output_type -> projects.v1.EmptyResponse
+	8, // 13: projects.v1.ProjectService.ChangeTitle:output_type -> projects.v1.EmptyResponse
+	8, // 14: projects.v1.ProjectService.ChangeDescription:output_type -> projects.v1.EmptyResponse
+	8, // 15: projects.v1.ProjectService.Delete:output_type -> projects.v1.EmptyResponse
+	9, // 16: projects.v1.ProjectService.Categories:output_type -> projects.v1.CategoriesResponse
+	8, // 17: projects.v1.ProjectService.ToggleLike:output_type -> projects.v1.EmptyResponse
+	9, // [9:18] is the sub-list for method output_type
+	0, // [0:9] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name

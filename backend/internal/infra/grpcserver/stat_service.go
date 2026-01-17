@@ -38,7 +38,7 @@ func authorize(ctx context.Context, auth *Authenticator) (*user.RequestData, err
 	if err != nil || requestor == nil {
 		return nil, err
 	}
-	if err := auth.RequirePermissions(ctx, requestor.UID, permsdomain.ViewStatistics); err != nil {
+	if err := auth.RequirePermissions(ctx, requestor.UID, permsdomain.StatisticsAll); err != nil {
 		return nil, err
 	}
 	return requestor, nil

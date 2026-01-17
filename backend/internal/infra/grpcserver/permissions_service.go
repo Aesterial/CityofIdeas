@@ -114,7 +114,7 @@ func (s *PermissionsService) ChangeForUser(ctx context.Context, req *permspb.Req
 	if s.permissions == nil {
 		return nil, status.Error(codes.Internal, "permissions service not configured")
 	}
-	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.ManagePermissions); err != nil {
+	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.RanksPermissionsChange); err != nil {
 		return nil, err
 	}
 	if req == nil || req.Permissions == nil {
@@ -146,7 +146,7 @@ func (s *PermissionsService) ChangeForRank(ctx context.Context, req *permspb.Req
 	if s.permissions == nil {
 		return nil, status.Error(codes.Internal, "permissions service not configured")
 	}
-	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.ManagePermissions); err != nil {
+	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.RanksPermissionsChange); err != nil {
 		return nil, err
 	}
 	if req == nil || req.Permissions == nil {

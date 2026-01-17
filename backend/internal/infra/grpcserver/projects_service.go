@@ -53,7 +53,7 @@ func (s *ProjectService) Create(ctx context.Context, req *projpb.CreateRequest) 
 	if err != nil || requestor == nil {
 		return nil, err
 	}
-	if err := s.auth.RequirePermissions(ctx, requestor.UID, permsdomain.CreateIdea); err != nil {
+	if err := s.auth.RequirePermissions(ctx, requestor.UID, permsdomain.ProjectsCreate); err != nil {
 		return nil, err
 	}
 

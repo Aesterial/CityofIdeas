@@ -13,6 +13,11 @@ service ProjectService {
       get: "/api/projects"
     };
   }
+  rpc GetTop(GetTopRequest) returns (GetResponse) {
+    option (google.api.http) = {
+      get: "/api/projects/top"
+    };
+  }
   rpc GetArchived(GetRequest) returns (GetResponse) {
     option (google.api.http) = {
       get: "/api/projects/archived"

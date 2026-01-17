@@ -2,8 +2,8 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 const DEV_API_BASE_URL = "http://127.0.0.1:8080";
-const CACHE_TTL_MS = 3 * 60 * 1000;
-const REQUEST_TIMEOUT_MS = 200;
+const CACHE_TTL_MS = 0.5 * 60 * 1000;
+const REQUEST_TIMEOUT_MS = 100;
 const REFRESH_PARAM = "maintenanceRefresh";
 
 let cachedActive: boolean | null = null;

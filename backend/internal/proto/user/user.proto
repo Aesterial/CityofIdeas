@@ -83,4 +83,10 @@ service UserService {
       get: "/api/user/messages"
     };
   }
+  rpc Permissions()
+  rpc HasPermissions(HasPermissionRequest) returns (HasPermissionResponse) {
+    option (google.api.http) = {
+      get: "/api/user/{userID}/permissions/has/{perm}"
+    };
+  }
 }

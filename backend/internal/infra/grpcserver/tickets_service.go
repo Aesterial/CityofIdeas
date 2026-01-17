@@ -11,6 +11,7 @@ import (
 	"ascendant/backend/internal/infra/logger"
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -43,8 +44,11 @@ func (t *TicketsService) Create(ctx context.Context, req *tickpb.CreateRequest) 
 		requestor.Authorized = true
 		requestor.UID = &authUser.UID
 	}
-	data, err := t.serv.Create(ctx, requestor, ticketsdomain.TicketTopic(req.GetTopic()), req.GetBrief())
+	data, err := t.serv.Create(ctx, requestor, ticketsdomain.TicketTopic(strings.ToLower(req.GetTopic())), req.GetBrief())
 	if err != nil {
+		if err.Error() == "topic is not valid" {
+			return nil, status.Error(codes.InvalidArgument, "invalid topic")
+		}
 		logger.Debug("error in creation ticket: "+err.Error(), "")
 		return nil, status.Error(codes.Internal, "failed to create ticket")
 	}
@@ -117,7 +121,7 @@ func (t *TicketsService) MessageCreate(ctx context.Context, req *tickpb.TicketMe
 		dataReq.Token = &token
 	}
 	if err := t.serv.CreateMessage(ctx, id, req.Content, dataReq); err != nil {
-		logger.Debug(fmt.Sprintf("failed to create message: "+err.Error()), "")
+		logger.Debug(fmt.Sprintf("failed to create message: %s", err.Error()), "")
 		return nil, status.Error(codes.Internal, "failed to create")
 	}
 	return &tickpb.EmptyResponse{Tracing: TraceIDOrNew(ctx)}, nil
@@ -146,6 +150,7 @@ func (t *TicketsService) List(ctx context.Context, _ *emptypb.Empty) (*tickpb.Ti
 	}
 	list, err := t.serv.List(ctx)
 	if err != nil {
+		logger.Debug("failed to get list of tickets: "+err.Error(), "")
 		return nil, status.Error(codes.Internal, "Failed to get")
 	}
 	return &tickpb.TicketsListResponse{List: list.ToProto(), Tracing: TraceIDOrNew(ctx)}, nil
@@ -162,7 +167,7 @@ func (t *TicketsService) AcceptTicket(ctx context.Context, req *tickpb.TicketInf
 	if err != nil || requestor == nil {
 		return nil, err
 	}
-	if err := t.auth.RequirePermissions(ctx, requestor.UID, permsdomain.CreateIdea); err != nil {
+	if err := t.auth.RequirePermissions(ctx, requestor.UID, permsdomain.TicketsAccept); err != nil {
 		return nil, err
 	}
 	id, err := uuid.Parse(req.GetId())
@@ -170,6 +175,9 @@ func (t *TicketsService) AcceptTicket(ctx context.Context, req *tickpb.TicketInf
 		return nil, status.Error(codes.InvalidArgument, "id is not correct")
 	}
 	if err := t.serv.Accept(ctx, id, requestor.UID); err != nil {
+		if err.Error() == "ticket already accepted" {
+			return nil, status.Error(codes.AlreadyExists, "ticket already accepted")
+		}
 		return nil, status.Error(codes.Internal, "Failed to accept")
 	}
 	return &tickpb.EmptyResponse{Tracing: TraceIDOrNew(ctx)}, nil

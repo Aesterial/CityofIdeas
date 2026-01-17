@@ -108,15 +108,11 @@ func (a *Authenticator) RequireViewPermissions(ctx context.Context, uid uint) er
 	if a == nil || a.Permissions == nil {
 		return status.Error(codes.Internal, "permissions not configured")
 	}
-	ok, err := a.Permissions.Has(ctx, uid, permissions.ViewPermissions)
-	if err == nil && ok {
-		return nil
+	ok, err := a.Permissions.Has(ctx, uid, permissions.RanksPermissionsChange)
+	if err != nil || !ok {
+		return status.Error(codes.PermissionDenied, "forbidden")
 	}
-	ok, err = a.Permissions.Has(ctx, uid, permissions.ManagePermissions)
-	if err == nil && ok {
-		return nil
-	}
-	return status.Error(codes.PermissionDenied, "forbidden")
+	return nil
 }
 
 func issueSessionToken(sessionID string, ttl time.Duration) (string, error) {
