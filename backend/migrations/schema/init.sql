@@ -2,7 +2,6 @@ create extension if not exists pgcrypto;
 create extension if not exists citext;
 
 -- enums
-create type user_rank as enum ('user', 'staff', 'support', 'moderator', 'developer', 'root');
 create type event_level as enum ('info', 'warn', 'error', 'critical');
 create type event_result as enum ('success', '-', 'failure');
 create type project_categories as enum ('благоустройство', 'дороги и тротуары', 'освещение', 'детские площадки', 'парки и скверы', 'другое');
@@ -295,7 +294,7 @@ create type users_email_t as (
 );
 
 create type users_rank_t as (
-    name user_rank,
+    name text,
     expires timestamptz
 );
 
@@ -363,7 +362,7 @@ create table user_avatars (
 );
 
 create table ranks (
-    name user_rank primary key,
+    name text primary key,
     color int not null default 0,
     description text not null default '',
     permissions permissions_t not null default permissions_empty(),
@@ -718,7 +717,7 @@ create unique index tickets_requestor_token_uq
 -- USER
 INSERT INTO ranks(name, color, description, permissions)
 VALUES (
-    'user'::user_rank,
+    'user'::text,
     11184810, -- #AAAAAA
     'Regular user',
     ROW(
@@ -775,7 +774,7 @@ VALUES (
 -- SUPPORT (тикеты обрабатывать + модерировать идеи)
 INSERT INTO ranks(name, color, description, permissions)
 VALUES (
-    'support'::user_rank,
+    'support'::text,
     34303, -- #0085FF (пример)
     'Support: process tickets + moderate ideas',
     ROW(
@@ -830,7 +829,7 @@ VALUES (
 -- MODERATOR
 INSERT INTO ranks(name, color, description, permissions)
 VALUES (
-    'moderator'::user_rank,
+    'moderator'::text,
     16753920, -- #FFA500 (пример)
     'Moderator: user moderation + content moderation',
     ROW(
@@ -888,7 +887,7 @@ VALUES (
 -- STAFF (шире доступ, но без управления рангами/правами)
 INSERT INTO ranks(name, color, description, permissions)
 VALUES (
-    'staff'::user_rank,
+    'staff'::text,
     8388736, -- #8000C0 (пример)
     'Staff: operations + statistics + account support',
     ROW(
@@ -944,7 +943,7 @@ VALUES (
 -- ROOT (.*)
 INSERT INTO ranks(name, color, description, permissions)
 VALUES (
-    'root'::user_rank,
+    'root'::text,
     16711680, -- #FF0000 (пример)
     'Root: full access (.*)',
     ROW(
@@ -1011,14 +1010,14 @@ do $$
             values (
                        'admin',
                        row('admin@aesterial.xyz', true)::users_email_t,
-                       row('staff', null)::users_rank_t,
-                       (select r.permissions from ranks r where r.name = 'staff'),
+                       row('root', null)::users_rank_t,
+                       (select r.permissions from ranks r where r.name = 'root'),
                        v_password_hash
                    )
             returning uid into v_uid;
 
             insert into seed_credentials (username, email, password)
-            values ('admin', 'admin@Aesterial.ru', v_password)
+            values ('admin', 'admin@aesterial.xyz', v_password)
             on conflict (username) do update
                 set
                     email = excluded.email,
@@ -1026,8 +1025,8 @@ do $$
                     updated_at = now();
         else
             update users
-            set rank = row('staff', null)::users_rank_t
+            set rank = row('root', null)::users_rank_t
             where uid = v_uid
-              and (rank).name is distinct from 'staff';
+              and (rank).name is distinct from 'root';
         end if;
     end $$;

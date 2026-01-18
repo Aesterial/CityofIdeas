@@ -54,10 +54,11 @@ func (s *RanksService) Create(ctx context.Context, req *rankpb.CreateRequest) (*
 	if name == "" {
 		return nil, status.Error(codes.InvalidArgument, "rank name is empty")
 	}
-	color, err := parseRankColor(req.GetColor())
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
+	//color, err := parseRankColor(req.GetColor())
+	//if err != nil {
+	//	return nil, status.Error(codes.InvalidArgument, err.Error())
+	//}
+	color := req.GetColor()
 	description := strings.TrimSpace(req.GetDescription())
 	if description == "" {
 		return nil, status.Error(codes.InvalidArgument, "rank description is empty")
@@ -66,7 +67,7 @@ func (s *RanksService) Create(ctx context.Context, req *rankpb.CreateRequest) (*
 	if req.GetPermissions() != nil {
 		perms = (&permsdomain.Permissions{}).Merge(req.GetPermissions())
 	}
-	if err := s.ranks.Create(ctx, name, color, description, perms); err != nil {
+	if err := s.ranks.Create(ctx, name, int(color), description, perms); err != nil {
 		return nil, statusFromError(err)
 	}
 	return &rankpb.EmptyResponse{Tracing: TraceIDOrNew(ctx)}, nil
@@ -119,10 +120,11 @@ func (s *RanksService) Patch(ctx context.Context, req *rankpb.PatchRequest) (*ra
 		changed = true
 	}
 	if req.Color != nil {
-		color, err := parseRankColor(req.GetColor())
-		if err != nil {
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		}
+		//color, err := parseRankColor(req.GetColor())
+		//if err != nil {
+		//	return nil, status.Error(codes.InvalidArgument, err.Error())
+		//}
+		color := req.GetColor()
 		if err := s.ranks.Edit(ctx, name, "color", color); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return nil, status.Error(codes.NotFound, "rank not found")

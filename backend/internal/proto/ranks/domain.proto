@@ -11,7 +11,7 @@ option go_package = "Aesterial/backend/internal/gen/ranks/v1;ranks";
 message CreateRequest {
   optional permissions.v1.Permissions permissions = 1;
   string name = 2;
-  string color = 3;
+  uint32 color = 3;
   optional string description = 4;
 }
 
@@ -55,7 +55,6 @@ message RankResponse {
 }
 
 message RanksResponse {
-  string name = 1;
   repeated Rank ranks = 2;
   string tracing = 3;
 }

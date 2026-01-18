@@ -28,7 +28,7 @@ type CreateRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Permissions   *v1.Permissions        `protobuf:"bytes,1,opt,name=permissions,proto3,oneof" json:"permissions,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Color         string                 `protobuf:"bytes,3,opt,name=color,proto3" json:"color,omitempty"`
+	Color         uint32                 `protobuf:"varint,3,opt,name=color,proto3" json:"color,omitempty"`
 	Description   *string                `protobuf:"bytes,4,opt,name=description,proto3,oneof" json:"description,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -78,11 +78,11 @@ func (x *CreateRequest) GetName() string {
 	return ""
 }
 
-func (x *CreateRequest) GetColor() string {
+func (x *CreateRequest) GetColor() uint32 {
 	if x != nil {
 		return x.Color
 	}
-	return ""
+	return 0
 }
 
 func (x *CreateRequest) GetDescription() string {
@@ -490,7 +490,6 @@ func (x *RankResponse) GetTracing() string {
 
 type RanksResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Ranks         []*Rank                `protobuf:"bytes,2,rep,name=ranks,proto3" json:"ranks,omitempty"`
 	Tracing       string                 `protobuf:"bytes,3,opt,name=tracing,proto3" json:"tracing,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -527,13 +526,6 @@ func (*RanksResponse) Descriptor() ([]byte, []int) {
 	return file_ranks_domain_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *RanksResponse) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
-}
-
 func (x *RanksResponse) GetRanks() []*Rank {
 	if x != nil {
 		return x.Ranks
@@ -556,7 +548,7 @@ const file_ranks_domain_proto_rawDesc = "" +
 	"\rCreateRequest\x12B\n" +
 	"\vpermissions\x18\x01 \x01(\v2\x1b.permissions.v1.PermissionsH\x00R\vpermissions\x88\x01\x01\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
-	"\x05color\x18\x03 \x01(\tR\x05color\x12%\n" +
+	"\x05color\x18\x03 \x01(\rR\x05color\x12%\n" +
 	"\vdescription\x18\x04 \x01(\tH\x01R\vdescription\x88\x01\x01B\x0e\n" +
 	"\f_permissionsB\x0e\n" +
 	"\f_description\"\xab\x01\n" +
@@ -587,9 +579,8 @@ const file_ranks_domain_proto_rawDesc = "" +
 	"\x05added\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\x05added\"L\n" +
 	"\fRankResponse\x12\"\n" +
 	"\x04data\x18\x01 \x01(\v2\x0e.ranks.v1.RankR\x04data\x12\x18\n" +
-	"\atracing\x18\x02 \x01(\tR\atracing\"c\n" +
-	"\rRanksResponse\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12$\n" +
+	"\atracing\x18\x02 \x01(\tR\atracing\"O\n" +
+	"\rRanksResponse\x12$\n" +
 	"\x05ranks\x18\x02 \x03(\v2\x0e.ranks.v1.RankR\x05ranks\x12\x18\n" +
 	"\atracing\x18\x03 \x01(\tR\atracingB/Z-Aesterial/backend/internal/gen/ranks/v1;ranksb\x06proto3"
 
