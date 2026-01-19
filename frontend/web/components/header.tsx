@@ -1,6 +1,11 @@
 "use client";
 
-import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValueEvent,
+  useScroll,
+} from "framer-motion";
 import {
   ChevronDown,
   Globe,
@@ -85,7 +90,6 @@ export function Header() {
   const [mounted, setMounted] = useState(false);
   const [city, setCity] = useState<City>(cities[0]);
 
-  
   const [headerHidden, setHeaderHidden] = useState(false);
   const [headerCompact, setHeaderCompact] = useState(false);
   const lastScrollY = useRef(0);
@@ -113,13 +117,16 @@ export function Header() {
     ...(status === "authenticated"
       ? [{ href: "/account", label: t("account"), icon: UserCircle }]
       : [{ href: "/auth", label: t("login"), icon: LogIn }]),
-    ...(hasAdminAccess ? [{ href: "/admin", label: t("adminPanel"), icon: Shield }] : []),
+    ...(hasAdminAccess
+      ? [{ href: "/admin", label: t("adminPanel"), icon: Shield }]
+      : []),
   ];
 
   useEffect(() => {
     setMounted(true);
     const savedCity = localStorage.getItem("city");
-    if (savedCity && cities.includes(savedCity as City)) setCity(savedCity as City);
+    if (savedCity && cities.includes(savedCity as City))
+      setCity(savedCity as City);
   }, []);
 
   useEffect(() => {
@@ -139,7 +146,8 @@ export function Header() {
     if (!cityOpen) return;
 
     const handleClickOutside = (event: MouseEvent) => {
-      if (cityRef.current && !cityRef.current.contains(event.target as Node)) setCityOpen(false);
+      if (cityRef.current && !cityRef.current.contains(event.target as Node))
+        setCityOpen(false);
     };
 
     const handleEscape = (event: KeyboardEvent) => {
@@ -155,23 +163,19 @@ export function Header() {
     };
   }, [cityOpen]);
 
-  
   useMotionValueEvent(scrollY, "change", (y) => {
     const prev = lastScrollY.current;
     const goingDown = y > prev;
 
-  
     const nextCompact = y > 12;
     if (nextCompact !== headerCompact) setHeaderCompact(nextCompact);
 
- 
     if (y < 10) {
       if (headerHidden) setHeaderHidden(false);
       lastScrollY.current = y;
       return;
     }
 
-    
     if (goingDown && y > 96) {
       if (!headerHidden) setHeaderHidden(true);
     } else if (!goingDown) {
@@ -184,6 +188,7 @@ export function Header() {
   return (
     <motion.header
       className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border"
+      style={{ top: "var(--maintenance-banner-height)" }}
       initial={{ y: -100 }}
       animate={{ y: headerHidden ? -96 : 0 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
@@ -193,9 +198,7 @@ export function Header() {
           headerCompact ? "py-2 sm:py-2.5" : "py-2.5 sm:py-3"
         }`}
       >
-  
         <div className="flex items-center gap-3">
-     
           <div className="xl:hidden">
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <SheetTrigger asChild>
@@ -230,7 +233,9 @@ export function Header() {
                         <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
                           Меню
                         </p>
-                        <p className="text-sm font-semibold">{t("cityOfIdeas")}</p>
+                        <p className="text-sm font-semibold">
+                          {t("cityOfIdeas")}
+                        </p>
                       </div>
                     </div>
 
@@ -273,7 +278,6 @@ export function Header() {
                     transition={{ duration: 0.35, ease: "easeOut" }}
                   >
                     <div className="flex flex-col gap-5">
-                   
                       <div className="rounded-2xl border border-border bg-card/60 p-4">
                         <button
                           type="button"
@@ -289,7 +293,9 @@ export function Header() {
                               <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
                                 Город
                               </span>
-                              <span className="text-sm font-semibold truncate">{city}</span>
+                              <span className="text-sm font-semibold truncate">
+                                {city}
+                              </span>
                             </span>
                           </span>
                           <ChevronDown
@@ -333,7 +339,6 @@ export function Header() {
                         </AnimatePresence>
                       </div>
 
-                    
                       <div className="grid gap-3">
                         {mobileNavItems.map((item) => (
                           <SheetClose asChild key={item.href}>
@@ -345,14 +350,15 @@ export function Header() {
                                 <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-foreground text-background">
                                   <item.icon className="h-5 w-5" />
                                 </span>
-                                <span className="text-base font-semibold">{item.label}</span>
+                                <span className="text-base font-semibold">
+                                  {item.label}
+                                </span>
                               </span>
                             </Link>
                           </SheetClose>
                         ))}
                       </div>
 
-                   
                       <div className="rounded-2xl border border-border bg-card/60 p-4">
                         <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
                           Язык
@@ -384,13 +390,14 @@ export function Header() {
           </div>
 
           <Link href="/" className="shrink-0">
-            <Logo className={headerCompact ? "h-7 w-7" : "h-8 w-8"} showText={true} />
+            <Logo
+              className={headerCompact ? "h-7 w-7" : "h-8 w-8"}
+              showText={true}
+            />
           </Link>
         </div>
 
-       
         <nav className="hidden xl:flex flex-1 items-center justify-between gap-4 ml-6 min-w-0">
-     
           <div className="flex items-center gap-1 2xl:gap-2 min-w-0">
             <Link
               href="/voting"
@@ -412,9 +419,7 @@ export function Header() {
             </Link>
           </div>
 
-         
           <div className="flex items-center gap-2 shrink-0">
-          
             <div className="relative" ref={cityRef}>
               <motion.button
                 onClick={() =>
@@ -453,7 +458,9 @@ export function Header() {
                         <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
                           Выбор города
                         </p>
-                        <p className="text-sm font-semibold">Где вы хотите участвовать?</p>
+                        <p className="text-sm font-semibold">
+                          Где вы хотите участвовать?
+                        </p>
                       </div>
                     </div>
 
@@ -477,7 +484,9 @@ export function Header() {
                             role="option"
                             aria-selected={isActive}
                           >
-                            <span className="block break-words">{cityName}</span>
+                            <span className="block break-words">
+                              {cityName}
+                            </span>
                           </motion.button>
                         );
                       })}
@@ -487,7 +496,6 @@ export function Header() {
               </AnimatePresence>
             </div>
 
-           
             <div className="relative">
               <motion.button
                 onClick={() =>
@@ -539,7 +547,6 @@ export function Header() {
               </AnimatePresence>
             </div>
 
-          
             <motion.button
               onClick={toggleTheme}
               className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-foreground hover:bg-muted/60 transition"
@@ -548,13 +555,16 @@ export function Header() {
               aria-label="Toggle theme"
             >
               {mounted ? (
-                theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />
+                theme === "light" ? (
+                  <Moon className="h-4 w-4" />
+                ) : (
+                  <Sun className="h-4 w-4" />
+                )
               ) : (
                 <span className="block h-4 w-4" aria-hidden="true" />
               )}
             </motion.button>
 
-       
             {status === "authenticated" && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -583,7 +593,9 @@ export function Header() {
                     <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                       {t("account")}
                     </p>
-                    <p className="text-sm font-semibold">{displayName || user.username}</p>
+                    <p className="text-sm font-semibold">
+                      {displayName || user.username}
+                    </p>
                   </DropdownMenuLabel>
 
                   <DropdownMenuSeparator />

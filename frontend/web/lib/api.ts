@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "@/lib/api-base";
-import { StatusCodes} from "http-status-codes"
+import { StatusCodes } from "http-status-codes";
 
 export type RegisterPayload = {
   username: string;
@@ -106,6 +106,13 @@ type ApiUsersResponse = {
 
 type ApiProjectsResponse = {
   projects?: ApiProject[] | null;
+  tracing?: string;
+};
+
+type ApiTopProjectsResponse = {
+  projects?: ApiProject[] | null;
+  data?: ApiProject[] | null;
+  items?: ApiProject[] | null;
   tracing?: string;
 };
 
@@ -432,7 +439,10 @@ export async function fetchUserBanInfo(
       expires: payload.expires ?? null,
     };
   } catch (error) {
-    if (error instanceof ApiError && error.status === StatusCodes.SERVICE_UNAVAILABLE) {
+    if (
+      error instanceof ApiError &&
+      error.status === StatusCodes.SERVICE_UNAVAILABLE
+    ) {
       return null;
     }
     throw error;
@@ -504,6 +514,33 @@ export async function fetchProjects(options?: {
     },
   );
   const records = payload?.projects ?? [];
+  return Array.isArray(records) ? records : [];
+}
+
+export async function fetchTopProjects(options?: {
+  limit?: number;
+  city?: string;
+  signal?: AbortSignal;
+}): Promise<ApiProject[]> {
+  const params = new URLSearchParams();
+  if (typeof options?.limit === "number") {
+    params.set("limit", String(options.limit));
+  }
+  if (options?.city) {
+    params.set("city", options.city);
+  }
+  const query = params.toString() ? `?${params.toString()}` : "";
+  const payload = await apiRequest<ApiTopProjectsResponse | ApiProject[]>(
+    `/api/projects/top${query}`,
+    {
+      method: "GET",
+      signal: options?.signal,
+    },
+  );
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+  const records = payload?.projects ?? payload?.data ?? payload?.items ?? [];
   return Array.isArray(records) ? records : [];
 }
 

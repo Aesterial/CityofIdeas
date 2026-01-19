@@ -1,21 +1,19 @@
 "use client";
 
-import { useState, type CSSProperties, type MouseEvent } from "react";
+import {
+  useEffect,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+} from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import Image from "next/image";
-import { Header } from "@/components/header";
+import { Header, cities } from "@/components/header";
 import { GradientButton } from "@/components/gradient-button";
 import { YandexMap } from "@/components/yandex-map";
 import { useLanguage } from "@/components/language-provider";
-import {
-  ArrowRight,
-  MapPin,
-  Users,
-  Lightbulb,
-  Search,
-  Plus,
-} from "lucide-react";
+import { fetchTopProjects, type ApiProject } from "@/lib/api";
+import { ArrowRight, MapPin, Users, Lightbulb } from "lucide-react";
 import type { Variants } from "framer-motion";
 import { Logo } from "@/components/logo";
 
@@ -95,45 +93,30 @@ export const itemVariants: Variants = {
   },
 };
 
-const popularIdeas = [
-  { rank: 1, address: "Построить ледяные горки (Советский просп., 77)" },
-  {
-    rank: 2,
-    address: "Установить пешеходный переход (ул. 50 лет Октября, 10)",
-  },
-  { rank: 3, address: "Установить Светофор (Весенняя ул., 21)" },
-];
+type PopularIdea = {
+  rank: number;
+  address: string;
+};
 
-const ideasForVoting = [
-  {
-    id: 1,
-    address: "Построить ледяные горки (Советский просп., 77)",
-    descriptionKey: "leaksFromRoof",
-    satelliteImage: "/aerial-satellite-view-kemerovo-city-block.jpg",
-    buildingImage: "/building-entrance-with-awning-kemerovo.jpg",
-  },
-  {
-    id: 2,
-    address: "Убрать мусор (Ноградская ул., 5)",
-    descriptionKey: "brokenWindow",
-    satelliteImage: "/aerial-satellite-view-residential-kemerovo.jpg",
-    buildingImage: "/pub-building-facade-harats-kemerovo.jpg",
-  },
-  {
-    id: 3,
-    address: "Установить пешеходный переход (пр-т Ленина, 90)",
-    descriptionKey: "noCrosswalk",
-    satelliteImage: "/aerial-view-street-intersection-kemerovo.jpg",
-    buildingImage: "/busy-street-without-crosswalk.jpg",
-  },
-  {
-    id: 4,
-    address: "Установить Светофор (ул. Соборная, 21)",
-    descriptionKey: "brokenWindow",
-    satelliteImage: "/aerial-satellite-view-kemerovo-city-block.jpg",
-    buildingImage: "/building-entrance-with-awning-kemerovo.jpg",
-  },
-];
+const POPULAR_IDEAS_LIMIT = 3;
+const FALLBACK_ADDRESS = "????? ?? ??????";
+
+const getPopularAddress = (project?: ApiProject | null) => {
+  if (!project) {
+    return FALLBACK_ADDRESS;
+  }
+  const info = project.details ?? project.info ?? null;
+  const location = info?.location ?? null;
+  const addressParts = [
+    location?.street?.trim(),
+    location?.house?.trim(),
+  ].filter((part): part is string => Boolean(part));
+  if (addressParts.length) {
+    return addressParts.join(" ");
+  }
+  const title = info?.title?.trim();
+  return title || FALLBACK_ADDRESS;
+};
 
 const cardGlowStyle = {
   "--x": "50%",
@@ -154,15 +137,56 @@ const resetCardGlow = (event: MouseEvent<HTMLDivElement>) => {
 };
 
 export default function HomePage() {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [popularIdeas, setPopularIdeas] = useState<PopularIdea[]>([]);
+  const [popularLoading, setPopularLoading] = useState(true);
+  const [selectedCity, setSelectedCity] = useState<string>(cities[0] ?? "");
   const { t } = useLanguage();
   const currentYear = new Date().getFullYear();
 
-  const filteredIdeas = ideasForVoting.filter(
-    (idea) =>
-      idea.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t(idea.descriptionKey).toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  useEffect(() => {
+    const savedCity = localStorage.getItem("city");
+    if (savedCity) {
+      setSelectedCity(savedCity);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!selectedCity) {
+      return;
+    }
+    const controller = new AbortController();
+    setPopularLoading(true);
+
+    const loadPopular = async () => {
+      try {
+        const projects = await fetchTopProjects({
+          limit: POPULAR_IDEAS_LIMIT,
+          city: selectedCity,
+          signal: controller.signal,
+        });
+        if (controller.signal.aborted) {
+          return;
+        }
+        const mapped = projects.map((project, index) => ({
+          rank: index + 1,
+          address: getPopularAddress(project),
+        }));
+        setPopularIdeas(mapped);
+      } catch {
+        if (!controller.signal.aborted) {
+          setPopularIdeas([]);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setPopularLoading(false);
+        }
+      }
+    };
+
+    void loadPopular();
+
+    return () => controller.abort();
+  }, [selectedCity]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -243,24 +267,34 @@ export default function HomePage() {
                 transition={{ delay: 0.2 }}
               >
                 <div className="space-y-5">
-                  {popularIdeas.map((idea, index) => (
-                    <motion.div
-                      key={idea.rank}
-                      className="flex flex-col items-start gap-2 cursor-pointer hover:bg-muted/50 rounded-xl p-3 -mx-3 transition-colors duration-300 sm:flex-row sm:items-center sm:gap-4"
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: 0.3 + index * 0.1 }}
-                      whileHover={{ x: 8 }}
-                    >
-                      <span className="text-lg font-bold sm:text-2xl">
-                        {idea.rank}.
-                      </span>
-                      <span className="text-sm font-semibold break-words sm:text-lg">
-                        {idea.address}
-                      </span>
-                    </motion.div>
-                  ))}
+                  {popularLoading ? (
+                    <p className="text-sm text-muted-foreground">
+                      Загружаем идеи...
+                    </p>
+                  ) : popularIdeas.length ? (
+                    popularIdeas.map((idea, index) => (
+                      <motion.div
+                        key={idea.rank}
+                        className="flex flex-col items-start gap-2 cursor-pointer hover:bg-muted/50 rounded-xl p-3 -mx-3 transition-colors duration-300 sm:flex-row sm:items-center sm:gap-4"
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.3 + index * 0.1 }}
+                        whileHover={{ x: 8 }}
+                      >
+                        <span className="text-lg font-bold sm:text-2xl">
+                          {idea.rank}.
+                        </span>
+                        <span className="text-sm font-semibold break-words sm:text-lg">
+                          {idea.address}
+                        </span>
+                      </motion.div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      нет информации
+                    </p>
+                  )}
                 </div>
               </motion.div>
 
@@ -319,119 +353,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-16 px-4 bg-background sm:py-20 sm:px-6">
-        <div className="container mx-auto">
-          <motion.div
-            className="flex flex-col gap-4 mb-8 sm:flex-row sm:items-center sm:justify-between sm:mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
-              {t("voting")}
-            </h2>
-
-            <div className="relative">
-              <input
-                type="text"
-                placeholder={t("searchIdeas")}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-3 pr-12 rounded-2xl border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all duration-300 sm:w-60 lg:w-64"
-              />
-              <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            </div>
-          </motion.div>
-
-          <div className="space-y-6 sm:space-y-8">
-            {filteredIdeas.map((idea, index) => (
-              <motion.div
-                key={idea.id}
-                className="bg-card rounded-3xl p-5 shadow-lg border border-border sm:p-6 lg:p-8"
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <div className="flex flex-col items-start gap-2 mb-5 sm:flex-row sm:items-center sm:gap-3 sm:mb-6">
-                  <h3 className="text-lg font-bold break-words sm:text-xl lg:text-2xl">
-                    {idea.address}
-                  </h3>
-                  <motion.button
-                    className="w-7 h-7 shrink-0 rounded-full border-2 border-foreground/30 flex items-center justify-center hover:bg-foreground hover:text-background transition-all duration-300 sm:w-8 sm:h-8"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  </motion.button>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6">
-                  <motion.div
-                    className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-md sm:aspect-square"
-                    whileHover={{ scale: 1.02 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Image
-                      src={idea.satelliteImage || "/placeholder.svg"}
-                      alt={`Спутниковый снимок ${idea.address}`}
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute bottom-3 left-3 w-6 h-6 rounded-full border-2 border-red-500 flex items-center justify-center">
-                      <div className="w-2 h-2 bg-red-500 rounded-full" />
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-md sm:aspect-square"
-                    whileHover={{ scale: 1.02 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Image
-                      src={idea.buildingImage || "/placeholder.svg"}
-                      alt={`Фото здания ${idea.address}`}
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute bottom-3 right-3 w-6 h-6 rounded-full border-2 border-red-500 flex items-center justify-center">
-                      <div className="w-2 h-2 bg-red-500 rounded-full" />
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    className="relative aspect-[4/3] rounded-2xl bg-muted flex items-center justify-center p-5 shadow-md sm:aspect-square sm:p-6"
-                    whileHover={{ scale: 1.02 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <span className="absolute top-4 left-4 text-2xl text-muted-foreground/50 sm:text-4xl">
-                      "
-                    </span>
-                    <p className="text-sm font-bold text-center sm:text-base lg:text-xl">
-                      {t(idea.descriptionKey)}
-                    </p>
-                    <span className="absolute bottom-4 right-4 text-2xl text-muted-foreground/50 sm:text-4xl">
-                      "
-                    </span>
-                  </motion.div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {filteredIdeas.length === 0 && (
-            <motion.div
-              className="text-center py-16"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <p className="text-base text-muted-foreground sm:text-lg">
-                {t("ideas")} не найдены
-              </p>
-            </motion.div>
-          )}
-        </div>
-      </section>
+      
 
       <section className="py-16 px-4 bg-background sm:py-20 sm:px-6">
         <div className="container mx-auto">
@@ -518,35 +440,34 @@ export default function HomePage() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
       >
-      
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute -top-24 left-1/2 h-48 w-[520px] -translate-x-1/2 rounded-full bg-foreground/5 blur-3xl dark:bg-foreground/10" />
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/15 to-transparent" />
         </div>
-      
+
         <div className="container mx-auto px-4 py-8 sm:px-6">
           <motion.div
             variants={itemVariants}
             className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
           >
-          
             <div className="flex items-center gap-3 min-w-0">
               <Logo className="h-8 w-8 shrink-0" showText={false} />
               <div className="min-w-0">
-                <p className="text-sm font-semibold truncate">{t("cityOfIdeas")}</p>
+                <p className="text-sm font-semibold truncate">
+                  {t("cityOfIdeas")}
+                </p>
                 <p className="text-xs text-muted-foreground truncate">
                   {t("heroSubtitle")}
                 </p>
               </div>
             </div>
-      
-         
+
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1.5 text-xs text-muted-foreground">
                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
                 Online
               </span>
-      
+
               <Link
                 href="/suggest"
                 className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-muted/60"
@@ -556,7 +477,7 @@ export default function HomePage() {
               </Link>
             </div>
           </motion.div>
-      
+
           <motion.div
             variants={itemVariants}
             className="mt-5 flex flex-col gap-2 border-t border-border/60 pt-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between"
@@ -564,7 +485,7 @@ export default function HomePage() {
             <span>
               © {currentYear} {t("cityOfIdeas")}
             </span>
-      
+
             <Link
               href="/support"
               className="inline-flex items-center gap-2 hover:text-foreground transition"
@@ -575,7 +496,6 @@ export default function HomePage() {
           </motion.div>
         </div>
       </motion.footer>
-
     </div>
   );
 }

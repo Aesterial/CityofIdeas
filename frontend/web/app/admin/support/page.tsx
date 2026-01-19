@@ -1,9 +1,9 @@
-﻿"use client"
+﻿"use client";
 
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { motion } from "framer-motion"
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import {
   CalendarDays,
   Check,
@@ -17,10 +17,10 @@ import {
   UserCheck,
   UserCircle2,
   X,
-} from "lucide-react"
-import { Logo } from "@/components/logo"
-import { useAuth } from "@/components/auth-provider"
-import { useLanguage } from "@/components/language-provider"
+} from "lucide-react";
+import { Logo } from "@/components/logo";
+import { useAuth } from "@/components/auth-provider";
+import { useLanguage } from "@/components/language-provider";
 import {
   acceptTicket,
   closeTicket,
@@ -28,91 +28,97 @@ import {
   fetchTicketInfo,
   fetchTicketMessages,
   fetchTickets,
-} from "@/lib/api"
+} from "@/lib/api";
 import {
   mapTicket,
   mapTicketMessages,
   type Ticket,
   type TicketMessage,
   type TicketStatus,
-} from "@/lib/tickets"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+} from "@/lib/tickets";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { cn } from "@/lib/utils"
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 const statusLabel: Record<TicketStatus, string> = {
   new: "Ожидает",
   in_progress: "В работе",
   closed: "Закрыто",
-}
+};
 
 const statusStyles: Record<TicketStatus, string> = {
   new: "bg-foreground/5 text-foreground",
   in_progress: "bg-foreground text-background",
   closed: "border border-foreground/15 text-muted-foreground",
-}
+};
 
 const resolveLocale = (language: string) =>
-  language === "KZ" ? "kk-KZ" : language === "RU" ? "ru-RU" : "en-US"
+  language === "KZ" ? "kk-KZ" : language === "RU" ? "ru-RU" : "en-US";
 
-const formatDateTime = (value: string | undefined, formatter: Intl.DateTimeFormat) => {
+const formatDateTime = (
+  value: string | undefined,
+  formatter: Intl.DateTimeFormat,
+) => {
   if (!value) {
-    return "-"
+    return "-";
   }
-  const date = new Date(value)
+  const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
-    return "-"
+    return "-";
   }
-  return formatter.format(date)
-}
+  return formatter.format(date);
+};
 
-const formatTime = (value: string | undefined, formatter: Intl.DateTimeFormat) => {
+const formatTime = (
+  value: string | undefined,
+  formatter: Intl.DateTimeFormat,
+) => {
   if (!value) {
-    return ""
+    return "";
   }
-  const date = new Date(value)
+  const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
-    return ""
+    return "";
   }
-  return formatter.format(date)
-}
+  return formatter.format(date);
+};
 
 export default function AdminSupportPage() {
-  const router = useRouter()
-  const { logout, user } = useAuth()
-  const { language, setLanguage } = useLanguage()
-  const [tickets, setTickets] = useState<Ticket[]>([])
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
-  const [messages, setMessages] = useState<TicketMessage[]>([])
-  const [messageText, setMessageText] = useState("")
-  const [notice, setNotice] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [loadingList, setLoadingList] = useState(true)
-  const [loadingDetails, setLoadingDetails] = useState(false)
-  const [sending, setSending] = useState(false)
-  const [accepting, setAccepting] = useState(false)
-  const [closing, setClosing] = useState(false)
+  const router = useRouter();
+  const { logout, user } = useAuth();
+  const { language, setLanguage } = useLanguage();
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [messages, setMessages] = useState<TicketMessage[]>([]);
+  const [messageText, setMessageText] = useState("");
+  const [notice, setNotice] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loadingList, setLoadingList] = useState(true);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [accepting, setAccepting] = useState(false);
+  const [closing, setClosing] = useState(false);
 
-  const displayName = user?.displayName || user?.username || ""
-  const initials = (displayName || "A").slice(0, 2).toUpperCase()
-  const currentName = displayName || user?.username || ""
-  const currentUserId = user?.uid
-  const canViewAllAccepted = user?.rank?.name === "developer"
+  const displayName = user?.displayName || user?.username || "";
+  const initials = (displayName || "A").slice(0, 2).toUpperCase();
+  const currentName = displayName || user?.username || "";
+  const currentUserId = user?.uid;
+  const canViewAllAccepted = user?.rank?.name === "developer";
 
   const languageOptions = [
     { code: "RU" as const, label: "RU" },
     { code: "EN" as const, label: "EN" },
     { code: "KZ" as const, label: "KZ" },
-  ]
+  ];
 
-  const locale = useMemo(() => resolveLocale(language), [language])
+  const locale = useMemo(() => resolveLocale(language), [language]);
   const dateTimeFormatter = useMemo(
     () =>
       new Intl.DateTimeFormat(locale, {
@@ -123,7 +129,7 @@ export default function AdminSupportPage() {
         minute: "2-digit",
       }),
     [locale],
-  )
+  );
   const timeFormatter = useMemo(
     () =>
       new Intl.DateTimeFormat(locale, {
@@ -131,222 +137,235 @@ export default function AdminSupportPage() {
         minute: "2-digit",
       }),
     [locale],
-  )
+  );
 
   const handleLogout = async () => {
-    await logout()
-    router.push("/")
-  }
+    await logout();
+    router.push("/");
+  };
 
   const isAssignedToCurrentUser = useCallback(
     (ticket: Ticket) => {
-      const assignee = ticket.assignee
+      const assignee = ticket.assignee;
       if (!assignee) {
-        return false
+        return false;
       }
       if (currentUserId != null && assignee.id != null) {
-        return String(currentUserId) === String(assignee.id)
+        return String(currentUserId) === String(assignee.id);
       }
       if (currentName && assignee.name) {
-        return currentName === assignee.name
+        return currentName === assignee.name;
       }
-      return false
+      return false;
     },
     [currentName, currentUserId],
-  )
+  );
 
   const canOpenTicket = useCallback(
     (ticket: Ticket) => {
       if (!ticket.assignee) {
-        return true
+        return true;
       }
       if (isAssignedToCurrentUser(ticket)) {
-        return true
+        return true;
       }
-      return canViewAllAccepted
+      return canViewAllAccepted;
     },
     [canViewAllAccepted, isAssignedToCurrentUser],
-  )
+  );
 
   const loadTickets = useCallback(async (signal?: AbortSignal) => {
-    setLoadingList(true)
-    setError(null)
+    setLoadingList(true);
+    setError(null);
     try {
-      const list = await fetchTickets({ signal })
+      const list = await fetchTickets({ signal });
       if (signal?.aborted) {
-        return
+        return;
       }
       const mapped = list
         .map((item) => mapTicket(item))
-        .filter((item): item is Ticket => Boolean(item))
-      setTickets(mapped)
+        .filter((item): item is Ticket => Boolean(item));
+      setTickets(mapped);
     } catch (err) {
       if (!signal?.aborted) {
-        setError("Не удалось загрузить обращения.")
-        setTickets([])
+        setError("Не удалось загрузить обращения.");
+        setTickets([]);
       }
     } finally {
       if (!signal?.aborted) {
-        setLoadingList(false)
+        setLoadingList(false);
       }
     }
-  }, [])
+  }, []);
 
   const loadDetails = useCallback(
     async (id: string, signal?: AbortSignal) => {
-      setLoadingDetails(true)
-      setError(null)
+      setLoadingDetails(true);
+      setError(null);
       try {
         const [info, list] = await Promise.all([
           fetchTicketInfo(id, { signal }),
           fetchTicketMessages(id, { signal }),
-        ])
+        ]);
         if (signal?.aborted) {
-          return
+          return;
         }
-        const mapped = info ? mapTicket(info) : null
-        const fallback = tickets.find((ticket) => ticket.id === id) ?? null
-        setSelectedTicket(mapped ?? fallback)
-        setMessages(mapTicketMessages(list))
+        const mapped = info ? mapTicket(info) : null;
+        const fallback = tickets.find((ticket) => ticket.id === id) ?? null;
+        setSelectedTicket(mapped ?? fallback);
+        setMessages(mapTicketMessages(list));
       } catch (err) {
         if (!signal?.aborted) {
-          setError("Не удалось загрузить данные обращения.")
-          setMessages([])
+          setError("Не удалось загрузить данные обращения.");
+          setMessages([]);
         }
       } finally {
         if (!signal?.aborted) {
-          setLoadingDetails(false)
+          setLoadingDetails(false);
         }
       }
     },
     [tickets],
-  )
+  );
 
   useEffect(() => {
-    const controller = new AbortController()
-    void loadTickets(controller.signal)
-    return () => controller.abort()
-  }, [loadTickets])
+    const controller = new AbortController();
+    void loadTickets(controller.signal);
+    return () => controller.abort();
+  }, [loadTickets]);
 
   const firstAvailableId = useMemo(
     () => tickets.find((ticket) => canOpenTicket(ticket))?.id ?? null,
     [tickets, canOpenTicket],
-  )
+  );
 
   useEffect(() => {
     if (!tickets.length) {
-      setSelectedId(null)
-      setSelectedTicket(null)
-      setMessages([])
-      setNotice(null)
-      return
+      setSelectedId(null);
+      setSelectedTicket(null);
+      setMessages([]);
+      setNotice(null);
+      return;
     }
     if (!selectedId) {
-      setSelectedId(firstAvailableId)
-      return
+      setSelectedId(firstAvailableId);
+      return;
     }
-    const activeTicket = tickets.find((ticket) => ticket.id === selectedId)
+    const activeTicket = tickets.find((ticket) => ticket.id === selectedId);
     if (!activeTicket) {
-      setSelectedId(firstAvailableId)
-      return
+      setSelectedId(firstAvailableId);
+      return;
     }
-    setSelectedTicket(activeTicket)
-    setMessageText("")
+    setSelectedTicket(activeTicket);
+    setMessageText("");
     if (!canOpenTicket(activeTicket)) {
-      setNotice("Обращение уже принято другим администратором.")
-      setMessages([])
-      return
+      setNotice("Обращение уже принято другим администратором.");
+      setMessages([]);
+      return;
     }
-    setNotice(null)
-    const controller = new AbortController()
-    void loadDetails(activeTicket.id, controller.signal)
-    return () => controller.abort()
-  }, [tickets, selectedId, firstAvailableId, canOpenTicket, loadDetails])
+    setNotice(null);
+    const controller = new AbortController();
+    void loadDetails(activeTicket.id, controller.signal);
+    return () => controller.abort();
+  }, [tickets, selectedId, firstAvailableId, canOpenTicket, loadDetails]);
 
   const handleSelect = (ticket: Ticket) => {
     if (!canOpenTicket(ticket)) {
-      setNotice("Обращение уже принято другим администратором.")
+      setNotice("Обращение уже принято другим администратором.");
     } else {
-      setNotice(null)
+      setNotice(null);
     }
-    setSelectedId(ticket.id)
-  }
+    setSelectedId(ticket.id);
+  };
 
   const handleAccept = async () => {
     if (!selectedTicket || accepting || selectedTicket.status === "closed") {
-      return
+      return;
     }
     if (selectedTicket.assignee) {
-      return
+      return;
     }
-    setAccepting(true)
-    setError(null)
+    setAccepting(true);
+    setError(null);
     try {
-      await acceptTicket(selectedTicket.id)
-      await Promise.all([loadTickets(), loadDetails(selectedTicket.id)])
+      await acceptTicket(selectedTicket.id);
+      await Promise.all([loadTickets(), loadDetails(selectedTicket.id)]);
     } catch (err) {
-      setError("Не удалось принять обращение.")
+      setError("Не удалось принять обращение.");
     } finally {
-      setAccepting(false)
+      setAccepting(false);
     }
-  }
+  };
 
   const handleSend = async () => {
-    if (!selectedTicket || sending || notice || selectedTicket.status === "closed") {
-      return
+    if (
+      !selectedTicket ||
+      sending ||
+      notice ||
+      selectedTicket.status === "closed"
+    ) {
+      return;
     }
-    const trimmed = messageText.trim()
+    const trimmed = messageText.trim();
     if (!trimmed) {
-      return
+      return;
     }
-    setSending(true)
-    setError(null)
+    setSending(true);
+    setError(null);
     try {
-      await createTicketMessage(selectedTicket.id, trimmed)
-      setMessageText("")
-      await Promise.all([loadTickets(), loadDetails(selectedTicket.id)])
+      await createTicketMessage(selectedTicket.id, trimmed);
+      setMessageText("");
+      await Promise.all([loadTickets(), loadDetails(selectedTicket.id)]);
     } catch (err) {
-      setError("Не удалось отправить сообщение.")
+      setError("Не удалось отправить сообщение.");
     } finally {
-      setSending(false)
+      setSending(false);
     }
-  }
+  };
 
   const handleClose = async () => {
-    if (!selectedTicket || closing || selectedTicket.status === "closed" || notice) {
-      return
+    if (
+      !selectedTicket ||
+      closing ||
+      selectedTicket.status === "closed" ||
+      notice
+    ) {
+      return;
     }
-    setClosing(true)
-    setError(null)
+    setClosing(true);
+    setError(null);
     try {
-      await closeTicket(selectedTicket.id)
-      await Promise.all([loadTickets(), loadDetails(selectedTicket.id)])
+      await closeTicket(selectedTicket.id);
+      await Promise.all([loadTickets(), loadDetails(selectedTicket.id)]);
     } catch (err) {
-      setError("Не удалось закрыть обращение.")
+      setError("Не удалось закрыть обращение.");
     } finally {
-      setClosing(false)
+      setClosing(false);
     }
-  }
+  };
 
   const resolveAuthorName = (message: TicketMessage) => {
     if (message.authorName) {
-      return message.authorName
+      return message.authorName;
     }
     if (message.isStaff) {
-      return "Поддержка"
+      return "Поддержка";
     }
-    return "Пользователь"
-  }
+    return "Пользователь";
+  };
 
-  const selectedStatus = selectedTicket?.status ?? "new"
-  const isSelectedClosed = selectedStatus === "closed"
+  const selectedStatus = selectedTicket?.status ?? "new";
+  const isSelectedClosed = selectedStatus === "closed";
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
       <div className="pointer-events-none absolute -top-40 right-0 h-[24rem] w-[24rem] rounded-full bg-foreground/5 blur-3xl" />
       <div className="pointer-events-none absolute bottom-0 left-0 h-[26rem] w-[26rem] rounded-full bg-foreground/10 blur-3xl" />
 
-      <header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur">
+      <header
+        className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur"
+        style={{ top: "var(--maintenance-banner-height)" }}
+      >
         <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div className="flex items-center gap-4">
             <Link href="/" aria-label="Go to main site">
@@ -354,7 +373,9 @@ export default function AdminSupportPage() {
             </Link>
             <div>
               <p className="text-lg font-semibold">Админ-панель</p>
-              <p className="text-xs text-muted-foreground">Поддержка и обращения</p>
+              <p className="text-xs text-muted-foreground">
+                Поддержка и обращения
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -371,7 +392,10 @@ export default function AdminSupportPage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-[90px]">
                 {languageOptions.map((option) => (
-                  <DropdownMenuItem key={option.code} onClick={() => setLanguage(option.code)}>
+                  <DropdownMenuItem
+                    key={option.code}
+                    onClick={() => setLanguage(option.code)}
+                  >
                     {option.label}
                   </DropdownMenuItem>
                 ))}
@@ -404,8 +428,8 @@ export default function AdminSupportPage() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onSelect={(event) => {
-                    event.preventDefault()
-                    void handleLogout()
+                    event.preventDefault();
+                    void handleLogout();
                   }}
                 >
                   <LogOut className="h-4 w-4" />
@@ -433,13 +457,18 @@ export default function AdminSupportPage() {
           >
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Поддержка</p>
-                <h1 className="text-2xl font-bold sm:text-3xl">Очередь обращений</h1>
+                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                  Поддержка
+                </p>
+                <h1 className="text-2xl font-bold sm:text-3xl">
+                  Очередь обращений
+                </h1>
                 <p className="text-sm text-muted-foreground">
                   Примите обращение и поддерживайте переписку прямо из панели.
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Если в обращении не будет сообщений 48 часов, оно закроется автоматически.
+                  Если в обращении не будет сообщений 48 часов, оно закроется
+                  автоматически.
                 </p>
               </div>
               <div className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold">
@@ -468,13 +497,16 @@ export default function AdminSupportPage() {
               {loadingList ? (
                 <div className="space-y-4">
                   {Array.from({ length: 4 }).map((_, index) => (
-                    <div key={index} className="h-24 rounded-3xl bg-muted/60 animate-pulse" />
+                    <div
+                      key={index}
+                      className="h-24 rounded-3xl bg-muted/60 animate-pulse"
+                    />
                   ))}
                 </div>
               ) : tickets.length ? (
                 <div className="space-y-4">
                   {tickets.map((ticket) => {
-                    const locked = !canOpenTicket(ticket)
+                    const locked = !canOpenTicket(ticket);
                     return (
                       <button
                         key={ticket.id}
@@ -482,7 +514,8 @@ export default function AdminSupportPage() {
                         onClick={() => handleSelect(ticket)}
                         className={cn(
                           "w-full rounded-3xl border border-border/60 bg-background/70 p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/30",
-                          selectedId === ticket.id && "ring-2 ring-foreground/15 border-foreground/40",
+                          selectedId === ticket.id &&
+                            "ring-2 ring-foreground/15 border-foreground/40",
                           locked && "opacity-60",
                         )}
                       >
@@ -495,7 +528,11 @@ export default function AdminSupportPage() {
                               {ticket.subject || "Без темы"}
                             </p>
                             <p className="mt-1 text-xs text-muted-foreground">
-                              {ticket.requester?.name || "Пользователь"} · {formatDateTime(ticket.createdAt, dateTimeFormatter)}
+                              {ticket.requester?.name || "Пользователь"} ·{" "}
+                              {formatDateTime(
+                                ticket.createdAt,
+                                dateTimeFormatter,
+                              )}
                             </p>
                           </div>
                           <span
@@ -510,8 +547,8 @@ export default function AdminSupportPage() {
                         <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
                           {ticket.assignee?.name ? (
                             <span className="flex items-center gap-2">
-                              <UserCheck className="h-4 w-4" />
-                              В работе: {ticket.assignee.name}
+                              <UserCheck className="h-4 w-4" />В работе:{" "}
+                              {ticket.assignee.name}
                             </span>
                           ) : (
                             <span className="flex items-center gap-2">
@@ -527,11 +564,13 @@ export default function AdminSupportPage() {
                           ) : null}
                         </div>
                       </button>
-                    )
+                    );
                   })}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">Обращений пока нет.</p>
+                <p className="text-sm text-muted-foreground">
+                  Обращений пока нет.
+                </p>
               )}
             </motion.section>
 
@@ -546,7 +585,12 @@ export default function AdminSupportPage() {
                   <div>
                     <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
                       <span>{selectedTicket.category || "Без категории"}</span>
-                      <span className={cn("rounded-full px-2 py-0.5 font-semibold", statusStyles[selectedStatus])}>
+                      <span
+                        className={cn(
+                          "rounded-full px-2 py-0.5 font-semibold",
+                          statusStyles[selectedStatus],
+                        )}
+                      >
                         {statusLabel[selectedStatus]}
                       </span>
                     </div>
@@ -554,7 +598,11 @@ export default function AdminSupportPage() {
                       {selectedTicket.subject || "Без темы"}
                     </h2>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      Создано: {formatDateTime(selectedTicket.createdAt, dateTimeFormatter)}
+                      Создано:{" "}
+                      {formatDateTime(
+                        selectedTicket.createdAt,
+                        dateTimeFormatter,
+                      )}
                     </p>
                   </div>
 
@@ -575,16 +623,25 @@ export default function AdminSupportPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Последнее обновление:</span>
+                      <span className="text-muted-foreground">
+                        Последнее обновление:
+                      </span>
                       <span className="font-semibold">
-                        {formatDateTime(selectedTicket.updatedAt || selectedTicket.lastMessageAt, dateTimeFormatter)}
+                        {formatDateTime(
+                          selectedTicket.updatedAt ||
+                            selectedTicket.lastMessageAt,
+                          dateTimeFormatter,
+                        )}
                       </span>
                     </div>
                   </div>
 
                   {selectedTicket.assignee?.name ? (
                     <div className="rounded-2xl border border-border/60 bg-background/70 p-4 text-xs text-muted-foreground">
-                      В работе: <span className="font-semibold text-foreground">{selectedTicket.assignee.name}</span>
+                      В работе:{" "}
+                      <span className="font-semibold text-foreground">
+                        {selectedTicket.assignee.name}
+                      </span>
                     </div>
                   ) : (
                     <button
@@ -607,32 +664,40 @@ export default function AdminSupportPage() {
                         {messages.map((message) => {
                           const isMine =
                             currentUserId != null && message.authorId != null
-                              ? String(currentUserId) === String(message.authorId)
-                              : false
+                              ? String(currentUserId) ===
+                                String(message.authorId)
+                              : false;
                           const bubbleClass = isMine
                             ? "bg-foreground text-background ml-auto"
                             : message.isStaff
                               ? "border border-foreground/15 bg-background"
-                              : "bg-muted/80"
+                              : "bg-muted/80";
 
                           return (
                             <div
                               key={message.id}
-                              className={cn("max-w-[85%] rounded-2xl px-4 py-3 text-sm", bubbleClass)}
+                              className={cn(
+                                "max-w-[85%] rounded-2xl px-4 py-3 text-sm",
+                                bubbleClass,
+                              )}
                             >
                               <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
                                 <span>{resolveAuthorName(message)}</span>
-                                <span>{formatTime(message.createdAt, timeFormatter)}</span>
+                                <span>
+                                  {formatTime(message.createdAt, timeFormatter)}
+                                </span>
                               </div>
                               <p className="mt-2 whitespace-pre-wrap text-sm">
                                 {message.message}
                               </p>
                             </div>
-                          )
+                          );
                         })}
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground">Сообщений пока нет.</p>
+                      <p className="text-sm text-muted-foreground">
+                        Сообщений пока нет.
+                      </p>
                     )}
                   </div>
 
@@ -672,7 +737,9 @@ export default function AdminSupportPage() {
                       <button
                         type="button"
                         onClick={handleClose}
-                        disabled={closing || isSelectedClosed || Boolean(notice)}
+                        disabled={
+                          closing || isSelectedClosed || Boolean(notice)
+                        }
                         className="inline-flex items-center justify-center gap-2 rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <X className="h-4 w-4" />
@@ -691,5 +758,5 @@ export default function AdminSupportPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

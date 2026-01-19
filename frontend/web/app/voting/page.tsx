@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Heart, ListFilter, MapPin, Sparkles } from "lucide-react";
+import { ChevronDown, ListFilter, MapPin, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { Header, cities as availableCities } from "@/components/header";
 import { GradientButton } from "@/components/gradient-button";
 import { useAuth } from "@/components/auth-provider";
@@ -11,12 +12,7 @@ import {
   TutorialProvider,
   type TutorialStep,
 } from "@/components/tutorial/tutorial-provider";
-import {
-  fetchProjects,
-  toggleProjectLike,
-  voteForProject,
-  type ApiProject,
-} from "@/lib/api";
+import { fetchProjects, toggleProjectLike, type ApiProject } from "@/lib/api";
 import type { Variants } from "framer-motion";
 
 interface IdeaCard {
@@ -29,8 +25,6 @@ interface IdeaCard {
   category: string;
   city: string;
   votes: number;
-  likes: number;
-  isLiked: boolean;
   isVoted: boolean;
   createdAt: string;
 }
@@ -137,14 +131,13 @@ const cardVariants: Variants = {
 
 const sortOptions = [
   { id: "popular", label: "По голосам" },
-  { id: "likes", label: "По лайкам" },
   { id: "newest", label: "Новые" },
 ] as const;
 
 const votingTutorialSteps: TutorialStep[] = [
   {
     selector: '[data-tutorial="voting-hero"]',
-    text: "Здесь общий обзор голосования: сколько идей, голосов и лайков.",
+    text: "Здесь общий обзор голосования: сколько идей и голосов.",
     position: "bottom",
   },
   {
@@ -154,12 +147,12 @@ const votingTutorialSteps: TutorialStep[] = [
   },
   {
     selector: '[data-tutorial="voting-sort"]',
-    text: "Сортируй идеи по популярности, лайкам или новизне.",
+    text: "Сортируй идеи по популярности или новизне.",
     position: "bottom",
   },
   {
     selector: '[data-tutorial="voting-list"]',
-    text: "В карточках можно поставить лайк и проголосовать за идею.",
+    text: "В карточках можно проголосовать за идею.",
     position: "top",
   },
 ];
@@ -176,7 +169,7 @@ export default function VotingPage() {
   const [selectedCity, setSelectedCity] = useState<CityFilter>(ALL_FILTER);
   const [sortBy, setSortBy] =
     useState<(typeof sortOptions)[number]["id"]>("popular");
-  const { user } = useAuth();
+  const { user, status } = useAuth();
   const { t } = useLanguage();
   const categoryLabels = useMemo<Record<string, string>>(
     () => ({
@@ -239,14 +232,10 @@ export default function VotingPage() {
         const photoImage =
           toImageSrc(photos[1] ?? photos[0]) || "/placeholder.svg";
 
-        const likesCount = Number(
-          project.likesCount ?? project.likes_count ?? 0,
-        );
-
         const liked = Array.isArray(project.liked) ? project.liked : [];
         const userId = user?.uid;
 
-        const isLiked =
+        const isVoted =
           userId != null &&
           liked.some((item) => extractUserId(item) === userId);
 
@@ -259,10 +248,8 @@ export default function VotingPage() {
           photoImage,
           category: resolveCategoryLabel(info?.category),
           city,
-          votes: likesCount,
-          likes: likesCount,
-          isLiked,
-          isVoted: isLiked,
+          votes: Number(project.likesCount ?? project.likes_count ?? 0),
+          isVoted,
           createdAt:
             parseTimestamp(project.createdAt ?? project.created_at) || "",
         };
@@ -306,17 +293,18 @@ export default function VotingPage() {
   );
 
   useEffect(() => {
+    if (status !== "authenticated") {
+      setIdeas([]);
+      setIsLoading(false);
+      return;
+    }
     const controller = new AbortController();
     void loadIdeas(controller.signal);
     return () => controller.abort();
-  }, [loadIdeas]);
+  }, [loadIdeas, status]);
 
   const totalVotes = useMemo(
     () => ideas.reduce((sum, idea) => sum + idea.votes, 0),
-    [ideas],
-  );
-  const totalLikes = useMemo(
-    () => ideas.reduce((sum, idea) => sum + idea.likes, 0),
     [ideas],
   );
 
@@ -334,30 +322,6 @@ export default function VotingPage() {
     return snapshot;
   };
 
-  const toggleLike = async (id: string) => {
-    const snapshot = updateIdea(id, (idea) => {
-      const nextLiked = !idea.isLiked;
-      const nextLikes = Math.max(0, idea.likes + (nextLiked ? 1 : -1));
-      return {
-        ...idea,
-        isLiked: nextLiked,
-        likes: nextLikes,
-      };
-    });
-
-    if (!snapshot) {
-      return;
-    }
-
-    try {
-      await toggleProjectLike(id);
-    } catch {
-      setIdeas((current) =>
-        current.map((idea) => (idea.id === id ? snapshot : idea)),
-      );
-    }
-  };
-
   const handleVote = async (id: string) => {
     let wasUpdated = false;
     const snapshot = updateIdea(id, (idea) => {
@@ -373,7 +337,7 @@ export default function VotingPage() {
     }
 
     try {
-      await voteForProject(id);
+      await toggleProjectLike(id);
     } catch {
       setIdeas((current) =>
         current.map((idea) => (idea.id === id ? snapshot : idea)),
@@ -456,8 +420,6 @@ export default function VotingPage() {
       return Number.isNaN(time) ? 0 : time;
     };
     switch (sortBy) {
-      case "likes":
-        return data.sort((a, b) => b.likes - a.likes);
       case "newest":
         return data.sort((a, b) => toTime(b.createdAt) - toTime(a.createdAt));
       case "popular":
@@ -549,6 +511,42 @@ export default function VotingPage() {
     </div>
   );
 
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-24 pb-16 px-4 sm:pt-28 sm:pb-20 sm:px-6">
+          <div className="container mx-auto flex justify-center">
+            <div className="h-10 w-40 rounded-full bg-muted/80 animate-pulse" />
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (status !== "authenticated" || !user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-24 pb-16 px-4 sm:pt-28 sm:pb-20 sm:px-6">
+          <div className="container mx-auto max-w-lg text-center">
+            <p className="text-lg font-semibold">
+              Для начала необходимо авторизовать
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Авторизуйтесь, чтобы участвовать в голосовании.
+            </p>
+            <Link href="/auth" className="mt-6 inline-flex">
+              <GradientButton className="px-6 py-3 text-sm">
+                Авторизация
+              </GradientButton>
+            </Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <TutorialProvider
       steps={votingTutorialSteps}
@@ -594,7 +592,7 @@ export default function VotingPage() {
                       </p>
                     </div>
 
-                    <div className="grid w-full max-w-md grid-cols-1 gap-3 sm:max-w-none sm:grid-cols-3">
+                    <div className="grid w-full max-w-md grid-cols-1 gap-3 sm:max-w-none sm:grid-cols-2">
                       <div className="rounded-2xl border border-border/60 bg-card/80 p-3 text-center shadow-[0_16px_36px_-28px_rgba(0,0,0,0.5)]">
                         <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
                           Идей
@@ -606,12 +604,6 @@ export default function VotingPage() {
                           Голосов
                         </p>
                         <p className="text-2xl font-semibold">{totalVotes}</p>
-                      </div>
-                      <div className="rounded-2xl border border-border/60 bg-card/80 p-3 text-center shadow-[0_16px_36px_-28px_rgba(0,0,0,0.5)]">
-                        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-                          Лайков
-                        </p>
-                        <p className="text-2xl font-semibold">{totalLikes}</p>
                       </div>
                     </div>
                   </div>
@@ -704,7 +696,7 @@ export default function VotingPage() {
                     ) : null}
 
                     <motion.div
-                      key={`${selectedCategory}-${selectedCity}-${sortBy}`}
+                      key={`${selectedCategory}-${selectedCity}-${sortBy}-${sortedIdeas.length}`}
                       variants={containerVariants}
                       initial="hidden"
                       animate="visible"
@@ -807,24 +799,6 @@ export default function VotingPage() {
                                 </div>
 
                                 <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-border/60 pt-4">
-                                  <motion.button
-                                    onClick={() => toggleLike(idea.id)}
-                                    className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold transition-all duration-300 ${
-                                      idea.isLiked
-                                        ? "border-foreground bg-foreground text-background"
-                                        : "border-border/70 bg-background/70 text-muted-foreground hover:border-foreground hover:text-foreground"
-                                    }`}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                  >
-                                    <Heart
-                                      className={`h-4 w-4 ${
-                                        idea.isLiked ? "fill-current" : ""
-                                      }`}
-                                    />
-                                    <span>{idea.likes}</span>
-                                  </motion.button>
-
                                   <div className="flex flex-wrap items-center gap-3">
                                     <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs font-semibold text-muted-foreground">
                                       {idea.votes} голосов

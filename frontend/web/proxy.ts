@@ -11,8 +11,7 @@ let cachedAt = 0;
 let pendingRequest: Promise<boolean> | null = null;
 let requestToken = 0;
 
-// Maintenance checks are temporarily disabled; short-circuit to avoid network.
-const DISABLE_MAINTENANCE_CHECKS = true;
+const DISABLE_MAINTENANCE_CHECKS = false;
 
 const stripTrailingSlash = (value: string) => value.replace(/\/$/, "");
 
@@ -52,7 +51,7 @@ const readActiveFlag = (payload: unknown): boolean | null => {
     return null;
   }
   const record = payload as Record<string, unknown>;
-  const candidates = ["active", "data", "maintenance", "enabled"];
+  const candidates = ["has", "active", "data", "maintenance", "enabled"];
   for (const key of candidates) {
     const value = record[key];
     if (typeof value === "boolean") {
@@ -71,9 +70,7 @@ const isExplicitlyInactive = (payload: unknown) => {
   }
   const record = payload as Record<string, unknown>;
   const message =
-    typeof record.message === "string"
-      ? record.message.toLowerCase()
-      : "";
+    typeof record.message === "string" ? record.message.toLowerCase() : "";
   const code = typeof record.code === "number" ? record.code : null;
   if (message.includes("maintenance is not active")) {
     return true;
@@ -88,7 +85,7 @@ const fetchMaintenanceActive = async (request: NextRequest) => {
   const base = resolveApiBaseUrl(request);
   const normalizedBase =
     process.env.NODE_ENV === "production" ? ensureHttps(base) : base;
-  const url = `${stripTrailingSlash(normalizedBase)}/api/maintenance/active`;   
+  const url = `${stripTrailingSlash(normalizedBase)}/api/maintenance/active`;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {

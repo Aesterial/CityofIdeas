@@ -74,7 +74,7 @@ const formatTimeLeft = (value?: string) => {
   return formatUnit(years, "year");
 };
 
-const normalizeMaintenance = (payload: unknown): MaintenanceData | null => {    
+const normalizeMaintenance = (payload: unknown): MaintenanceData | null => {
   if (!payload || typeof payload !== "object") {
     return null;
   }
@@ -104,11 +104,11 @@ const normalizeMaintenance = (payload: unknown): MaintenanceData | null => {
   return { id, description, will_end: willEnd };
 };
 
-const DISABLE_MAINTENANCE_CHECKS = true;
+const DISABLE_MAINTENANCE_CHECKS = false;
 
 export default function MaintenancePage() {
-  const [maintenance, setMaintenance] = useState<MaintenanceData | null>(null); 
-  const [hasMaintenance, setHasMaintenance] = useState<boolean | null>(null);   
+  const [maintenance, setMaintenance] = useState<MaintenanceData | null>(null);
+  const [hasMaintenance, setHasMaintenance] = useState<boolean | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -121,7 +121,7 @@ export default function MaintenancePage() {
     const load = async () => {
       try {
         const baseUrl = API_BASE_URL;
-        const response = await fetch(`${baseUrl}/api/maintenance/data`, {       
+        const response = await fetch(`${baseUrl}/api/maintenance/data`, {
           method: "GET",
           headers: {
             Accept: "application/json",

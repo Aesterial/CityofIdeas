@@ -162,7 +162,10 @@ export default function SubmissionStatusPage({ status }: StatusPageProps) {
       <div className="pointer-events-none absolute bottom-0 left-0 h-[32rem] w-[32rem] rounded-full bg-foreground/10 blur-3xl" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(0,0,0,0.04),transparent_45%,rgba(0,0,0,0.06))]" />
 
-      <header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur">
+      <header
+        className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur"
+        style={{ top: "var(--maintenance-banner-height)" }}
+      >
         <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div className="flex items-center gap-4">
             <Link href="/" aria-label="Go to main site">
@@ -255,11 +258,19 @@ export default function SubmissionStatusPage({ status }: StatusPageProps) {
                   {t(statusInfo.labelKey)}
                 </h1>
               </div>
-              <div className="text-sm text-muted-foreground">
-                {t("adminSubmissionsTotalLabel")}:{" "}
-                <span className="text-foreground font-semibold">
-                  {filtered.length}
+              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                <span>
+                  {t("adminSubmissionsTotalLabel")}:{" "}
+                  <span className="text-foreground font-semibold">
+                    {filtered.length}
+                  </span>
                 </span>
+                <Link
+                  href="/admin/submissions"
+                  className="rounded-full border border-border/70 px-4 py-2 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+                >
+                  {t("adminSubmissionsBackToCategories")}
+                </Link>
               </div>
             </div>
           </motion.section>

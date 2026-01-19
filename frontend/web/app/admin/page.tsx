@@ -91,6 +91,16 @@ const sectionVariants = {
   visible: { opacity: 1, y: 0 },
 };
 
+const NO_DATA_LABEL = "нет информации";
+
+const renderNoData = (heightClass: string) => (
+  <div
+    className={`mt-4 flex ${heightClass} items-center justify-center rounded-2xl border border-dashed border-border/60 text-sm text-muted-foreground`}
+  >
+    {NO_DATA_LABEL}
+  </div>
+);
+
 const adminTutorialSteps: TutorialStep[] = [
   {
     selector: '[data-tutorial="admin-sidebar"]',
@@ -116,21 +126,6 @@ const adminTutorialSteps: TutorialStep[] = [
     selector: '[data-tutorial="admin-users-list"]',
     text: "\u0421\u043f\u0438\u0441\u043e\u043a \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u0439: \u0441\u0442\u0430\u0442\u0443\u0441, \u0430\u043a\u0442\u0438\u0432\u043d\u043e\u0441\u0442\u044c \u0438 \u0431\u044b\u0441\u0442\u0440\u044b\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u044f.",
     position: "right",
-  },
-  {
-    selector: '[data-tutorial="admin-ban-panel"]',
-    text: "\u0411\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u043a\u0430: \u0441\u043d\u0430\u0447\u0430\u043b\u0430 \u0432\u044b\u0431\u0435\u0440\u0438 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f \u0438 \u0441\u0440\u043e\u043a \u0431\u0430\u043d\u0430.",
-    position: "left",
-  },
-  {
-    selector: '[data-tutorial="admin-ban-reason"]',
-    text: "\u041f\u0440\u0438\u0447\u0438\u043d\u0443 \u0431\u0430\u043d\u0430 \u043f\u0438\u0448\u0438 \u0437\u0434\u0435\u0441\u044c \u2014 \u0442\u0435\u043a\u0441\u0442 \u0443\u0439\u0434\u0435\u0442 \u0432 \u0438\u0441\u0442\u043e\u0440\u0438\u044e \u043c\u043e\u0434\u0435\u0440\u0430\u0446\u0438\u0438.",
-    position: "right",
-  },
-  {
-    selector: '[data-tutorial="admin-ban-actions"]',
-    text: "\u0413\u043e\u0442\u043e\u0432\u043e? \u0416\u043c\u0438 \u00ab\u0417\u0430\u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u0430\u0442\u044c\u00bb, \u0430 \u0434\u043b\u044f \u0441\u043d\u044f\u0442\u0438\u044f \u0431\u0430\u043d\u0430 \u2014 \u00ab\u0420\u0430\u0437\u0431\u043b\u043e\u043a\u0438\u0440\u043e\u0432\u0430\u0442\u044c\u00bb.",
-    position: "top",
   },
 ];
 
@@ -282,7 +277,7 @@ export default function AdminPage() {
 
   const [mounted, setMounted] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState("overview");
+  const [activeSection, setActiveSection] = useState("users");
 
   const [statsSummary, setStatsSummary] = useState<StatsSummary>({
     activeUsers: null,
@@ -291,10 +286,6 @@ export default function AdminPage() {
     votes: null,
   });
   const [users, setUsers] = useState<User[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
-  const [banReason, setBanReason] = useState("");
-  const [banDuration, setBanDuration] = useState(0);
-  const [banUntilDate, setBanUntilDate] = useState<Date | undefined>();
   const [banDialogOpen, setBanDialogOpen] = useState(false);
   const [banDialogUser, setBanDialogUser] = useState<User | null>(null);
   const [banDialogReason, setBanDialogReason] = useState("");
@@ -379,6 +370,12 @@ export default function AdminPage() {
   const sidebarItems = useMemo(
     () => [
       {
+        id: "users",
+        label: t("adminAccessModerationTitle"),
+        icon: Shield,
+        href: "#users",
+      },
+      {
         id: "overview",
         label: t("adminStatsTitle"),
         icon: BarChart3,
@@ -395,12 +392,6 @@ export default function AdminPage() {
         label: t("adminMediaTitle"),
         icon: ImageIcon,
         href: "#media",
-      },
-      {
-        id: "users",
-        label: t("adminAccessModerationTitle"),
-        icon: Shield,
-        href: "#users",
       },
       {
         id: "submissions",
@@ -456,38 +447,10 @@ export default function AdminPage() {
     [t],
   );
 
-  const activityFallback = useMemo(() => {
-    const formatter = new Intl.DateTimeFormat(locale, {
-      month: "short",
-      day: "numeric",
-    });
-    const now = new Date();
-    const baseActive = statsSummary.activeUsers ?? 0;
-    const baseOffline = statsSummary.offlineUsers ?? 0;
-
-    return Array.from({ length: activityRangeDays }, (_, index) => {
-      const date = new Date(now);
-      const steps = Math.max(activityRangeDays - 1, 0);
-      date.setDate(now.getDate() - (steps - index));
-      const growth = index * 0.08;
-
-      return {
-        label: formatter.format(date),
-        timestamp: date.getTime(),
-        active: Math.max(0, Math.round(baseActive * (0.6 + growth))),
-        offline: Math.max(0, Math.round(baseOffline * (0.7 - growth * 0.6))),
-      };
-    });
-  }, [
-    activityRangeDays,
-    locale,
-    statsSummary.activeUsers,
-    statsSummary.offlineUsers,
-  ]);
-
-  const activityData = activityPoints.length
-    ? activityPoints
-    : activityFallback;
+  const activityData = activityPoints;
+  const hasActivityData = activityPoints.some(
+    (point) => point.active > 0 || point.offline > 0,
+  );
 
   const statusData = useMemo(
     () => [
@@ -538,6 +501,18 @@ export default function AdminPage() {
     ];
   }, [qualityScores, t]);
 
+  const hasStatusData = statusData.some((entry) => entry.value > 0);
+  const hasParticipationData = participationData.some(
+    (entry) => entry.value > 0,
+  );
+  const hasVotesByCategoryData = votesByCategoryData.some(
+    (entry) => entry.votes > 0,
+  );
+  const hasQualityData = qualityData.some((entry) => entry.score > 0);
+  const hasMediaCoverageData = mediaCoverageData.some(
+    (entry) => entry.photos > 0 || entry.videos > 0,
+  );
+
   const activityConfig = {
     active: {
       label: t("adminStatsActiveUsers"),
@@ -577,7 +552,7 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
-    const sectionIds = ["overview", "analytics", "media", "users"];
+    const sectionIds = ["users", "overview", "analytics", "media"];
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries.find((entry) => entry.isIntersecting);
@@ -1036,43 +1011,8 @@ export default function AdminPage() {
 
   const handleUserAction = async (
     user: User,
-    action: "block" | "unblock" | "reset" | "message",
+    action: "unblock" | "reset" | "message",
   ) => {
-    if (action === "block") {
-      const reason = banReason.trim();
-      if (!reason) {
-        toast.error(t("adminBanReasonRequired"));
-        return;
-      }
-      const durationSeconds: number | null = resolveBanDurationSeconds(
-        banDuration,
-        banUntilDate,
-      );
-
-      if (banDuration === -1) {
-        if (durationSeconds == null) {
-          toast.error(t("adminBanDateRequired"));
-          return;
-        }
-        if (durationSeconds <= 0) {
-          toast.error(t("adminBanDateInvalid"));
-          return;
-        }
-      }
-      try {
-        await banUser(user.userID, reason, durationSeconds ?? 0);
-        updateUserStatus(user.userID, "banned");
-        toast.error(t("adminToastUserBlocked"), {
-          description: `${user.name} - ${t("adminBanReason")}: ${reason}`,
-        });
-      } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : t("adminErrorLoadUsers"),
-        );
-      }
-      return;
-    }
-
     if (action === "unblock") {
       if (user.status !== "banned") {
         return;
@@ -1103,23 +1043,6 @@ export default function AdminPage() {
     });
   };
 
-  const selectedUser = useMemo(
-    () => users.find((item) => item.userID === selectedUserId) ?? null,
-    [users, selectedUserId],
-  );
-  const canUnblockSelected = selectedUser?.status === "banned";
-
-  const handleSelectedAction = (action: "block" | "unblock" | "reset") => {
-    if (!selectedUser) {
-      toast.message(t("adminToastSelectUser"));
-      return;
-    }
-    if (action === "unblock" && !canUnblockSelected) {
-      return;
-    }
-    void handleUserAction(selectedUser, action);
-  };
-
   const sidebar = (
     <motion.aside
       data-tutorial="admin-sidebar"
@@ -1134,6 +1057,7 @@ export default function AdminPage() {
           <Link href="/" aria-label="Go to main site">
             <Logo className="h-9 w-9 text-foreground" showText={false} />
           </Link>
+          <span className="text-sm font-semibold">{t("adminPanel")}</span>
         </div>
         <button
           type="button"
@@ -1186,7 +1110,10 @@ export default function AdminPage() {
           </div>
 
           <div className="flex min-h-screen w-full flex-col lg:pl-[320px]  rounded-bl-[48px] overflow-hidden">
-            <header className="sticky top-0 z-20  backdrop-blur">
+            <header
+              className="sticky top-0 z-20  backdrop-blur"
+              style={{ top: "var(--maintenance-banner-height)" }}
+            >
               <div className="px-4 py-3 sm:px-6 lg:px-10">
                 <div className="relative overflow-hidden rounded-md border border-border/60 bg-card/80 shadow-[0_20px_40px_-32px_rgba(0,0,0,0.6)] sm:rounded-md">
                   <div className="pointer-events-none absolute inset-x-2 top-0 h-[3px] rounded-md opacity-80 sm:rounded-full" />
@@ -1200,16 +1127,6 @@ export default function AdminPage() {
                       >
                         <Menu className="h-5 w-5" />
                       </button>
-                      <div className="flex items-center gap-3">
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                            {t("adminPanel")}
-                          </p>
-                          <p className="text-base font-semibold leading-tight text-foreground">
-                            {t("adminPanelSubtitle")}
-                          </p>
-                        </div>
-                      </div>
                     </div>
 
                     <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
@@ -1304,7 +1221,7 @@ export default function AdminPage() {
                   viewport={{ once: true, amount: 0.2 }}
                   transition={{ duration: 0.5 }}
                   variants={sectionVariants}
-                  className="space-y-6 scroll-mt-32"
+                  className="order-first space-y-6 scroll-mt-32"
                 >
                   <div>
                     <h2 className="text-3xl font-bold leading-tight">
@@ -1403,90 +1320,91 @@ export default function AdminPage() {
                           })}
                         </div>
                       </div>
-                      <ChartContainer
-                        config={activityConfig}
-                        className="mt-4 h-[220px] sm:h-[260px]"
-                      >
-                        <AreaChart
-                          data={activityData}
-                          margin={{ left: 8, right: 8 }}
+                      {hasActivityData ? (
+                        <ChartContainer
+                          config={activityConfig}
+                          className="mt-4 h-[220px] sm:h-[260px]"
                         >
-                          <defs>
-                            <linearGradient
-                              id="fillActive"
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2="1"
-                            >
-                              <stop
-                                offset="5%"
-                                stopColor="var(--color-chart-1)"
-                                stopOpacity={0.4}
-                              />
-                              <stop
-                                offset="95%"
-                                stopColor="var(--color-chart-1)"
-                                stopOpacity={0.05}
-                              />
-                            </linearGradient>
-                            <linearGradient
-                              id="fillOffline"
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2="1"
-                            >
-                              <stop
-                                offset="5%"
-                                stopColor="var(--color-chart-2)"
-                                stopOpacity={0.35}
-                              />
-                              <stop
-                                offset="95%"
-                                stopColor="var(--color-chart-2)"
-                                stopOpacity={0.05}
-                              />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid vertical={false} />
-                          <XAxis
-                            dataKey="label"
-                            tickLine={false}
-                            axisLine={false}
-                            tick={{ fontSize: 11 }}
-                          />
-                          <YAxis
-                            tickLine={false}
-                            axisLine={false}
-                            width={32}
-                            tick={{ fontSize: 11 }}
-                          />
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <Area
-                            type="monotone"
-                            dataKey="active"
-                            stroke="var(--color-chart-1)"
-                            fill="url(#fillActive)"
-                            strokeWidth={2}
-                          />
-                          <Area
-                            type="monotone"
-                            dataKey="offline"
-                            stroke="var(--color-chart-2)"
-                            fill="url(#fillOffline)"
-                            strokeWidth={2}
-                          />
-                          <ChartLegend content={<ChartLegendContent />} />
-                        </AreaChart>
-                      </ChartContainer>
+                          <AreaChart
+                            data={activityData}
+                            margin={{ left: 8, right: 8 }}
+                          >
+                            <defs>
+                              <linearGradient
+                                id="fillActive"
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                              >
+                                <stop
+                                  offset="5%"
+                                  stopColor="var(--color-chart-1)"
+                                  stopOpacity={0.4}
+                                />
+                                <stop
+                                  offset="95%"
+                                  stopColor="var(--color-chart-1)"
+                                  stopOpacity={0.05}
+                                />
+                              </linearGradient>
+                              <linearGradient
+                                id="fillOffline"
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                              >
+                                <stop
+                                  offset="5%"
+                                  stopColor="var(--color-chart-2)"
+                                  stopOpacity={0.35}
+                                />
+                                <stop
+                                  offset="95%"
+                                  stopColor="var(--color-chart-2)"
+                                  stopOpacity={0.05}
+                                />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid vertical={false} />
+                            <XAxis
+                              dataKey="label"
+                              tickLine={false}
+                              axisLine={false}
+                              tick={{ fontSize: 11 }}
+                            />
+                            <YAxis
+                              tickLine={false}
+                              axisLine={false}
+                              width={32}
+                              tick={{ fontSize: 11 }}
+                            />
+                            <ChartTooltip content={<ChartTooltipContent />} />
+                            <Area
+                              type="monotone"
+                              dataKey="active"
+                              stroke="var(--color-chart-1)"
+                              fill="url(#fillActive)"
+                              strokeWidth={2}
+                            />
+                            <Area
+                              type="monotone"
+                              dataKey="offline"
+                              stroke="var(--color-chart-2)"
+                              fill="url(#fillOffline)"
+                              strokeWidth={2}
+                            />
+                            <ChartLegend content={<ChartLegendContent />} />
+                          </AreaChart>
+                        </ChartContainer>
+                      ) : (
+                        renderNoData("h-[220px] sm:h-[260px]")
+                      )}
                     </div>
 
                     <div className="min-w-0 space-y-6">
-                      <div
-                        className="rounded-3xl border border-border/70 bg-card/90 p-6"
-                        data-tutorial="admin-ban-panel"
-                      >
+                      <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
                         <div className="flex items-start justify-between gap-2">
                           <div>
                             <p className="text-sm font-semibold">
@@ -1498,53 +1416,61 @@ export default function AdminPage() {
                           </div>
                           <Vote className="h-5 w-5 text-muted-foreground" />
                         </div>
-                        <ChartContainer
-                          config={{}}
-                          className="mt-4 h-[200px] sm:h-[220px]"
-                        >
-                          <PieChart>
-                            <ChartTooltip
-                              content={<ChartTooltipContent nameKey="status" />}
-                            />
-                            <Pie
-                              data={statusData}
-                              dataKey="value"
-                              nameKey="status"
-                              innerRadius={55}
-                              outerRadius={85}
-                              strokeWidth={2}
+                        {hasStatusData ? (
+                          <>
+                            <ChartContainer
+                              config={{}}
+                              className="mt-4 h-[200px] sm:h-[220px]"
                             >
+                              <PieChart>
+                                <ChartTooltip
+                                  content={
+                                    <ChartTooltipContent nameKey="status" />
+                                  }
+                                />
+                                <Pie
+                                  data={statusData}
+                                  dataKey="value"
+                                  nameKey="status"
+                                  innerRadius={55}
+                                  outerRadius={85}
+                                  strokeWidth={2}
+                                >
+                                  {statusData.map((entry, index) => (
+                                    <Cell
+                                      key={entry.status}
+                                      fill={`var(--color-chart-${index + 1})`}
+                                      stroke="var(--color-background)"
+                                    />
+                                  ))}
+                                </Pie>
+                              </PieChart>
+                            </ChartContainer>
+                            <div className="mt-3 space-y-2 text-xs text-muted-foreground">
                               {statusData.map((entry, index) => (
-                                <Cell
+                                <div
                                   key={entry.status}
-                                  fill={`var(--color-chart-${index + 1})`}
-                                  stroke="var(--color-background)"
-                                />
+                                  className="flex items-center justify-between"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <span
+                                      className="h-2 w-2 rounded-full"
+                                      style={{
+                                        backgroundColor: `var(--color-chart-${index + 1})`,
+                                      }}
+                                    />
+                                    <span>{entry.status}</span>
+                                  </div>
+                                  <span className="font-semibold text-foreground">
+                                    {entry.value}
+                                  </span>
+                                </div>
                               ))}
-                            </Pie>
-                          </PieChart>
-                        </ChartContainer>
-                        <div className="mt-3 space-y-2 text-xs text-muted-foreground">
-                          {statusData.map((entry, index) => (
-                            <div
-                              key={entry.status}
-                              className="flex items-center justify-between"
-                            >
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className="h-2 w-2 rounded-full"
-                                  style={{
-                                    backgroundColor: `var(--color-chart-${index + 1})`,
-                                  }}
-                                />
-                                <span>{entry.status}</span>
-                              </div>
-                              <span className="font-semibold text-foreground">
-                                {entry.value}
-                              </span>
                             </div>
-                          ))}
-                        </div>
+                          </>
+                        ) : (
+                          renderNoData("h-[200px] sm:h-[220px]")
+                        )}
                       </div>
 
                       <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
@@ -1559,53 +1485,61 @@ export default function AdminPage() {
                           </div>
                           <Users className="h-5 w-5 text-muted-foreground" />
                         </div>
-                        <ChartContainer
-                          config={{}}
-                          className="mt-4 h-[200px] sm:h-[220px]"
-                        >
-                          <PieChart>
-                            <ChartTooltip
-                              content={<ChartTooltipContent nameKey="status" />}
-                            />
-                            <Pie
-                              data={participationData}
-                              dataKey="value"
-                              nameKey="status"
-                              innerRadius={50}
-                              outerRadius={80}
-                              strokeWidth={2}
+                        {hasParticipationData ? (
+                          <>
+                            <ChartContainer
+                              config={{}}
+                              className="mt-4 h-[200px] sm:h-[220px]"
                             >
+                              <PieChart>
+                                <ChartTooltip
+                                  content={
+                                    <ChartTooltipContent nameKey="status" />
+                                  }
+                                />
+                                <Pie
+                                  data={participationData}
+                                  dataKey="value"
+                                  nameKey="status"
+                                  innerRadius={50}
+                                  outerRadius={80}
+                                  strokeWidth={2}
+                                >
+                                  {participationData.map((entry, index) => (
+                                    <Cell
+                                      key={entry.status}
+                                      fill={`var(--color-chart-${index + 1})`}
+                                      stroke="var(--color-background)"
+                                    />
+                                  ))}
+                                </Pie>
+                              </PieChart>
+                            </ChartContainer>
+                            <div className="mt-3 space-y-2 text-xs text-muted-foreground">
                               {participationData.map((entry, index) => (
-                                <Cell
+                                <div
                                   key={entry.status}
-                                  fill={`var(--color-chart-${index + 1})`}
-                                  stroke="var(--color-background)"
-                                />
+                                  className="flex items-center justify-between"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <span
+                                      className="h-2 w-2 rounded-full"
+                                      style={{
+                                        backgroundColor: `var(--color-chart-${index + 1})`,
+                                      }}
+                                    />
+                                    <span>{entry.status}</span>
+                                  </div>
+                                  <span className="font-semibold text-foreground">
+                                    {entry.value}
+                                  </span>
+                                </div>
                               ))}
-                            </Pie>
-                          </PieChart>
-                        </ChartContainer>
-                        <div className="mt-3 space-y-2 text-xs text-muted-foreground">
-                          {participationData.map((entry, index) => (
-                            <div
-                              key={entry.status}
-                              className="flex items-center justify-between"
-                            >
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className="h-2 w-2 rounded-full"
-                                  style={{
-                                    backgroundColor: `var(--color-chart-${index + 1})`,
-                                  }}
-                                />
-                                <span>{entry.status}</span>
-                              </div>
-                              <span className="font-semibold text-foreground">
-                                {entry.value}
-                              </span>
                             </div>
-                          ))}
-                        </div>
+                          </>
+                        ) : (
+                          renderNoData("h-[200px] sm:h-[220px]")
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1625,38 +1559,42 @@ export default function AdminPage() {
                           {t("adminStatsNoteSinceMidnight")}
                         </span>
                       </div>
-                      <ChartContainer
-                        config={votesByCategoryConfig}
-                        className="mt-4 h-[220px] sm:h-[240px]"
-                      >
-                        <BarChart
-                          data={votesByCategoryData}
-                          margin={{ left: 8, right: 8 }}
+                      {hasVotesByCategoryData ? (
+                        <ChartContainer
+                          config={votesByCategoryConfig}
+                          className="mt-4 h-[220px] sm:h-[240px]"
                         >
-                          <CartesianGrid vertical={false} />
-                          <XAxis
-                            dataKey="category"
-                            tickLine={false}
-                            axisLine={false}
-                            tick={{ fontSize: 11 }}
-                          />
-                          <YAxis
-                            tickLine={false}
-                            axisLine={false}
-                            width={36}
-                            tick={{ fontSize: 11 }}
-                          />
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <Bar dataKey="votes" radius={[10, 10, 0, 0]}>
-                            {votesByCategoryData.map((item, index) => (
-                              <Cell
-                                key={item.category}
-                                fill={`var(--color-chart-${index + 2})`}
-                              />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ChartContainer>
+                          <BarChart
+                            data={votesByCategoryData}
+                            margin={{ left: 8, right: 8 }}
+                          >
+                            <CartesianGrid vertical={false} />
+                            <XAxis
+                              dataKey="category"
+                              tickLine={false}
+                              axisLine={false}
+                              tick={{ fontSize: 11 }}
+                            />
+                            <YAxis
+                              tickLine={false}
+                              axisLine={false}
+                              width={36}
+                              tick={{ fontSize: 11 }}
+                            />
+                            <ChartTooltip content={<ChartTooltipContent />} />
+                            <Bar dataKey="votes" radius={[10, 10, 0, 0]}>
+                              {votesByCategoryData.map((item, index) => (
+                                <Cell
+                                  key={item.category}
+                                  fill={`var(--color-chart-${index + 2})`}
+                                />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ChartContainer>
+                      ) : (
+                        renderNoData("h-[220px] sm:h-[240px]")
+                      )}
                     </div>
 
                     <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6">
@@ -1671,41 +1609,45 @@ export default function AdminPage() {
                         </div>
                         <Shield className="h-5 w-5 text-muted-foreground" />
                       </div>
-                      <ChartContainer
-                        config={{}}
-                        className="mt-4 h-[220px] w-full"
-                      >
-                        <BarChart
-                          data={qualityData}
-                          layout="vertical"
-                          margin={{ left: 8, right: 8 }}
+                      {hasQualityData ? (
+                        <ChartContainer
+                          config={{}}
+                          className="mt-4 h-[220px] w-full"
                         >
-                          <CartesianGrid horizontal={false} />
-                          <XAxis
-                            type="number"
-                            tickLine={false}
-                            axisLine={false}
-                            tick={{ fontSize: 11 }}
-                          />
-                          <YAxis
-                            type="category"
-                            dataKey="type"
-                            tickLine={false}
-                            axisLine={false}
-                            width={90}
-                            tick={{ fontSize: 11 }}
-                          />
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <Bar dataKey="score" radius={[0, 10, 10, 0]}>
-                            {qualityData.map((item, index) => (
-                              <Cell
-                                key={item.type}
-                                fill={`var(--color-chart-${index + 1})`}
-                              />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ChartContainer>
+                          <BarChart
+                            data={qualityData}
+                            layout="vertical"
+                            margin={{ left: 8, right: 8 }}
+                          >
+                            <CartesianGrid horizontal={false} />
+                            <XAxis
+                              type="number"
+                              tickLine={false}
+                              axisLine={false}
+                              tick={{ fontSize: 11 }}
+                            />
+                            <YAxis
+                              type="category"
+                              dataKey="type"
+                              tickLine={false}
+                              axisLine={false}
+                              width={90}
+                              tick={{ fontSize: 11 }}
+                            />
+                            <ChartTooltip content={<ChartTooltipContent />} />
+                            <Bar dataKey="score" radius={[0, 10, 10, 0]}>
+                              {qualityData.map((item, index) => (
+                                <Cell
+                                  key={item.type}
+                                  fill={`var(--color-chart-${index + 1})`}
+                                />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ChartContainer>
+                      ) : (
+                        renderNoData("h-[220px]")
+                      )}
                     </div>
                   </div>
                 </motion.section>
@@ -1742,83 +1684,87 @@ export default function AdminPage() {
                           {t("adminMediaCoverageRange")}
                         </span>
                       </div>
-                      <ChartContainer
-                        config={mediaCoverageConfig}
-                        className="mt-4 h-[220px] sm:h-[240px]"
-                      >
-                        <AreaChart
-                          data={mediaCoverageData}
-                          margin={{ left: 8, right: 8 }}
+                      {hasMediaCoverageData ? (
+                        <ChartContainer
+                          config={mediaCoverageConfig}
+                          className="mt-4 h-[220px] sm:h-[240px]"
                         >
-                          <defs>
-                            <linearGradient
-                              id="fillPhotos"
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2="1"
-                            >
-                              <stop
-                                offset="5%"
-                                stopColor="var(--color-chart-1)"
-                                stopOpacity={0.35}
-                              />
-                              <stop
-                                offset="95%"
-                                stopColor="var(--color-chart-1)"
-                                stopOpacity={0.05}
-                              />
-                            </linearGradient>
-                            <linearGradient
-                              id="fillVideos"
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2="1"
-                            >
-                              <stop
-                                offset="5%"
-                                stopColor="var(--color-chart-2)"
-                                stopOpacity={0.35}
-                              />
-                              <stop
-                                offset="95%"
-                                stopColor="var(--color-chart-2)"
-                                stopOpacity={0.05}
-                              />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid vertical={false} />
-                          <XAxis
-                            dataKey="label"
-                            tickLine={false}
-                            axisLine={false}
-                            tick={{ fontSize: 11 }}
-                          />
-                          <YAxis
-                            tickLine={false}
-                            axisLine={false}
-                            width={32}
-                            tick={{ fontSize: 11 }}
-                          />
-                          <ChartTooltip content={<ChartTooltipContent />} />
-                          <Area
-                            type="monotone"
-                            dataKey="photos"
-                            stroke="var(--color-chart-1)"
-                            fill="url(#fillPhotos)"
-                            strokeWidth={2}
-                          />
-                          <Area
-                            type="monotone"
-                            dataKey="videos"
-                            stroke="var(--color-chart-2)"
-                            fill="url(#fillVideos)"
-                            strokeWidth={2}
-                          />
-                          <ChartLegend content={<ChartLegendContent />} />
-                        </AreaChart>
-                      </ChartContainer>
+                          <AreaChart
+                            data={mediaCoverageData}
+                            margin={{ left: 8, right: 8 }}
+                          >
+                            <defs>
+                              <linearGradient
+                                id="fillPhotos"
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                              >
+                                <stop
+                                  offset="5%"
+                                  stopColor="var(--color-chart-1)"
+                                  stopOpacity={0.35}
+                                />
+                                <stop
+                                  offset="95%"
+                                  stopColor="var(--color-chart-1)"
+                                  stopOpacity={0.05}
+                                />
+                              </linearGradient>
+                              <linearGradient
+                                id="fillVideos"
+                                x1="0"
+                                y1="0"
+                                x2="0"
+                                y2="1"
+                              >
+                                <stop
+                                  offset="5%"
+                                  stopColor="var(--color-chart-2)"
+                                  stopOpacity={0.35}
+                                />
+                                <stop
+                                  offset="95%"
+                                  stopColor="var(--color-chart-2)"
+                                  stopOpacity={0.05}
+                                />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid vertical={false} />
+                            <XAxis
+                              dataKey="label"
+                              tickLine={false}
+                              axisLine={false}
+                              tick={{ fontSize: 11 }}
+                            />
+                            <YAxis
+                              tickLine={false}
+                              axisLine={false}
+                              width={32}
+                              tick={{ fontSize: 11 }}
+                            />
+                            <ChartTooltip content={<ChartTooltipContent />} />
+                            <Area
+                              type="monotone"
+                              dataKey="photos"
+                              stroke="var(--color-chart-1)"
+                              fill="url(#fillPhotos)"
+                              strokeWidth={2}
+                            />
+                            <Area
+                              type="monotone"
+                              dataKey="videos"
+                              stroke="var(--color-chart-2)"
+                              fill="url(#fillVideos)"
+                              strokeWidth={2}
+                            />
+                            <ChartLegend content={<ChartLegendContent />} />
+                          </AreaChart>
+                        </ChartContainer>
+                      ) : (
+                        renderNoData("h-[220px] sm:h-[240px]")
+                      )}
                     </div>
 
                     <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6">
@@ -1885,7 +1831,7 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+                  <div className="grid gap-6">
                     <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-semibold">
@@ -1970,135 +1916,6 @@ export default function AdminPage() {
                             </div>
                           );
                         })}
-                      </div>
-                    </div>
-
-                    <div className="min-w-0 space-y-6">
-                      <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-semibold">
-                              {t("adminBanCardTitle")}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {t("adminBanCardSubtitle")}
-                            </p>
-                          </div>
-                          <Ban className="h-5 w-5 text-muted-foreground" />
-                        </div>
-                        <div className="mt-4 space-y-3">
-                          <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                            {t("adminBanSelectUser")}
-                          </label>
-                          <select
-                            className="w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
-                            value={selectedUserId ?? ""}
-                            onChange={(event) => {
-                              const nextValue = Number(event.target.value);
-                              setSelectedUserId(
-                                Number.isFinite(nextValue) ? nextValue : null,
-                              );
-                            }}
-                          >
-                            <option value="">{t("adminBanSelectUser")}</option>
-                            {users.map((user) => (
-                              <option key={user.id} value={user.userID}>
-                                {user.name}
-                              </option>
-                            ))}
-                          </select>
-                          <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                            {t("adminBanReason")}
-                          </label>
-
-                          <textarea
-                            data-tutorial="admin-ban-reason"
-                            className="min-h-[90px] w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
-                            value={banReason}
-                            onChange={(event) => {
-                              setBanReason(event.target.value);
-                            }}
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            {t("adminBanReasonHint")}
-                          </p>
-                          <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                            {t("adminBanDurationLabel")}
-                          </label>
-                          <select
-                            className="w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
-                            value={banDuration}
-                            onChange={(event) => {
-                              const nextValue = Number(event.target.value);
-                              setBanDuration(
-                                Number.isFinite(nextValue) ? nextValue : 0,
-                              );
-                              if (nextValue !== -1) {
-                                setBanUntilDate(undefined);
-                              }
-                            }}
-                          >
-                            {banDurations.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </select>
-                          {banDuration === -1 ? (
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <button
-                                  type="button"
-                                  className="flex w-full items-center gap-2 rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm text-left"
-                                >
-                                  <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                                  {banUntilDate
-                                    ? banDateFormatter.format(banUntilDate)
-                                    : t("adminBanPickDate")}
-                                </button>
-                              </PopoverTrigger>
-                              <PopoverContent
-                                align="start"
-                                className="w-auto p-0"
-                              >
-                                <Calendar
-                                  mode="single"
-                                  selected={banUntilDate}
-                                  onSelect={setBanUntilDate}
-                                  disabled={{ before: today }}
-                                  initialFocus
-                                />
-                              </PopoverContent>
-                            </Popover>
-                          ) : null}
-                        </div>
-                        <div
-                          className="mt-4 grid grid-cols-2 gap-3"
-                          data-tutorial="admin-ban-actions"
-                        >
-                          <button
-                            type="button"
-                            className="rounded-full bg-foreground px-4 py-2 text-xs font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/30"
-                            onClick={() => handleSelectedAction("block")}
-                          >
-                            {t("actionBlock")}
-                          </button>
-                          <button
-                            type="button"
-                            className="rounded-full border border-border/70 px-4 py-2 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background disabled:cursor-not-allowed disabled:opacity-60"
-                            onClick={() => handleSelectedAction("unblock")}
-                            disabled={!canUnblockSelected}
-                          >
-                            {t("actionUnblock")}
-                          </button>
-                          <button
-                            type="button"
-                            className="col-span-2 rounded-full border border-border/70 px-4 py-2 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
-                            onClick={() => handleSelectedAction("reset")}
-                          >
-                            {t("actionResetPassword")}
-                          </button>
-                        </div>
                       </div>
                     </div>
                   </div>
