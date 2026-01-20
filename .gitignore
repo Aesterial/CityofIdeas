@@ -47,3 +47,4 @@ generated/
 /backend/.idea
 /backend/third_party/
 *.crt
+/certs

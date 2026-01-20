@@ -64,23 +64,6 @@ const readActiveFlag = (payload: unknown): boolean | null => {
   return null;
 };
 
-const isExplicitlyInactive = (payload: unknown) => {
-  if (!payload || typeof payload !== "object") {
-    return false;
-  }
-  const record = payload as Record<string, unknown>;
-  const message =
-    typeof record.message === "string" ? record.message.toLowerCase() : "";
-  const code = typeof record.code === "number" ? record.code : null;
-  if (message.includes("maintenance is not active")) {
-    return true;
-  }
-  if (code === 14 && message.includes("not active")) {
-    return true;
-  }
-  return false;
-};
-
 const fetchMaintenanceActive = async (request: NextRequest) => {
   const base = resolveApiBaseUrl(request);
   const normalizedBase =
@@ -103,28 +86,23 @@ const fetchMaintenanceActive = async (request: NextRequest) => {
     const contentType = response.headers.get("content-type") || "";
     const isJson = contentType.includes("application/json");
     let payload: unknown = null;
-    let parsed = false;
     if (isJson) {
       try {
         payload = (await response.json()) as unknown;
-        parsed = true;
       } catch {
-        parsed = false;
+        payload = null;
       }
     }
     const flag = readActiveFlag(payload);
     if (flag !== null) {
       return flag;
     }
-    if (!response.ok && isExplicitlyInactive(payload)) {
-      return false;
-    }
     if (!response.ok) {
-      return parsed;
+      return false;
     }
     return false;
   } catch {
-    return true;
+    return false;
   } finally {
     clearTimeout(timeoutId);
   }
