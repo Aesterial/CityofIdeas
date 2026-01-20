@@ -11,6 +11,7 @@ import {
 } from "react";
 import type {
   ApiAvatar,
+  ApiPermissions,
   AuthorizationPayload,
   AuthUser,
   RegisterPayload,
@@ -18,6 +19,7 @@ import type {
 import {
   authorizeUser,
   fetchCurrentUser,
+  fetchUserPermissions,
   logoutUser,
   registerUser,
   updateAvatar,
@@ -29,6 +31,7 @@ type AuthStatus = "loading" | "authenticated" | "anonymous";
 type AuthContextValue = {
   status: AuthStatus;
   user: AuthUser | null;
+  permissions: ApiPermissions | null;
   login: (payload: AuthorizationPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
@@ -40,9 +43,68 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+type PermissionPath = Array<string | string[]>;
+
+const adminPermissionPaths: PermissionPath[] = [
+  ["all"],
+  ["statistics", "all"],
+  ["submissions", "view"],
+  ["submissions", "accept"],
+  ["submissions", "decline"],
+  ["tickets", "accept"],
+  ["tickets", ["viewList", "view_list"], "any"],
+  ["users", "moderation", "all"],
+  ["users", "moderation", "ban"],
+  ["users", "moderation", ["banForever", "ban_forever"]],
+  ["users", "moderation", "unban"],
+  ["ranks", "all"],
+  ["ranks", ["permissionsChange", "permissions_change"]],
+];
+
+const toRecord = (value: unknown): Record<string, unknown> | null => {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+  return value as Record<string, unknown>;
+};
+
+const readPermissionFlag = (value: unknown, path: PermissionPath): boolean => {
+  let current: unknown = value;
+  for (const segment of path) {
+    const record = toRecord(current);
+    if (!record) {
+      return false;
+    }
+    const keys = Array.isArray(segment) ? segment : [segment];
+    let next: unknown = undefined;
+    for (const key of keys) {
+      if (key in record) {
+        next = record[key];
+        break;
+      }
+    }
+    if (next === undefined) {
+      return false;
+    }
+    current = next;
+  }
+  return current === true;
+};
+
+const hasAnyPermission = (
+  permissions: ApiPermissions | null,
+  paths: PermissionPath[],
+): boolean => {
+  if (!permissions) {
+    return false;
+  }
+  return paths.some((path) => readPermissionFlag(permissions, path));
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>("loading");
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [permissions, setPermissions] = useState<ApiPermissions | null>(null);
 
   const refreshUser = useCallback(
     async ({ silent }: { silent?: boolean } = {}) => {
@@ -51,10 +113,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       try {
         const current = await fetchCurrentUser();
+        let currentPermissions: ApiPermissions | null = null;
+        try {
+          currentPermissions = await fetchUserPermissions(current.uid);
+        } catch {
+          currentPermissions = null;
+        }
         setUser(current);
+        setPermissions(currentPermissions);
         setStatus("authenticated");
       } catch {
         setUser(null);
+        setPermissions(null);
         setStatus("anonymous");
       }
     },
@@ -88,6 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Ignore logout errors and clear local state.
     } finally {
       setUser(null);
+      setPermissions(null);
       setStatus("anonymous");
     }
   }, []);
@@ -117,14 +188,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const hasAdminAccess = useMemo(() => {
-    const role = user?.rank?.name;
-    return role === "staff" || role === "developer";
-  }, [user?.rank?.name]);
+    return hasAnyPermission(permissions, adminPermissionPaths);
+  }, [permissions]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       status,
       user,
+      permissions,
       login,
       register,
       logout,
@@ -136,6 +207,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [
       status,
       user,
+      permissions,
       login,
       register,
       logout,

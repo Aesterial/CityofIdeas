@@ -48,6 +48,32 @@ export type ApiUserPublic = {
   banned?: boolean;
 };
 
+export type ApiPermissions = {
+  all?: boolean;
+  tickets?: {
+    viewList?: { any?: boolean };
+    view_list?: { any?: boolean };
+    accept?: boolean;
+  };
+  submissions?: { view?: boolean; accept?: boolean; decline?: boolean };
+  statistics?: { all?: boolean };
+  users?: {
+    moderation?: {
+      all?: boolean;
+      ban?: boolean;
+      banForever?: boolean;
+      ban_forever?: boolean;
+      unban?: boolean;
+    };
+  };
+  ranks?: {
+    all?: boolean;
+    permissionsChange?: boolean;
+    permissions_change?: boolean;
+  };
+  [key: string]: unknown;
+};
+
 export type ApiProjectLocation = {
   city?: string;
   street?: string;
@@ -96,6 +122,11 @@ type ApiUser = {
 
 type ApiUserResponse = {
   data?: ApiUser | null;
+  tracing?: string;
+};
+
+type ApiPermissionsResponse = {
+  data?: ApiPermissions | null;
   tracing?: string;
 };
 
@@ -181,6 +212,12 @@ export class ApiError extends Error {
 function isApiUserResponse(
   payload: ApiUser | ApiUserResponse,
 ): payload is ApiUserResponse {
+  return typeof payload === "object" && payload !== null && "data" in payload;
+}
+
+function isPermissionsResponse(
+  payload: ApiPermissions | ApiPermissionsResponse,
+): payload is ApiPermissionsResponse {
   return typeof payload === "object" && payload !== null && "data" in payload;
 }
 
@@ -395,6 +432,23 @@ export async function fetchCurrentUser(): Promise<AuthUser> {
     method: "GET",
   });
   return toAuthUser(payload);
+}
+
+export async function fetchUserPermissions(
+  userID: number,
+  options?: { signal?: AbortSignal },
+): Promise<ApiPermissions | null> {
+  const payload = await apiRequest<ApiPermissions | ApiPermissionsResponse>(
+    `/api/user/${userID}/permissions`,
+    {
+      method: "GET",
+      signal: options?.signal,
+    },
+  );
+  if (!payload) {
+    return null;
+  }
+  return isPermissionsResponse(payload) ? (payload.data ?? null) : payload;
 }
 
 export async function fetchUsers(options?: {

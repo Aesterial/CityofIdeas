@@ -27,7 +27,7 @@ type AuthMode = "login" | "register"; // | "forgot-password"
 
 export default function AuthPage() {
   const router = useRouter();
-  const { login, register } = useAuth();
+  const { login, register, status } = useAuth();
   const minWelcomeMs = 700;
   const [mode, setMode] = useState<AuthMode>("login");
   const [showPassword, setShowPassword] = useState(false);
@@ -97,6 +97,12 @@ export default function AuthPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/");
+    }
+  }, [status, router]);
 
   useEffect(() => {
     setErrorMessage(null);
@@ -227,7 +233,6 @@ export default function AuthPage() {
               </button>
             ))}
           </motion.div>
-
 
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             {errorMessage ? (
