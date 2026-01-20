@@ -197,6 +197,7 @@ func (x *GetRequest) GetOffset() int32 {
 type GetTopRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Limit         int32                  `protobuf:"varint,1,opt,name=limit,proto3" json:"limit,omitempty"`
+	City          string                 `protobuf:"bytes,2,opt,name=city,proto3" json:"city,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -236,6 +237,13 @@ func (x *GetTopRequest) GetLimit() int32 {
 		return x.Limit
 	}
 	return 0
+}
+
+func (x *GetTopRequest) GetCity() string {
+	if x != nil {
+		return x.City
+	}
+	return ""
 }
 
 type GetResponse struct {
@@ -838,9 +846,10 @@ const file_projects_domain_proto_rawDesc = "" +
 	"\n" +
 	"GetRequest\x12\x14\n" +
 	"\x05limit\x18\x01 \x01(\x05R\x05limit\x12\x16\n" +
-	"\x06offset\x18\x02 \x01(\x05R\x06offset\"%\n" +
+	"\x06offset\x18\x02 \x01(\x05R\x06offset\"9\n" +
 	"\rGetTopRequest\x12\x14\n" +
-	"\x05limit\x18\x01 \x01(\x05R\x05limit\"Y\n" +
+	"\x05limit\x18\x01 \x01(\x05R\x05limit\x12\x12\n" +
+	"\x04city\x18\x02 \x01(\tR\x04city\"Y\n" +
 	"\vGetResponse\x120\n" +
 	"\bprojects\x18\x01 \x03(\v2\x14.projects.v1.ProjectR\bprojects\x12\x18\n" +
 	"\atracing\x18\x02 \x01(\tR\atracing\"\x1d\n" +

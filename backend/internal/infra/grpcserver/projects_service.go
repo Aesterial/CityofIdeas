@@ -195,6 +195,17 @@ func (s *ProjectService) ToggleLike(ctx context.Context, req *projpb.LikeRequest
 	return &projpb.EmptyResponse{Tracing: trace}, nil
 }
 
+func (s *ProjectService) GetTop(ctx context.Context, req *projpb.GetTopRequest) (*projpb.GetResponse, error) {
+	if s == nil || s.projects == nil {
+		return nil, apperrors.NotConfigured.AddErrDetails("projects service not configured")
+	}
+	proj, err := s.projects.GetTopProjects(ctx, int(req.GetLimit()), req.GetCity())
+	if err != nil {
+		return nil, apperrors.ServerError.AddErrDetails("failed to get projects top list: " + err.Error() + "for city: " + req.GetCity())
+	}
+	return &projpb.GetResponse{Projects: proj.ToProto(), Tracing: TraceIDOrNew(ctx)}, nil
+}
+
 func normalizeProjectCategory(raw string) string {
 	trimmed := strings.TrimSpace(raw)
 	if trimmed == "" {

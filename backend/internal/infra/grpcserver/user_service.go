@@ -1,6 +1,7 @@
 package grpcserver
 
 import (
+	permpb "Aesterial/backend/internal/gen/permissions/v1"
 	sessionsapp "Aesterial/backend/internal/app/info/sessions"
 	userinfo "Aesterial/backend/internal/app/info/user"
 	usermodifier "Aesterial/backend/internal/app/modifier/user"
@@ -14,6 +15,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -304,4 +306,45 @@ func (s *UserService) applyAvatarURL(ctx context.Context, u *userpb.UserPublic) 
 		return
 	}
 	applyPresignedUserAvatarURL(ctx, s.storage, u)
+}
+
+func (s *UserService) HasPermissions(ctx context.Context, req *userpb.HasPermissionRequest) (*userpb.HasPermissionResponse, error) {
+	requestor, err := s.auth.RequireUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if requestor == nil {
+		return nil, apperrors.Unauthenticated.AddErrDetails("user not logged in")
+	}
+	if req.UserID != uint32(requestor.UID) {
+		if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.UsersViewProfilePrivacy); err != nil {
+			return nil, err
+		}
+	}
+	has, err := s.info.HasPerm(ctx, uint(req.UserID), permissions.Permission(req.GetPerm()))
+	if err != nil {
+		return nil, apperrors.ServerError.AddErrDetails("failed to get permissions: " + err.Error())
+	}
+	return &userpb.HasPermissionResponse{Has: has, Tracing: TraceIDOrNew(ctx)}, nil
+}
+
+func (s *UserService) Permissions(ctx context.Context, req *userpb.OtherUserRequest) (*permpb.PermissionsResponse, error) {
+	requestor, err := s.auth.RequireUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if requestor == nil {
+		return nil, apperrors.Unauthenticated.AddErrDetails("user not logged in")
+	}
+	if req.UserID != uint32(requestor.UID) {
+		if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.UsersViewProfilePrivacy); err != nil {
+			return nil, err
+		}
+	}
+	perms, err := s.info.Perms(ctx, uint(req.UserID))
+	if err != nil {
+		logger.Debug("error appeared: " + err.Error(), "")
+		return nil, apperrors.ServerError.AddErrDetails("failed to get perms: " + err.Error() + " for user: " + strconv.Itoa(int(requestor.UID)))
+	}
+	return &permpb.PermissionsResponse{Data: perms.ToProto(), Tracing: TraceIDOrNew(ctx)}, nil
 }

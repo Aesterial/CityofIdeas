@@ -741,9 +741,10 @@ func (u *UserRepository) HasAllPerms(ctx context.Context, uid uint, perms ...per
 
 func (u *UserRepository) Perms(ctx context.Context, uid uint) (*permissions.Permissions, error) {
 	var raw []byte
-	if err := u.DB.QueryRowContext(ctx, "SELECT u.permissions FROM users u WHERE u.uid = $1", uid).Scan(&raw); err != nil {
+	if err := u.DB.QueryRowContext(ctx, "SELECT to_jsonb(u.permissions) FROM users u WHERE u.uid = $1", uid).Scan(&raw); err != nil {
 		return nil, err
 	}
+	logger.Debug("response from db: " + string(raw), "")
 	var perms permissions.Permissions
 	if err := json.Unmarshal(raw, &perms); err != nil {
 		return nil, err
