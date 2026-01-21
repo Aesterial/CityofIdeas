@@ -49,9 +49,12 @@ type Startup struct {
 }
 
 type Mailer struct {
-	ApiKey string
-	Name   string
-	Email  string
+	Host     string
+	Port     int
+	User     string
+	Pass     string
+	FromName string
+	Secure   bool
 }
 
 type Environment struct {

@@ -139,10 +139,12 @@ func (s *LoginService) ResetPasswordStart(ctx context.Context, req *loginpb.With
 	}
 	token, err := s.verification.Create(ctx, email, verdomain.PasswordReset, ip, userAgentHash(ctx), 5*time.Minute)
 	if err != nil {
+		logger.Debug("failed to create verification record: " + err.Error(), "")
 		return nil, err
 	}
 	_, err = s.verification.Mailer.SendPasswordReset(ctx, email, token)
 	if err != nil {
+		logger.Debug("failed to send mail message: " + err.Error(), "")
 		return nil, apperrors.Wrap(err)
 	}
 	return &loginpb.EmptyResponse{Tracing: TraceIDOrNew(ctx)}, nil

@@ -138,7 +138,14 @@ func main() {
 	submissionService := submissions.New(submissionsRepo, projectsService, userInfoService)
 	ticketsService := tickets.New(ticketsRepo)
 	ranksService := rankapp.New(ranksRepo)
-	mailerService := mailer.New(env.Mailer.ApiKey, env.Mailer.Name, env.Mailer.Email)
+	mailerService := mailer.New(mailer.Config{
+		Host:     env.Mailer.Host,
+		Port:     env.Mailer.Port,
+		User:     env.Mailer.User,
+		Pass:     env.Mailer.Pass,
+		FromName: env.Mailer.FromName,
+		Secure:   env.Mailer.Secure,
+	})
 	verificationService := verification.New(verificationRepo, mailerService)
 	storageService, err := storageapp.New()
 	if err != nil {
