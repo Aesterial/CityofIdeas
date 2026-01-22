@@ -438,6 +438,76 @@ export const translations: Translations = {
     EN: "Avatar reset.",
     KZ: "\u0410\u0432\u0430\u0442\u0430\u0440 \u049b\u0430\u043b\u043f\u044b\u043d\u0430 \u043a\u0435\u043b\u0442\u0456\u0440\u0456\u043b\u0434\u0456.",
   },
+  accountDangerZone: {
+    RU: "\u041e\u043f\u0430\u0441\u043d\u0430\u044f \u0437\u043e\u043d\u0430",
+    EN: "Danger zone",
+    KZ: "\u049a\u0430\u0443\u0456\u043f\u0442\u0456 \u0430\u0439\u043c\u0430\u049b",
+  },
+  accountDangerHint: {
+    RU: "\u0414\u0435\u0439\u0441\u0442\u0432\u0438\u044f \u043d\u0435\u043e\u0431\u0440\u0430\u0442\u0438\u043c\u044b. \u0411\u0443\u0434\u044c\u0442\u0435 \u0432\u043d\u0438\u043c\u0430\u0442\u0435\u043b\u044c\u043d\u044b.",
+    EN: "These actions are irreversible. Proceed carefully.",
+    KZ: "\u0411\u04b1\u043b \u04d9\u0440\u0435\u043a\u0435\u0442\u0442\u0435\u0440 \u049b\u0430\u0439\u0442\u0430\u0440\u044b\u043b\u043c\u0430\u0439\u0434\u044b. \u0410\u0431\u0430\u0439 \u0431\u043e\u043b\u044b\u04a3\u044b\u0437.",
+  },
+  accountDescriptionDelete: {
+    RU: "\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u043e\u043f\u0438\u0441\u0430\u043d\u0438\u0435",
+    EN: "Delete description",
+    KZ: "\u0421\u0438\u043f\u0430\u0442\u0442\u0430\u043c\u0430\u043d\u044b \u04e9\u0448\u0456\u0440\u0443",
+  },
+  accountDescriptionDeleting: {
+    RU: "\u0423\u0434\u0430\u043b\u0435\u043d\u0438\u0435...",
+    EN: "Deleting...",
+    KZ: "\u04e8\u0448\u0456\u0440\u0456\u043b\u0443\u0434\u0435...",
+  },
+  accountDescriptionDeleted: {
+    RU: "\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435 \u0443\u0434\u0430\u043b\u0435\u043d\u043e.",
+    EN: "Description deleted.",
+    KZ: "\u0421\u0438\u043f\u0430\u0442\u0442\u0430\u043c\u0430 \u04e9\u0448\u0456\u0440\u0456\u043b\u0434\u0456.",
+  },
+  accountProfileDelete: {
+    RU: "\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0430\u043a\u043a\u0430\u0443\u043d\u0442",
+    EN: "Delete account",
+    KZ: "\u0410\u043a\u043a\u0430\u0443\u043d\u0442\u0442\u044b \u0436\u043e\u044e",
+  },
+  accountProfileDeleting: {
+    RU: "\u0423\u0434\u0430\u043b\u0435\u043d\u0438\u0435 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430...",
+    EN: "Deleting account...",
+    KZ: "\u0410\u043a\u043a\u0430\u0443\u043d\u0442 \u0436\u043e\u0439\u044b\u043b\u0443\u0434\u0430...",
+  },
+  accountDeleteProfileTitle: {
+    RU: "\u0423\u0434\u0430\u043b\u0435\u043d\u0438\u0435 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430",
+    EN: "Delete account",
+    KZ: "\u0410\u043a\u043a\u0430\u0443\u043d\u0442\u0442\u044b \u0436\u043e\u044e",
+  },
+  accountDeleteProfileDescription: {
+    RU: "\u0412\u0432\u0435\u0434\u0438\u0442\u0435 \u043b\u043e\u0433\u0438\u043d \u0434\u043b\u044f \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u044f:",
+    EN: "Type your username to confirm:",
+    KZ: "\u0420\u0430\u0441\u0442\u0430\u0443 \u04af\u0448\u0456\u043d \u043b\u043e\u0433\u0438\u043d\u0434\u0456 \u0435\u043d\u0433\u0456\u0437\u0456\u04a3\u0456\u0437:",
+  },
+  accountDeleteProfilePlaceholder: {
+    RU: "\u0412\u0430\u0448 \u043b\u043e\u0433\u0438\u043d",
+    EN: "Your username",
+    KZ: "\u041b\u043e\u0433\u0438\u043d\u0456\u04a3\u0456\u0437",
+  },
+  accountDeleteProfileCancel: {
+    RU: "\u041e\u0442\u043c\u0435\u043d\u0430",
+    EN: "Cancel",
+    KZ: "\u0411\u0430\u0441 \u0442\u0430\u0440\u0442\u0443",
+  },
+  accountDeleteProfileAction: {
+    RU: "\u0423\u0434\u0430\u043b\u0438\u0442\u044c",
+    EN: "Delete",
+    KZ: "\u0416\u043e\u044e",
+  },
+  accountDeleteProfileMismatch: {
+    RU: "\u041b\u043e\u0433\u0438\u043d \u043d\u0435 \u0441\u043e\u0432\u043f\u0430\u0434\u0430\u0435\u0442.",
+    EN: "Username does not match.",
+    KZ: "\u041b\u043e\u0433\u0438\u043d \u0441\u04d9\u0439\u043a\u0435\u0441 \u0435\u043c\u0435\u0441.",
+  },
+  accountDeleteProfileError: {
+    RU: "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u0443\u0434\u0430\u043b\u0438\u0442\u044c \u0430\u043a\u043a\u0430\u0443\u043d\u0442.",
+    EN: "Failed to delete account.",
+    KZ: "\u0410\u043a\u043a\u0430\u0443\u043d\u0442\u0442\u044b \u0436\u043e\u044e \u043c\u04af\u043c\u043a\u0456\u043d \u0431\u043e\u043b\u043c\u0430\u0434\u044b.",
+  },
   saveChanges: {
     RU: "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f",
     EN: "Save changes",
@@ -541,9 +611,9 @@ export const translations: Translations = {
   },
 
   adminUserSettingsProfileHint: {
-    RU: "Сбросить аватар пользователя.",
-    EN: "Reset the user's avatar.",
-    KZ: "Пайдаланушының аватарын қалпына келтіру.",
+    RU: "Управляйте аватаром, описанием и удалением аккаунта.",
+    EN: "Manage avatar, description, and account removal.",
+    KZ: "Аватарды, сипаттаманы және аккаунтты жоюды басқару.",
   },
 
   adminUserSettingsPermissionsAction: {
@@ -563,6 +633,17 @@ export const translations: Translations = {
     EN: "Reset avatar",
     KZ: "Аватарды қалпына келтіру",
   },
+  adminUserSettingsProfileDeleteDescription: {
+    RU: "Удалить описание",
+    EN: "Delete description",
+    KZ: "Сипаттаманы жою",
+  },
+  adminUserSettingsProfileDeleteAccount: {
+    RU: "Удалить аккаунт",
+    EN: "Delete account",
+    KZ: "Аккаунтты жою",
+  },
+
   adminUserSettingsPermissionsLoading: {
     RU: "Загрузка прав...",
     EN: "Loading permissions...",
@@ -1394,6 +1475,57 @@ export const translations: Translations = {
     EN: "Failed to reset avatar",
     KZ: "\u0410\u0432\u0430\u0442\u0430\u0440\u0434\u044b \u049b\u0430\u043b\u043f\u044b\u043d\u0430 \u043a\u0435\u043b\u0442\u0456\u0440\u0443 \u043c\u04af\u043c\u043a\u0456\u043d \u0431\u043e\u043b\u043c\u0430\u0434\u044b",
   },
+  adminUserDescriptionDeleteSuccess: {
+    RU: "Описание удалено",
+    EN: "Description deleted",
+    KZ: "Сипаттама жойылды",
+  },
+  adminUserDescriptionDeleteError: {
+    RU: "Не удалось удалить описание",
+    EN: "Failed to delete description",
+    KZ: "Сипаттаманы жою мүмкін болмады",
+  },
+  adminUserDeleteProfileTitle: {
+    RU: "Удалить аккаунт",
+    EN: "Delete account",
+    KZ: "Аккаунтты жою",
+  },
+  adminUserDeleteProfileDescription: {
+    RU: "Введите имя пользователя для подтверждения:",
+    EN: "Type the username to confirm:",
+    KZ: "Растау үшін пайдаланушы атын енгізіңіз:",
+  },
+  adminUserDeleteProfilePlaceholder: {
+    RU: "Имя пользователя",
+    EN: "Username",
+    KZ: "Пайдаланушы аты",
+  },
+  adminUserDeleteProfileCancel: {
+    RU: "Отмена",
+    EN: "Cancel",
+    KZ: "Бас тарту",
+  },
+  adminUserDeleteProfileAction: {
+    RU: "Удалить",
+    EN: "Delete",
+    KZ: "Жою",
+  },
+  adminUserDeleteProfileMismatch: {
+    RU: "Имя пользователя не совпадает.",
+    EN: "Username does not match.",
+    KZ: "Пайдаланушы аты сәйкес келмейді.",
+  },
+  adminUserDeleteProfileSuccess: {
+    RU: "Аккаунт удалён",
+    EN: "Account deleted",
+    KZ: "Аккаунт жойылды",
+  },
+  adminUserDeleteProfileError: {
+    RU: "Не удалось удалить аккаунт",
+    EN: "Failed to delete account",
+    KZ: "Аккаунтты жою мүмкін болмады",
+  },
+
   adminToastSelectUser: {
     RU: "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f",
     EN: "Select a user",

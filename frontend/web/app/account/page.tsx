@@ -15,6 +15,14 @@ import { useLanguage } from "@/components/language-provider";
 import { useAuth } from "@/components/auth-provider";
 import { GradientButton } from "@/components/gradient-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const getInitials = (value: string) => {
   const parts = value.trim().split(/\s+/).filter(Boolean);
@@ -36,6 +44,7 @@ export default function AccountPage() {
     updateProfileDescription,
     updateAvatar,
     deleteAvatar,
+    deleteProfile,
   } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const [displayName, setDisplayName] = useState("");
@@ -49,6 +58,14 @@ export default function AccountPage() {
   const [avatarAction, setAvatarAction] = useState<"upload" | "reset" | null>(
     null,
   );
+  const [deleteDescriptionLoading, setDeleteDescriptionLoading] =
+    useState(false);
+  const [deleteProfileOpen, setDeleteProfileOpen] = useState(false);
+  const [deleteProfileInput, setDeleteProfileInput] = useState("");
+  const [deleteProfileError, setDeleteProfileError] = useState<string | null>(
+    null,
+  );
+  const [deleteProfileLoading, setDeleteProfileLoading] = useState(false);
   const isAvatarSaving = avatarAction !== null;
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const languageOptions = [
@@ -206,6 +223,51 @@ export default function AccountPage() {
     }
   };
 
+  const handleDeleteDescription = async () => {
+    if (!user) {
+      return;
+    }
+    if (!profileDescription.trim()) {
+      return;
+    }
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setDeleteDescriptionLoading(true);
+    try {
+      await updateProfileDescription("");
+      setProfileDescription("");
+      setSuccessMessage(t("accountDescriptionDeleted"));
+    } catch (err) {
+      setErrorMessage(
+        err instanceof Error ? err.message : t("accountProfileError"),
+      );
+    } finally {
+      setDeleteDescriptionLoading(false);
+    }
+  };
+
+  const handleConfirmDeleteProfile = async () => {
+    if (!user) {
+      return;
+    }
+    if (deleteProfileInput.trim() !== user.username) {
+      setDeleteProfileError(t("accountDeleteProfileMismatch"));
+      return;
+    }
+    setDeleteProfileError(null);
+    setDeleteProfileLoading(true);
+    try {
+      await deleteProfile();
+      router.replace("/");
+    } catch (err) {
+      setDeleteProfileError(
+        err instanceof Error ? err.message : t("accountDeleteProfileError"),
+      );
+    } finally {
+      setDeleteProfileLoading(false);
+    }
+  };
+
   if (status === "loading") {
     return (
       <div className="min-h-screen bg-background">
@@ -234,6 +296,8 @@ export default function AccountPage() {
   const canResetAvatar = Boolean(storedAvatarSrc);
   const canResetDisplayName =
     Boolean(user.username) && displayName.trim() !== user.username;
+  const canDeleteDescription = Boolean(profileDescription.trim());
+  const isDeleteProfileMatch = deleteProfileInput.trim() === user.username;
 
   return (
     <div className="min-h-screen bg-background">
@@ -317,6 +381,41 @@ export default function AccountPage() {
                     {avatarSuccess}
                   </p>
                 ) : null}
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-destructive">
+                {t("accountDangerZone")}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t("accountDangerHint")}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="w-full rounded-full border border-destructive/40 px-4 py-2 text-xs font-semibold text-destructive transition-colors duration-300 hover:bg-destructive hover:text-destructive-foreground disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                  onClick={() => void handleDeleteDescription()}
+                  disabled={deleteDescriptionLoading || !canDeleteDescription}
+                >
+                  {deleteDescriptionLoading
+                    ? t("accountDescriptionDeleting")
+                    : t("accountDescriptionDelete")}
+                </button>
+                <button
+                  type="button"
+                  className="w-full rounded-full bg-destructive px-4 py-2 text-xs font-semibold text-destructive-foreground transition-opacity duration-300 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                  onClick={() => {
+                    setDeleteProfileInput("");
+                    setDeleteProfileError(null);
+                    setDeleteProfileOpen(true);
+                  }}
+                  disabled={deleteProfileLoading}
+                >
+                  {deleteProfileLoading
+                    ? t("accountProfileDeleting")
+                    : t("accountProfileDelete")}
+                </button>
               </div>
             </div>
 
@@ -404,6 +503,59 @@ export default function AccountPage() {
           </motion.form>
         </div>
       </main>
+
+      <Dialog
+        open={deleteProfileOpen}
+        onOpenChange={(open) => {
+          setDeleteProfileOpen(open);
+          if (!open) {
+            setDeleteProfileInput("");
+            setDeleteProfileError(null);
+            setDeleteProfileLoading(false);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("accountDeleteProfileTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("accountDeleteProfileDescription")}{" "}
+              <span className="font-semibold text-foreground">
+                {user.username}
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <input
+              value={deleteProfileInput}
+              onChange={(event) => setDeleteProfileInput(event.target.value)}
+              placeholder={t("accountDeleteProfilePlaceholder")}
+              className="w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
+            />
+            {deleteProfileError ? (
+              <p className="text-xs text-destructive">{deleteProfileError}</p>
+            ) : null}
+          </div>
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setDeleteProfileOpen(false)}
+              className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
+              disabled={deleteProfileLoading}
+            >
+              {t("accountDeleteProfileCancel")}
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleConfirmDeleteProfile()}
+              className="rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition-opacity duration-300 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={deleteProfileLoading || !isDeleteProfileMatch}
+            >
+              {t("accountDeleteProfileAction")}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

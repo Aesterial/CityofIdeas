@@ -42,6 +42,8 @@ import {
 import {
   banUser,
   deleteUserAvatar,
+  deleteUserDescription,
+  deleteUserProfile,
   fetchUserBanInfo,
   fetchUsers,
   handleBannedUser,
@@ -362,6 +364,14 @@ export default function AdminPage() {
   const [banDialogDuration, setBanDialogDuration] = useState(0);
   const [banDialogDate, setBanDialogDate] = useState<Date | undefined>();
   const [banDialogLoading, setBanDialogLoading] = useState(false);
+  const [deleteProfileDialogOpen, setDeleteProfileDialogOpen] = useState(false);
+  const [deleteProfileDialogUser, setDeleteProfileDialogUser] =
+    useState<AdminUserSettingsTarget | null>(null);
+  const [deleteProfileInput, setDeleteProfileInput] = useState("");
+  const [deleteProfileError, setDeleteProfileError] = useState<string | null>(
+    null,
+  );
+  const [deleteProfileLoading, setDeleteProfileLoading] = useState(false);
   const [settingsUser, setSettingsUser] =
     useState<AdminUserSettingsTarget | null>(null);
 
@@ -1173,6 +1183,38 @@ export default function AdminPage() {
     }
   };
 
+  const handleConfirmDeleteProfile = async () => {
+    if (!deleteProfileDialogUser) {
+      return;
+    }
+    const expectedUsername = deleteProfileDialogUser.username || "";
+    if (deleteProfileInput.trim() !== expectedUsername) {
+      setDeleteProfileError(t("adminUserDeleteProfileMismatch"));
+      return;
+    }
+    setDeleteProfileError(null);
+    setDeleteProfileLoading(true);
+    try {
+      await deleteUserProfile(deleteProfileDialogUser.userID);
+      setUsers((prev) =>
+        prev.filter((item) => item.userID !== deleteProfileDialogUser.userID),
+      );
+      toast.success(t("adminUserDeleteProfileSuccess"), {
+        description: deleteProfileDialogUser.name,
+      });
+      setDeleteProfileDialogOpen(false);
+      setSettingsUser(null);
+    } catch (error) {
+      setDeleteProfileError(
+        error instanceof Error
+          ? error.message
+          : t("adminUserDeleteProfileError"),
+      );
+    } finally {
+      setDeleteProfileLoading(false);
+    }
+  };
+
   const handleUserAction = async (
     user: User,
     action: "unblock" | "reset" | "message",
@@ -1208,7 +1250,12 @@ export default function AdminPage() {
   };
 
   const handleSettingsAction = async (
-    action: "permissions" | "role" | "profile",
+    action:
+      | "permissions"
+      | "role"
+      | "profile"
+      | "profileDescription"
+      | "profileDelete",
     user: AdminUserSettingsTarget,
   ) => {
     if (action === "profile") {
@@ -1222,6 +1269,26 @@ export default function AdminPage() {
           description: error instanceof Error ? error.message : undefined,
         });
       }
+      return;
+    }
+    if (action === "profileDescription") {
+      try {
+        await deleteUserDescription(user.userID);
+        toast.success(t("adminUserDescriptionDeleteSuccess"), {
+          description: user.name,
+        });
+      } catch (error) {
+        toast.error(t("adminUserDescriptionDeleteError"), {
+          description: error instanceof Error ? error.message : undefined,
+        });
+      }
+      return;
+    }
+    if (action === "profileDelete") {
+      setDeleteProfileDialogUser(user);
+      setDeleteProfileInput("");
+      setDeleteProfileError(null);
+      setDeleteProfileDialogOpen(true);
       return;
     }
     const labelMap = {
@@ -2155,10 +2222,10 @@ export default function AdminPage() {
                 </motion.section>
               </div>
             </main>
-            <Dialog
-              open={banDialogOpen}
-              onOpenChange={(open) => {
-                setBanDialogOpen(open);
+      <Dialog
+        open={banDialogOpen}
+        onOpenChange={(open) => {
+          setBanDialogOpen(open);
                 if (!open) {
                   setBanDialogUser(null);
                   setBanDialogReason("");
@@ -2251,14 +2318,72 @@ export default function AdminPage() {
                     disabled={banDialogLoading || !banDialogUser}
                   >
                     {t("actionBlock")}
-                  </button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-            <AdminUserSettingsDialog
-              open={Boolean(settingsUser)}
-              user={settingsUser}
-              onOpenChange={(open) => {
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={deleteProfileDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteProfileDialogOpen(open);
+          if (!open) {
+            setDeleteProfileDialogUser(null);
+            setDeleteProfileInput("");
+            setDeleteProfileError(null);
+            setDeleteProfileLoading(false);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("adminUserDeleteProfileTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("adminUserDeleteProfileDescription")}{" "}
+              <span className="font-semibold text-foreground">
+                {deleteProfileDialogUser?.username ?? ""}
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <input
+              value={deleteProfileInput}
+              onChange={(event) => setDeleteProfileInput(event.target.value)}
+              placeholder={t("adminUserDeleteProfilePlaceholder")}
+              className="w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
+            />
+            {deleteProfileError ? (
+              <p className="text-xs text-destructive">{deleteProfileError}</p>
+            ) : null}
+          </div>
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={() => setDeleteProfileDialogOpen(false)}
+              className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
+              disabled={deleteProfileLoading}
+            >
+              {t("adminUserDeleteProfileCancel")}
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleConfirmDeleteProfile()}
+              className="rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition-opacity duration-300 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={
+                deleteProfileLoading ||
+                !deleteProfileDialogUser ||
+                deleteProfileInput.trim() !==
+                  (deleteProfileDialogUser?.username ?? "")
+              }
+            >
+              {t("adminUserDeleteProfileAction")}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <AdminUserSettingsDialog
+        open={Boolean(settingsUser)}
+        user={settingsUser}
+        onOpenChange={(open) => {
                 if (!open) {
                   setSettingsUser(null);
                 }

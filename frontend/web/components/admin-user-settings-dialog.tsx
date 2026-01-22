@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Shield, UserX, Users } from "lucide-react";
 import { toast } from "sonner";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { useLanguage } from "@/components/language-provider";
 import {
@@ -21,17 +21,35 @@ export type AdminUserSettingsTarget = {
 };
 
 type SettingsSection = "permissions" | "role" | "profile";
+type SettingsAction =
+  | "permissions"
+  | "role"
+  | "profile"
+  | "profileDescription"
+  | "profileDelete";
 
 type AdminUserSettingsDialogProps = {
   open: boolean;
   user: AdminUserSettingsTarget | null;
   onOpenChange: (open: boolean) => void;
-  onAction?: (action: SettingsSection, user: AdminUserSettingsTarget) => void;
+  onAction?: (action: SettingsAction, user: AdminUserSettingsTarget) => void;
 };
 
 type PermissionEntry = {
   key: string;
   value: boolean;
+};
+
+const humanizePermissionPart = (value: string) =>
+  value
+    .replace(/[-_]+/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .toLowerCase();
+
+const getPermissionLabel = (entry: PermissionEntry) => {
+  const parts = entry.key.split(".");
+  const labelParts = parts.length > 1 ? parts.slice(1) : parts;
+  return labelParts.map(humanizePermissionPart).join(" / ");
 };
 
 const flattenPermissions = (
@@ -252,6 +270,11 @@ export function AdminUserSettingsDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl overflow-hidden p-0">
+   
+        <DialogTitle className="sr-only">
+          {t("adminUserSettingsTitle")}
+        </DialogTitle>
+
         <div className="grid grid-cols-1 md:grid-cols-[220px_1fr]">
           <div className="border-b border-border/60 bg-muted/30 p-4 md:border-b-0 md:border-r">
             <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
@@ -278,6 +301,7 @@ export function AdminUserSettingsDialog({
               })}
             </div>
           </div>
+
           <div className="p-6">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -292,6 +316,7 @@ export function AdminUserSettingsDialog({
                 ) : null}
               </div>
             </div>
+
             <p className="mt-4 text-sm text-muted-foreground">
               {activeSection.hint}
             </p>
@@ -321,7 +346,7 @@ export function AdminUserSettingsDialog({
                     </button>
                   </div>
                 ) : permissionGroups.length ? (
-                  <div className="space-y-4">
+                  <div className="max-h-[60vh] space-y-4 overflow-y-auto pr-2">
                     {permissionGroups.map((group) => (
                       <div
                         key={group.key}
@@ -334,10 +359,13 @@ export function AdminUserSettingsDialog({
                           {group.items.map((entry) => (
                             <div
                               key={entry.key}
-                              className="flex flex-wrap items-center justify-between gap-3"
+                              className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4"
                             >
                               <div className="min-w-0">
                                 <p className="text-sm font-semibold break-words">
+                                  {getPermissionLabel(entry)}
+                                </p>
+                                <p className="text-[11px] text-muted-foreground/80 break-words">
                                   {entry.key}
                                 </p>
                               </div>
@@ -419,21 +447,35 @@ export function AdminUserSettingsDialog({
                   </p>
                 )}
 
-                <p className="text-xs text-muted-foreground">
-                  {t("adminUserSettingsRoleUnavailable")}
-                </p>
+               
               </div>
             ) : null}
 
             {section === "profile" ? (
               <div className="mt-6">
-                <button
-                  type="button"
-                  onClick={() => onAction?.("profile", user)}
-                  className="rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition hover:opacity-90"
-                >
-                  {t("adminUserSettingsProfileAction")}
-                </button>
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => onAction?.("profile", user)}
+                    className="w-full rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition hover:bg-foreground hover:text-background"
+                  >
+                    {t("adminUserSettingsProfileAction")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onAction?.("profileDescription", user)}
+                    className="w-full rounded-full border border-destructive/40 px-4 py-2 text-sm font-semibold text-destructive transition hover:bg-destructive hover:text-destructive-foreground"
+                  >
+                    {t("adminUserSettingsProfileDeleteDescription")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onAction?.("profileDelete", user)}
+                    className="w-full rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition hover:opacity-90"
+                  >
+                    {t("adminUserSettingsProfileDeleteAccount")}
+                  </button>
+                </div>
               </div>
             ) : null}
           </div>

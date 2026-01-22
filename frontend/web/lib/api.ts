@@ -733,6 +733,24 @@ export async function deleteUserAvatar(userID: number): Promise<void> {
   });
 }
 
+export async function deleteProfile(): Promise<void> {
+  await apiRequest("/api/user/delete/profile", {
+    method: "POST",
+  });
+}
+
+export async function deleteUserDescription(userID: number): Promise<void> {
+  await apiRequest(`/api/user/${userID}/delete/description`, {
+    method: "POST",
+  });
+}
+
+export async function deleteUserProfile(userID: number): Promise<void> {
+  await apiRequest(`/api/user/${userID}/delete/profile`, {
+    method: "POST",
+  });
+}
+
 export async function fetchProjects(options?: {
   limit?: number;
   offset?: number;

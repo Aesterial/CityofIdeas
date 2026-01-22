@@ -19,6 +19,7 @@ import type {
 import {
   authorizeUser,
   deleteAvatar,
+  deleteProfile,
   fetchCurrentUser,
   fetchUserPermissions,
   logoutUser,
@@ -42,6 +43,7 @@ type AuthContextValue = {
   updateProfileDescription: (description: string) => Promise<AuthUser | null>;
   updateAvatar: (payload: AvatarUploadPayload) => Promise<AuthUser | null>;
   deleteAvatar: () => Promise<AuthUser | null>;
+  deleteProfile: () => Promise<void>;
   hasAdminAccess: boolean;
 };
 
@@ -229,6 +231,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return updated;
   }, [user]);
 
+  const handleDeleteProfile = useCallback(async () => {
+    if (!user) {
+      return;
+    }
+    await deleteProfile();
+    try {
+      await logoutUser();
+    } catch {
+      // Ignore logout errors after profile deletion.
+    } finally {
+      setUser(null);
+      setPermissions(null);
+      setStatus("anonymous");
+    }
+  }, [user]);
+
   const hasAdminAccess = useMemo(() => {
     if (hasAnyPermission(permissions, adminPermissionPaths)) {
       return true;
@@ -249,6 +267,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       updateProfileDescription: handleUpdateProfileDescription,
       updateAvatar: handleUpdateAvatar,
       deleteAvatar: handleDeleteAvatar,
+      deleteProfile: handleDeleteProfile,
       hasAdminAccess,
     }),
     [
@@ -263,6 +282,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       handleUpdateProfileDescription,
       handleUpdateAvatar,
       handleDeleteAvatar,
+      handleDeleteProfile,
       hasAdminAccess,
     ],
   );
