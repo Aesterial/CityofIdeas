@@ -495,6 +495,51 @@ export async function authorizeUser(
   });
 }
 
+type VkStartResponse = {
+  authUrl?: string;
+  auth_url?: string;
+  state?: string;
+};
+
+type VkCallbackResponse = {
+  redirectUrl?: string;
+  redirect_url?: string;
+  tracing?: string;
+};
+
+export async function startVkAuth(): Promise<{
+  authUrl: string;
+  state?: string;
+}> {
+  const payload = await apiRequest<VkStartResponse>("/api/login/vk/start", {
+    method: "GET",
+  });
+  const authUrl = payload.authUrl ?? payload.auth_url ?? "";
+  if (!authUrl) {
+    throw new Error("VK auth URL is missing.");
+  }
+  return { authUrl, state: payload.state };
+}
+
+export async function completeVkAuth(
+  code: string,
+  state: string,
+): Promise<{ redirectUrl?: string; tracing?: string }> {
+  const params = new URLSearchParams();
+  params.set("code", code);
+  params.set("state", state);
+  const payload = await apiRequest<VkCallbackResponse>(
+    `/api/login/vk/callback?${params.toString()}`,
+    {
+      method: "GET",
+    },
+  );
+  return {
+    redirectUrl: payload.redirectUrl ?? payload.redirect_url ?? undefined,
+    tracing: payload.tracing,
+  };
+}
+
 function toUserListItem(payload: ApiUserPublic): UserListItem | null {
   const userID = payload.userID ?? payload.uid;
   const username = payload.username;

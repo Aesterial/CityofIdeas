@@ -7,6 +7,7 @@ import { GradientButton } from "@/components/gradient-button";
 import { useLanguage } from "@/components/language-provider";
 import { Logo } from "@/components/logo";
 import { useTheme } from "@/components/theme-provider";
+import { startVkAuth } from "@/lib/api";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,
@@ -34,6 +35,7 @@ export default function AuthPage() {
   const [mounted, setMounted] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [vkLoading, setVkLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -155,6 +157,19 @@ export default function AuthPage() {
       );
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleVkLogin = async () => {
+    setErrorMessage(null);
+    setVkLoading(true);
+    try {
+      const { authUrl } = await startVkAuth();
+      window.location.assign(authUrl);
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : t("vkAuthError"));
+    } finally {
+      setVkLoading(false);
     }
   };
 
@@ -474,7 +489,12 @@ export default function AuthPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
           >
-            <button className="w-full bg-card border border-border rounded-2xl py-3 px-6 text-sm font-medium hover:bg-muted transition-colors duration-300 flex items-center justify-center gap-3 sm:py-4 sm:text-base">
+            <button
+              type="button"
+              onClick={() => void handleVkLogin()}
+              disabled={vkLoading}
+              className="w-full bg-card border border-border rounded-2xl py-3 px-6 text-sm font-medium hover:bg-muted transition-colors duration-300 flex items-center justify-center gap-3 disabled:cursor-not-allowed disabled:opacity-60 sm:py-4 sm:text-base"
+            >
               <svg
                 width="230"
                 height="28"
