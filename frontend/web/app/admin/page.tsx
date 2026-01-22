@@ -17,6 +17,7 @@ import {
   Moon,
   Shield,
   Sparkles,
+  Settings,
   Sun,
   TrendingUp,
   Users,
@@ -30,6 +31,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/components/auth-provider";
 import { useLanguage } from "@/components/language-provider";
+import {
+  AdminUserSettingsDialog,
+  type AdminUserSettingsTarget,
+} from "@/components/admin-user-settings-dialog";
 import {
   TutorialProvider,
   type TutorialStep,
@@ -100,6 +105,36 @@ const renderNoData = (heightClass: string) => (
     {NO_DATA_LABEL}
   </div>
 );
+
+const ADMIN_CACHE_TTL_MS = 5 * 60 * 1000;
+const ADMIN_STATS_CACHE_PREFIX = "admin.stats.v1";
+const ADMIN_USERS_CACHE_KEY = "admin.users.v1";
+
+const readAdminCache = <T,>(key: string): T | null => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  try {
+    const raw = window.sessionStorage.getItem(key);
+    if (!raw) {
+      return null;
+    }
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+};
+
+const writeAdminCache = (key: string, value: unknown) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+  try {
+    window.sessionStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Ignore cache writes if storage is unavailable.
+  }
+};
 
 const adminTutorialSteps: TutorialStep[] = [
   {
@@ -174,6 +209,29 @@ type MediaCoverageResponse = {
 type StatCardId = "activeUsers" | "offlineUsers" | "newIdeas" | "votes";
 type StatsSummary = Record<StatCardId, number | null>;
 
+type AdminStatsCache = {
+  timestamp: number;
+  statsSummary: StatsSummary;
+  voteCategories: VoteCategory[];
+  ideasApproval: {
+    approved: number | null;
+    waiting: number | null;
+    declined: number | null;
+  };
+  activityPoints: ActivityPoint[];
+  mediaCoveragePoints: MediaCoveragePoint[];
+  qualityScores: QualityScore[];
+  audienceSnapshot: {
+    active: number | null;
+    offline: number | null;
+  };
+};
+
+type AdminUsersCache = {
+  timestamp: number;
+  users: User[];
+};
+
 type ActivityPoint = {
   label: string;
   timestamp: number;
@@ -201,6 +259,17 @@ const formatUserDate = (value?: string) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
   return userDateFormatter.format(date);
+};
+
+const getUserInitials = (value: string) => {
+  const parts = value.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return "U";
+  }
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
 };
 
 const isBanActive = (banInfo: BanInfo | null) => {
@@ -292,6 +361,8 @@ export default function AdminPage() {
   const [banDialogDuration, setBanDialogDuration] = useState(0);
   const [banDialogDate, setBanDialogDate] = useState<Date | undefined>();
   const [banDialogLoading, setBanDialogLoading] = useState(false);
+  const [settingsUser, setSettingsUser] =
+    useState<AdminUserSettingsTarget | null>(null);
 
   const [voteCategories, setVoteCategories] = useState<VoteCategory[]>([]);
   const [ideasApproval, setIdeasApproval] = useState<{
@@ -317,6 +388,15 @@ export default function AdminPage() {
     offline: null,
   });
 
+  const statsSnapshotRef = useRef({
+    statsSummary,
+    voteCategories,
+    ideasApproval,
+    activityPoints,
+    mediaCoveragePoints,
+    qualityScores,
+    audienceSnapshot,
+  });
   const statsLoadGuardRef = useRef(false);
   const usersLoadGuardRef = useRef(false);
 
@@ -434,7 +514,7 @@ export default function AdminPage() {
   );
 
   const activityRangeDays =
-    activityRanges.find((range) => range.id === activityRange)?.days ?? 7;
+    activityRanges.find((range) => range.id === activityRange)?.days || 7;
 
   const banDurations = useMemo(
     () => [
@@ -454,9 +534,9 @@ export default function AdminPage() {
 
   const statusData = useMemo(
     () => [
-      { status: t("statusPending"), value: ideasApproval.waiting ?? 0 },
-      { status: t("statusApproved"), value: ideasApproval.approved ?? 0 },
-      { status: t("statusDeclined"), value: ideasApproval.declined ?? 0 },
+      { status: t("statusPending"), value: ideasApproval.waiting || 0 },
+      { status: t("statusApproved"), value: ideasApproval.approved || 0 },
+      { status: t("statusDeclined"), value: ideasApproval.declined || 0 },
     ],
     [ideasApproval, t],
   );
@@ -552,6 +632,26 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
+    statsSnapshotRef.current = {
+      statsSummary,
+      voteCategories,
+      ideasApproval,
+      activityPoints,
+      mediaCoveragePoints,
+      qualityScores,
+      audienceSnapshot,
+    };
+  }, [
+    statsSummary,
+    voteCategories,
+    ideasApproval,
+    activityPoints,
+    mediaCoveragePoints,
+    qualityScores,
+    audienceSnapshot,
+  ]);
+
+  useEffect(() => {
     const sectionIds = ["users", "overview", "analytics", "media"];
     const observer = new IntersectionObserver(
       (entries) => {
@@ -575,6 +675,22 @@ export default function AdminPage() {
   useEffect(() => {
     let cancelled = false;
     let controller = new AbortController();
+    const cacheKey = `${ADMIN_STATS_CACHE_PREFIX}:${language}:${activityRangeDays}`;
+    const cached = readAdminCache<AdminStatsCache>(cacheKey);
+
+    if (cached && Date.now() - cached.timestamp < ADMIN_CACHE_TTL_MS) {
+      setStatsSummary(cached.statsSummary);
+      setVoteCategories(cached.voteCategories);
+      setIdeasApproval(cached.ideasApproval);
+      setActivityPoints(cached.activityPoints);
+      setMediaCoveragePoints(cached.mediaCoveragePoints);
+      setQualityScores(cached.qualityScores);
+      setAudienceSnapshot(cached.audienceSnapshot);
+      return () => {
+        cancelled = true;
+        controller.abort();
+      };
+    }
 
     const run = () => {
       if (cancelled) {
@@ -741,47 +857,53 @@ export default function AdminPage() {
           });
         }
 
-        setStatsSummary((prev) => ({
+        const previous = statsSnapshotRef.current;
+
+        const nextStatsSummary: StatsSummary = {
           activeUsers:
             activeUsersResult.status === "fulfilled"
-              ? Number(activeUsersResult.value?.count ?? 0)
-              : prev.activeUsers,
+              ? Number(activeUsersResult.value?.count || 0)
+              : previous.statsSummary.activeUsers,
           offlineUsers:
             offlineUsersResult.status === "fulfilled"
-              ? Number(offlineUsersResult.value?.count ?? 0)
-              : prev.offlineUsers,
+              ? Number(offlineUsersResult.value?.count || 0)
+              : previous.statsSummary.offlineUsers,
           newIdeas:
             ideasDayResult.status === "fulfilled"
-              ? Number(ideasDayResult.value?.count ?? 0)
-              : prev.newIdeas,
+              ? Number(ideasDayResult.value?.count || 0)
+              : previous.statsSummary.newIdeas,
           votes:
             votesDayResult.status === "fulfilled"
-              ? Number(votesDayResult.value?.count ?? 0)
-              : prev.votes,
-        }));
+              ? Number(votesDayResult.value?.count || 0)
+              : previous.statsSummary.votes,
+        };
 
-        if (categoriesResult.status === "fulfilled") {
-          const mapped = (categoriesResult.value.record ?? []).map((item) => ({
-            category: item.name || t("other"),
-            votes: Number(item.posts ?? 0),
-          }));
-          setVoteCategories(mapped);
-        }
+        const nextVoteCategories =
+          categoriesResult.status === "fulfilled"
+            ? (categoriesResult.value.record || []).map((item) => ({
+                category: item.name || t("other"),
+                votes: Number(item.posts || 0),
+              }))
+            : previous.voteCategories;
 
-        if (ideasRecapResult.status === "fulfilled") {
-          setIdeasApproval({
-            approved: Number(ideasRecapResult.value?.approved ?? 0),
-            waiting: Number(ideasRecapResult.value?.waiting ?? 0),
-            declined: Number(ideasRecapResult.value?.declined ?? 0),
-          });
-        }
+        const nextIdeasApproval =
+          ideasRecapResult.status === "fulfilled"
+            ? {
+                approved: Number(ideasRecapResult.value?.approved || 0),
+                waiting: Number(ideasRecapResult.value?.waiting || 0),
+                declined: Number(ideasRecapResult.value?.declined || 0),
+              }
+            : previous.ideasApproval;
+
+        let nextActivityPoints = previous.activityPoints;
+        let nextAudienceSnapshot = previous.audienceSnapshot;
 
         if (usersActivityResult.status === "fulfilled") {
           const formatter = new Intl.DateTimeFormat(locale, {
             month: "short",
             day: "numeric",
           });
-          const mapped = Object.entries(usersActivityResult.value?.data ?? {})
+          const mapped = Object.entries(usersActivityResult.value?.data || {})
             .map(([key, value]) => {
               const timestamp = Number(key) * 1000;
               if (!Number.isFinite(timestamp)) return null;
@@ -797,77 +919,101 @@ export default function AdminPage() {
             .filter((item): item is ActivityPoint => Boolean(item))
             .sort((a, b) => a.timestamp - b.timestamp);
 
-          setActivityPoints(mapped);
+          nextActivityPoints = mapped;
 
           const latest = mapped[mapped.length - 1];
           if (latest) {
-            setAudienceSnapshot((prev) => ({
-              active: latest.active ?? prev.active,
-              offline: latest.offline ?? prev.offline,
-            }));
+            nextAudienceSnapshot = {
+              active: latest.active ?? nextAudienceSnapshot.active,
+              offline: latest.offline ?? nextAudienceSnapshot.offline,
+            };
           }
         }
 
-        if (qualityRecapResult.status === "fulfilled") {
-          const computeScore = (grade?: Grade) => {
-            const good = Number(grade?.good ?? 0);
-            const bad = Number(grade?.bad ?? 0);
-            const total = good + bad;
-            if (total === 0) return 0;
-            return Math.round((good / total) * 100);
-          };
-          setQualityScores([
-            {
-              type: t("adminMediaLabelPhotos"),
-              score: computeScore(qualityRecapResult.value.photos),
-            },
-            {
-              type: t("adminMediaLabelVideos"),
-              score: computeScore(qualityRecapResult.value.videos),
-            },
-            {
-              type: t("adminMediaLabelGraphics"),
-              score: computeScore(qualityRecapResult.value.graphics),
-            },
-          ]);
-        }
+        const nextQualityScores =
+          qualityRecapResult.status === "fulfilled"
+            ? (() => {
+                const computeScore = (grade?: Grade) => {
+                  const good = Number(grade?.good ?? 0);
+                  const bad = Number(grade?.bad ?? 0);
+                  const total = good + bad;
+                  if (total === 0) return 0;
+                  return Math.round((good / total) * 100);
+                };
+                return [
+                  {
+                    type: t("adminMediaLabelPhotos"),
+                    score: computeScore(qualityRecapResult.value.photos),
+                  },
+                  {
+                    type: t("adminMediaLabelVideos"),
+                    score: computeScore(qualityRecapResult.value.videos),
+                  },
+                  {
+                    type: t("adminMediaLabelGraphics"),
+                    score: computeScore(qualityRecapResult.value.graphics),
+                  },
+                ];
+              })()
+            : previous.qualityScores;
 
-        if (mediaCoverageResult.status === "fulfilled") {
-          const formatter = new Intl.DateTimeFormat(locale, {
-            month: "short",
-            day: "numeric",
-          });
-          const mapped = Object.entries(mediaCoverageResult.value?.medias ?? {})
-            .map(([key, value]) => {
-              const timestamp = Number(key) * 1000;
-              if (!Number.isFinite(timestamp)) return null;
-              return {
-                label: formatter.format(new Date(timestamp)),
-                timestamp,
-                photos: Number(value?.photos ?? 0),
-                videos: Number(value?.videos ?? 0),
-              };
-            })
-            .filter((item): item is MediaCoveragePoint => Boolean(item))
-            .sort((a, b) => a.timestamp - b.timestamp);
+        const nextMediaCoveragePoints =
+          mediaCoverageResult.status === "fulfilled"
+            ? (() => {
+                const formatter = new Intl.DateTimeFormat(locale, {
+                  month: "short",
+                  day: "numeric",
+                });
+                return Object.entries(mediaCoverageResult.value?.medias || {})
+                  .map(([key, value]) => {
+                    const timestamp = Number(key) * 1000;
+                    if (!Number.isFinite(timestamp)) return null;
+                    return {
+                      label: formatter.format(new Date(timestamp)),
+                      timestamp,
+                      photos: Number(value?.photos ?? 0),
+                      videos: Number(value?.videos ?? 0),
+                    };
+                  })
+                  .filter((item): item is MediaCoveragePoint => Boolean(item))
+                  .sort((a, b) => a.timestamp - b.timestamp);
+              })()
+            : previous.mediaCoveragePoints;
 
-          setMediaCoveragePoints(mapped);
-        }
+        const fallbackActive =
+          previous.audienceSnapshot.active ??
+          (activeUsersResult.status === "fulfilled"
+            ? Number(activeUsersResult.value?.count ?? 0)
+            : null);
+        const fallbackOffline =
+          previous.audienceSnapshot.offline ??
+          (offlineUsersResult.status === "fulfilled"
+            ? Number(offlineUsersResult.value?.count ?? 0)
+            : null);
+        nextAudienceSnapshot = {
+          active: nextAudienceSnapshot.active ?? fallbackActive,
+          offline: nextAudienceSnapshot.offline ?? fallbackOffline,
+        };
 
-        setAudienceSnapshot((prev) => ({
-          active:
-            prev.active ??
-            (activeUsersResult.status === "fulfilled"
-              ? Number(activeUsersResult.value?.count ?? 0)
-              : null),
-          offline:
-            prev.offline ??
-            (offlineUsersResult.status === "fulfilled"
-              ? Number(offlineUsersResult.value?.count ?? 0)
-              : null),
-        }));
+        setStatsSummary(nextStatsSummary);
+        setVoteCategories(nextVoteCategories);
+        setIdeasApproval(nextIdeasApproval);
+        setActivityPoints(nextActivityPoints);
+        setMediaCoveragePoints(nextMediaCoveragePoints);
+        setQualityScores(nextQualityScores);
+        setAudienceSnapshot(nextAudienceSnapshot);
+
+        writeAdminCache(cacheKey, {
+          timestamp: Date.now(),
+          statsSummary: nextStatsSummary,
+          voteCategories: nextVoteCategories,
+          ideasApproval: nextIdeasApproval,
+          activityPoints: nextActivityPoints,
+          mediaCoveragePoints: nextMediaCoveragePoints,
+          qualityScores: nextQualityScores,
+          audienceSnapshot: nextAudienceSnapshot,
+        });
       };
-
       void load();
     };
 
@@ -887,6 +1033,16 @@ export default function AdminPage() {
   useEffect(() => {
     let cancelled = false;
     let controller = new AbortController();
+    const cacheKey = `${ADMIN_USERS_CACHE_KEY}:${language}`;
+    const cached = readAdminCache<AdminUsersCache>(cacheKey);
+
+    if (cached && Date.now() - cached.timestamp < ADMIN_CACHE_TTL_MS) {
+      setUsers(cached.users);
+      return () => {
+        cancelled = true;
+        controller.abort();
+      };
+    }
 
     const run = () => {
       if (cancelled) {
@@ -924,11 +1080,15 @@ export default function AdminPage() {
               role: item.rank?.name || t("labelUser"),
               status: isBanned ? "banned" : "active",
               lastActive: formatUserDate(item.joined),
-              reports: 0,
-            };
-          });
-          setUsers(mapped);
-        } catch (error) {
+            reports: 0,
+          };
+        });
+        setUsers(mapped);
+        writeAdminCache(cacheKey, {
+          timestamp: Date.now(),
+          users: mapped,
+        });
+      } catch (error) {
           if (!controller.signal.aborted) {
             toast.error(t("adminErrorLoadUsers"), {
               description: error instanceof Error ? error.message : undefined,
@@ -994,7 +1154,7 @@ export default function AdminPage() {
     }
     setBanDialogLoading(true);
     try {
-      await banUser(banDialogUser.userID, reason, durationSeconds ?? 0);
+      await banUser(banDialogUser.userID, reason, durationSeconds || 0);
       updateUserStatus(banDialogUser.userID, "banned");
       toast.error(t("adminToastUserBlocked"), {
         description: `${banDialogUser.name} - ${t("adminBanReason")}: ${reason}`,
@@ -1039,6 +1199,20 @@ export default function AdminPage() {
     }
 
     toast.message(t("adminToastMessageSent"), {
+      description: user.name,
+    });
+  };
+
+  const handleSettingsAction = (
+    action: "permissions" | "role" | "profile",
+    user: AdminUserSettingsTarget,
+  ) => {
+    const labelMap = {
+      permissions: t("adminUserSettingsPermissions"),
+      role: t("adminUserSettingsRole"),
+      profile: t("adminUserSettingsProfile"),
+    };
+    toast.message(labelMap[action], {
       description: user.name,
     });
   };
@@ -1129,83 +1303,75 @@ export default function AdminPage() {
                       </button>
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
-                      <button
-                        type="button"
-                        onClick={toggleTheme}
-                        data-tutorial="admin-theme-toggle"
-                        className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-border/70 bg-background px-4 text-xs font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
-                      >
-                        {mounted ? (
-                          theme === "light" ? (
-                            <Moon className="h-4 w-4" />
-                          ) : (
-                            <Sun className="h-4 w-4" />
-                          )
-                        ) : null}
-                        {t("adminThemeToggle")}
-                      </button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button
-                            type="button"
-                            className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
-                          >
-                            <Globe className="h-4 w-4" />
-                            {language}
-                            <ChevronDown className="h-3 w-3" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          align="end"
-                          className="min-w-[90px]"
+                    <div className="flex w-full items-center gap-2 sm:gap-3">
+                      <p className="hidden lg:block text-s textforeground max-w-[260px] text-left">
+                        {t("adminHeaderNote")}
+                      </p>
+                    
+                      <div className="ml-auto flex flex-wrap items-center justify-end gap-2 sm:gap-3">
+                        <button
+                          type="button"
+                          onClick={toggleTheme}
+                          data-tutorial="admin-theme-toggle"
+                          className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-border/70 bg-background px-4 text-xs font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
                         >
-                          {languageOptions.map((option) => (
-                            <DropdownMenuItem
-                              key={option.code}
-                              onClick={() => setLanguage(option.code)}
+                          {mounted ? (theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />) : null}
+                          {t("adminThemeToggle")}
+                        </button>
+                    
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
                             >
-                              {option.label}
+                              <Globe className="h-4 w-4" />
+                              {language}
+                              <ChevronDown className="h-3 w-3" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="min-w-[90px]">
+                            {languageOptions.map((option) => (
+                              <DropdownMenuItem key={option.code} onClick={() => setLanguage(option.code)}>
+                                {option.label}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                    
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              className="flex items-center gap-3 rounded-full border border-border/60 bg-background/90 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
+                            >
+                              <Avatar className="h-9 w-9">
+                                <AvatarFallback className="text-xs font-semibold">{initials}</AvatarFallback>
+                              </Avatar>
+                              <span className="text-sm font-semibold">{displayName || user?.username || "admin"}</span>
+                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56">
+                            <DropdownMenuItem asChild>
+                              <Link href="/account">
+                                <Shield className="h-4 w-4" />
+                                {t("accountSettings")}
+                              </Link>
                             </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <button
-                            type="button"
-                            className="flex items-center gap-3 rounded-full border border-border/60 bg-background/90 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
-                          >
-                            <Avatar className="h-9 w-9">
-                              <AvatarFallback className="text-xs font-semibold">
-                                {initials}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-sm font-semibold">
-                              {displayName || user?.username || "admin"}
-                            </span>
-                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                          </button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56">
-                          <DropdownMenuItem asChild>
-                            <Link href="/account">
-                              <Shield className="h-4 w-4" />
-                              {t("accountSettings")}
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onSelect={(event) => {
-                              event.preventDefault();
-                              void handleLogout();
-                            }}
-                          >
-                            <LogOut className="h-4 w-4" />
-                            {t("logout")}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onSelect={(event) => {
+                                event.preventDefault();
+                                void handleLogout();
+                              }}
+                            >
+                              <LogOut className="h-4 w-4" />
+                              {t("logout")}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1849,69 +2015,102 @@ export default function AdminPage() {
                             user.status === "banned"
                               ? t("actionUnblock")
                               : t("actionBlock");
+                          const initials = getUserInitials(user.name);
 
                           return (
                             <div
                               key={user.id}
                               className="rounded-2xl border border-border/60 bg-background/70 p-4"
                             >
-                              <div className="flex items-start justify-between gap-3">
-                                <div>
-                                  <p className="break-words text-sm font-semibold">
-                                    {user.name}
-                                  </p>
-                                  <p className="break-all text-xs text-muted-foreground">
-                                    {user.email}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {user.lastActive}
-                                  </p>
+                              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="flex items-start gap-3 min-w-0">
+                                  <Avatar className="h-10 w-10">
+                                    <AvatarFallback className="text-xs font-semibold">
+                                      {initials}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-semibold truncate">
+                                      {user.name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground truncate">
+                                      @{user.username}
+                                    </p>
+                                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                                      <span className="truncate">
+                                        {user.email}
+                                      </span>
+                                      <span>•</span>
+                                      <span>{user.role}</span>
+                                      <span>•</span>
+                                      <span>{user.lastActive}</span>
+                                    </div>
+                                  </div>
                                 </div>
-                                <span
-                                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                    user.status === "banned"
-                                      ? "bg-destructive/10 text-destructive"
-                                      : "bg-foreground text-background"
-                                  }`}
-                                >
-                                  {user.status === "banned"
-                                    ? t("statusBanned")
-                                    : t("statusActive")}
-                                </span>
-                              </div>
-                              <div className="mt-3 flex justify-end gap-2">
-                                <button
-                                  type="button"
-                                  title={actionTitle}
-                                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                                  onClick={() =>
-                                    user.status === "banned"
-                                      ? void handleUserAction(user, "unblock")
-                                      : openBanDialog(user)
-                                  }
-                                >
-                                  <ActionIcon className="h-4 w-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  title={t("actionResetPassword")}
-                                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                                  onClick={() =>
-                                    void handleUserAction(user, "reset")
-                                  }
-                                >
-                                  <Shield className="h-4 w-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  title={t("actionMessage")}
-                                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                                  onClick={() =>
-                                    void handleUserAction(user, "message")
-                                  }
-                                >
-                                  <MessageSquare className="h-4 w-4" />
-                                </button>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span
+                                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                      user.status === "banned"
+                                        ? "bg-destructive/10 text-destructive"
+                                        : "bg-foreground text-background"
+                                    }`}
+                                  >
+                                    {user.status === "banned"
+                                      ? t("statusBanned")
+                                      : t("statusActive")}
+                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      title={actionTitle}
+                                      className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                      onClick={() =>
+                                        user.status === "banned"
+                                          ? void handleUserAction(
+                                              user,
+                                              "unblock",
+                                            )
+                                          : openBanDialog(user)
+                                      }
+                                    >
+                                      <ActionIcon className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      title={t("actionResetPassword")}
+                                      className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                      onClick={() =>
+                                        void handleUserAction(user, "reset")
+                                      }
+                                    >
+                                      <Shield className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      title={t("actionMessage")}
+                                      className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                      onClick={() =>
+                                        void handleUserAction(user, "message")
+                                      }
+                                    >
+                                      <MessageSquare className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      title={t("adminUserSettingsTitle")}
+                                      className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                      onClick={() =>
+                                        setSettingsUser({
+                                          name: user.name,
+                                          username: user.username,
+                                          role: user.role,
+                                        })
+                                      }
+                                    >
+                                      <Settings className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           );
@@ -1939,7 +2138,7 @@ export default function AdminPage() {
                 <DialogHeader>
                   <DialogTitle>{t("adminBanDialogTitle")}</DialogTitle>
                   <DialogDescription>
-                    {t("adminBanDialogDescription")} {banDialogUser?.name ?? ""}
+                    {t("adminBanDialogDescription")} {banDialogUser?.name || ""}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-3">
@@ -2022,6 +2221,16 @@ export default function AdminPage() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+            <AdminUserSettingsDialog
+              open={Boolean(settingsUser)}
+              user={settingsUser}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setSettingsUser(null);
+                }
+              }}
+              onAction={handleSettingsAction}
+            />
           </div>
         </div>
       </div>

@@ -10,6 +10,10 @@ import { useTheme } from "@/components/theme-provider";
 import { useAuth } from "@/components/auth-provider";
 import { useLanguage } from "@/components/language-provider";
 import {
+  AdminUserSettingsDialog,
+  type AdminUserSettingsTarget,
+} from "@/components/admin-user-settings-dialog";
+import {
   banUser,
   fetchUserBanInfo,
   fetchUsers,
@@ -87,6 +91,17 @@ const formatUserDate = (value?: string) => {
   return userDateFormatter.format(date);
 };
 
+const getUserInitials = (value: string) => {
+  const parts = value.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) {
+    return "U";
+  }
+  if (parts.length === 1) {
+    return parts[0].slice(0, 2).toUpperCase();
+  }
+  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+};
+
 const isBanActive = (banInfo: BanInfo | null) => {
   if (!banInfo) {
     return false;
@@ -117,6 +132,8 @@ export default function AdminUsersPage() {
   const [banDialogDuration, setBanDialogDuration] = useState(0);
   const [banDialogDate, setBanDialogDate] = useState<Date | undefined>();
   const [banDialogLoading, setBanDialogLoading] = useState(false);
+  const [settingsUser, setSettingsUser] =
+    useState<AdminUserSettingsTarget | null>(null);
   const usersLoadGuardRef = useRef(false);
   const displayName = user?.displayName || user?.username || "";
   const initials = (displayName || "U").slice(0, 2).toUpperCase();
@@ -312,7 +329,7 @@ export default function AdminUsersPage() {
 
     setBanDialogLoading(true);
     try {
-      await banUser(banDialogUser.userID, reason, durationSeconds ?? 0);
+      await banUser(banDialogUser.userID, reason, durationSeconds || 0);
       updateUserStatus(banDialogUser.userID, "banned");
       toast.error(t("adminToastUserBlocked"), {
         description: banDialogUser.name,
@@ -355,6 +372,20 @@ export default function AdminUsersPage() {
     }
 
     toast.message(t("adminToastMessageSent"), {
+      description: user.name,
+    });
+  };
+
+  const handleSettingsAction = (
+    action: "permissions" | "role" | "profile",
+    user: AdminUserSettingsTarget,
+  ) => {
+    const labelMap = {
+      permissions: t("adminUserSettingsPermissions"),
+      role: t("adminUserSettingsRole"),
+      profile: t("adminUserSettingsProfile"),
+    };
+    toast.message(labelMap[action], {
       description: user.name,
     });
   };
@@ -576,33 +607,48 @@ export default function AdminUsersPage() {
               </div>
             </div>
 
-            <div className="mt-4">
-              <div className="space-y-3 sm:hidden">
-                {currentPageUsers.map((user) => {
-                  const ActionIcon =
-                    user.status === "banned" ? CheckCircle2 : Ban;
-                  const actionTitle =
-                    user.status === "banned"
-                      ? t("actionUnblock")
-                      : t("actionBlock");
+            <div className="mt-4 space-y-3">
+              {currentPageUsers.map((user) => {
+                const ActionIcon =
+                  user.status === "banned" ? CheckCircle2 : Ban;
+                const actionTitle =
+                  user.status === "banned"
+                    ? t("actionUnblock")
+                    : t("actionBlock");
+                const initials = getUserInitials(user.name);
 
-                  return (
-                    <div
-                      key={user.id}
-                      className="rounded-2xl border border-border/60 bg-background/70 p-4"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-semibold break-words">
+                return (
+                  <div
+                    key={user.id}
+                    className="rounded-2xl border border-border/60 bg-background/70 p-4"
+                  >
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback className="text-xs font-semibold">
+                            {initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold truncate">
                             {user.name}
                           </p>
-                          <p className="text-xs text-muted-foreground break-all">
-                            {user.email}
+                          <p className="text-xs text-muted-foreground truncate">
+                            @{user.username}
                           </p>
-                          <p className="text-xs text-muted-foreground break-all">
-                            {user.id}
+                          <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                            <span className="truncate">{user.email}</span>
+                            <span>|</span>
+                            <span>{user.role}</span>
+                            <span>|</span>
+                            <span>{user.id}</span>
+                          </div>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {user.lastActive}
                           </p>
                         </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-semibold ${user.status === "banned" ? "bg-destructive/10 text-destructive" : "bg-foreground text-background"}`}
                         >
@@ -610,143 +656,54 @@ export default function AdminUsersPage() {
                             ? t("statusBanned")
                             : t("statusActive")}
                         </span>
-                      </div>
-                      <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{user.lastActive}</span>
-                        <span className="text-foreground font-semibold">
-                          {user.reports}
-                        </span>
-                      </div>
-                      <div className="mt-3 flex justify-end gap-2">
-                        <button
-                          type="button"
-                          title={actionTitle}
-                          className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                          onClick={() =>
-                            void handleAction(
-                              user,
-                              user.status === "banned" ? "unblock" : "block",
-                            )
-                          }
-                        >
-                          <ActionIcon className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          title={t("actionMessage")}
-                          className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                          onClick={() => void handleAction(user, "message")}
-                        >
-                          <MessageSquare className="h-4 w-4" />
-                        </button>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>{t("labelReports")}:</span>
+                          <span className="text-foreground font-semibold">
+                            {user.reports}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            title={actionTitle}
+                            className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                            onClick={() =>
+                              void handleAction(
+                                user,
+                                user.status === "banned" ? "unblock" : "block",
+                              )
+                            }
+                          >
+                            <ActionIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            title={t("actionMessage")}
+                            className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                            onClick={() => void handleAction(user, "message")}
+                          >
+                            <MessageSquare className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            title={t("adminUserSettingsTitle")}
+                            className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                            onClick={() =>
+                              setSettingsUser({
+                                name: user.name,
+                                username: user.username,
+                                role: user.role,
+                              })
+                            }
+                          >
+                            <Settings className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-              <div className="hidden sm:block">
-                <div className="overflow-hidden rounded-2xl border border-border/60">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
-                      <tr>
-                        <th className="px-4 py-3 font-semibold">
-                          {t("labelUser")}
-                        </th>
-                        <th className="px-4 py-3 font-semibold">
-                          {t("labelEmail")}
-                        </th>
-                        <th className="px-4 py-3 font-semibold">
-                          {t("labelStatus")}
-                        </th>
-                        <th className="px-4 py-3 font-semibold">
-                          {t("labelLastActive")}
-                        </th>
-                        <th className="px-4 py-3 text-right font-semibold">
-                          {t("labelReports")}
-                        </th>
-                        <th className="px-4 py-3 text-right font-semibold">
-                          {t("labelActions")}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {currentPageUsers.map((user) => {
-                        const ActionIcon =
-                          user.status === "banned" ? CheckCircle2 : Ban;
-                        const actionTitle =
-                          user.status === "banned"
-                            ? t("actionUnblock")
-                            : t("actionBlock");
-
-                        return (
-                          <tr
-                            key={user.id}
-                            className="border-t border-border/60"
-                          >
-                            <td className="px-4 py-4">
-                              <div className="flex flex-col">
-                                <span className="font-semibold">
-                                  {user.name}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  {user.username}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-4 py-4 text-muted-foreground">
-                              {user.email}
-                            </td>
-                            <td className="px-4 py-4">
-                              <span
-                                className={`rounded-full px-3 py-1 text-xs font-semibold ${user.status === "banned" ? "bg-destructive/10 text-destructive" : "bg-foreground text-background"}`}
-                              >
-                                {user.status === "banned"
-                                  ? t("statusBanned")
-                                  : t("statusActive")}
-                              </span>
-                            </td>
-                            <td className="px-4 py-4 text-muted-foreground">
-                              {user.lastActive}
-                            </td>
-                            <td className="px-4 py-4 text-right font-semibold">
-                              {user.reports}
-                            </td>
-                            <td className="px-4 py-4">
-                              <div className="flex justify-end gap-2">
-                                <button
-                                  type="button"
-                                  title={actionTitle}
-                                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                                  onClick={() =>
-                                    void handleAction(
-                                      user,
-                                      user.status === "banned"
-                                        ? "unblock"
-                                        : "block",
-                                    )
-                                  }
-                                >
-                                  <ActionIcon className="h-4 w-4" />
-                                </button>
-                                <button
-                                  type="button"
-                                  title={t("actionMessage")}
-                                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                                  onClick={() =>
-                                    void handleAction(user, "message")
-                                  }
-                                >
-                                  <MessageSquare className="h-4 w-4" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                  </div>
+                );
+              })}
             </div>
             {filteredUsers.length === 0 && (
               <div className="mt-6 text-center text-sm text-muted-foreground">
@@ -799,7 +756,7 @@ export default function AdminUsersPage() {
           <DialogHeader>
             <DialogTitle>{t("adminBanDialogTitle")}</DialogTitle>
             <DialogDescription>
-              {t("adminBanDialogDescription")} {banDialogUser?.name ?? ""}
+              {t("adminBanDialogDescription")} {banDialogUser?.name || ""}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -882,6 +839,16 @@ export default function AdminUsersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <AdminUserSettingsDialog
+        open={Boolean(settingsUser)}
+        user={settingsUser}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSettingsUser(null);
+          }
+        }}
+        onAction={handleSettingsAction}
+      />
     </div>
   );
 }

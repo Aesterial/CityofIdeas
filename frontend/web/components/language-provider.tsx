@@ -217,6 +217,47 @@ export const translations: Translations = {
     EN: "Click on the map to mark location",
     KZ: "Орынды белгілеу үшін картаны басыңыз",
   },
+  mapSelectedCoordinates: {
+    RU: "Выбранные координаты",
+    EN: "Coordinates",
+    KZ: "Таңдалған координаттар",
+  },
+
+  mapProjectDetailsTitle: {
+    RU: "Проект на карте",
+    EN: "Project on the map",
+    KZ: "Картадағы жоба",
+  },
+
+  mapProjectsLoading: {
+    RU: "Загрузка проектов на карте...",
+    EN: "Loading projects on the map...",
+    KZ: "Картадағы жобалар жүктелуде...",
+  },
+
+  mapProjectLoading: {
+    RU: "Загрузка информации о проекте...",
+    EN: "Loading project details...",
+    KZ: "Жоба туралы ақпарат жүктелуде...",
+  },
+
+  mapProjectSelectPrompt: {
+    RU: "Выберите точку на карте, чтобы посмотреть информацию о проекте.",
+    EN: "Select a point on the map to view project details.",
+    KZ: "Жоба туралы ақпаратты көру үшін картадан нүкте таңдаңыз.",
+  },
+
+  mapProjectsEmpty: {
+    RU: "Проекты для отображения отсутствуют.",
+    EN: "No projects to display.",
+    KZ: "Көрсету үшін жобалар жоқ.",
+  },
+
+  mapProjectNoDescription: {
+    RU: "Описание проекта будет доступно позже.",
+    EN: "Description will be available soon.",
+    KZ: "Жобаның сипаттамасы жақын арада қолжетімді болады.",
+  },
   submitIdea: {
     RU: "Отправить идею",
     EN: "Submit idea",
@@ -402,6 +443,72 @@ export const translations: Translations = {
     EN: "Control, analytics, and moderation",
     KZ: "\u0411\u0430\u049b\u044b\u043b\u0430\u0443, \u0430\u043d\u0430\u043b\u0438\u0442\u0438\u043a\u0430 \u0436\u04d9\u043d\u0435 \u043c\u043e\u0434\u0435\u0440\u0430\u0446\u0438\u044f",
   },
+  adminHeaderNote: {
+    RU: "Мониторинг статистики и управление пользователями",
+    EN: "Statistics monitoring and user management",
+    KZ: "Статистиканы бақылау және пайдаланушыларды басқару",
+  },
+  
+  adminUserSettingsTitle: {
+    RU: "Настройки пользователя",
+    EN: "User settings",
+    KZ: "Пайдаланушы баптаулары",
+  },
+  
+  adminUserSettingsPermissions: {
+    RU: "Права доступа",
+    EN: "Permissions",
+    KZ: "Қол жеткізу құқықтары",
+  },
+  
+  adminUserSettingsRole: {
+    RU: "Роль",
+    EN: "Role",
+    KZ: "Рөл",
+  },
+  
+  adminUserSettingsProfile: {
+    RU: "Профиль",
+    EN: "Profile",
+    KZ: "Профиль",
+  },
+  
+  adminUserSettingsPermissionsHint: {
+    RU: "Управление доступом к разделам и возможностям системы.",
+    EN: "Manage access to sections and system capabilities.",
+    KZ: "Жүйе бөлімдері мен мүмкіндіктеріне қол жеткізуді басқару.",
+  },
+  
+  adminUserSettingsRoleHint: {
+    RU: "Назначение роли и уровня доступа пользователя.",
+    EN: "Assign a user role and access level.",
+    KZ: "Пайдаланушыға рөл мен қол жеткізу деңгейін тағайындау.",
+  },
+  
+  adminUserSettingsProfileHint: {
+    RU: "Удаление описания или профиля пользователя.",
+    EN: "Remove the user description or profile.",
+    KZ: "Пайдаланушының сипаттамасын немесе профилін жою.",
+  },
+  
+  adminUserSettingsPermissionsAction: {
+    RU: "Настроить права",
+    EN: "Configure permissions",
+    KZ: "Құқықтарды баптау",
+  },
+  
+  adminUserSettingsRoleAction: {
+    RU: "Настроить роль",
+    EN: "Configure role",
+    KZ: "Рөлді баптау",
+  },
+  
+  adminUserSettingsProfileAction: {
+    RU: "Удалить описание / профиль",
+    EN: "Remove description / profile",
+    KZ: "Сипаттаманы / профильді жою",
+  },
+
   adminTheme: {
     RU: "\u0422\u0435\u043c\u0430",
     EN: "Theme",

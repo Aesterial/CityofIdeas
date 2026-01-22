@@ -58,8 +58,25 @@ const adminPermissionPaths: PermissionPath[] = [
   ["users", "moderation", ["banForever", "ban_forever"]],
   ["users", "moderation", "unban"],
   ["ranks", "all"],
-  ["ranks", ["permissionsChange", "permissions_change"]],
+  ["ranks", ["permsChange", "permissionsChange", "permissions_change"]],
 ];
+
+const adminRoles = new Set([
+  "root",
+  "admin",
+  "staff",
+  "moderator",
+  "support",
+  "developer",
+  "operator",
+]);
+
+const isAdminRole = (value: string | undefined): boolean => {
+  if (!value) {
+    return false;
+  }
+  return adminRoles.has(value.trim().toLowerCase());
+};
 
 const toRecord = (value: unknown): Record<string, unknown> | null => {
   if (!value || typeof value !== "object") {
@@ -188,8 +205,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const hasAdminAccess = useMemo(() => {
-    return hasAnyPermission(permissions, adminPermissionPaths);
-  }, [permissions]);
+    if (hasAnyPermission(permissions, adminPermissionPaths)) {
+      return true;
+    }
+    return isAdminRole(user?.rank?.name);
+  }, [permissions, user?.rank?.name]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

@@ -26,12 +26,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" suppressHydrationWarning>
-      <head>
-        <script
-          src="https://api-maps.yandex.ru/2.1/?apikey=YOUR_API_KEY&lang=ru_RU"
-          type="text/javascript"
-        ></script>
-      </head>
       <body className={`${daysOne.className} antialiased`}>
         <ThemeProvider
           attribute="class"

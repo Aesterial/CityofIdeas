@@ -2,6 +2,8 @@
 
 import {
   useEffect,
+  useMemo,
+  useRef,
   useState,
   type CSSProperties,
   type MouseEvent,
@@ -10,12 +12,13 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { Header, cities } from "@/components/header";
 import { GradientButton } from "@/components/gradient-button";
-import { YandexMap } from "@/components/yandex-map";
+import { MapLibreMap, type MapMarker } from "@/components/maplibre-map";
 import { useLanguage } from "@/components/language-provider";
 import { fetchTopProjects, type ApiProject } from "@/lib/api";
 import { ArrowRight, MapPin, Users, Lightbulb } from "lucide-react";
 import type { Variants } from "framer-motion";
 import { Logo } from "@/components/logo";
+import { useAuth } from "@/components/auth-provider";
 
 const art = String.raw`⠀⠀⠀⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣶⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
 ⠀⠀⠀⣿⠛⠻⢷⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠈⠛⠷⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -99,7 +102,7 @@ type PopularIdea = {
 };
 
 const POPULAR_IDEAS_LIMIT = 3;
-const FALLBACK_ADDRESS = "????? ?? ??????";
+const FALLBACK_ADDRESS = "/";
 
 const getPopularAddress = (project?: ApiProject | null) => {
   if (!project) {
@@ -117,6 +120,96 @@ const getPopularAddress = (project?: ApiProject | null) => {
   const title = info?.title?.trim();
   return title || FALLBACK_ADDRESS;
 };
+
+const MAP_PROJECTS_LIMIT = 12;
+const DEFAULT_CITY_CENTER: [number, number] = [86.0877, 55.3541];
+const COORDINATE_JITTER_RANGE = 0.04;
+
+const normalizeLocation = (value?: string | null) =>
+  value?.trim().toLowerCase() ?? "";
+
+const parseCoordinate = (value: unknown) => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const normalized = value.replace(",", ".").trim();
+    if (!normalized) {
+      return null;
+    }
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
+const resolveCoordinates = (
+  location?: Record<string, unknown> | null,
+): [number, number] | null => {
+  if (!location) {
+    return null;
+  }
+  const lat = parseCoordinate(
+    location.lat ?? location.latitude ?? location.y ?? location.latDeg,
+  );
+  const lng = parseCoordinate(
+    location.lng ?? location.lon ?? location.longitude ?? location.x,
+  );
+  if (lat != null && lng != null) {
+    return [lng, lat];
+  }
+
+  const coords = location.coordinates ?? location.coord ?? location.location;
+  if (Array.isArray(coords) && coords.length >= 2) {
+    const first = parseCoordinate(coords[0]);
+    const second = parseCoordinate(coords[1]);
+    if (first != null && second != null) {
+      const isLatFirst = Math.abs(first) <= 90 && Math.abs(second) <= 180;
+      const isLngFirst = Math.abs(first) <= 180 && Math.abs(second) <= 90;
+      if (isLngFirst) {
+        return [first, second];
+      }
+      if (isLatFirst) {
+        return [second, first];
+      }
+    }
+  }
+
+  return null;
+};
+
+const hashSeed = (value: string) => {
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+};
+
+const applyCoordinateJitter = (
+  center: [number, number],
+  seed: string,
+): [number, number] => {
+  if (!seed) {
+    return center;
+  }
+  const hash = hashSeed(seed);
+  const offsetLng = ((hash % 1000) / 1000 - 0.5) * COORDINATE_JITTER_RANGE;
+  const offsetLat =
+    (((hash >> 10) % 1000) / 1000 - 0.5) * COORDINATE_JITTER_RANGE;
+  return [center[0] + offsetLng, center[1] + offsetLat];
+};
+
+const resolveCityCenter = (city?: string | null) => {
+  const normalized = normalizeLocation(city);
+  if (!normalized) {
+    return DEFAULT_CITY_CENTER;
+  }
+  return DEFAULT_CITY_CENTER;
+};
+
+const getProjectInfo = (project?: ApiProject | null) =>
+  project?.details ?? project?.info ?? null;
 
 const cardGlowStyle = {
   "--x": "50%",
@@ -139,9 +232,22 @@ const resetCardGlow = (event: MouseEvent<HTMLDivElement>) => {
 export default function HomePage() {
   const [popularIdeas, setPopularIdeas] = useState<PopularIdea[]>([]);
   const [popularLoading, setPopularLoading] = useState(true);
+  const [mapMarkers, setMapMarkers] = useState<MapMarker[]>([]);
+  const [mapLoading, setMapLoading] = useState(true);
+  const [selectedProject, setSelectedProject] = useState<ApiProject | null>(
+    null,
+  );
+  const [selectedProjectLoading, setSelectedProjectLoading] = useState(false);
   const [selectedCity, setSelectedCity] = useState<string>(cities[0] ?? "");
+  const projectDetailsCacheRef = useRef(new Map<string, ApiProject>());
   const { t } = useLanguage();
+  const { status } = useAuth();
   const currentYear = new Date().getFullYear();
+  const mapCenter = useMemo(
+    () => resolveCityCenter(selectedCity),
+    [selectedCity],
+  );
+  const startHref = status === "authenticated" ? "/voting" : "/auth";
 
   useEffect(() => {
     const savedCity = localStorage.getItem("city");
@@ -156,37 +262,120 @@ export default function HomePage() {
     }
     const controller = new AbortController();
     setPopularLoading(true);
+    setMapLoading(true);
+    setSelectedProject(null);
+    projectDetailsCacheRef.current.clear();
 
-    const loadPopular = async () => {
+    const loadTopProjects = async () => {
       try {
         const projects = await fetchTopProjects({
-          limit: POPULAR_IDEAS_LIMIT,
+          limit: MAP_PROJECTS_LIMIT,
           city: selectedCity,
           signal: controller.signal,
         });
         if (controller.signal.aborted) {
           return;
         }
-        const mapped = projects.map((project, index) => ({
-          rank: index + 1,
-          address: getPopularAddress(project),
-        }));
+        const mapped = projects
+          .slice(0, POPULAR_IDEAS_LIMIT)
+          .map((project, index) => ({
+            rank: index + 1,
+            address: getPopularAddress(project),
+          }));
         setPopularIdeas(mapped);
+        const center = resolveCityCenter(selectedCity);
+        const markers = projects
+          .map((project, index) => {
+            const info = getProjectInfo(project);
+            const location = info?.location as
+              | Record<string, unknown>
+              | undefined;
+            const coordinates =
+              resolveCoordinates(location) ??
+              applyCoordinateJitter(center, `${project.id ?? index}`);
+            const id = project.id?.toString() ?? null;
+            if (!id) {
+              return null;
+            }
+            return {
+              id,
+              coordinates,
+              title: info?.title?.trim() || getPopularAddress(project),
+              description: info?.description?.trim(),
+            } satisfies MapMarker;
+          })
+          .filter((marker): marker is MapMarker => Boolean(marker));
+        setMapMarkers(markers);
       } catch {
         if (!controller.signal.aborted) {
           setPopularIdeas([]);
+          setMapMarkers([]);
         }
       } finally {
         if (!controller.signal.aborted) {
           setPopularLoading(false);
+          setMapLoading(false);
         }
       }
     };
 
-    void loadPopular();
+    void loadTopProjects();
 
     return () => controller.abort();
   }, [selectedCity]);
+
+  const projectDetailsRequestRef = useRef(0);
+
+  const handleMarkerClick = async (marker: MapMarker) => {
+    const cached = projectDetailsCacheRef.current.get(marker.id);
+    if (cached) {
+      setSelectedProject(cached);
+      return;
+    }
+
+    const requestId = projectDetailsRequestRef.current + 1;
+    projectDetailsRequestRef.current = requestId;
+    setSelectedProjectLoading(true);
+
+    try {
+      const projects = await fetchTopProjects({
+        limit: MAP_PROJECTS_LIMIT,
+        city: selectedCity,
+      });
+      if (projectDetailsRequestRef.current !== requestId) {
+        return;
+      }
+      const match =
+        projects.find((project) => project.id?.toString() === marker.id) ??
+        null;
+      if (match) {
+        projectDetailsCacheRef.current.set(marker.id, match);
+      }
+      setSelectedProject(match);
+    } catch {
+      if (projectDetailsRequestRef.current === requestId) {
+        setSelectedProject(null);
+      }
+    } finally {
+      if (projectDetailsRequestRef.current === requestId) {
+        setSelectedProjectLoading(false);
+      }
+    }
+  };
+
+  const selectedProjectSummary = useMemo(() => {
+    if (!selectedProject) {
+      return null;
+    }
+    const info = getProjectInfo(selectedProject);
+    return {
+      title: info?.title?.trim() || t("ideas"),
+      description: info?.description?.trim() || t("mapProjectNoDescription"),
+      address: getPopularAddress(selectedProject),
+    };
+  }, [selectedProject, t]);
+
+  const hasMapMarkers = mapMarkers.length > 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -228,15 +417,46 @@ export default function HomePage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
-              <YandexMap
-                markers={[
-                  {
-                    coordinates: [55.3541, 86.0877],
-                    title: "Центр Кемерово",
-                    description: "Главная площадь города",
-                  },
-                ]}
-              />
+              <div className="space-y-4">
+                <MapLibreMap
+                  center={mapCenter}
+                  zoom={12}
+                  markers={mapMarkers}
+                  onMarkerClick={handleMarkerClick}
+                />
+                <div className="rounded-2xl border border-border/70 bg-card/90 p-4">
+                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                    {t("mapProjectDetailsTitle")}
+                  </p>
+                  {mapLoading ? (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {t("mapProjectsLoading")}
+                    </p>
+                  ) : selectedProjectLoading ? (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {t("mapProjectLoading")}
+                    </p>
+                  ) : selectedProjectSummary ? (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-sm font-semibold">
+                        {selectedProjectSummary.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {selectedProjectSummary.address}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedProjectSummary.description}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {hasMapMarkers
+                        ? t("mapProjectSelectPrompt")
+                        : t("mapProjectsEmpty")}
+                    </p>
+                  )}
+                </div>
+              </div>
             </motion.div>
           </div>
         </div>
@@ -353,8 +573,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      
-
       <section className="py-16 px-4 bg-background sm:py-20 sm:px-6">
         <div className="container mx-auto">
           <motion.div
@@ -423,7 +641,7 @@ export default function HomePage() {
             <p className="text-base text-muted-foreground mb-8 max-w-2xl mx-auto sm:text-lg lg:text-xl sm:mb-10">
               {t("heroSubtitle")}
             </p>
-            <Link href="/auth">
+            <Link href={startHref}>
               <GradientButton className="w-full justify-center sm:w-auto">
                 {t("start")}
                 <ArrowRight className="w-5 h-5" />
@@ -463,11 +681,6 @@ export default function HomePage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1.5 text-xs text-muted-foreground">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                Online
-              </span>
-
               <Link
                 href="/suggest"
                 className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-muted/60"

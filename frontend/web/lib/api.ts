@@ -68,6 +68,7 @@ export type ApiPermissions = {
   };
   ranks?: {
     all?: boolean;
+    permsChange?: boolean;
     permissionsChange?: boolean;
     permissions_change?: boolean;
   };

@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Header } from "@/components/header";
 import { useAuth } from "@/components/auth-provider";
 import { GradientButton } from "@/components/gradient-button";
-import { YandexMap } from "@/components/yandex-map";
+import { MapLibreMap } from "@/components/maplibre-map";
 import { Upload, X, MapPin, Camera, FileText } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 
@@ -20,6 +20,9 @@ export default function SuggestPage() {
   });
   const [images, setImages] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [mapSelection, setMapSelection] = useState<[number, number] | null>(
+    null,
+  );
   const { status } = useAuth();
   const { t } = useLanguage();
 
@@ -270,9 +273,25 @@ export default function SuggestPage() {
                 <label className="block text-sm font-medium mb-2">
                   {t("markOnMap")}
                 </label>
-                <YandexMap className="min-h-[220px] sm:min-h-[300px] lg:min-h-[360px]" />
+                <MapLibreMap
+                  className="min-h-[220px] sm:min-h-[300px] lg:min-h-[360px]"
+                  markers={
+                    mapSelection
+                      ? [
+                          {
+                            id: "selection",
+                            coordinates: mapSelection,
+                            title: t("markOnMap"),
+                          },
+                        ]
+                      : []
+                  }
+                  onMapClick={(coordinates) => setMapSelection(coordinates)}
+                />
                 <p className="text-sm text-muted-foreground mt-2">
-                  {t("clickMapToMark")}
+                  {mapSelection
+                    ? `${t("mapSelectedCoordinates")}: ${mapSelection[1].toFixed(5)}, ${mapSelection[0].toFixed(5)}`
+                    : t("clickMapToMark")}
                 </p>
               </motion.div>
             </div>

@@ -716,7 +716,14 @@ func (u *UserRepository) HasPerm(ctx context.Context, uid uint, perm permissions
 		return false, apperrors.RequiredDataMissing.AddErrDetails("permission is empty")
 	}
 	var has bool
-	if err := u.DB.QueryRowContext(ctx, "SELECT perm_allowed(u.permissions, $1) FROM users u WHERE u.uid = $2", perm.String(), uid).Scan(&has); err != nil {
+	if err := u.DB.QueryRowContext(ctx, `
+		SELECT CASE
+			WHEN (u.rank).name = 'root' THEN true
+			ELSE perm_allowed(u.permissions, $1)
+		END
+		FROM users u
+		WHERE u.uid = $2
+	`, perm.String(), uid).Scan(&has); err != nil {
 		return false, err
 	}
 	return has, nil
@@ -741,7 +748,15 @@ func (u *UserRepository) HasAllPerms(ctx context.Context, uid uint, perms ...per
 
 func (u *UserRepository) Perms(ctx context.Context, uid uint) (*permissions.Permissions, error) {
 	var raw []byte
-	if err := u.DB.QueryRowContext(ctx, "SELECT to_jsonb(u.permissions) FROM users u WHERE u.uid = $1", uid).Scan(&raw); err != nil {
+	if err := u.DB.QueryRowContext(ctx, `
+		SELECT CASE
+			WHEN (u.rank).name = 'root' THEN COALESCE(to_jsonb(r.permissions), to_jsonb(u.permissions))
+			ELSE to_jsonb(u.permissions)
+		END
+		FROM users u
+		LEFT JOIN ranks r ON r.name = (u.rank).name
+		WHERE u.uid = $1
+	`, uid).Scan(&raw); err != nil {
 		return nil, err
 	}
 	logger.Debug("response from db: " + string(raw), "")
