@@ -356,6 +356,16 @@ func (s *Service) ChangePerms(ctx context.Context, uid uint, perm permissions.Pe
 	return nil
 }
 
+func (s *Service) DeleteProfile(ctx context.Context, id uint) error {
+	if id == 0 {
+		return apperrors.InvalidArguments
+	}
+	if err := s.repo.DeleteProfile(ctx, id); err != nil {
+		return apperrors.Wrap(err)
+	}
+	return nil
+}
+
 func isNotFound(err error) bool {
 	if err == nil {
 		return false

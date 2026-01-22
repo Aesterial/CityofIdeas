@@ -208,6 +208,7 @@ type authUserRepoStub struct {
 	banInfoFn               func(ctx context.Context, uid uint) (*user.BanInfo, error)
 	addAvatarFn             func(ctx context.Context, uid uint, avatar user.Avatar) error
 	deleteAvatarFn          func(ctx context.Context, uid uint) error
+	deleteProfileFn         func(ctx context.Context, uid uint) error
 	hasPermFn               func(ctx context.Context, uid uint, perm permissions.Permission) (bool, error)
 	hasAllPermsFn           func(ctx context.Context, uid uint, perms ...permissions.Permission) (bool, error)
 	permsFn                 func(ctx context.Context, uid uint) (*permissions.Permissions, error)
@@ -357,6 +358,13 @@ func (u *authUserRepoStub) AddAvatar(ctx context.Context, uid uint, avatar user.
 func (u *authUserRepoStub) DeleteAvatar(ctx context.Context, uid uint) error {
 	if u.deleteAvatarFn != nil {
 		return u.deleteAvatarFn(ctx, uid)
+	}
+	return nil
+}
+
+func (u *authUserRepoStub) DeleteProfile(ctx context.Context, uid uint) error {
+	if u.deleteProfileFn != nil {
+		return u.deleteProfileFn(ctx, uid)
 	}
 	return nil
 }

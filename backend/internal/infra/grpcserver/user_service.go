@@ -399,3 +399,21 @@ func (s *UserService) Permissions(ctx context.Context, req *userpb.OtherUserRequ
 	}
 	return &permpb.PermissionsResponse{Data: perms.ToProto(), Tracing: TraceIDOrNew(ctx)}, nil
 }
+
+func (s *UserService) DeleteProfile(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+	requestor, err := s.auth.RequireUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if requestor == nil {
+		return nil, apperrors.Unauthenticated.AddErrDetails("user not logged in")
+	}
+	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.UsersSettingsDeleteProfileOwn); err != nil {
+		return nil, err
+	}
+	if err := s.info.DeleteProfile(ctx, requestor.UID); err != nil {
+		logger.Debug("error on delete profile: " + err.Error(), "")
+		return nil, apperrors.ServerError.AddErrDetails("failed to delete profile: " + err.Error() + " for user: " + strconv.Itoa(int(requestor.UID)))
+	}
+	return &emptypb.Empty{}, nil
+}

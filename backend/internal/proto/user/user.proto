@@ -13,7 +13,7 @@ service UserService {
   rpc Self(google.protobuf.Empty) returns (UserSelfResponse) {
     option (google.api.http) = {get: "/api/user"};
   }
-  rpc Other(OtherUserRequest) returns (UserPublicResponse) {
+  rpc Other(OtherUserRequest) returns (UserPublicResponse) {   
     option (google.api.http) = {get: "/api/user/{userID}"};
   }
   rpc Users(google.protobuf.Empty) returns (UsersResponse) {
@@ -69,5 +69,8 @@ service UserService {
   }
   rpc ChangePerms(OtherUserPermsPatchRequest) returns (EmptyResponse) {
     option (google.api.http) = {post: "/api/user/{userID}/permissions/patch/{perm}", body: "*"};
+  }
+  rpc DeleteProfile(google.protobuf.Empty) returns (google.protobuf.Empty) {
+    option (google.api.http) = {post: "/api/user/delete/profile", body: "*"};
   }
 }

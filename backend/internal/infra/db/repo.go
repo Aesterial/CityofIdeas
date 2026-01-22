@@ -799,6 +799,20 @@ func (u *UserRepository) ChangePerms(ctx context.Context, uid uint, perm permiss
 	return nil
 }
 
+func (u *UserRepository) DeleteProfile(ctx context.Context, uid uint) error {
+	if uid == 0 {
+		return apperrors.InvalidArguments.AddErrDetails("uid is null")
+	}
+	resp, err := u.DB.ExecContext(ctx, "DELETE FROM users WHERE id = $1", uid)
+	if err != nil {
+		return err
+	}
+	if n, _ := resp.RowsAffected(); n == 0 {
+		return sql.ErrTxDone
+	}
+	return nil
+}
+
 func (l *LoggerRepository) Append(ctx context.Context, event logger.Event) error {
 	if event.TraceID == "" {
 		event.TraceID = "-"
