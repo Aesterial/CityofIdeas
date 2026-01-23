@@ -1,9 +1,9 @@
-﻿"use client"
+﻿"use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react"
-import Link from "next/link"
-import { useParams } from "next/navigation"
-import { motion } from "framer-motion"
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { motion } from "framer-motion";
 import {
   ArrowLeft,
   CalendarDays,
@@ -13,77 +13,83 @@ import {
   Send,
   ShieldCheck,
   UserCircle2,
-} from "lucide-react"
-import { Header } from "@/components/header"
-import { useAuth } from "@/components/auth-provider"
-import { useLanguage } from "@/components/language-provider"
+} from "lucide-react";
+import { Header } from "@/components/header";
+import { useAuth } from "@/components/auth-provider";
+import { useLanguage } from "@/components/language-provider";
 import {
   closeTicket,
   createTicketMessage,
   fetchTicketInfo,
   fetchTicketMessages,
-} from "@/lib/api"
+} from "@/lib/api";
 import {
   mapTicket,
   mapTicketMessages,
   type Ticket,
   type TicketMessage,
   type TicketStatus,
-} from "@/lib/tickets"
-import { cn } from "@/lib/utils"
+} from "@/lib/tickets";
+import { cn } from "@/lib/utils";
 
 const statusLabel: Record<TicketStatus, string> = {
   new: "Ожидает",
   in_progress: "В работе",
   closed: "Закрыто",
-}
+};
 
 const statusStyles: Record<TicketStatus, string> = {
   new: "bg-foreground/5 text-foreground",
   in_progress: "bg-foreground text-background",
   closed: "border border-foreground/15 text-muted-foreground",
-}
+};
 
 const resolveLocale = (language: string) =>
-  language === "KZ" ? "kk-KZ" : language === "RU" ? "ru-RU" : "en-US"
+  language === "KZ" ? "kk-KZ" : language === "RU" ? "ru-RU" : "en-US";
 
-const formatDateTime = (value: string | undefined, formatter: Intl.DateTimeFormat) => {
+const formatDateTime = (
+  value: string | undefined,
+  formatter: Intl.DateTimeFormat,
+) => {
   if (!value) {
-    return "-"
+    return "-";
   }
-  const date = new Date(value)
+  const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
-    return "-"
+    return "-";
   }
-  return formatter.format(date)
-}
+  return formatter.format(date);
+};
 
-const formatTime = (value: string | undefined, formatter: Intl.DateTimeFormat) => {
+const formatTime = (
+  value: string | undefined,
+  formatter: Intl.DateTimeFormat,
+) => {
   if (!value) {
-    return ""
+    return "";
   }
-  const date = new Date(value)
+  const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
-    return ""
+    return "";
   }
-  return formatter.format(date)
-}
+  return formatter.format(date);
+};
 
 export default function SupportTicketPage() {
-  const params = useParams<{ id: string }>()
-  const { user } = useAuth()
-  const { language } = useLanguage()
-  const [ticket, setTicket] = useState<Ticket | null>(null)
-  const [messages, setMessages] = useState<TicketMessage[]>([])
-  const [loading, setLoading] = useState(true)
-  const [sending, setSending] = useState(false)
-  const [closing, setClosing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [messageText, setMessageText] = useState("")
+  const params = useParams<{ id: string }>();
+  const { user } = useAuth();
+  const { language } = useLanguage();
+  const [ticket, setTicket] = useState<Ticket | null>(null);
+  const [messages, setMessages] = useState<TicketMessage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [messageText, setMessageText] = useState("");
 
-  const ticketId = Array.isArray(params?.id) ? params.id[0] : params?.id
+  const ticketId = Array.isArray(params?.id) ? params.id[0] : params?.id;
 
-  const locale = useMemo(() => resolveLocale(language), [language])
+  const locale = useMemo(() => resolveLocale(language), [language]);
   const dateTimeFormatter = useMemo(
     () =>
       new Intl.DateTimeFormat(locale, {
@@ -94,7 +100,7 @@ export default function SupportTicketPage() {
         minute: "2-digit",
       }),
     [locale],
-  )
+  );
   const timeFormatter = useMemo(
     () =>
       new Intl.DateTimeFormat(locale, {
@@ -102,99 +108,99 @@ export default function SupportTicketPage() {
         minute: "2-digit",
       }),
     [locale],
-  )
+  );
 
   const loadTicket = useCallback(
     async (signal?: AbortSignal) => {
       if (!ticketId) {
-        return
+        return;
       }
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
       try {
         const [info, list] = await Promise.all([
           fetchTicketInfo(ticketId, { signal }),
           fetchTicketMessages(ticketId, { signal }),
-        ])
+        ]);
         if (signal?.aborted) {
-          return
+          return;
         }
-        const mapped = info ? mapTicket(info) : null
-        setTicket(mapped)
-        setMessages(mapTicketMessages(list))
+        const mapped = info ? mapTicket(info) : null;
+        setTicket(mapped);
+        setMessages(mapTicketMessages(list));
         if (!mapped) {
-          setError("Обращение не найдено.")
+          setError("Обращение не найдено.");
         }
       } catch (err) {
         if (!signal?.aborted) {
-          setError("Не удалось загрузить обращение.")
+          setError("Не удалось загрузить обращение.");
         }
       } finally {
         if (!signal?.aborted) {
-          setLoading(false)
+          setLoading(false);
         }
       }
     },
     [ticketId],
-  )
+  );
 
   useEffect(() => {
-    const controller = new AbortController()
-    void loadTicket(controller.signal)
-    return () => controller.abort()
-  }, [loadTicket])
+    const controller = new AbortController();
+    void loadTicket(controller.signal);
+    return () => controller.abort();
+  }, [loadTicket]);
 
   const handleSend = async () => {
     if (!ticketId || sending || ticket?.status === "closed") {
-      return
+      return;
     }
-    const trimmed = messageText.trim()
+    const trimmed = messageText.trim();
     if (!trimmed) {
-      return
+      return;
     }
-    setSending(true)
-    setError(null)
+    setSending(true);
+    setError(null);
     try {
-      await createTicketMessage(ticketId, trimmed)
-      setMessageText("")
-      await loadTicket()
+      await createTicketMessage(ticketId, trimmed);
+      setMessageText("");
+      await loadTicket();
     } catch (err) {
-      setError("Не удалось отправить сообщение.")
+      setError("Не удалось отправить сообщение.");
     } finally {
-      setSending(false)
+      setSending(false);
     }
-  }
+  };
 
   const handleClose = async () => {
     if (!ticketId || closing || ticket?.status === "closed") {
-      return
+      return;
     }
-    setClosing(true)
-    setError(null)
+    setClosing(true);
+    setError(null);
     try {
-      await closeTicket(ticketId)
-      await loadTicket()
+      await closeTicket(ticketId);
+      await loadTicket();
     } catch (err) {
-      setError("Не удалось закрыть обращение.")
+      setError("Не удалось закрыть обращение.");
     } finally {
-      setClosing(false)
+      setClosing(false);
     }
-  }
+  };
 
-  const status = ticket?.status ?? "new"
-  const isClosed = status === "closed"
+  const status = ticket?.status ?? "new";
+  const isClosed = status === "closed";
 
   const resolveAuthorName = (message: TicketMessage) => {
     if (message.authorName) {
-      return message.authorName
+      return message.authorName;
     }
     if (message.isStaff) {
-      return "Поддержка"
+      return "Поддержка";
     }
-    return "Пользователь"
-  }
+    return "Пользователь";
+  };
 
-  const currentUserId = user?.uid
+  const currentUserId = user?.uid;
 
   return (
     <div className="min-h-screen bg-background">
@@ -208,13 +214,21 @@ export default function SupportTicketPage() {
             transition={{ duration: 0.4 }}
             className="space-y-3"
           >
-            <Link
-              href="/support"
-              className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Назад к форме
-            </Link>
+            <div className="flex flex-wrap items-center gap-4">
+              <Link
+                href="/support"
+                className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Назад к форме
+              </Link>
+              <Link
+                href="/support/history"
+                className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
+              >
+                История обращений
+              </Link>
+            </div>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
@@ -234,7 +248,8 @@ export default function SupportTicketPage() {
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Если в обращении не будет новых сообщений в течение 48 часов, оно закроется автоматически.
+              Если в обращении не будет новых сообщений в течение 48 часов, оно
+              закроется автоматически.
             </p>
           </motion.div>
 
@@ -261,7 +276,10 @@ export default function SupportTicketPage() {
                       <UserCircle2 className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground">Контакт:</span>
                       <span className="font-semibold">
-                        {ticket?.requester?.name || user?.displayName || user?.username || "-"}
+                        {ticket?.requester?.name ||
+                          user?.displayName ||
+                          user?.username ||
+                          "-"}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -280,15 +298,22 @@ export default function SupportTicketPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">Последнее обновление:</span>
+                      <span className="text-muted-foreground">
+                        Последнее обновление:
+                      </span>
                       <span className="font-semibold">
-                        {formatDateTime(ticket?.updatedAt || ticket?.lastMessageAt, dateTimeFormatter)}
+                        {formatDateTime(
+                          ticket?.updatedAt || ticket?.lastMessageAt,
+                          dateTimeFormatter,
+                        )}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Lock className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground">Категория:</span>
-                      <span className="font-semibold">{ticket?.category || "-"}</span>
+                      <span className="font-semibold">
+                        {ticket?.category || "-"}
+                      </span>
                     </div>
                   </div>
 
@@ -302,7 +327,8 @@ export default function SupportTicketPage() {
                       </div>
                     ) : (
                       <p className="text-muted-foreground">
-                        Обращение в очереди. Специалист подключится в ближайшее время.
+                        Обращение в очереди. Специалист подключится в ближайшее
+                        время.
                       </p>
                     )}
                   </div>
@@ -313,7 +339,11 @@ export default function SupportTicketPage() {
                     disabled={closing || isClosed}
                     className="inline-flex items-center justify-center rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {isClosed ? "Обращение закрыто" : closing ? "Закрываем..." : "Закрыть обращение"}
+                    {isClosed
+                      ? "Обращение закрыто"
+                      : closing
+                        ? "Закрываем..."
+                        : "Закрыть обращение"}
                   </button>
                 </div>
               </motion.section>
@@ -343,30 +373,37 @@ export default function SupportTicketPage() {
                       const isMine =
                         currentUserId != null && message.authorId != null
                           ? String(currentUserId) === String(message.authorId)
-                          : false
+                          : false;
                       const bubbleClass = isMine
                         ? "bg-foreground text-background ml-auto"
                         : message.isStaff
                           ? "border border-foreground/15 bg-background"
-                          : "bg-muted/80"
+                          : "bg-muted/80";
 
                       return (
                         <div
                           key={message.id}
-                          className={cn("max-w-[85%] rounded-2xl px-4 py-3 text-sm", bubbleClass)}
+                          className={cn(
+                            "max-w-[85%] rounded-2xl px-4 py-3 text-sm",
+                            bubbleClass,
+                          )}
                         >
                           <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
                             <span>{resolveAuthorName(message)}</span>
-                            <span>{formatTime(message.createdAt, timeFormatter)}</span>
+                            <span>
+                              {formatTime(message.createdAt, timeFormatter)}
+                            </span>
                           </div>
                           <p className="mt-2 whitespace-pre-wrap text-sm">
                             {message.message}
                           </p>
                         </div>
-                      )
+                      );
                     })
                   ) : (
-                    <p className="text-sm text-muted-foreground">Сообщений пока нет.</p>
+                    <p className="text-sm text-muted-foreground">
+                      Сообщений пока нет.
+                    </p>
                   )}
                 </div>
 
@@ -378,7 +415,11 @@ export default function SupportTicketPage() {
                     rows={3}
                     value={messageText}
                     onChange={(event) => setMessageText(event.target.value)}
-                    placeholder={isClosed ? "Обращение закрыто" : "Напишите уточнение или ответ"}
+                    placeholder={
+                      isClosed
+                        ? "Обращение закрыто"
+                        : "Напишите уточнение или ответ"
+                    }
                     disabled={isClosed}
                     className="w-full resize-none rounded-2xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 disabled:opacity-60"
                   />
@@ -398,5 +439,5 @@ export default function SupportTicketPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

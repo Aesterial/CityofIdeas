@@ -67,7 +67,10 @@ const pickString = (record: RecordValue | null, keys: string[]): string => {
   return "";
 };
 
-const pickRecord = (record: RecordValue | null, keys: string[]): RecordValue | null => {
+const pickRecord = (
+  record: RecordValue | null,
+  keys: string[],
+): RecordValue | null => {
   if (!record) {
     return null;
   }
@@ -132,7 +135,11 @@ const normalizeStatus = (
   ) {
     return "in_progress";
   }
-  if (normalized.includes("new") || normalized.includes("open") || normalized.includes("pending")) {
+  if (
+    normalized.includes("new") ||
+    normalized.includes("open") ||
+    normalized.includes("pending")
+  ) {
     return "new";
   }
   if (options.closedAt) {
@@ -144,13 +151,20 @@ const normalizeStatus = (
   return "new";
 };
 
-const resolvePerson = (record: RecordValue | null): TicketPerson | undefined => {
+const resolvePerson = (
+  record: RecordValue | null,
+): TicketPerson | undefined => {
   if (!record) {
     return undefined;
   }
   const name =
-    pickString(record, ["name", "displayName", "display_name", "username", "login"]) ||
-    undefined;
+    pickString(record, [
+      "name",
+      "displayName",
+      "display_name",
+      "username",
+      "login",
+    ]) || undefined;
   const email = pickString(record, ["email", "mail", "address"]) || undefined;
   const id = pickId(record, ["id", "uid", "userID", "user_id"]) || undefined;
 
@@ -200,26 +214,50 @@ export const mapTicket = (payload: ApiTicket): Ticket | null => {
     return null;
   }
 
-  const id = pickId(record, ["id", "ticketId", "ticket_id", "ticketID", "uid", "uuid"]);
+  const id = pickId(record, [
+    "id",
+    "ticketId",
+    "ticket_id",
+    "ticketID",
+    "uid",
+    "uuid",
+  ]);
   if (!id) {
     return null;
   }
 
   const topic = pickString(record, ["topic", "category", "type", "department"]);
-  const brief = pickString(record, ["brief", "message", "content", "body", "description"]);
-  const fallbackSubject = brief
-    .split("\n")
-    .map((line) => line.trim())
-    .find((line) => line.length > 0) ?? "";
+  const brief = pickString(record, [
+    "brief",
+    "message",
+    "content",
+    "body",
+    "description",
+  ]);
+  const fallbackSubject =
+    brief
+      .split("\n")
+      .map((line) => line.trim())
+      .find((line) => line.length > 0) ?? "";
   const subject =
-    pickString(record, ["subject", "title", "theme"]) || fallbackSubject || topic;
+    pickString(record, ["subject", "title", "theme"]) ||
+    fallbackSubject ||
+    topic;
   const category = topic || undefined;
 
   const createdAt = toDateString(
-    record.createdAt ?? record.created_at ?? record.created ?? record.createdOn ?? record.created_on,
+    record.createdAt ??
+      record.created_at ??
+      record.created ??
+      record.createdOn ??
+      record.created_on,
   );
   const updatedAt = toDateString(
-    record.updatedAt ?? record.updated_at ?? record.updated ?? record.updatedOn ?? record.updated_on,
+    record.updatedAt ??
+      record.updated_at ??
+      record.updated ??
+      record.updatedOn ??
+      record.updated_on,
   );
   const closedAt = toDateString(
     record.closedAt ??
@@ -238,8 +276,16 @@ export const mapTicket = (payload: ApiTicket): Ticket | null => {
     "owner",
     "creator",
   ]);
-  const requester = resolvePerson(requesterRecord) ??
-    resolvePerson(toRecord(record.requester_info ?? record.requesterInfo ?? record.user_info ?? record.userInfo)) ??
+  const requester =
+    resolvePerson(requesterRecord) ??
+    resolvePerson(
+      toRecord(
+        record.requester_info ??
+          record.requesterInfo ??
+          record.user_info ??
+          record.userInfo,
+      ),
+    ) ??
     undefined;
 
   const assigneeRecord = pickRecord(record, [
@@ -253,14 +299,22 @@ export const mapTicket = (payload: ApiTicket): Ticket | null => {
   ]);
   const assignee = resolvePerson(assigneeRecord);
 
-  const messagesValue = record.messages ?? record.messageList ?? record.messages_list;
+  const messagesValue =
+    record.messages ?? record.messageList ?? record.messages_list;
   const messagesCount = Array.isArray(messagesValue)
     ? messagesValue.length
-    : toNumberValue(record.messagesCount ?? record.messages_count ?? record.messageCount ?? record.message_count) ??
-      undefined;
+    : (toNumberValue(
+        record.messagesCount ??
+          record.messages_count ??
+          record.messageCount ??
+          record.message_count,
+      ) ?? undefined);
 
   const lastMessageAt = toDateString(
-    record.lastMessageAt ?? record.last_message_at ?? record.last_message ?? record.lastMessage,
+    record.lastMessageAt ??
+      record.last_message_at ??
+      record.last_message ??
+      record.lastMessage,
   );
 
   const statusSource = pickString(record, ["status", "state"]);
@@ -296,27 +350,59 @@ const mapTicketMessage = (
   }
 
   const id =
-    pickId(record, ["id", "messageId", "message_id", "uid", "uuid"]) || options.fallbackId;
+    pickId(record, ["id", "messageId", "message_id", "uid", "uuid"]) ||
+    options.fallbackId;
   const message = pickString(record, ["message", "text", "content", "body"]);
   if (!message && !id) {
     return null;
   }
 
   const createdAt = toDateString(
-    record.createdAt ?? record.created_at ?? record.sentAt ?? record.sent_at ?? record.timestamp,
+    record.createdAt ??
+      record.created_at ??
+      record.at ??
+      record.sentAt ??
+      record.sent_at ??
+      record.timestamp,
   );
 
-  const authorRecord = pickRecord(record, ["author", "user", "sender", "from", "creator", "owner"]);
+  const authorRecord = pickRecord(record, [
+    "author",
+    "user",
+    "sender",
+    "from",
+    "creator",
+    "owner",
+  ]);
   const authorName =
-    pickString(record, ["authorName", "senderName", "name", "displayName", "display_name", "username"]) ||
-    pickString(authorRecord, ["name", "displayName", "display_name", "username", "login"]);
+    pickString(record, [
+      "authorName",
+      "senderName",
+      "name",
+      "displayName",
+      "display_name",
+      "username",
+    ]) ||
+    pickString(authorRecord, [
+      "name",
+      "displayName",
+      "display_name",
+      "username",
+      "login",
+    ]);
 
   const authorId =
     pickId(record, ["authorId", "userId", "user_id"]) ||
     pickId(authorRecord, ["id", "uid", "userID", "user_id"]) ||
     undefined;
 
-  let authorRole = pickString(record, ["authorRole", "role", "rank", "senderRole", "userRole"]);
+  let authorRole = pickString(record, [
+    "authorRole",
+    "role",
+    "rank",
+    "senderRole",
+    "userRole",
+  ]);
   if (!authorRole) {
     const rawRole = authorRecord?.role ?? authorRecord?.rank ?? null;
     authorRole = toStringValue(rawRole);
@@ -326,8 +412,12 @@ const mapTicketMessage = (
   }
 
   const isStaff =
-    Boolean(record.fromAdmin ?? record.from_admin ?? record.isAdmin ?? record.is_admin) ||
-    isStaffRole(authorRole);
+    Boolean(
+      record.fromAdmin ??
+      record.from_admin ??
+      record.isAdmin ??
+      record.is_admin,
+    ) || isStaffRole(authorRole);
 
   return {
     id,
@@ -340,7 +430,9 @@ const mapTicketMessage = (
   };
 };
 
-export const mapTicketMessages = (payload: ApiTicketMessage[]): TicketMessage[] =>
+export const mapTicketMessages = (
+  payload: ApiTicketMessage[],
+): TicketMessage[] =>
   payload
     .map((item, index) =>
       mapTicketMessage(item, { fallbackId: `message-${index}` }),

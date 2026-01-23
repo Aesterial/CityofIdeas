@@ -1114,7 +1114,7 @@ export async function createTicketMessage(
   const encoded = encodeURIComponent(id);
   await apiRequest(`/api/tickets/${encoded}/messages/create`, {
     method: "POST",
-    body: JSON.stringify({ message: trimmed }),
+    body: JSON.stringify({ content: trimmed }),
   });
 }
 
