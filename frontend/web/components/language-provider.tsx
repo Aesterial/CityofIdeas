@@ -172,6 +172,54 @@ export const translations: Translations = {
     EN: "Password is too weak. Meet all requirements.",
     KZ: "Password is too weak. Meet all requirements.",
   },
+
+  forgotPassword: {
+    RU: "Забыли пароль?",
+    EN: "Forgot password?",
+    KZ: "Құпиясөзді ұмыттыңыз ба?",
+  },
+  passwordResetTitle: {
+    RU: "Сброс пароля",
+    EN: "Reset password",
+    KZ: "Құпиясөзді қалпына келтіру",
+  },
+  passwordResetSubtitle: {
+    RU: "Мы отправим вам ссылку для сброса на email.",
+    EN: "We will email you a reset link.",
+    KZ: "Қалпына келтіру сілтемесін электрондық поштаңызға жібереміз.",
+  },
+  passwordResetAction: {
+    RU: "Отправить ссылку",
+    EN: "Send reset link",
+    KZ: "Сілтемені жіберу",
+  },
+  passwordResetSent: {
+    RU: "Ссылка для сброса отправлена. Проверьте почту.",
+    EN: "Reset link sent. Check your inbox.",
+    KZ: "Сілтеме жіберілді. Кіріс жәшігіңізді тексеріңіз.",
+  },
+  passwordResetBack: {
+    RU: "Назад ко входу",
+    EN: "Back to sign in",
+    KZ: "Кіру бетіне қайту",
+  },
+  passwordResetSuccess: {
+    RU: "Пароль обновлён. Теперь вы можете войти.",
+    EN: "Password updated. You can sign in now.",
+    KZ: "Құпиясөз жаңартылды. Енді кіре аласыз.",
+  },
+  passwordResetTokenMissing: {
+    RU: "Токен сброса отсутствует. Откройте ссылку из письма.",
+    EN: "Reset token is missing. Open the link from your email.",
+    KZ: "Қалпына келтіру токені жоқ. Электрондық поштадағы сілтемені ашыңыз.",
+  },
+  newPassword: {
+    RU: "Новый пароль",
+    EN: "New password",
+    KZ: "Жаңа құпиясөз",
+  },
+
+
   noAccount: {
     RU: "Нет аккаунта?",
     EN: "No account?",

@@ -12,6 +12,16 @@ export type AuthorizationPayload = {
   password: string;
 };
 
+export type PasswordResetRequest = {
+  email: string;
+};
+
+export type PasswordResetPayload = {
+  email: string;
+  password: string;
+  token: string;
+};
+
 type ApiEmail = {
   address: string;
   verified: boolean;
@@ -492,6 +502,34 @@ export async function authorizeUser(
   await apiRequest("/api/login/authorization", {
     method: "POST",
     body: JSON.stringify(payload),
+  });
+}
+
+export async function requestPasswordReset(
+  payload: PasswordResetRequest,
+): Promise<void> {
+  const email = payload.email.trim();
+  if (!email) {
+    throw new Error("Email is required.");
+  }
+  await apiRequest("/api/login/reset-password/start", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function resetPassword(
+  payload: PasswordResetPayload,
+): Promise<void> {
+  const email = payload.email.trim();
+  const password = payload.password.trim();
+  const token = payload.token.trim();
+  if (!email || !password || !token) {
+    throw new Error("Email, password, and token are required.");
+  }
+  await apiRequest("/api/login/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ email, password, token }),
   });
 }
 

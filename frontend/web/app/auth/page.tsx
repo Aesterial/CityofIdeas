@@ -7,7 +7,7 @@ import { GradientButton } from "@/components/gradient-button";
 import { useLanguage } from "@/components/language-provider";
 import { Logo } from "@/components/logo";
 import { useTheme } from "@/components/theme-provider";
-import { startVkAuth } from "@/lib/api";
+import { requestPasswordReset, startVkAuth } from "@/lib/api";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,
@@ -24,7 +24,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-type AuthMode = "login" | "register"; // | "forgot-password"
+type AuthMode = "login" | "register" | "forgot"; // | "forgot-password"
 
 export default function AuthPage() {
   const router = useRouter();
@@ -34,6 +34,7 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [vkLoading, setVkLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -53,7 +54,8 @@ export default function AuthPage() {
     mode === "register"
       ? trimmedName || emailHandle
       : emailHandle || trimmedName;
-  const showWelcome = isSubmitting && welcomeName.length > 0;
+  const showWelcome =
+    isSubmitting && welcomeName.length > 0 && mode !== "forgot";
 
   const passwordRules = [
     {
@@ -108,15 +110,36 @@ export default function AuthPage() {
 
   useEffect(() => {
     setErrorMessage(null);
+    setSuccessMessage(null);
   }, [mode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    setSuccessMessage(null);
 
     const email = formData.email.trim();
     const password = formData.password;
     const name = formData.name.trim();
+
+    if (mode === "forgot") {
+      if (!email) {
+        setErrorMessage("Please enter your email.");
+        return;
+      }
+      setIsSubmitting(true);
+      try {
+        await requestPasswordReset({ email });
+        setSuccessMessage(t("passwordResetSent"));
+      } catch (err) {
+        setErrorMessage(
+          err instanceof Error ? err.message : "Something went wrong.",
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
 
     if (mode === "register") {
       if (!name || !email || !password) {
@@ -221,10 +244,16 @@ export default function AuthPage() {
             transition={{ duration: 0.5, delay: 0.3 }}
           >
             <h1 className="text-3xl font-bold mb-3 sm:text-4xl">
-              {mode === "login" ? t("authorization") : t("registration")}
+              {mode === "forgot"
+                ? t("passwordResetTitle")
+                : mode === "login"
+                  ? t("authorization")
+                  : t("registration")}
             </h1>
             <p className="text-sm text-muted-foreground mb-8 sm:text-base">
-              {mode === "login" ? t("heroSubtitle") : t("heroSubtitle")}
+              {mode === "forgot"
+                ? t("passwordResetSubtitle")
+                : t("heroSubtitle")}
             </p>
           </motion.div>
 
@@ -234,25 +263,34 @@ export default function AuthPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            {["login", "register"].map((m) => (
-              <button
-                key={m}
-                onClick={() => setMode(m as AuthMode)}
-                className={`flex-1 py-3 rounded-xl font-medium transition-all duration-300 ${
-                  mode === m
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {m === "login" ? t("authorization") : t("registration")}
-              </button>
-            ))}
+            {["login", "register"].map((m) => {
+              const isActive =
+                mode === m || (mode === "forgot" && m === "login");
+              return (
+                <button
+                  key={m}
+                  onClick={() => setMode(m as AuthMode)}
+                  className={`flex-1 py-3 rounded-xl font-medium transition-all duration-300 ${
+                    isActive
+                      ? "bg-foreground text-background"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {m === "login" ? t("authorization") : t("registration")}
+                </button>
+              );
+            })}
           </motion.div>
 
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
             {errorMessage ? (
               <div className="rounded-2xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                 {errorMessage}
+              </div>
+            ) : null}
+            {successMessage ? (
+              <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-600">
+                {successMessage}
               </div>
             ) : null}
             <AnimatePresence mode="wait">
@@ -307,39 +345,56 @@ export default function AuthPage() {
               </div>
             </motion.div>
 
-            <motion.div
-              variants={inputVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ duration: 0.3, delay: 0.2 }}
-            >
-              <label className="block text-sm font-medium mb-2">
-                {t("password")}
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
-                  placeholder="••••••••"
-                  className="w-full bg-card border border-border rounded-2xl py-3 pl-12 pr-12 focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all duration-300 sm:py-4"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-300"
+            <AnimatePresence mode="wait">
+              {mode !== "forgot" && (
+                <motion.div
+                  key="password"
+                  variants={inputVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                  transition={{ duration: 0.3, delay: 0.2 }}
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-            </motion.div>
+                  <label className="block text-sm font-medium mb-2">
+                    {t("password")}
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={formData.password}
+                      onChange={(e) =>
+                        setFormData({ ...formData, password: e.target.value })
+                      }
+                      placeholder=""
+                      className="w-full bg-card border border-border rounded-2xl py-3 pl-12 pr-12 focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all duration-300 sm:py-4"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-300"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                  {mode === "login" ? (
+                    <div className="mt-2 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setMode("forgot")}
+                        className="text-xs font-medium text-muted-foreground transition-colors duration-300 hover:text-foreground"
+                      >
+                        {t("forgotPassword")}
+                      </button>
+                    </div>
+                  ) : null}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <AnimatePresence mode="wait">
               {mode === "register" && (
@@ -471,7 +526,9 @@ export default function AuthPage() {
                   ? "Loading..."
                   : mode === "login"
                     ? t("login")
-                    : t("register")}
+                    : mode === "register"
+                      ? t("register")
+                      : t("passwordResetAction")}
                 <ArrowRight className="w-5 h-5" />
               </GradientButton>
             </motion.div>
