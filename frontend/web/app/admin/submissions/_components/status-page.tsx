@@ -365,9 +365,18 @@ export default function SubmissionStatusPage({ status }: StatusPageProps) {
                         <span className="text-muted-foreground">
                           {t("adminSubmissionsInfoAuthor")}:
                         </span>
-                        <span className="font-semibold">
-                          {selected.authorName}
-                        </span>
+                        {selected.authorId ? (
+                          <Link
+                            href={`/users/${selected.authorId}`}
+                            className="font-semibold hover:underline"
+                          >
+                            {selected.authorName}
+                          </Link>
+                        ) : (
+                          <span className="font-semibold">
+                            {selected.authorName}
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <CalendarDays className="h-4 w-4 text-muted-foreground" />

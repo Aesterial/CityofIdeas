@@ -412,7 +412,16 @@ export default function SubmissionDetailPage({
                 <span className="text-muted-foreground">
                   {t("adminSubmissionsInfoAuthor")}:
                 </span>
-                <span className="font-semibold">{submission.authorName}</span>
+                {submission.authorId ? (
+                  <Link
+                    href={`/users/${submission.authorId}`}
+                    className="font-semibold hover:underline"
+                  >
+                    {submission.authorName}
+                  </Link>
+                ) : (
+                  <span className="font-semibold">{submission.authorName}</span>
+                )}
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-muted-foreground" />

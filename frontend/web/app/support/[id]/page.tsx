@@ -374,6 +374,13 @@ export default function SupportTicketPage() {
                         currentUserId != null && message.authorId != null
                           ? String(currentUserId) === String(message.authorId)
                           : false;
+                      const authorLabel = resolveAuthorName(message);
+                      const authorId =
+                        message.authorId != null
+                          ? String(message.authorId)
+                          : "";
+                      const canLinkAuthor =
+                        Boolean(authorId) && !message.isStaff;
                       const bubbleClass = isMine
                         ? "bg-foreground text-background ml-auto"
                         : message.isStaff
@@ -389,7 +396,16 @@ export default function SupportTicketPage() {
                           )}
                         >
                           <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-                            <span>{resolveAuthorName(message)}</span>
+                            {canLinkAuthor ? (
+                              <Link
+                                href={`/users/${authorId}`}
+                                className="hover:underline"
+                              >
+                                {authorLabel}
+                              </Link>
+                            ) : (
+                              <span>{authorLabel}</span>
+                            )}
                             <span>
                               {formatTime(message.createdAt, timeFormatter)}
                             </span>

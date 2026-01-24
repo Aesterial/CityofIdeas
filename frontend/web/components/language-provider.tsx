@@ -219,7 +219,6 @@ export const translations: Translations = {
     KZ: "Жаңа құпиясөз",
   },
 
-
   noAccount: {
     RU: "Нет аккаунта?",
     EN: "No account?",
@@ -797,6 +796,71 @@ export const translations: Translations = {
     RU: "\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0438",
     EN: "Users",
     KZ: "\u041f\u0430\u0439\u0434\u0430\u043b\u0430\u043d\u0443\u0448\u044b\u043b\u0430\u0440",
+  },
+  userProfileInvalidId: {
+    RU: "Некорректный идентификатор пользователя.",
+    EN: "Invalid user ID.",
+    KZ: "Пайдаланушы идентификаторы қате.",
+  },
+  userProfileLoadError: {
+    RU: "Не удалось загрузить профиль.",
+    EN: "Failed to load profile.",
+    KZ: "Профильді жүктеу сәтсіз аяқталды.",
+  },
+  userProfileAuthTitle: {
+    RU: "Нужна авторизация",
+    EN: "Authorization required",
+    KZ: "Авторизация қажет",
+  },
+  userProfileAuthSubtitle: {
+    RU: "Авторизуйтесь, чтобы открыть профиль пользователя.",
+    EN: "Sign in to view the user profile.",
+    KZ: "Пайдаланушы профилін көру үшін кіріңіз.",
+  },
+  userProfileNotFoundTitle: {
+    RU: "Пользователь не найден",
+    EN: "User not found",
+    KZ: "Пайдаланушы табылмады",
+  },
+  userProfileNotFoundSubtitle: {
+    RU: "Проверьте ссылку или попробуйте позже.",
+    EN: "Check the link or try again later.",
+    KZ: "Сілтемені тексеріңіз немесе кейінірек қайталап көріңіз.",
+  },
+  userProfileBackHome: {
+    RU: "На главную",
+    EN: "Back to home",
+    KZ: "Басты бетке",
+  },
+  userProfileProposalsCount: {
+    RU: "Предложения",
+    EN: "Proposals",
+    KZ: "Ұсыныстар",
+  },
+  userProfileLastActivity: {
+    RU: "Последняя активность",
+    EN: "Last activity",
+    KZ: "Соңғы белсенділік",
+  },
+  userProfileRegisteredAt: {
+    RU: "Дата регистрации",
+    EN: "Registered",
+    KZ: "Тіркелген күні",
+  },
+  userProfileProposals: {
+    RU: "Проекты пользователя",
+    EN: "User projects",
+    KZ: "Пайдаланушы жобалары",
+  },
+  userProfileProposalsTitle: {
+    RU: "Созданные предложения",
+    EN: "Created proposals",
+    KZ: "Жасалған ұсыныстар",
+  },
+  userProfileProposalsEmpty: {
+    RU: "У пользователя пока нет предложений.",
+    EN: "This user has no proposals yet.",
+    KZ: "Бұл пайдаланушыда әзірге ұсыныстар жоқ.",
   },
   labelEmail: {
     RU: "\u041f\u043e\u0447\u0442\u0430",

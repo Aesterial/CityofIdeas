@@ -158,6 +158,11 @@ type ApiUserResponse = {
   tracing?: string;
 };
 
+type ApiUserPublicResponse = {
+  data?: ApiUserPublic | null;
+  tracing?: string;
+};
+
 type ApiPermissionsResponse = {
   data?: ApiPermissions | null;
   tracing?: string;
@@ -260,6 +265,12 @@ export class ApiError extends Error {
 function isApiUserResponse(
   payload: ApiUser | ApiUserResponse,
 ): payload is ApiUserResponse {
+  return typeof payload === "object" && payload !== null && "data" in payload;
+}
+
+function isApiUserPublicResponse(
+  payload: ApiUserPublic | ApiUserPublicResponse,
+): payload is ApiUserPublicResponse {
   return typeof payload === "object" && payload !== null && "data" in payload;
 }
 
@@ -612,6 +623,27 @@ export async function fetchCurrentUser(): Promise<AuthUser> {
     method: "GET",
   });
   return toAuthUser(payload);
+}
+
+export async function fetchUserPublic(
+  userID: number,
+  options?: { signal?: AbortSignal },
+): Promise<ApiUserPublic> {
+  if (!Number.isFinite(userID) || userID <= 0) {
+    throw new Error("User id is required.");
+  }
+  const payload = await apiRequest<ApiUserPublic | ApiUserPublicResponse>(
+    `/api/user/${userID}`,
+    {
+      method: "GET",
+      signal: options?.signal,
+    },
+  );
+  const data = isApiUserPublicResponse(payload) ? payload.data : payload;
+  if (!data) {
+    throw new Error("Missing user payload.");
+  }
+  return data;
 }
 
 export async function fetchUserPermissions(

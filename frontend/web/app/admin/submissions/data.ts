@@ -13,6 +13,7 @@ export type Submission = {
   status: SubmissionStatus;
   declineReason?: string;
   authorName: string;
+  authorId?: number;
   submittedAt: string;
   location: string;
   city: string;
@@ -55,7 +56,11 @@ const normalizeStatus = (value?: string): SubmissionStatus | null => {
   if (!normalized) {
     return null;
   }
-  if (normalized === "waiting" || normalized === "pending" || normalized === "active") {
+  if (
+    normalized === "waiting" ||
+    normalized === "pending" ||
+    normalized === "active"
+  ) {
     return "pending";
   }
   if (normalized === "approved") {
@@ -110,8 +115,9 @@ const toImageSrc = (photo?: ApiAvatar | null) => {
   return "";
 };
 
-const resolveProjectInfo = (project?: ApiProject | null): ApiProjectInfo | null =>
-  project?.info ?? project?.details ?? null;
+const resolveProjectInfo = (
+  project?: ApiProject | null,
+): ApiProjectInfo | null => project?.info ?? project?.details ?? null;
 
 const resolveAuthorName = (project?: ApiProject | null) => {
   const author = project?.author ?? null;
@@ -122,6 +128,12 @@ const resolveAuthorName = (project?: ApiProject | null) => {
     author?.username ??
     UNKNOWN_LABEL
   );
+};
+
+const resolveAuthorId = (project?: ApiProject | null) => {
+  const author = project?.author ?? null;
+  const id = author?.userID ?? author?.uid;
+  return typeof id === "number" ? id : undefined;
 };
 
 const toSummary = (description: string) => {
@@ -162,9 +174,10 @@ export const mapSubmissionTarget = (
   const category = options.resolveCategoryLabel(info?.category);
 
   const location = info?.location ?? null;
-  const locationParts = [location?.street?.trim(), location?.house?.trim()].filter(
-    (part): part is string => Boolean(part),
-  );
+  const locationParts = [
+    location?.street?.trim(),
+    location?.house?.trim(),
+  ].filter((part): part is string => Boolean(part));
   const locationLabel = locationParts.length
     ? locationParts.join(" ")
     : UNKNOWN_LABEL;
@@ -192,6 +205,7 @@ export const mapSubmissionTarget = (
     status,
     declineReason,
     authorName: resolveAuthorName(project),
+    authorId: resolveAuthorId(project),
     submittedAt: createdAt,
     location: locationLabel,
     city,
