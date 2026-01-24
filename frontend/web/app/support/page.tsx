@@ -1,101 +1,108 @@
-"use client"
+"use client";
 
-import { useEffect, useState, type FormEvent } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
-import { HelpCircle, Mail, MessageSquare, ShieldCheck, User } from "lucide-react"
-import { Header } from "@/components/header"
-import { GradientButton } from "@/components/gradient-button"
-import { useAuth } from "@/components/auth-provider"
-import { createTicket } from "@/lib/api"
+import { useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import {
+  HelpCircle,
+  Mail,
+  MessageSquare,
+  ShieldCheck,
+  User,
+} from "lucide-react";
+import { Header } from "@/components/header";
+import { GradientButton } from "@/components/gradient-button";
+import { useAuth } from "@/components/auth-provider";
+import { createTicket } from "@/lib/api";
 
 type SupportFormState = {
-  name: string
-  email: string
-  subject: string
-  category: string
-  message: string
-}
+  name: string;
+  email: string;
+  subject: string;
+  category: string;
+  message: string;
+};
 
-type SupportFormErrors = Partial<Record<keyof SupportFormState, string>>
+type SupportFormErrors = Partial<Record<keyof SupportFormState, string>>;
 
 const categories = [
   { value: "Аккаунт и доступ", label: "Аккаунт и доступ" },
   { value: "Проект или заявка", label: "Проект или заявка" },
   { value: "Техническая проблема", label: "Техническая проблема" },
   { value: "Другое", label: "Другое" },
-]
+];
 
 export default function SupportPage() {
-  const router = useRouter()
-  const { user, hasAdminAccess } = useAuth()
+  const router = useRouter();
+  const { user, hasAdminAccess } = useAuth();
   const [formData, setFormData] = useState<SupportFormState>({
     name: "",
     email: "",
     subject: "",
     category: categories[0].value,
     message: "",
-  })
-  const [errors, setErrors] = useState<SupportFormErrors>({})
-  const [submitError, setSubmitError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  });
+  const [errors, setErrors] = useState<SupportFormErrors>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!user) {
-      return
+      return;
     }
     setFormData((prev) => ({
       ...prev,
       name: prev.name || user.displayName || user.username || "",
       email: prev.email || user.email || "",
-    }))
-  }, [user])
+    }));
+  }, [user]);
 
-  const canManageSupport = hasAdminAccess
+  const canManageSupport = hasAdminAccess;
+  const canViewHistory = Boolean(user);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+    event.preventDefault();
     if (isSubmitting) {
-      return
+      return;
     }
-    const nextErrors: SupportFormErrors = {}
+    const nextErrors: SupportFormErrors = {};
 
     if (!formData.email.trim()) {
-      nextErrors.email = "Укажите контактный email."
+      nextErrors.email = "Укажите контактный email.";
     }
     if (!formData.subject.trim()) {
-      nextErrors.subject = "Добавьте тему обращения."
+      nextErrors.subject = "Добавьте тему обращения.";
     }
     if (!formData.message.trim()) {
-      nextErrors.message = "Опишите вопрос подробнее."
+      nextErrors.message = "Опишите вопрос подробнее.";
     }
 
-    setErrors(nextErrors)
-    setSubmitError(null)
+    setErrors(nextErrors);
+    setSubmitError(null);
 
     if (Object.keys(nextErrors).length > 0) {
-      return
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      const subject = formData.subject.trim()
-      const message = formData.message.trim()
-      const brief = [subject, message].filter(Boolean).join("\n\n")
+      const subject = formData.subject.trim();
+      const message = formData.message.trim();
+      const brief = [subject, message].filter(Boolean).join("\n\n");
       const id = await createTicket({
         name: formData.name.trim() || undefined,
         email: formData.email.trim(),
         topic: formData.category,
         brief,
-      })
-      router.push(`/support/${encodeURIComponent(id)}`)
+      });
+      router.push(`/support/${encodeURIComponent(id)}`);
     } catch (error) {
-      setSubmitError("Не удалось отправить обращение. Попробуйте еще раз.")
+      setSubmitError("Не удалось отправить обращение. Попробуйте еще раз.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -103,10 +110,15 @@ export default function SupportPage() {
 
       <main className="pt-24 pb-12 px-4 sm:pt-28 sm:pb-16 sm:px-6">
         <div className="container mx-auto max-w-5xl space-y-8">
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
             <h1 className="text-3xl font-bold sm:text-4xl">Задать вопрос</h1>
             <p className="mt-2 text-muted-foreground">
-              Заполните форму — команда поддержки свяжется с вами и поможет разобраться.
+              Заполните форму — команда поддержки свяжется с вами и поможет
+              разобраться.
             </p>
           </motion.div>
 
@@ -126,7 +138,9 @@ export default function SupportPage() {
                   </label>
                   <input
                     value={formData.name}
-                    onChange={(event) => setFormData({ ...formData, name: event.target.value })}
+                    onChange={(event) =>
+                      setFormData({ ...formData, name: event.target.value })
+                    }
                     placeholder="Как к вам обращаться"
                     className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
                   />
@@ -140,11 +154,17 @@ export default function SupportPage() {
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(event) => setFormData({ ...formData, email: event.target.value })}
+                    onChange={(event) =>
+                      setFormData({ ...formData, email: event.target.value })
+                    }
                     placeholder="name@example.com"
                     className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
                   />
-                  {errors.email ? <p className="mt-2 text-xs text-destructive">{errors.email}</p> : null}
+                  {errors.email ? (
+                    <p className="mt-2 text-xs text-destructive">
+                      {errors.email}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div>
@@ -154,7 +174,9 @@ export default function SupportPage() {
                   </label>
                   <select
                     value={formData.category}
-                    onChange={(event) => setFormData({ ...formData, category: event.target.value })}
+                    onChange={(event) =>
+                      setFormData({ ...formData, category: event.target.value })
+                    }
                     className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
                   >
                     {categories.map((category) => (
@@ -172,23 +194,37 @@ export default function SupportPage() {
                   </label>
                   <input
                     value={formData.subject}
-                    onChange={(event) => setFormData({ ...formData, subject: event.target.value })}
+                    onChange={(event) =>
+                      setFormData({ ...formData, subject: event.target.value })
+                    }
                     placeholder="Коротко о проблеме"
                     className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
                   />
-                  {errors.subject ? <p className="mt-2 text-xs text-destructive">{errors.subject}</p> : null}
+                  {errors.subject ? (
+                    <p className="mt-2 text-xs text-destructive">
+                      {errors.subject}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Сообщение</label>
+                  <label className="block text-sm font-medium mb-2">
+                    Сообщение
+                  </label>
                   <textarea
                     rows={5}
                     value={formData.message}
-                    onChange={(event) => setFormData({ ...formData, message: event.target.value })}
+                    onChange={(event) =>
+                      setFormData({ ...formData, message: event.target.value })
+                    }
                     placeholder="Опишите ситуацию и приложите важные детали"
                     className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 resize-none"
                   />
-                  {errors.message ? <p className="mt-2 text-xs text-destructive">{errors.message}</p> : null}
+                  {errors.message ? (
+                    <p className="mt-2 text-xs text-destructive">
+                      {errors.message}
+                    </p>
+                  ) : null}
                 </div>
 
                 {submitError ? (
@@ -218,18 +254,40 @@ export default function SupportPage() {
               <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
                 <p className="text-sm font-semibold">Что дальше?</p>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  После отправки обращение попадет в очередь поддержки. Специалист возьмет его в работу и свяжется с вами.
+                  После отправки обращение попадет в очередь поддержки.
+                  Специалист возьмет его в работу и свяжется с вами.
                 </p>
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Если новых сообщений не будет в течение 48 часов, обращение закроется автоматически.
+                  Если новых сообщений не будет в течение 48 часов, обращение
+                  закроется автоматически.
                 </p>
+              </div>
+
+              <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
+                <p className="text-sm font-semibold">
+                  РСЃС‚РѕСЂРёСЏ РѕР±СЂР°С‰РµРЅРёР№
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {canViewHistory
+                    ? "РџСЂРѕСЃРјР°С‚СЂРёРІР°Р№С‚Рµ СЃС‚Р°С‚СѓСЃ РѕР±СЂР°С‰РµРЅРёР№ Рё РїСЂРѕРґРѕР»Р¶Р°Р№С‚Рµ РѕР±С‰РµРЅРёРµ СЃ РїРѕРґРґРµСЂР¶РєРѕР№."
+                    : "Р’РѕР№РґРёС‚Рµ, С‡С‚РѕР±С‹ РІРёРґРµС‚СЊ СЃРІРѕРё РѕР±СЂР°С‰РµРЅРёСЏ Рё РїРµСЂРµРїРёСЃРєСѓ."}
+                </p>
+                <Link
+                  href={canViewHistory ? "/support/history" : "/auth"}
+                  className="mt-4 inline-flex items-center gap-2 rounded-full border border-border/70 px-4 py-2 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+                >
+                  {canViewHistory
+                    ? "РџРµСЂРµР№С‚Рё РІ РёСЃС‚РѕСЂРёСЋ"
+                    : "Р’РѕР№С‚Рё"}
+                </Link>
               </div>
 
               {canManageSupport ? (
                 <div className="rounded-3xl border border-border/70 bg-card/90 p-6">
                   <p className="text-sm font-semibold">Панель поддержки</p>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    У вас есть доступ к обращениям. Откройте список и возьмите обращение.
+                    У вас есть доступ к обращениям. Откройте список и возьмите
+                    обращение.
                   </p>
                   <Link
                     href="/admin/support"
@@ -245,5 +303,5 @@ export default function SupportPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }

@@ -375,6 +375,11 @@ export const translations: Translations = {
     EN: "Ask a question",
     KZ: "\u0421\u04b1\u0440\u0430\u049b \u049b\u043e\u044e",
   },
+  supportHistory: {
+    RU: "\u0418\u0441\u0442\u043e\u0440\u0438\u044f \u043e\u0431\u0440\u0430\u0449\u0435\u043d\u0438\u0439",
+    EN: "Support history",
+    KZ: "\u049a\u043e\u043b\u0434\u0430\u0443 \u0442\u0430\u0440\u0438\u0445\u044b",
+  },
   account: {
     RU: "\u0410\u043a\u043a\u0430\u0443\u043d\u0442",
     EN: "Account",

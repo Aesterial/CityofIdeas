@@ -8,6 +8,7 @@ import {
 } from "framer-motion";
 import {
   ChevronDown,
+  Clock,
   Globe,
   Lightbulb,
   LogIn,
@@ -115,7 +116,10 @@ export function Header() {
     { href: "/suggest", label: t("suggestIdea"), icon: Lightbulb },
     { href: "/support", label: t("askQuestion"), icon: MessageSquare },
     ...(status === "authenticated"
-      ? [{ href: "/account", label: t("account"), icon: UserCircle }]
+      ? [
+          { href: "/support/history", label: t("supportHistory"), icon: Clock },
+          { href: "/account", label: t("account"), icon: UserCircle },
+        ]
       : [{ href: "/auth", label: t("login"), icon: LogIn }]),
     ...(hasAdminAccess
       ? [{ href: "/admin", label: t("adminPanel"), icon: Shield }]
@@ -622,6 +626,16 @@ export function Header() {
                     <Link href="/account" className="flex items-center gap-2">
                       <Settings className="h-4 w-4" />
                       {t("accountSettings")}
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/support/history"
+                      className="flex items-center gap-2"
+                    >
+                      <Clock className="h-4 w-4" />
+                      {t("supportHistory")}
                     </Link>
                   </DropdownMenuItem>
 

@@ -1,53 +1,106 @@
-"use client"
+"use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react"
-import Link from "next/link"
-import { motion } from "framer-motion"
-import { ArrowLeft, CalendarDays, MessageSquare } from "lucide-react"
-import { Header } from "@/components/header"
-import { useAuth } from "@/components/auth-provider"
-import { useLanguage } from "@/components/language-provider"
-import { fetchTickets } from "@/lib/api"
-import { mapTicket, type Ticket, type TicketStatus } from "@/lib/tickets"
-import { cn } from "@/lib/utils"
-
-const statusLabel: Record<TicketStatus, string> = {
-  new: "Waiting",
-  in_progress: "In progress",
-  closed: "Closed",
-}
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { ArrowLeft, CalendarDays, MessageSquare } from "lucide-react";
+import { Header } from "@/components/header";
+import { useAuth } from "@/components/auth-provider";
+import { useLanguage } from "@/components/language-provider";
+import { fetchTickets } from "@/lib/api";
+import { mapTicket, type Ticket, type TicketStatus } from "@/lib/tickets";
+import { cn } from "@/lib/utils";
 
 const statusStyles: Record<TicketStatus, string> = {
   new: "bg-foreground/5 text-foreground",
   in_progress: "bg-foreground text-background",
   closed: "border border-foreground/15 text-muted-foreground",
-}
+};
+
+const copyByLanguage = {
+  RU: {
+    backToSupport: "Назад в поддержку",
+    sectionLabel: "Поддержка",
+    title: "История обращений",
+    newTicket: "Новое обращение",
+    signInPrompt: "Войдите, чтобы увидеть историю обращений.",
+    goToLogin: "Перейти ко входу",
+    errorLoad: "Не удалось загрузить историю обращений.",
+    empty: "Пока нет обращений. Создайте новое через форму поддержки.",
+    uncategorized: "Без категории",
+    untitled: "Без темы",
+    statusLabel: {
+      new: "Ожидает",
+      in_progress: "В работе",
+      closed: "Закрыто",
+    },
+  },
+  EN: {
+    backToSupport: "Back to support",
+    sectionLabel: "Support",
+    title: "Support history",
+    newTicket: "New ticket",
+    signInPrompt: "Sign in to view your support history.",
+    goToLogin: "Go to login",
+    errorLoad: "Failed to load support history.",
+    empty: "No tickets yet. Start a new request from the support form.",
+    uncategorized: "Uncategorized",
+    untitled: "Untitled ticket",
+    statusLabel: {
+      new: "Waiting",
+      in_progress: "In progress",
+      closed: "Closed",
+    },
+  },
+  KZ: {
+    backToSupport: "Қолдауға оралу",
+    sectionLabel: "Қолдау",
+    title: "Қолдау тарихы",
+    newTicket: "Жаңа өтініш",
+    signInPrompt: "Қолдау тарихын көру үшін кіріңіз.",
+    goToLogin: "Кіруге өту",
+    errorLoad: "Қолдау тарихын жүктеу мүмкін болмады.",
+    empty: "Өтініштер әлі жоқ. Қолдау формасынан жаңа өтініш жіберіңіз.",
+    uncategorized: "Санатсыз",
+    untitled: "Тақырыпсыз өтініш",
+    statusLabel: {
+      new: "Күтуде",
+      in_progress: "Жұмыста",
+      closed: "Жабық",
+    },
+  },
+} as const;
 
 const resolveLocale = (language: string) =>
-  language === "KZ" ? "kk-KZ" : language === "RU" ? "ru-RU" : "en-US"
+  language === "KZ" ? "kk-KZ" : language === "RU" ? "ru-RU" : "en-US";
 
 const formatDateTime = (
   value: string | undefined,
   formatter: Intl.DateTimeFormat,
 ) => {
   if (!value) {
-    return "-"
+    return "-";
   }
-  const date = new Date(value)
+  const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
-    return "-"
+    return "-";
   }
-  return formatter.format(date)
-}
+  return formatter.format(date);
+};
 
 export default function SupportHistoryPage() {
-  const { status } = useAuth()
-  const { language } = useLanguage()
-  const [tickets, setTickets] = useState<Ticket[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { status } = useAuth();
+  const { language } = useLanguage();
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const locale = useMemo(() => resolveLocale(language), [language])
+  const copy = useMemo(
+    () => copyByLanguage[language] ?? copyByLanguage.RU,
+    [language],
+  );
+
+  const locale = useMemo(() => resolveLocale(language), [language]);
   const dateTimeFormatter = useMemo(
     () =>
       new Intl.DateTimeFormat(locale, {
@@ -58,46 +111,49 @@ export default function SupportHistoryPage() {
         minute: "2-digit",
       }),
     [locale],
-  )
+  );
 
-  const loadTickets = useCallback(async (signal?: AbortSignal) => {
-    setLoading(true)
-    setError(null)
-    try {
-      const list = await fetchTickets({ signal })
-      if (signal?.aborted) {
-        return
+  const loadTickets = useCallback(
+    async (signal?: AbortSignal) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const list = await fetchTickets({ signal });
+        if (signal?.aborted) {
+          return;
+        }
+        const mapped = list
+          .map((item) => mapTicket(item))
+          .filter((item): item is Ticket => Boolean(item));
+        mapped.sort((a, b) => {
+          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return dateB - dateA;
+        });
+        setTickets(mapped);
+      } catch (err) {
+        if (!signal?.aborted) {
+          setError(copy.errorLoad);
+          setTickets([]);
+        }
+      } finally {
+        if (!signal?.aborted) {
+          setLoading(false);
+        }
       }
-      const mapped = list
-        .map((item) => mapTicket(item))
-        .filter((item): item is Ticket => Boolean(item))
-      mapped.sort((a, b) => {
-        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
-        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0
-        return dateB - dateA
-      })
-      setTickets(mapped)
-    } catch (err) {
-      if (!signal?.aborted) {
-        setError("Failed to load support history.")
-        setTickets([])
-      }
-    } finally {
-      if (!signal?.aborted) {
-        setLoading(false)
-      }
-    }
-  }, [])
+    },
+    [copy],
+  );
 
   useEffect(() => {
     if (status !== "authenticated") {
-      setLoading(false)
-      return
+      setLoading(false);
+      return;
     }
-    const controller = new AbortController()
-    void loadTickets(controller.signal)
-    return () => controller.abort()
-  }, [status, loadTickets])
+    const controller = new AbortController();
+    void loadTickets(controller.signal);
+    return () => controller.abort();
+  }, [status, loadTickets]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -116,23 +172,21 @@ export default function SupportHistoryPage() {
               className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to support
+              {copy.backToSupport}
             </Link>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                  Support
+                  {copy.sectionLabel}
                 </p>
-                <h1 className="text-2xl font-bold sm:text-3xl">
-                  Support history
-                </h1>
+                <h1 className="text-2xl font-bold sm:text-3xl">{copy.title}</h1>
               </div>
               <Link
                 href="/support"
                 className="inline-flex items-center gap-2 rounded-full border border-border/70 px-4 py-2 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
               >
                 <MessageSquare className="h-4 w-4" />
-                New ticket
+                {copy.newTicket}
               </Link>
             </div>
           </motion.div>
@@ -149,13 +203,13 @@ export default function SupportHistoryPage() {
           ) : status !== "authenticated" ? (
             <div className="rounded-3xl border border-border/70 bg-card/90 p-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Sign in to view your support history.
+                {copy.signInPrompt}
               </p>
               <Link
                 href="/auth"
                 className="mt-4 inline-flex rounded-full border border-border/70 px-5 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
               >
-                Go to login
+                {copy.goToLogin}
               </Link>
             </div>
           ) : (
@@ -181,10 +235,10 @@ export default function SupportHistoryPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                            {ticket.category || "Uncategorized"}
+                            {ticket.category || copy.uncategorized}
                           </p>
                           <p className="mt-2 text-base font-semibold">
-                            {ticket.subject || "Untitled ticket"}
+                            {ticket.subject || copy.untitled}
                           </p>
                           <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                             <CalendarDays className="h-4 w-4" />
@@ -202,21 +256,19 @@ export default function SupportHistoryPage() {
                             statusStyles[ticket.status],
                           )}
                         >
-                          {statusLabel[ticket.status]}
+                          {copy.statusLabel[ticket.status]}
                         </span>
                       </div>
                     </Link>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  No tickets yet. Start a new request from the support form.
-                </p>
+                <p className="text-sm text-muted-foreground">{copy.empty}</p>
               )}
             </motion.section>
           )}
         </div>
       </main>
     </div>
-  )
+  );
 }
