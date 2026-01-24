@@ -675,6 +675,47 @@ export const translations: Translations = {
     KZ: "Рөлді баптау",
   },
 
+  adminUserSettingsRoleDurationLabel: {
+    RU: "Срок действия",
+    EN: "Duration",
+    KZ: "Мерзімі",
+  },
+  adminUserSettingsRoleDurationUntil: {
+    RU: "До даты",
+    EN: "Until date",
+    KZ: "Күнге дейін",
+  },
+  adminUserSettingsRoleExpiresLabel: {
+    RU: "Истекает",
+    EN: "Expires",
+    KZ: "Аяқталады",
+  },
+  adminUserSettingsRoleExpiresEmpty: {
+    RU: "Не задано",
+    EN: "Not set",
+    KZ: "Орнатылмаған",
+  },
+  adminUserSettingsRolePickDate: {
+    RU: "Выбрать дату",
+    EN: "Pick date",
+    KZ: "Күнді таңдау",
+  },
+  adminUserSettingsRoleApply: {
+    RU: "Применить",
+    EN: "Apply",
+    KZ: "Қолдану",
+  },
+  adminUserSettingsRoleReset: {
+    RU: "Сбросить",
+    EN: "Reset",
+    KZ: "Қалпына келтіру",
+  },
+  adminUserSettingsRoleApplyHint: {
+    RU: "Изменения вступят в силу сразу",
+    EN: "Changes take effect immediately",
+    KZ: "Өзгерістер бірден күшіне енеді",
+  },
+
   adminUserSettingsProfileAction: {
     RU: "Сбросить аватар",
     EN: "Reset avatar",
