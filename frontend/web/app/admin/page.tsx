@@ -664,23 +664,58 @@ export default function AdminPage() {
 
   useEffect(() => {
     const sectionIds = ["users", "overview", "analytics", "media"];
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.find((entry) => entry.isIntersecting);
-        if (visible?.target?.id) {
-          setActiveSection(visible.target.id);
+    let frame = 0;
+
+    const resolveHeaderOffset = () => {
+      const header = document.querySelector("header");
+      const headerHeight = header?.getBoundingClientRect().height ?? 0;
+      return headerHeight + 24;
+    };
+
+    const updateActiveSection = () => {
+      const offset = resolveHeaderOffset();
+      const scrollPosition = window.scrollY + offset;
+      const elements = sectionIds
+        .map((id) => document.getElementById(id))
+        .filter((el): el is HTMLElement => Boolean(el));
+
+      if (!elements.length) {
+        return;
+      }
+
+      let nextId = elements[0].id;
+      for (const element of elements) {
+        if (element.offsetTop <= scrollPosition) {
+          nextId = element.id;
+        } else {
+          break;
         }
-      },
-      { rootMargin: "-45% 0px -45% 0px" },
-    );
+      }
 
-    const elements = sectionIds
-      .map((id) => document.getElementById(id))
-      .filter((el): el is HTMLElement => Boolean(el));
+      setActiveSection(nextId);
+    };
 
-    elements.forEach((el) => observer.observe(el));
+    const onScroll = () => {
+      if (frame) {
+        return;
+      }
+      frame = window.requestAnimationFrame(() => {
+        updateActiveSection();
+        frame = 0;
+      });
+    };
 
-    return () => observer.disconnect();
+    updateActiveSection();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) {
+        window.cancelAnimationFrame(frame);
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -1481,13 +1516,177 @@ export default function AdminPage() {
             <main className="px-4 pb-16 pt-8 sm:px-6 lg:px-10">
               <div className="mx-auto flex max-w-6xl flex-col gap-10">
                 <motion.section
+                  id="users"
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.5 }}
+                  variants={sectionVariants}
+                  className="space-y-6 scroll-mt-32"
+                >
+                  <div
+                    className="flex flex-wrap items-center justify-between gap-4"
+                    data-tutorial="admin-access-section"
+                  >
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                        {t("labelUsers")}
+                      </p>
+                      <h2 className="text-2xl font-bold">
+                        {t("adminAccessModerationTitle")}
+                      </h2>
+                      <p className="text-sm text-muted-foreground">
+                        {t("adminAccessModerationSubtitle")}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Link
+                        href="/admin/users"
+                        className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+                      >
+                        {t("adminUsersViewAll")}
+                      </Link>
+                      <Link
+                        href="/admin/submissions"
+                        className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+                      >
+                        {t("adminSubmissionsTitle")}
+                      </Link>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-6">
+                    <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold">
+                          {t("adminUsersListTitle")}
+                        </p>
+                        <span className="text-xs text-muted-foreground">
+                          {t("adminUsersListSubtitle")}
+                        </span>
+                      </div>
+                      <div className="mt-4 space-y-3">
+                        {users.slice(0, 6).map((user) => {
+                          const ActionIcon =
+                            user.status === "banned" ? CheckCircle2 : Ban;
+                          const actionTitle =
+                            user.status === "banned"
+                              ? t("actionUnblock")
+                              : t("actionBlock");
+                          const initials = getUserInitials(user.name);
+
+                          return (
+                            <div
+                              key={user.id}
+                              className="rounded-2xl border border-border/60 bg-background/70 p-4"
+                            >
+                              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="flex items-start gap-3 min-w-0">
+                                  <Avatar className="h-10 w-10">
+                                    <AvatarFallback className="text-xs font-semibold">
+                                      {initials}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-semibold truncate">
+                                      {user.name}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground truncate">
+                                      @{user.username}
+                                    </p>
+                                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                                      <span className="truncate">
+                                        {user.email}
+                                      </span>
+                                      <span>•</span>
+                                      <span>{user.role}</span>
+                                      <span>•</span>
+                                      <span>{user.lastActive}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span
+                                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                      user.status === "banned"
+                                        ? "bg-destructive/10 text-destructive"
+                                        : "bg-foreground text-background"
+                                    }`}
+                                  >
+                                    {user.status === "banned"
+                                      ? t("statusBanned")
+                                      : t("statusActive")}
+                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      title={actionTitle}
+                                      className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                      onClick={() =>
+                                        user.status === "banned"
+                                          ? void handleUserAction(
+                                              user,
+                                              "unblock",
+                                            )
+                                          : openBanDialog(user)
+                                      }
+                                    >
+                                      <ActionIcon className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      title={t("actionResetPassword")}
+                                      className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                      onClick={() =>
+                                        void handleUserAction(user, "reset")
+                                      }
+                                    >
+                                      <Shield className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      title={t("actionMessage")}
+                                      className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                      onClick={() =>
+                                        void handleUserAction(user, "message")
+                                      }
+                                    >
+                                      <MessageSquare className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      title={t("adminUserSettingsTitle")}
+                                      className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                      onClick={() =>
+                                        setSettingsUser({
+                                          userID: user.userID,
+                                          name: user.name,
+                                          username: user.username,
+                                          role: user.role,
+                                        })
+                                      }
+                                    >
+                                      <Settings className="h-4 w-4" />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </motion.section>
+
+                <motion.section
                   id="overview"
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true, amount: 0.2 }}
                   transition={{ duration: 0.5 }}
                   variants={sectionVariants}
-                  className="order-first space-y-6 scroll-mt-32"
+                  className="space-y-6 scroll-mt-32"
                 >
                   <div>
                     <h2 className="text-3xl font-bold leading-tight">
@@ -2056,176 +2255,12 @@ export default function AdminPage() {
                     </div>
                   </div>
                 </motion.section>
-
-                <motion.section
-                  id="users"
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true, amount: 0.2 }}
-                  transition={{ duration: 0.5 }}
-                  variants={sectionVariants}
-                  className="space-y-6 scroll-mt-32"
-                >
-                  <div
-                    className="flex flex-wrap items-center justify-between gap-4"
-                    data-tutorial="admin-access-section"
-                  >
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                        {t("labelUsers")}
-                      </p>
-                      <h2 className="text-2xl font-bold">
-                        {t("adminAccessModerationTitle")}
-                      </h2>
-                      <p className="text-sm text-muted-foreground">
-                        {t("adminAccessModerationSubtitle")}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Link
-                        href="/admin/users"
-                        className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
-                      >
-                        {t("adminUsersViewAll")}
-                      </Link>
-                      <Link
-                        href="/admin/submissions"
-                        className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
-                      >
-                        {t("adminSubmissionsTitle")}
-                      </Link>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-6">
-                    <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold">
-                          {t("adminUsersListTitle")}
-                        </p>
-                        <span className="text-xs text-muted-foreground">
-                          {t("adminUsersListSubtitle")}
-                        </span>
-                      </div>
-                      <div className="mt-4 space-y-3">
-                        {users.slice(0, 6).map((user) => {
-                          const ActionIcon =
-                            user.status === "banned" ? CheckCircle2 : Ban;
-                          const actionTitle =
-                            user.status === "banned"
-                              ? t("actionUnblock")
-                              : t("actionBlock");
-                          const initials = getUserInitials(user.name);
-
-                          return (
-                            <div
-                              key={user.id}
-                              className="rounded-2xl border border-border/60 bg-background/70 p-4"
-                            >
-                              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div className="flex items-start gap-3 min-w-0">
-                                  <Avatar className="h-10 w-10">
-                                    <AvatarFallback className="text-xs font-semibold">
-                                      {initials}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <div className="min-w-0">
-                                    <p className="text-sm font-semibold truncate">
-                                      {user.name}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground truncate">
-                                      @{user.username}
-                                    </p>
-                                    <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                                      <span className="truncate">
-                                        {user.email}
-                                      </span>
-                                      <span>•</span>
-                                      <span>{user.role}</span>
-                                      <span>•</span>
-                                      <span>{user.lastActive}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <span
-                                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                      user.status === "banned"
-                                        ? "bg-destructive/10 text-destructive"
-                                        : "bg-foreground text-background"
-                                    }`}
-                                  >
-                                    {user.status === "banned"
-                                      ? t("statusBanned")
-                                      : t("statusActive")}
-                                  </span>
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      type="button"
-                                      title={actionTitle}
-                                      className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                                      onClick={() =>
-                                        user.status === "banned"
-                                          ? void handleUserAction(
-                                              user,
-                                              "unblock",
-                                            )
-                                          : openBanDialog(user)
-                                      }
-                                    >
-                                      <ActionIcon className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      title={t("actionResetPassword")}
-                                      className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                                      onClick={() =>
-                                        void handleUserAction(user, "reset")
-                                      }
-                                    >
-                                      <Shield className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      title={t("actionMessage")}
-                                      className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                                      onClick={() =>
-                                        void handleUserAction(user, "message")
-                                      }
-                                    >
-                                      <MessageSquare className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      title={t("adminUserSettingsTitle")}
-                                      className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
-                                      onClick={() =>
-                                        setSettingsUser({
-                                          userID: user.userID,
-                                          name: user.name,
-                                          username: user.username,
-                                          role: user.role,
-                                        })
-                                      }
-                                    >
-                                      <Settings className="h-4 w-4" />
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </motion.section>
               </div>
             </main>
-      <Dialog
-        open={banDialogOpen}
-        onOpenChange={(open) => {
-          setBanDialogOpen(open);
+            <Dialog
+              open={banDialogOpen}
+              onOpenChange={(open) => {
+                setBanDialogOpen(open);
                 if (!open) {
                   setBanDialogUser(null);
                   setBanDialogReason("");
@@ -2318,72 +2353,76 @@ export default function AdminPage() {
                     disabled={banDialogLoading || !banDialogUser}
                   >
                     {t("actionBlock")}
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      <Dialog
-        open={deleteProfileDialogOpen}
-        onOpenChange={(open) => {
-          setDeleteProfileDialogOpen(open);
-          if (!open) {
-            setDeleteProfileDialogUser(null);
-            setDeleteProfileInput("");
-            setDeleteProfileError(null);
-            setDeleteProfileLoading(false);
-          }
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("adminUserDeleteProfileTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("adminUserDeleteProfileDescription")}{" "}
-              <span className="font-semibold text-foreground">
-                {deleteProfileDialogUser?.username ?? ""}
-              </span>
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
-            <input
-              value={deleteProfileInput}
-              onChange={(event) => setDeleteProfileInput(event.target.value)}
-              placeholder={t("adminUserDeleteProfilePlaceholder")}
-              className="w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
-            />
-            {deleteProfileError ? (
-              <p className="text-xs text-destructive">{deleteProfileError}</p>
-            ) : null}
-          </div>
-          <DialogFooter>
-            <button
-              type="button"
-              onClick={() => setDeleteProfileDialogOpen(false)}
-              className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
-              disabled={deleteProfileLoading}
+                  </button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            <Dialog
+              open={deleteProfileDialogOpen}
+              onOpenChange={(open) => {
+                setDeleteProfileDialogOpen(open);
+                if (!open) {
+                  setDeleteProfileDialogUser(null);
+                  setDeleteProfileInput("");
+                  setDeleteProfileError(null);
+                  setDeleteProfileLoading(false);
+                }
+              }}
             >
-              {t("adminUserDeleteProfileCancel")}
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleConfirmDeleteProfile()}
-              className="rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition-opacity duration-300 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={
-                deleteProfileLoading ||
-                !deleteProfileDialogUser ||
-                deleteProfileInput.trim() !==
-                  (deleteProfileDialogUser?.username ?? "")
-              }
-            >
-              {t("adminUserDeleteProfileAction")}
-            </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      <AdminUserSettingsDialog
-        open={Boolean(settingsUser)}
-        user={settingsUser}
-        onOpenChange={(open) => {
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{t("adminUserDeleteProfileTitle")}</DialogTitle>
+                  <DialogDescription>
+                    {t("adminUserDeleteProfileDescription")}{" "}
+                    <span className="font-semibold text-foreground">
+                      {deleteProfileDialogUser?.username ?? ""}
+                    </span>
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-2">
+                  <input
+                    value={deleteProfileInput}
+                    onChange={(event) =>
+                      setDeleteProfileInput(event.target.value)
+                    }
+                    placeholder={t("adminUserDeleteProfilePlaceholder")}
+                    className="w-full rounded-2xl border border-border/70 bg-background px-4 py-3 text-sm"
+                  />
+                  {deleteProfileError ? (
+                    <p className="text-xs text-destructive">
+                      {deleteProfileError}
+                    </p>
+                  ) : null}
+                </div>
+                <DialogFooter>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteProfileDialogOpen(false)}
+                    className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
+                    disabled={deleteProfileLoading}
+                  >
+                    {t("adminUserDeleteProfileCancel")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleConfirmDeleteProfile()}
+                    className="rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition-opacity duration-300 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={
+                      deleteProfileLoading ||
+                      !deleteProfileDialogUser ||
+                      deleteProfileInput.trim() !==
+                        (deleteProfileDialogUser?.username ?? "")
+                    }
+                  >
+                    {t("adminUserDeleteProfileAction")}
+                  </button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            <AdminUserSettingsDialog
+              open={Boolean(settingsUser)}
+              user={settingsUser}
+              onOpenChange={(open) => {
                 if (!open) {
                   setSettingsUser(null);
                 }
