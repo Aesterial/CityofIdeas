@@ -374,6 +374,7 @@ const mapTicketMessage = (
     "creator",
     "owner",
   ]);
+  const authorSettings = pickRecord(authorRecord, ["settings", "profile"]);
   const authorName =
     pickString(record, [
       "authorName",
@@ -383,6 +384,7 @@ const mapTicketMessage = (
       "display_name",
       "username",
     ]) ||
+    pickString(authorSettings, ["displayName", "display_name", "name"]) ||
     pickString(authorRecord, [
       "name",
       "displayName",

@@ -3,8 +3,10 @@ package tickets
 import (
 	"Aesterial/backend/internal/domain/user"
 	tickpb "Aesterial/backend/internal/gen/tickets/v1"
+	userpb "Aesterial/backend/internal/gen/user/v1"
 	"Aesterial/backend/internal/infra/logger"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -118,7 +120,6 @@ func (n *NullAt) ToProto() *timestamppb.Timestamp {
 	return timestamppb.New(t)
 }
 
-
 type Ticket struct {
 	Id          uuid.UUID
 	Creator     TicketCreator
@@ -136,16 +137,16 @@ type Ticket struct {
 
 func (t Ticket) ToProto() *tickpb.TicketInfo {
 	return &tickpb.TicketInfo{
-		Id: t.Id.String(),
-		Creator: t.Creator.ToProto(),
-		Acceptor: t.Acceptor.ToPublic(),
-		Status: t.Status.String(),
-		Topic: t.Topic.String(),
-		Brief: t.Brief,
-		CreatedAt: timestamppb.New(t.CreatedAt),
-		AcceptedAt: t.AcceptedAt.ToProto(),
-		ClosedAt: t.ClosedAt.ToProto(),
-		ClosedBy: string(t.CloseBy.String()),
+		Id:          t.Id.String(),
+		Creator:     t.Creator.ToProto(),
+		Acceptor:    t.Acceptor.ToPublic(),
+		Status:      t.Status.String(),
+		Topic:       t.Topic.String(),
+		Brief:       t.Brief,
+		CreatedAt:   timestamppb.New(t.CreatedAt),
+		AcceptedAt:  t.AcceptedAt.ToProto(),
+		ClosedAt:    t.ClosedAt.ToProto(),
+		ClosedBy:    string(t.CloseBy.String()),
 		CloseReason: t.CloseReason,
 	}
 }
@@ -177,7 +178,48 @@ type TicketMessageAuthor struct {
 }
 
 func (tm TicketMessage) ToProto() *tickpb.TicketMessage {
-	return &tickpb.TicketMessage{}
+	out := &tickpb.TicketMessage{
+		Content: tm.Content,
+	}
+	if !tm.At.IsZero() {
+		out.At = timestamppb.New(tm.At)
+	}
+	if tm.Author == nil {
+		return out
+	}
+	author := &userpb.UserPublic{}
+	if tm.Author.UID != nil && *tm.Author.UID > 0 {
+		author.UserID = uint32(*tm.Author.UID)
+	}
+	name := ""
+	if tm.Author.AuthorName != nil {
+		name = strings.TrimSpace(*tm.Author.AuthorName)
+	}
+	if name == "" {
+		switch tm.Author.Type {
+		case AuthorStaff:
+			name = "Support"
+		case AuthorSystem:
+			name = "System"
+		case AuthorUser:
+			name = "User"
+		}
+	}
+	if name != "" {
+		author.Username = name
+		displayName := name
+		author.Settings = &userpb.UserPublicSettings{
+			DisplayName: &displayName,
+		}
+	}
+	switch tm.Author.Type {
+	case AuthorStaff:
+		author.Rank = &userpb.Rank{Name: "support"}
+	case AuthorSystem:
+		author.Rank = &userpb.Rank{Name: "system"}
+	}
+	out.Author = author
+	return out
 }
 
 type TicketMessages []*TicketMessage

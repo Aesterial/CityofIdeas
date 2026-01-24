@@ -108,6 +108,29 @@ func (t *TicketsService) MessageCreate(ctx context.Context, req *tickpb.TicketMe
 	var dataReq ticketsdomain.TicketDataReq
 	if authUser, err := t.auth.RequireUser(ctx); err == nil && authUser != nil {
 		dataReq.UID = &authUser.UID
+		isOwner, err := t.serv.IsReqValid(ctx, id, dataReq)
+		if err != nil {
+			return nil, apperrors.Wrap(err)
+		}
+		if !isOwner {
+			canAny := t.auth.RequirePermissions(ctx, authUser.UID, permsdomain.TicketsMessageCreateAny) == nil
+			if !canAny {
+				canAny = t.auth.RequirePermissions(ctx, authUser.UID, permsdomain.TicketsMessageCreateAll) == nil
+			}
+			if !canAny {
+				if err := t.auth.RequirePermissions(ctx, authUser.UID, permsdomain.TicketsMessageCreateAccepted); err != nil {
+					return nil, err
+				}
+				info, err := t.serv.Info(ctx, id)
+				if err != nil {
+					return nil, apperrors.Wrap(err)
+				}
+				if info == nil || info.Acceptor == nil || info.Acceptor.UID != authUser.UID {
+					return nil, apperrors.AccessDenied
+				}
+			}
+			dataReq.Staff = true
+		}
 	} else {
 		token := req.GetToken()
 		if token == "" {

@@ -2260,6 +2260,7 @@ func (t *TicketsRepository) parseMessage(scanner scanner) (*tickets.TicketMessag
 	if !atype.Valid() {
 		return nil, apperrors.InvalidArguments.AddErrDetails("invalid author type")
 	}
+	author.Type = atype
 	switch atype {
 	case tickets.AuthorStaff:
 		author.Authorized = true
@@ -2270,13 +2271,19 @@ func (t *TicketsRepository) parseMessage(scanner scanner) (*tickets.TicketMessag
 			author.UID = &authorUID.Int64
 		} else {
 			author.Authorized = false
-			author.AuthorName = &authorName.String
-			author.AuthorEmail = &authorEmail.String
 		}
 	case tickets.AuthorSystem:
 		name := "aesterial Tickets System"
 		email := "aesterial@tickets"
 		author.AuthorName = &name
+		author.AuthorEmail = &email
+	}
+	if authorName.Valid && authorName.String != "" {
+		name := authorName.String
+		author.AuthorName = &name
+	}
+	if authorEmail.Valid && authorEmail.String != "" {
+		email := authorEmail.String
 		author.AuthorEmail = &email
 	}
 	message.Author = &author
@@ -2346,6 +2353,23 @@ func (t *TicketsRepository) Close(ctx context.Context, id uuid.UUID, by tickets.
 }
 
 func (t *TicketsRepository) User(ctx context.Context, id uuid.UUID, req tickets.TicketDataReq) (*tickets.TicketUserData, error) {
+	if req.Staff && req.UID != nil {
+		usr, err := getAuthor(ctx, *req.UID, t.DB)
+		if err != nil {
+			return nil, err
+		}
+		if usr == nil {
+			return nil, apperrors.AccessDenied.AddErrDetails("user not found")
+		}
+		var data tickets.TicketUserData
+		data.Authorized = true
+		data.UID = req.UID
+		data.Name = usr.Username
+		if usr.Email != nil {
+			data.Email = usr.Email.Address
+		}
+		return &data, nil
+	}
 	valid, err := t.IsReqValid(ctx, id, req)
 	if err != nil {
 		return nil, err

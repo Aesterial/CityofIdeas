@@ -1,16 +1,19 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { toast } from "sonner";
 import {
   CalendarDays,
   Check,
   ChevronDown,
+  ExternalLink,
   Globe,
   Lock,
   LogOut,
+  Maximize2,
   MessageSquare,
   Send,
   ShieldCheck,
@@ -89,8 +92,58 @@ const formatTime = (
   return formatter.format(date);
 };
 
+const areMessagesEqual = (prev: TicketMessage[], next: TicketMessage[]) => {
+  if (prev === next) {
+    return true;
+  }
+  if (prev.length !== next.length) {
+    return false;
+  }
+  for (let index = 0; index < prev.length; index += 1) {
+    const a = prev[index];
+    const b = next[index];
+    if (
+      a.id !== b.id ||
+      a.message !== b.message ||
+      a.createdAt !== b.createdAt ||
+      a.authorId !== b.authorId ||
+      a.authorName !== b.authorName ||
+      a.authorRole !== b.authorRole ||
+      a.isStaff !== b.isStaff
+    ) {
+      return false;
+    }
+  }
+  return true;
+};
+
+const areTicketsEqual = (a: Ticket | null, b: Ticket | null) => {
+  if (a === b) {
+    return true;
+  }
+  if (!a || !b) {
+    return false;
+  }
+  return (
+    a.id === b.id &&
+    a.subject === b.subject &&
+    a.category === b.category &&
+    a.status === b.status &&
+    a.createdAt === b.createdAt &&
+    a.updatedAt === b.updatedAt &&
+    a.closedAt === b.closedAt &&
+    a.lastMessageAt === b.lastMessageAt &&
+    a.requester?.id === b.requester?.id &&
+    a.requester?.name === b.requester?.name &&
+    a.requester?.email === b.requester?.email &&
+    a.assignee?.id === b.assignee?.id &&
+    a.assignee?.name === b.assignee?.name
+  );
+};
+
 export default function AdminSupportPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { logout, user } = useAuth();
   const { language, setLanguage } = useLanguage();
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -105,6 +158,26 @@ export default function AdminSupportPage() {
   const [sending, setSending] = useState(false);
   const [accepting, setAccepting] = useState(false);
   const [closing, setClosing] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [refreshingList, setRefreshingList] = useState(false);
+  const [refreshingDetails, setRefreshingDetails] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const messagesScrollRef = useRef<HTMLDivElement | null>(null);
+  const shouldStickToBottomRef = useRef(true);
+  const pendingScrollRef = useRef(false);
+  const messageIdsRef = useRef<Set<string>>(new Set());
+  const bootstrappedMessagesRef = useRef(false);
+  const ticketIdsRef = useRef<Set<string>>(new Set());
+  const bootstrappedTicketsRef = useRef(false);
+  const lastSelectedIdRef = useRef<string | null>(null);
+  const notify = useCallback((title: string, description?: string) => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    window.setTimeout(() => {
+      toast(title, description ? { description } : undefined);
+    }, 0);
+  }, []);
 
   const displayName = user?.displayName || user?.username || "";
   const initials = (displayName || "A").slice(0, 2).toUpperCase();
@@ -144,6 +217,9 @@ export default function AdminSupportPage() {
     router.push("/");
   };
 
+  const isDialogView = searchParams?.get("dialog") === "1";
+  const dialogTicketId = searchParams?.get("ticket");
+
   const isAssignedToCurrentUser = useCallback(
     (ticket: Ticket) => {
       const assignee = ticket.assignee;
@@ -174,34 +250,54 @@ export default function AdminSupportPage() {
     [canViewAllAccepted, isAssignedToCurrentUser],
   );
 
-  const loadTickets = useCallback(async (signal?: AbortSignal) => {
-    setLoadingList(true);
-    setError(null);
-    try {
-      const list = await fetchTickets({ signal });
-      if (signal?.aborted) {
-        return;
+  const loadTickets = useCallback(
+    async (signal?: AbortSignal, options?: { silent?: boolean }) => {
+      const silent = options?.silent ?? false;
+      if (!silent) {
+        setLoadingList(true);
+        setError(null);
+      } else {
+        setRefreshingList(true);
       }
-      const mapped = list
-        .map((item) => mapTicket(item))
-        .filter((item): item is Ticket => Boolean(item));
-      setTickets(mapped);
-    } catch (err) {
-      if (!signal?.aborted) {
-        setError("Не удалось загрузить обращения.");
-        setTickets([]);
+      try {
+        const list = await fetchTickets({ signal });
+        if (signal?.aborted) {
+          return;
+        }
+        const mapped = list
+          .map((item) => mapTicket(item))
+          .filter((item): item is Ticket => Boolean(item));
+        setTickets(mapped);
+      } catch (err) {
+        if (!signal?.aborted && !silent) {
+          setError("Не удалось загрузить обращения.");
+          setTickets([]);
+        }
+      } finally {
+        if (!signal?.aborted && !silent) {
+          setLoadingList(false);
+        }
+        if (!signal?.aborted && silent) {
+          setRefreshingList(false);
+        }
       }
-    } finally {
-      if (!signal?.aborted) {
-        setLoadingList(false);
-      }
-    }
-  }, []);
+    },
+    [],
+  );
 
   const loadDetails = useCallback(
-    async (id: string, signal?: AbortSignal) => {
-      setLoadingDetails(true);
-      setError(null);
+    async (
+      id: string,
+      signal?: AbortSignal,
+      options?: { silent?: boolean },
+    ) => {
+      const silent = options?.silent ?? false;
+      if (!silent) {
+        setLoadingDetails(true);
+        setError(null);
+      } else {
+        setRefreshingDetails(true);
+      }
       try {
         const [info, list] = await Promise.all([
           fetchTicketInfo(id, { signal }),
@@ -212,16 +308,25 @@ export default function AdminSupportPage() {
         }
         const mapped = info ? mapTicket(info) : null;
         const fallback = tickets.find((ticket) => ticket.id === id) ?? null;
-        setSelectedTicket(mapped ?? fallback);
-        setMessages(mapTicketMessages(list));
+        setSelectedTicket((prev) => {
+          const nextTicket = mapped ?? fallback;
+          return areTicketsEqual(prev, nextTicket) ? prev : nextTicket;
+        });
+        const nextMessages = mapTicketMessages(list);
+        setMessages((prev) =>
+          areMessagesEqual(prev, nextMessages) ? prev : nextMessages,
+        );
       } catch (err) {
-        if (!signal?.aborted) {
+        if (!signal?.aborted && !silent) {
           setError("Не удалось загрузить данные обращения.");
           setMessages([]);
         }
       } finally {
-        if (!signal?.aborted) {
+        if (!signal?.aborted && !silent) {
           setLoadingDetails(false);
+        }
+        if (!signal?.aborted && silent) {
+          setRefreshingDetails(false);
         }
       }
     },
@@ -233,6 +338,96 @@ export default function AdminSupportPage() {
     void loadTickets(controller.signal);
     return () => controller.abort();
   }, [loadTickets]);
+
+  useEffect(() => {
+    bootstrappedMessagesRef.current = false;
+    messageIdsRef.current = new Set();
+    pendingScrollRef.current = true;
+  }, [selectedId]);
+
+  useEffect(() => {
+    if (!tickets.length) {
+      return;
+    }
+    const seen = ticketIdsRef.current;
+    if (!bootstrappedTicketsRef.current) {
+      tickets.forEach((ticket) => seen.add(ticket.id));
+      bootstrappedTicketsRef.current = true;
+      return;
+    }
+    const newTickets = tickets.filter((ticket) => !seen.has(ticket.id));
+    if (!newTickets.length) {
+      return;
+    }
+    newTickets.forEach((ticket) => seen.add(ticket.id));
+    notify(
+      "Новое обращение в поддержке",
+      newTickets[0]?.subject || "Проверьте очередь",
+    );
+  }, [notify, tickets]);
+
+  useEffect(() => {
+    if (!selectedId || !messages.length) {
+      return;
+    }
+    const seen = messageIdsRef.current;
+    if (!bootstrappedMessagesRef.current) {
+      messages.forEach((message) => seen.add(message.id));
+      bootstrappedMessagesRef.current = true;
+      pendingScrollRef.current = true;
+      return;
+    }
+    const newMessages = messages.filter((message) => !seen.has(message.id));
+    if (!newMessages.length) {
+      return;
+    }
+    newMessages.forEach((message) => seen.add(message.id));
+    pendingScrollRef.current = true;
+    if (newMessages.some((message) => !message.isStaff)) {
+      notify(
+        "Новое сообщение от пользователя",
+        selectedTicket?.subject || "Проверьте диалог",
+      );
+    }
+  }, [messages, notify, selectedId, selectedTicket?.subject]);
+
+  useEffect(() => {
+    if (!messagesEndRef.current || !pendingScrollRef.current) {
+      return;
+    }
+    if (shouldStickToBottomRef.current) {
+      messagesEndRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
+    }
+    pendingScrollRef.current = false;
+  }, [messages]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState !== "visible"
+      ) {
+        return;
+      }
+      void loadTickets(undefined, { silent: true });
+      if (selectedId) {
+        void loadDetails(selectedId, undefined, { silent: true });
+      }
+    }, 5000);
+    return () => window.clearInterval(interval);
+  }, [loadTickets, loadDetails, selectedId]);
+
+  useEffect(() => {
+    if (!dialogTicketId) {
+      return;
+    }
+    if (selectedId !== dialogTicketId) {
+      setSelectedId(dialogTicketId);
+    }
+  }, [dialogTicketId, selectedId]);
 
   const firstAvailableId = useMemo(
     () => tickets.find((ticket) => canOpenTicket(ticket))?.id ?? null,
@@ -256,8 +451,12 @@ export default function AdminSupportPage() {
       setSelectedId(firstAvailableId);
       return;
     }
-    setSelectedTicket(activeTicket);
-    setMessageText("");
+    setSelectedTicket((prev) =>
+      areTicketsEqual(prev, activeTicket) ? prev : activeTicket,
+    );
+    if (selectedId !== lastSelectedIdRef.current) {
+      setMessageText("");
+    }
     if (!canOpenTicket(activeTicket)) {
       setNotice("Обращение уже принято другим администратором.");
       setMessages([]);
@@ -266,6 +465,7 @@ export default function AdminSupportPage() {
     setNotice(null);
     const controller = new AbortController();
     void loadDetails(activeTicket.id, controller.signal);
+    lastSelectedIdRef.current = selectedId;
     return () => controller.abort();
   }, [tickets, selectedId, firstAvailableId, canOpenTicket, loadDetails]);
 
@@ -289,7 +489,10 @@ export default function AdminSupportPage() {
     setError(null);
     try {
       await acceptTicket(selectedTicket.id);
-      await Promise.all([loadTickets(), loadDetails(selectedTicket.id)]);
+      await Promise.all([
+        loadTickets(undefined, { silent: true }),
+        loadDetails(selectedTicket.id, undefined, { silent: true }),
+      ]);
     } catch (err) {
       setError("Не удалось принять обращение.");
     } finally {
@@ -315,7 +518,10 @@ export default function AdminSupportPage() {
     try {
       await createTicketMessage(selectedTicket.id, trimmed);
       setMessageText("");
-      await Promise.all([loadTickets(), loadDetails(selectedTicket.id)]);
+      await Promise.all([
+        loadTickets(undefined, { silent: true }),
+        loadDetails(selectedTicket.id, undefined, { silent: true }),
+      ]);
     } catch (err) {
       setError("Не удалось отправить сообщение.");
     } finally {
@@ -336,7 +542,10 @@ export default function AdminSupportPage() {
     setError(null);
     try {
       await closeTicket(selectedTicket.id);
-      await Promise.all([loadTickets(), loadDetails(selectedTicket.id)]);
+      await Promise.all([
+        loadTickets(undefined, { silent: true }),
+        loadDetails(selectedTicket.id, undefined, { silent: true }),
+      ]);
     } catch (err) {
       setError("Не удалось закрыть обращение.");
     } finally {
@@ -354,8 +563,329 @@ export default function AdminSupportPage() {
     return "Пользователь";
   };
 
+  const resolveAuthorRole = (message: TicketMessage) => {
+    if (message.authorRole && message.authorRole.trim()) {
+      return message.authorRole.trim();
+    }
+    return message.isStaff ? "Поддержка" : "Пользователь";
+  };
+
+  const getInitials = (value: string) => {
+    const parts = value.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return "U";
+    }
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  };
+
   const selectedStatus = selectedTicket?.status ?? "new";
   const isSelectedClosed = selectedStatus === "closed";
+
+  const openDialogWindow = () => {
+    if (typeof window === "undefined" || !selectedTicket) {
+      return;
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.set("dialog", "1");
+    url.searchParams.set("ticket", selectedTicket.id);
+    window.open(url.toString(), "_blank", "noopener,noreferrer");
+  };
+
+  const renderConversation = ({
+    variant,
+    onClose,
+    framed = true,
+  }: {
+    variant: "page" | "modal" | "window";
+    onClose?: () => void;
+    framed?: boolean;
+  }) => {
+    const isModal = variant === "modal";
+    const isWindow = variant === "window";
+    const maxHeightClass =
+      variant === "page" ? "max-h-[240px]" : "max-h-[60vh]";
+    const title = selectedTicket?.subject || "Диалог";
+    const showSkeleton = loadingDetails && messages.length === 0;
+    const wrapperClass = framed
+      ? "rounded-3xl border border-border/70 bg-card/90 p-6"
+      : "";
+
+    return (
+      <section className={wrapperClass}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold">{title}</p>
+            {selectedTicket?.category ? (
+              <p className="text-xs text-muted-foreground">
+                {selectedTicket.category}
+              </p>
+            ) : null}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              {messages.length} шт.
+            </span>
+            <span
+              className={cn(
+                "flex min-w-[92px] items-center gap-2 text-xs text-muted-foreground",
+                refreshingDetails ? "opacity-100" : "opacity-0",
+              )}
+            >
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-foreground/60" />
+              Обновляем
+            </span>
+            {!isModal && !isWindow ? (
+              <button
+                type="button"
+                onClick={() => setDialogOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-1 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+              >
+                <Maximize2 className="h-3.5 w-3.5" />
+                Попап
+              </button>
+            ) : null}
+            {!isWindow ? (
+              <button
+                type="button"
+                onClick={openDialogWindow}
+                className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-1 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                Окно
+              </button>
+            ) : null}
+            {isModal && onClose ? (
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-1 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+              >
+                <X className="h-3.5 w-3.5" />
+                Закрыть
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        {showSkeleton ? (
+          <div className="mt-4 space-y-3">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <div
+                key={`skeleton-${index}`}
+                className={cn(
+                  "flex items-start gap-3",
+                  index % 2 === 0 ? "justify-start" : "justify-end",
+                )}
+              >
+                <div className="h-9 w-9 rounded-full bg-muted/60 animate-pulse" />
+                <div className="h-16 w-[70%] rounded-2xl bg-muted/60 animate-pulse" />
+              </div>
+            ))}
+          </div>
+        ) : messages.length ? (
+          <div
+            ref={messagesScrollRef}
+            onScroll={() => {
+              const element = messagesScrollRef.current;
+              if (!element) {
+                return;
+              }
+              const distance =
+                element.scrollHeight - element.scrollTop - element.clientHeight;
+              shouldStickToBottomRef.current = distance < 80;
+            }}
+            className={cn(
+              "mt-4 space-y-4 overflow-y-auto pr-2",
+              maxHeightClass,
+            )}
+          >
+            <AnimatePresence initial={false}>
+              {messages.map((message) => {
+                const isMine =
+                  currentUserId != null && message.authorId != null
+                    ? String(currentUserId) === String(message.authorId)
+                    : false;
+                const authorLabel = resolveAuthorName(message);
+                const roleLabel = resolveAuthorRole(message);
+                const initials = getInitials(authorLabel);
+                const authorId =
+                  message.authorId != null ? String(message.authorId) : "";
+                const canLinkAuthor = Boolean(authorId) && !message.isStaff;
+                const bubbleClass = isMine
+                  ? "bg-foreground text-background"
+                  : message.isStaff
+                    ? "border border-foreground/15 bg-background"
+                    : "bg-muted/80";
+                const metaTextClass = isMine
+                  ? "text-background/70"
+                  : "text-muted-foreground";
+                const nameClass = isMine
+                  ? "text-background"
+                  : "text-foreground";
+                const roleClass = isMine
+                  ? "border border-background/30 text-background/80"
+                  : "border border-border/60 text-muted-foreground";
+
+                return (
+                  <motion.div
+                    key={message.id}
+                    layout
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.2 }}
+                    className={cn(
+                      "flex items-start gap-3",
+                      isMine ? "justify-end" : "justify-start",
+                    )}
+                  >
+                    {!isMine ? (
+                      <Avatar className="h-9 w-9">
+                        <AvatarFallback
+                          className={cn(
+                            "text-xs font-semibold",
+                            message.isStaff && "bg-foreground text-background",
+                          )}
+                        >
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : null}
+                    <div
+                      className={cn(
+                        "max-w-[80%] rounded-2xl px-4 py-3 text-sm",
+                        bubbleClass,
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "flex flex-wrap items-center gap-2 text-xs",
+                          metaTextClass,
+                        )}
+                      >
+                        {canLinkAuthor ? (
+                          <Link
+                            href={`/users/${authorId}`}
+                            className={cn(
+                              "font-semibold hover:underline",
+                              nameClass,
+                            )}
+                          >
+                            {authorLabel}
+                          </Link>
+                        ) : (
+                          <span className={cn("font-semibold", nameClass)}>
+                            {authorLabel}
+                          </span>
+                        )}
+                        <span
+                          className={cn(
+                            "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em]",
+                            roleClass,
+                          )}
+                        >
+                          {roleLabel}
+                        </span>
+                        <span>
+                          {formatTime(message.createdAt, timeFormatter)}
+                        </span>
+                      </div>
+                      <p className="mt-2 whitespace-pre-wrap text-sm">
+                        {message.message}
+                      </p>
+                    </div>
+                    {isMine ? (
+                      <Avatar className="h-9 w-9">
+                        <AvatarFallback
+                          className={cn(
+                            "text-xs font-semibold",
+                            message.isStaff && "bg-foreground text-background",
+                          )}
+                        >
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : null}
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+            <div ref={messagesEndRef} />
+          </div>
+        ) : (
+          <p className="mt-4 text-sm text-muted-foreground">
+            Сообщений пока нет.
+          </p>
+        )}
+
+        <div className="mt-5 space-y-3">
+          <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            Ответить
+          </label>
+          <textarea
+            rows={3}
+            value={messageText}
+            onChange={(event) => setMessageText(event.target.value)}
+            placeholder={
+              isSelectedClosed
+                ? "Обращение закрыто"
+                : notice
+                  ? "Нет доступа к переписке"
+                  : "Введите ответ"
+            }
+            disabled={isSelectedClosed || Boolean(notice)}
+            className="w-full resize-none rounded-2xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 disabled:opacity-60"
+          />
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={
+                sending ||
+                isSelectedClosed ||
+                Boolean(notice) ||
+                !messageText.trim()
+              }
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/30 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Send className="h-4 w-4" />
+              {sending ? "Отправляем..." : "Отправить"}
+            </button>
+            <button
+              type="button"
+              onClick={handleClose}
+              disabled={closing || isSelectedClosed || Boolean(notice)}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <X className="h-4 w-4" />
+              {closing ? "Закрываем..." : "Закрыть"}
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+  if (isDialogView) {
+    return (
+      <div className="min-h-screen bg-background text-foreground px-4 py-6">
+        <div className="mx-auto w-full max-w-4xl">
+          {loadingList || loadingDetails ? (
+            <div className="h-64 rounded-3xl bg-muted/60 animate-pulse" />
+          ) : selectedTicket ? (
+            renderConversation({ variant: "window" })
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Выберите обращение, чтобы открыть диалог.
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
@@ -471,8 +1001,17 @@ export default function AdminSupportPage() {
                   автоматически.
                 </p>
               </div>
-              <div className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold">
-                Всего: {loadingList ? "..." : tickets.length}
+              <div className="flex items-center gap-2 rounded-full border border-border/70 px-4 py-2 text-sm font-semibold">
+                <span>Всего: {loadingList ? "..." : tickets.length}</span>
+                <span
+                  className={cn(
+                    "flex min-w-[92px] items-center gap-2 text-xs text-muted-foreground",
+                    refreshingList ? "opacity-100" : "opacity-0",
+                  )}
+                >
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-foreground/60" />
+                  Обновляем
+                </span>
               </div>
             </div>
             {notice ? (
@@ -508,10 +1047,14 @@ export default function AdminSupportPage() {
                   {tickets.map((ticket) => {
                     const locked = !canOpenTicket(ticket);
                     return (
-                      <button
+                      <motion.button
                         key={ticket.id}
                         type="button"
                         onClick={() => handleSelect(ticket)}
+                        layout
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.25 }}
                         className={cn(
                           "w-full rounded-3xl border border-border/60 bg-background/70 p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/30",
                           selectedId === ticket.id &&
@@ -563,7 +1106,7 @@ export default function AdminSupportPage() {
                             </span>
                           ) : null}
                         </div>
-                      </button>
+                      </motion.button>
                     );
                   })}
                 </div>
@@ -655,114 +1198,7 @@ export default function AdminSupportPage() {
                     </button>
                   )}
 
-                  <div className="space-y-3">
-                    <p className="text-sm font-semibold">Сообщения</p>
-                    {loadingDetails ? (
-                      <div className="h-32 rounded-2xl bg-muted/60 animate-pulse" />
-                    ) : messages.length ? (
-                      <div className="max-h-[240px] space-y-3 overflow-y-auto pr-2">
-                        {messages.map((message) => {
-                          const isMine =
-                            currentUserId != null && message.authorId != null
-                              ? String(currentUserId) ===
-                                String(message.authorId)
-                              : false;
-                          const authorLabel = resolveAuthorName(message);
-                          const authorId =
-                            message.authorId != null
-                              ? String(message.authorId)
-                              : "";
-                          const canLinkAuthor =
-                            Boolean(authorId) && !message.isStaff;
-                          const bubbleClass = isMine
-                            ? "bg-foreground text-background ml-auto"
-                            : message.isStaff
-                              ? "border border-foreground/15 bg-background"
-                              : "bg-muted/80";
-
-                          return (
-                            <div
-                              key={message.id}
-                              className={cn(
-                                "max-w-[85%] rounded-2xl px-4 py-3 text-sm",
-                                bubbleClass,
-                              )}
-                            >
-                              <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-                                {canLinkAuthor ? (
-                                  <Link
-                                    href={`/users/${authorId}`}
-                                    className="hover:underline"
-                                  >
-                                    {authorLabel}
-                                  </Link>
-                                ) : (
-                                  <span>{authorLabel}</span>
-                                )}
-                                <span>
-                                  {formatTime(message.createdAt, timeFormatter)}
-                                </span>
-                              </div>
-                              <p className="mt-2 whitespace-pre-wrap text-sm">
-                                {message.message}
-                              </p>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        Сообщений пока нет.
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="space-y-3">
-                    <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                      Ответить
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={messageText}
-                      onChange={(event) => setMessageText(event.target.value)}
-                      placeholder={
-                        isSelectedClosed
-                          ? "Обращение закрыто"
-                          : notice
-                            ? "Нет доступа к переписке"
-                            : "Введите ответ"
-                      }
-                      disabled={isSelectedClosed || Boolean(notice)}
-                      className="w-full resize-none rounded-2xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 disabled:opacity-60"
-                    />
-                    <div className="flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={handleSend}
-                        disabled={
-                          sending ||
-                          isSelectedClosed ||
-                          Boolean(notice) ||
-                          !messageText.trim()
-                        }
-                        className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/30 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        <Send className="h-4 w-4" />
-                        {sending ? "Отправляем..." : "Отправить"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleClose}
-                        disabled={
-                          closing || isSelectedClosed || Boolean(notice)
-                        }
-                        className="inline-flex items-center justify-center gap-2 rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        <X className="h-4 w-4" />
-                        {closing ? "Закрываем..." : "Закрыть"}
-                      </button>
-                    </div>
-                  </div>
+                  {renderConversation({ variant: "page", framed: false })}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
@@ -773,6 +1209,23 @@ export default function AdminSupportPage() {
           </div>
         </div>
       </main>
+
+      {dialogOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
+          <button
+            type="button"
+            onClick={() => setDialogOpen(false)}
+            className="absolute inset-0 bg-background/50 backdrop-blur-md"
+            aria-label="Close dialog"
+          />
+          <div className="relative w-full max-w-4xl">
+            {renderConversation({
+              variant: "modal",
+              onClose: () => setDialogOpen(false),
+            })}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1162,15 +1162,30 @@ export async function fetchTicketMessages(
     },
   );
   const record = toTicketRecord(payload);
-  const messages = Array.isArray(payload)
-    ? payload
-    : (record?.data ??
-      record?.messages ??
-      record?.list ??
-      record?.items ??
-      record?.message_list ??
-      []);
-  return Array.isArray(messages) ? (messages as ApiTicketMessage[]) : [];
+  const resolveList = (value: unknown): ApiTicketMessage[] | null => {
+    if (Array.isArray(value)) {
+      return value as ApiTicketMessage[];
+    }
+    if (!value || typeof value !== "object") {
+      return null;
+    }
+    const nested = value as Record<string, unknown>;
+    const candidate =
+      nested.list ??
+      nested.messages ??
+      nested.items ??
+      nested.message_list ??
+      nested.data;
+    return Array.isArray(candidate) ? (candidate as ApiTicketMessage[]) : null;
+  };
+
+  const messages =
+    resolveList(payload) ??
+    resolveList(record?.data) ??
+    resolveList(record) ??
+    [];
+
+  return messages;
 }
 
 export async function createTicketMessage(

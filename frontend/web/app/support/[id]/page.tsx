@@ -1,18 +1,22 @@
 ﻿"use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { motion } from "framer-motion";
+import { useParams, useSearchParams } from "next/navigation";
+import { AnimatePresence, motion } from "framer-motion";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   CalendarDays,
   Clock,
+  ExternalLink,
   Lock,
+  Maximize2,
   MessageSquare,
   Send,
   ShieldCheck,
   UserCircle2,
+  X,
 } from "lucide-react";
 import { Header } from "@/components/header";
 import { useAuth } from "@/components/auth-provider";
@@ -30,6 +34,7 @@ import {
   type TicketMessage,
   type TicketStatus,
 } from "@/lib/tickets";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 const statusLabel: Record<TicketStatus, string> = {
@@ -77,17 +82,31 @@ const formatTime = (
 
 export default function SupportTicketPage() {
   const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const { language } = useLanguage();
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [messages, setMessages] = useState<TicketMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [sending, setSending] = useState(false);
   const [closing, setClosing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [messageText, setMessageText] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const messageIdsRef = useRef<Set<string>>(new Set());
+  const bootstrappedMessagesRef = useRef(false);
+  const notify = useCallback((title: string, description?: string) => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    window.setTimeout(() => {
+      toast(title, description ? { description } : undefined);
+    }, 0);
+  }, []);
 
   const ticketId = Array.isArray(params?.id) ? params.id[0] : params?.id;
+  const isDialogView = searchParams?.get("dialog") === "1";
 
   const locale = useMemo(() => resolveLocale(language), [language]);
   const dateTimeFormatter = useMemo(
@@ -111,12 +130,17 @@ export default function SupportTicketPage() {
   );
 
   const loadTicket = useCallback(
-    async (signal?: AbortSignal) => {
+    async (signal?: AbortSignal, options?: { silent?: boolean }) => {
       if (!ticketId) {
         return;
       }
-      setLoading(true);
-      setError(null);
+      const silent = options?.silent ?? false;
+      if (!silent) {
+        setLoading(true);
+        setError(null);
+      } else {
+        setRefreshing(true);
+      }
       try {
         const [info, list] = await Promise.all([
           fetchTicketInfo(ticketId, { signal }),
@@ -128,16 +152,19 @@ export default function SupportTicketPage() {
         const mapped = info ? mapTicket(info) : null;
         setTicket(mapped);
         setMessages(mapTicketMessages(list));
-        if (!mapped) {
+        if (!mapped && !silent) {
           setError("Обращение не найдено.");
         }
       } catch (err) {
-        if (!signal?.aborted) {
+        if (!signal?.aborted && !silent) {
           setError("Не удалось загрузить обращение.");
         }
       } finally {
-        if (!signal?.aborted) {
+        if (!signal?.aborted && !silent) {
           setLoading(false);
+        }
+        if (!signal?.aborted && silent) {
+          setRefreshing(false);
         }
       }
     },
@@ -149,6 +176,60 @@ export default function SupportTicketPage() {
     void loadTicket(controller.signal);
     return () => controller.abort();
   }, [loadTicket]);
+
+  useEffect(() => {
+    if (!ticketId) {
+      return;
+    }
+    bootstrappedMessagesRef.current = false;
+    messageIdsRef.current = new Set();
+  }, [ticketId]);
+
+  useEffect(() => {
+    if (!ticketId) {
+      return;
+    }
+    const interval = window.setInterval(() => {
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState !== "visible"
+      ) {
+        return;
+      }
+      void loadTicket(undefined, { silent: true });
+    }, 5000);
+    return () => window.clearInterval(interval);
+  }, [ticketId, loadTicket]);
+
+  useEffect(() => {
+    if (!messages.length) {
+      return;
+    }
+    const seen = messageIdsRef.current;
+    if (!bootstrappedMessagesRef.current) {
+      messages.forEach((message) => seen.add(message.id));
+      bootstrappedMessagesRef.current = true;
+      return;
+    }
+    const newMessages = messages.filter((message) => !seen.has(message.id));
+    if (!newMessages.length) {
+      return;
+    }
+    newMessages.forEach((message) => seen.add(message.id));
+    if (newMessages.some((message) => message.isStaff)) {
+      notify(
+        "Новое сообщение от поддержки",
+        ticket?.subject || "Проверьте диалог",
+      );
+    }
+  }, [messages, notify, ticket?.subject]);
+
+  useEffect(() => {
+    if (!messagesEndRef.current) {
+      return;
+    }
+    messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages]);
 
   const handleSend = async () => {
     if (!ticketId || sending || ticket?.status === "closed") {
@@ -163,7 +244,7 @@ export default function SupportTicketPage() {
     try {
       await createTicketMessage(ticketId, trimmed);
       setMessageText("");
-      await loadTicket();
+      await loadTicket(undefined, { silent: true });
     } catch (err) {
       setError("Не удалось отправить сообщение.");
     } finally {
@@ -179,7 +260,7 @@ export default function SupportTicketPage() {
     setError(null);
     try {
       await closeTicket(ticketId);
-      await loadTicket();
+      await loadTicket(undefined, { silent: true });
     } catch (err) {
       setError("Не удалось закрыть обращение.");
     } finally {
@@ -200,7 +281,284 @@ export default function SupportTicketPage() {
     return "Пользователь";
   };
 
+  const resolveAuthorRole = (message: TicketMessage) => {
+    if (message.authorRole && message.authorRole.trim()) {
+      return message.authorRole.trim();
+    }
+    return message.isStaff ? "Поддержка" : "Пользователь";
+  };
+
+  const getInitials = (value: string) => {
+    const parts = value.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return "U";
+    }
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  };
+
   const currentUserId = user?.uid;
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const openDialogWindow = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.set("dialog", "1");
+    window.open(url.toString(), "_blank", "noopener,noreferrer");
+  };
+
+  const renderConversation = ({
+    variant,
+    onClose,
+  }: {
+    variant: "page" | "modal" | "window";
+    onClose?: () => void;
+  }) => {
+    const isModal = variant === "modal";
+    const isWindow = variant === "window";
+    const maxHeightClass =
+      variant === "page" ? "max-h-[360px]" : "max-h-[60vh]";
+    const showSkeleton = loading && messages.length === 0;
+
+    return (
+      <section className="rounded-3xl border border-border/70 bg-card/90 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold">Сообщения</p>
+            <p className="text-xs text-muted-foreground">
+              {ticket?.subject || "Без темы"}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-muted-foreground">
+              {messages.length} шт.
+            </span>
+            {refreshing ? (
+              <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-foreground/60" />
+                Обновляем
+              </span>
+            ) : null}
+            {!isModal && !isWindow ? (
+              <button
+                type="button"
+                onClick={() => setDialogOpen(true)}
+                className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-1 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+              >
+                <Maximize2 className="h-3.5 w-3.5" />
+                Попап
+              </button>
+            ) : null}
+            {!isWindow ? (
+              <button
+                type="button"
+                onClick={openDialogWindow}
+                className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-1 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                Окно
+              </button>
+            ) : null}
+            {isModal && onClose ? (
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-1 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+              >
+                <X className="h-3.5 w-3.5" />
+                Закрыть
+              </button>
+            ) : null}
+          </div>
+        </div>
+
+        {error ? (
+          <p className="mt-4 rounded-2xl border border-foreground/10 bg-foreground/5 px-4 py-3 text-sm">
+            {error}
+          </p>
+        ) : null}
+
+        <div
+          className={cn("mt-4 space-y-4 overflow-y-auto pr-2", maxHeightClass)}
+        >
+          {showSkeleton ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div
+                  key={`skeleton-${index}`}
+                  className={cn(
+                    "flex items-start gap-3",
+                    index % 2 === 0 ? "justify-start" : "justify-end",
+                  )}
+                >
+                  <div className="h-9 w-9 rounded-full bg-muted/60 animate-pulse" />
+                  <div className="h-16 w-[70%] rounded-2xl bg-muted/60 animate-pulse" />
+                </div>
+              ))}
+            </div>
+          ) : messages.length ? (
+            <AnimatePresence initial={false}>
+              {messages.map((message) => {
+                const isMine =
+                  currentUserId != null && message.authorId != null
+                    ? String(currentUserId) === String(message.authorId)
+                    : false;
+                const authorLabel = resolveAuthorName(message);
+                const roleLabel = resolveAuthorRole(message);
+                const initials = getInitials(authorLabel);
+                const authorId =
+                  message.authorId != null ? String(message.authorId) : "";
+                const canLinkAuthor = Boolean(authorId) && !message.isStaff;
+                const bubbleClass = isMine
+                  ? "bg-foreground text-background"
+                  : message.isStaff
+                    ? "border border-foreground/15 bg-background"
+                    : "bg-muted/80";
+                const metaTextClass = isMine
+                  ? "text-background/70"
+                  : "text-muted-foreground";
+                const nameClass = isMine
+                  ? "text-background"
+                  : "text-foreground";
+                const roleClass = isMine
+                  ? "border border-background/30 text-background/80"
+                  : "border border-border/60 text-muted-foreground";
+
+                return (
+                  <motion.div
+                    key={message.id}
+                    layout
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.2 }}
+                    className={cn(
+                      "flex items-start gap-3",
+                      isMine ? "justify-end" : "justify-start",
+                    )}
+                  >
+                    {!isMine ? (
+                      <Avatar className="h-9 w-9">
+                        <AvatarFallback
+                          className={cn(
+                            "text-xs font-semibold",
+                            message.isStaff && "bg-foreground text-background",
+                          )}
+                        >
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : null}
+                    <div
+                      className={cn(
+                        "max-w-[80%] rounded-2xl px-4 py-3 text-sm",
+                        bubbleClass,
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "flex flex-wrap items-center gap-2 text-xs",
+                          metaTextClass,
+                        )}
+                      >
+                        {canLinkAuthor ? (
+                          <Link
+                            href={`/users/${authorId}`}
+                            className={cn(
+                              "font-semibold hover:underline",
+                              nameClass,
+                            )}
+                          >
+                            {authorLabel}
+                          </Link>
+                        ) : (
+                          <span className={cn("font-semibold", nameClass)}>
+                            {authorLabel}
+                          </span>
+                        )}
+                        <span
+                          className={cn(
+                            "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em]",
+                            roleClass,
+                          )}
+                        >
+                          {roleLabel}
+                        </span>
+                        <span>
+                          {formatTime(message.createdAt, timeFormatter)}
+                        </span>
+                      </div>
+                      <p className="mt-2 whitespace-pre-wrap text-sm">
+                        {message.message}
+                      </p>
+                    </div>
+                    {isMine ? (
+                      <Avatar className="h-9 w-9">
+                        <AvatarFallback
+                          className={cn(
+                            "text-xs font-semibold",
+                            message.isStaff && "bg-foreground text-background",
+                          )}
+                        >
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : null}
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          ) : (
+            <p className="text-sm text-muted-foreground">Сообщений пока нет.</p>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        <div className="mt-5 space-y-3">
+          <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+            Новое сообщение
+          </label>
+          <textarea
+            rows={3}
+            value={messageText}
+            onChange={(event) => setMessageText(event.target.value)}
+            placeholder={
+              isClosed ? "Обращение закрыто" : "Напишите уточнение или ответ"
+            }
+            disabled={isClosed}
+            className="w-full resize-none rounded-2xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 disabled:opacity-60"
+          />
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={sending || isClosed || !messageText.trim()}
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/30 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Send className="h-4 w-4" />
+            {sending ? "Отправляем..." : "Отправить"}
+          </button>
+        </div>
+      </section>
+    );
+  };
+
+  if (isDialogView) {
+    return (
+      <div className="min-h-screen bg-background text-foreground px-4 py-6">
+        <div className="mx-auto w-full max-w-4xl">
+          {loading ? (
+            <div className="h-64 rounded-3xl bg-muted/60 animate-pulse" />
+          ) : (
+            renderConversation({ variant: "window" })
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -352,108 +710,30 @@ export default function SupportTicketPage() {
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.1 }}
-                className="rounded-3xl border border-border/70 bg-card/90 p-6"
               >
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold">Сообщения</p>
-                  <span className="text-xs text-muted-foreground">
-                    {messages.length} шт.
-                  </span>
-                </div>
-
-                {error ? (
-                  <p className="mt-4 rounded-2xl border border-foreground/10 bg-foreground/5 px-4 py-3 text-sm">
-                    {error}
-                  </p>
-                ) : null}
-
-                <div className="mt-4 max-h-[360px] space-y-4 overflow-y-auto pr-2">
-                  {messages.length ? (
-                    messages.map((message) => {
-                      const isMine =
-                        currentUserId != null && message.authorId != null
-                          ? String(currentUserId) === String(message.authorId)
-                          : false;
-                      const authorLabel = resolveAuthorName(message);
-                      const authorId =
-                        message.authorId != null
-                          ? String(message.authorId)
-                          : "";
-                      const canLinkAuthor =
-                        Boolean(authorId) && !message.isStaff;
-                      const bubbleClass = isMine
-                        ? "bg-foreground text-background ml-auto"
-                        : message.isStaff
-                          ? "border border-foreground/15 bg-background"
-                          : "bg-muted/80";
-
-                      return (
-                        <div
-                          key={message.id}
-                          className={cn(
-                            "max-w-[85%] rounded-2xl px-4 py-3 text-sm",
-                            bubbleClass,
-                          )}
-                        >
-                          <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-                            {canLinkAuthor ? (
-                              <Link
-                                href={`/users/${authorId}`}
-                                className="hover:underline"
-                              >
-                                {authorLabel}
-                              </Link>
-                            ) : (
-                              <span>{authorLabel}</span>
-                            )}
-                            <span>
-                              {formatTime(message.createdAt, timeFormatter)}
-                            </span>
-                          </div>
-                          <p className="mt-2 whitespace-pre-wrap text-sm">
-                            {message.message}
-                          </p>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Сообщений пока нет.
-                    </p>
-                  )}
-                </div>
-
-                <div className="mt-5 space-y-3">
-                  <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                    Новое сообщение
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={messageText}
-                    onChange={(event) => setMessageText(event.target.value)}
-                    placeholder={
-                      isClosed
-                        ? "Обращение закрыто"
-                        : "Напишите уточнение или ответ"
-                    }
-                    disabled={isClosed}
-                    className="w-full resize-none rounded-2xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 disabled:opacity-60"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleSend}
-                    disabled={sending || isClosed || !messageText.trim()}
-                    className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/30 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    <Send className="h-4 w-4" />
-                    {sending ? "Отправляем..." : "Отправить"}
-                  </button>
-                </div>
+                {renderConversation({ variant: "page" })}
               </motion.section>
             </div>
           )}
         </div>
       </main>
+
+      {dialogOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
+          <button
+            type="button"
+            onClick={() => setDialogOpen(false)}
+            className="absolute inset-0 bg-background/50 backdrop-blur-md"
+            aria-label="Close dialog"
+          />
+          <div className="relative w-full max-w-4xl">
+            {renderConversation({
+              variant: "modal",
+              onClose: () => setDialogOpen(false),
+            })}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

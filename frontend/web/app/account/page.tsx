@@ -404,7 +404,7 @@ export default function AccountPage() {
                 </button>
                 <button
                   type="button"
-                  className="w-full rounded-full bg-destructive px-4 py-2 text-xs font-semibold text-destructive-foreground transition-opacity duration-300 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                  className="w-full rounded-full bg-red px-4 py-2 text-xs font-semibold text-destructive-foreground transition-opacity duration-300 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                   onClick={() => {
                     setDeleteProfileInput("");
                     setDeleteProfileError(null);

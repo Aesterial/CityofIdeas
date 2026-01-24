@@ -471,7 +471,7 @@ export function AdminUserSettingsDialog({
                   <button
                     type="button"
                     onClick={() => onAction?.("profileDelete", user)}
-                    className="w-full rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition hover:opacity-90"
+                    className="w-full rounded-full px-4 py-2 text-sm font-semibold text-destructive-foreground transition hover:opacity-90"
                   >
                     {t("adminUserSettingsProfileDeleteAccount")}
                   </button>

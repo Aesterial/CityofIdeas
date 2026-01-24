@@ -3,6 +3,7 @@ import { LanguageProvider } from "@/components/language-provider";
 import { MaintenanceBanner } from "@/components/maintenance-banner";
 import { PageLoader } from "@/components/page-loader";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
 import { Days_One } from "next/font/google";
 import type React from "react";
@@ -37,6 +38,7 @@ export default function RootLayout({
             <AuthProvider>
               <PageLoader />
               <MaintenanceBanner />
+              <Toaster position="top-right" richColors closeButton />
               {children}
             </AuthProvider>
           </LanguageProvider>
