@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, CheckCircle2, Shield, UserX, Users } from "lucide-react";
+import {
+  CalendarDays,
+  CheckCircle2,
+  Plus,
+  Shield,
+  UserX,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
@@ -19,6 +26,7 @@ import {
   type ApiRankListItem,
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { getRankGlowStyle } from "@/lib/rank-colors";
 
 export type AdminUserSettingsTarget = {
   userID: number;
@@ -40,6 +48,7 @@ type AdminUserSettingsDialogProps = {
   user: AdminUserSettingsTarget | null;
   onOpenChange: (open: boolean) => void;
   onAction?: (action: SettingsAction, user: AdminUserSettingsTarget) => void;
+  onOpenRanksDialog?: () => void;
 };
 
 type PermissionEntry = {
@@ -125,6 +134,7 @@ export function AdminUserSettingsDialog({
   user,
   onOpenChange,
   onAction,
+  onOpenRanksDialog,
 }: AdminUserSettingsDialogProps) {
   const { t, language } = useLanguage();
   const [section, setSection] = useState<SettingsSection>("permissions");
@@ -311,6 +321,7 @@ export function AdminUserSettingsDialog({
   const activeSection =
     sections.find((item) => item.id === section) ?? sections[0];
   const displayRole = user?.role || t("labelUser");
+  const roleGlowStyle = getRankGlowStyle(displayRole);
   const roleHasChanges =
     (selectedRole ?? displayRole) !== displayRole || roleExpiresAt !== null;
 
@@ -386,7 +397,10 @@ export function AdminUserSettingsDialog({
                     </p>
                   ) : null}
                 </div>
-                <div className="flex items-center gap-2 rounded-full border border-border/60 bg-background/70 px-3 py-1.5 text-[11px] font-semibold sm:px-4 sm:py-2 sm:text-xs">
+                <div
+                  className="flex items-center gap-2 rounded-full border border-border/60 bg-background/70 px-3 py-1.5 text-[11px] font-semibold sm:px-4 sm:py-2 sm:text-xs"
+                  style={roleGlowStyle ?? undefined}
+                >
                   <span className="text-muted-foreground">
                     {t("roleLabel")}
                   </span>
@@ -540,12 +554,29 @@ export function AdminUserSettingsDialog({
                     <div className="space-y-4">
                       <div className="rounded-3xl border border-border/60 bg-background/70 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] sm:p-5">
                         <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-                          <div>
+                          <div className="flex items-center gap-2">
                             <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground sm:text-xs">
                               {t("adminUserSettingsRole")}
                             </p>
+                            {onOpenRanksDialog ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  onOpenChange(false);
+                                  onOpenRanksDialog();
+                                }}
+                                title={t("adminRanksManage")}
+                                aria-label={t("adminRanksManage")}
+                                className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border/60 bg-background/70 text-muted-foreground transition hover:bg-foreground hover:text-background"
+                              >
+                                <Plus className="h-3.5 w-3.5" />
+                              </button>
+                            ) : null}
                           </div>
-                          <div className="flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-[11px] font-semibold sm:text-xs">
+                          <div
+                            className="flex items-center gap-2 rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-[11px] font-semibold sm:text-xs"
+                            style={roleGlowStyle ?? undefined}
+                          >
                             <span className="text-muted-foreground">
                               {t("roleLabel")}
                             </span>
@@ -562,6 +593,11 @@ export function AdminUserSettingsDialog({
                           {ranks.map((rank) => {
                             const isSelected =
                               (selectedRole ?? displayRole) === rank.name;
+                            const rankGlowStyle = getRankGlowStyle(
+                              rank.name,
+                              rank.color ?? null,
+                              isSelected ? 0.6 : 0.35,
+                            );
                             return (
                               <button
                                 key={rank.name}
@@ -575,6 +611,7 @@ export function AdminUserSettingsDialog({
                                     ? "border-foreground bg-foreground text-background shadow-lg shadow-foreground/20"
                                     : "border-border/60 bg-background/70 text-foreground hover:border-foreground/40",
                                 )}
+                                style={rankGlowStyle ?? undefined}
                               >
                                 <div className="flex items-start justify-between gap-3">
                                   <div>

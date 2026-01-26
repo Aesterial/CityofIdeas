@@ -192,6 +192,12 @@ type ApiUsersResponse = {
   tracing?: string;
 };
 
+type ApiRankUsersResponse = {
+  len?: number;
+  users?: ApiUserPublic[] | null;
+  tracing?: string;
+};
+
 type ApiProjectsResponse = {
   projects?: ApiProject[] | null;
   tracing?: string;
@@ -705,6 +711,135 @@ export async function fetchRanksList(options?: {
   return records
     .map(toRankListItem)
     .filter((item): item is ApiRankListItem => Boolean(item));
+}
+
+type RankCreatePayload = {
+  name: string;
+  description: string;
+  color: number;
+  permissions?: ApiPermissions;
+};
+
+export async function createRank(payload: RankCreatePayload): Promise<void> {
+  const name = payload.name.trim();
+  const description = payload.description.trim();
+  if (!name) {
+    throw new Error("Rank name is required.");
+  }
+  if (!description) {
+    throw new Error("Rank description is required.");
+  }
+  if (!Number.isFinite(payload.color) || payload.color <= 0) {
+    throw new Error("Rank color is required.");
+  }
+  await apiRequest("/api/ranks/create", {
+    method: "POST",
+    body: JSON.stringify({
+      name,
+      description,
+      color: Math.floor(payload.color),
+      permissions: payload.permissions,
+    }),
+  });
+}
+
+export async function updateRank(
+  name: string,
+  target: "name" | "description" | "color",
+  value: string | number,
+): Promise<void> {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    throw new Error("Rank name is required.");
+  }
+  const encodedName = encodeURIComponent(trimmed);
+  const encodedTarget = encodeURIComponent(target);
+  await apiRequest(`/api/ranks/${encodedName}/patch/${encodedTarget}`, {
+    method: "PATCH",
+    body: JSON.stringify({ name: trimmed, target, value }),
+  });
+}
+
+export async function deleteRank(name: string): Promise<void> {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    throw new Error("Rank name is required.");
+  }
+  const encoded = encodeURIComponent(trimmed);
+  await apiRequest(`/api/ranks/${encoded}/delete`, {
+    method: "DELETE",
+  });
+}
+
+export async function fetchRankPermissions(
+  name: string,
+  options?: { signal?: AbortSignal },
+): Promise<ApiPermissions | null> {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    throw new Error("Rank name is required.");
+  }
+  const encoded = encodeURIComponent(trimmed);
+  const payload = await apiRequest<ApiPermissions | ApiPermissionsResponse>(
+    `/api/ranks/${encoded}/perms`,
+    {
+      method: "GET",
+      signal: options?.signal,
+    },
+  );
+  if (!payload) {
+    return null;
+  }
+  return isPermissionsResponse(payload) ? (payload.data ?? null) : payload;
+}
+
+export async function updateRankPermission(
+  name: string,
+  permission: string,
+  state: boolean,
+): Promise<void> {
+  const trimmedName = name.trim();
+  const trimmedPerm = permission.trim();
+  if (!trimmedName) {
+    throw new Error("Rank name is required.");
+  }
+  if (!trimmedPerm) {
+    throw new Error("Permission is required.");
+  }
+  const encodedName = encodeURIComponent(trimmedName);
+  const encodedPerm = encodeURIComponent(trimmedPerm);
+  await apiRequest(`/api/ranks/${encodedName}/perms/${encodedPerm}`, {
+    method: "PATCH",
+    body: JSON.stringify({
+      name: trimmedName,
+      perm: trimmedPerm,
+      state,
+    }),
+  });
+}
+
+export async function fetchRankUsers(
+  name: string,
+  options?: { signal?: AbortSignal },
+): Promise<UserListItem[]> {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    throw new Error("Rank name is required.");
+  }
+  const encoded = encodeURIComponent(trimmed);
+  const payload = await apiRequest<ApiRankUsersResponse | ApiUserPublic[]>(
+    `/api/ranks/${encoded}/users`,
+    {
+      method: "GET",
+      signal: options?.signal,
+    },
+  );
+  const records = Array.isArray(payload)
+    ? payload
+    : (payload?.users ?? payload?.data ?? []);
+  return records
+    .map(toUserListItem)
+    .filter((item): item is UserListItem => Boolean(item));
 }
 
 export async function fetchUsers(options?: {

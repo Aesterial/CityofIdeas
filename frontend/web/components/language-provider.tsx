@@ -690,6 +690,266 @@ export const translations: Translations = {
     EN: "Statistics monitoring and user management",
     KZ: "Статистиканы бақылау және пайдаланушыларды басқару",
   },
+  adminSidebarGroupUsers: {
+    RU: "Пользователи",
+    EN: "Users",
+    KZ: "Пайдаланушылар",
+  },
+  adminSidebarGroupStats: {
+    RU: "Статистика",
+    EN: "Statistics",
+    KZ: "Статистика",
+  },
+  adminSidebarGroupFunctional: {
+    RU: "Функционал",
+    EN: "Functionality",
+    KZ: "Функционал",
+  },
+  adminRanksTitle: {
+    RU: "Ранги",
+    EN: "Ranks",
+    KZ: "Рангтар",
+  },
+  adminSupportTitle: {
+    RU: "Поддержка",
+    EN: "Support",
+    KZ: "Қолдау",
+  },
+  adminRanksManage: {
+    RU: "Управление рангами",
+    EN: "Manage ranks",
+    KZ: "Рангтарды басқару",
+  },
+  adminRanksDialogTitle: {
+    RU: "Ранги и роли",
+    EN: "Ranks and roles",
+    KZ: "Рангтар мен рөлдер",
+  },
+  adminRanksDialogSubtitle: {
+    RU: "Создавайте и редактируйте роли пользователей.",
+    EN: "Create and edit user roles.",
+    KZ: "Пайдаланушылардың рөлдерін жасаңыз және өңдеңіз.",
+  },
+  adminRanksDetailsTab: {
+    RU: "Детали",
+    EN: "Details",
+    KZ: "Деректер",
+  },
+  adminRanksPermissionsTab: {
+    RU: "Права",
+    EN: "Permissions",
+    KZ: "Құқықтар",
+  },
+  adminRanksPermissionsCreateHint: {
+    RU: "Сначала создайте ранг, затем настройте права.",
+    EN: "Create the rank first, then configure permissions.",
+    KZ: "Алдымен ранг жасаңыз, содан кейін құқықтарды баптаңыз.",
+  },
+  adminRanksPermissionsLoading: {
+    RU: "Загрузка прав ранга...",
+    EN: "Loading rank permissions...",
+    KZ: "Ранг құқықтары жүктелуде...",
+  },
+  adminRanksPermissionsError: {
+    RU: "Не удалось загрузить права ранга.",
+    EN: "Failed to load rank permissions.",
+    KZ: "Ранг құқықтарын жүктеу мүмкін болмады.",
+  },
+  adminRanksPermissionsEmpty: {
+    RU: "Права ранга не найдены.",
+    EN: "No rank permissions found.",
+    KZ: "Ранг құқықтары табылмады.",
+  },
+  adminRanksPermissionsUpdateError: {
+    RU: "Не удалось обновить право ранга.",
+    EN: "Failed to update rank permission.",
+    KZ: "Ранг құқығын жаңарту мүмкін болмады.",
+  },
+  adminRanksListTitle: {
+    RU: "Список рангов",
+    EN: "Rank list",
+    KZ: "Рангтар тізімі",
+  },
+  adminRanksCreateAction: {
+    RU: "Новый ранг",
+    EN: "New rank",
+    KZ: "Жаңа ранг",
+  },
+  adminRanksCreateTitle: {
+    RU: "Создание ранга",
+    EN: "Create rank",
+    KZ: "Ранг жасау",
+  },
+  adminRanksEditTitle: {
+    RU: "Редактирование ранга",
+    EN: "Edit rank",
+    KZ: "Рангты өңдеу",
+  },
+  adminRanksNameLabel: {
+    RU: "Название",
+    EN: "Name",
+    KZ: "Атауы",
+  },
+  adminRanksNamePlaceholder: {
+    RU: "Название ранга",
+    EN: "Rank name",
+    KZ: "Ранг атауы",
+  },
+  adminRanksDescriptionLabel: {
+    RU: "Описание",
+    EN: "Description",
+    KZ: "Сипаттама",
+  },
+  adminRanksDescriptionPlaceholder: {
+    RU: "Кратко опишите роль",
+    EN: "Brief role description",
+    KZ: "Рөлге қысқаша сипаттама",
+  },
+  adminRanksColorLabel: {
+    RU: "Цвет",
+    EN: "Color",
+    KZ: "Түс",
+  },
+  adminRanksColorPlaceholder: {
+    RU: "#AABBCC",
+    EN: "#AABBCC",
+    KZ: "#AABBCC",
+  },
+  adminRanksColorHint: {
+    RU: "Укажите HEX-цвет или выберите палитрой.",
+    EN: "Use HEX color or pick from the palette.",
+    KZ: "HEX түсін енгізіңіз немесе палитрадан таңдаңыз.",
+  },
+  adminRanksColorAuto: {
+    RU: "Без цвета",
+    EN: "No color",
+    KZ: "Түссіз",
+  },
+  adminRanksUsersAction: {
+    RU: "Пользователи",
+    EN: "Users",
+    KZ: "Пайдаланушылар",
+  },
+  adminRanksUsersTitle: {
+    RU: "Пользователи ранга",
+    EN: "Rank users",
+    KZ: "Ранг пайдаланушылары",
+  },
+  adminRanksUsersSubtitle: {
+    RU: "Список пользователей с рангом",
+    EN: "Users with rank",
+    KZ: "Ранг пайдаланушылары",
+  },
+  adminRanksUsersLoading: {
+    RU: "Загрузка пользователей...",
+    EN: "Loading users...",
+    KZ: "Пайдаланушылар жүктелуде...",
+  },
+  adminRanksUsersError: {
+    RU: "Не удалось загрузить пользователей.",
+    EN: "Failed to load users.",
+    KZ: "Пайдаланушыларды жүктеу мүмкін болмады.",
+  },
+  adminRanksUsersEmpty: {
+    RU: "Пользователей с этим рангом нет.",
+    EN: "No users with this rank.",
+    KZ: "Бұл рангы бар пайдаланушылар жоқ.",
+  },
+  adminRanksUsersCreateHint: {
+    RU: "Сначала сохраните ранг, чтобы увидеть пользователей.",
+    EN: "Save the rank first to view users.",
+    KZ: "Пайдаланушыларды көру үшін алдымен рангты сақтаңыз.",
+  },
+  adminRanksSave: {
+    RU: "Сохранить",
+    EN: "Save",
+    KZ: "Сақтау",
+  },
+  adminRanksDelete: {
+    RU: "Удалить",
+    EN: "Delete",
+    KZ: "Жою",
+  },
+  adminRanksNameRequired: {
+    RU: "Введите название ранга.",
+    EN: "Enter a rank name.",
+    KZ: "Ранг атауын енгізіңіз.",
+  },
+  adminRanksNameExists: {
+    RU: "Ранг с таким названием уже существует.",
+    EN: "A rank with this name already exists.",
+    KZ: "Мұндай атауы бар ранг қазірдің өзінде бар.",
+  },
+  adminRanksDescriptionRequired: {
+    RU: "Добавьте описание ранга.",
+    EN: "Add a rank description.",
+    KZ: "Ранг сипаттамасын қосыңыз.",
+  },
+  adminRanksColorRequired: {
+    RU: "Укажите цвет ранга.",
+    EN: "Select a rank color.",
+    KZ: "Рангтың түсін көрсетіңіз.",
+  },
+  adminRanksSaving: {
+    RU: "Сохранение...",
+    EN: "Saving...",
+    KZ: "Сақталуда...",
+  },
+  adminRanksSaveUnavailable: {
+    RU: "Нужен API для сохранения ранга.",
+    EN: "Rank changes require an API.",
+    KZ: "Рангты сақтау үшін API қажет.",
+  },
+  adminRanksSaveSuccess: {
+    RU: "Ранг сохранён.",
+    EN: "Rank saved.",
+    KZ: "Ранг сақталды.",
+  },
+  adminRanksSaveError: {
+    RU: "Не удалось сохранить ранг.",
+    EN: "Failed to save rank.",
+    KZ: "Рангты сақтау мүмкін болмады.",
+  },
+  adminRanksDeleteTitle: {
+    RU: "Удалить ранг",
+    EN: "Delete rank",
+    KZ: "Рангты жою",
+  },
+  adminRanksDeleteHint: {
+    RU: "Действие нельзя отменить. Ранг будет удалён навсегда.",
+    EN: "This action cannot be undone. The rank will be removed.",
+    KZ: "Бұл әрекетті қайтаруға болмайды. Ранг біржола жойылады.",
+  },
+  adminRanksDeleting: {
+    RU: "Удаление...",
+    EN: "Deleting...",
+    KZ: "Жойылуда...",
+  },
+  adminRanksDeleteUnavailable: {
+    RU: "Нужен API для удаления ранга.",
+    EN: "Rank deletion requires an API.",
+    KZ: "Рангты жою үшін API қажет.",
+  },
+  adminRanksDeleteSuccess: {
+    RU: "Ранг удалён.",
+    EN: "Rank deleted.",
+    KZ: "Ранг жойылды.",
+  },
+  adminRanksDeleteError: {
+    RU: "Не удалось удалить ранг.",
+    EN: "Failed to delete rank.",
+    KZ: "Рангты жою мүмкін болмады.",
+  },
+  adminRanksDiscardConfirm: {
+    RU: "Есть несохранённые изменения. Сбросить их?",
+    EN: "You have unsaved changes. Discard them?",
+    KZ: "Сақталмаған өзгерістер бар. Жою керек пе?",
+  },
+  adminRanksNoDescription: {
+    RU: "Без описания",
+    EN: "No description",
+    KZ: "Сипаттамасы жоқ",
+  },
 
   adminUserSettingsTitle: {
     RU: "Настройки пользователя",

@@ -13,6 +13,7 @@ import { Mail, Shield, User } from "lucide-react";
 import { Header } from "@/components/header";
 import { useLanguage } from "@/components/language-provider";
 import { useAuth } from "@/components/auth-provider";
+import { getRankGlowStyle } from "@/lib/rank-colors";
 import { GradientButton } from "@/components/gradient-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -68,6 +69,7 @@ export default function AccountPage() {
   const [deleteProfileLoading, setDeleteProfileLoading] = useState(false);
   const isAvatarSaving = avatarAction !== null;
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  const roleGlowStyle = getRankGlowStyle(user?.rank?.name);
   const languageOptions = [
     { code: "RU" as const, label: "RU" },
     { code: "EN" as const, label: "EN" },
@@ -437,8 +439,14 @@ export default function AccountPage() {
               {user.rank?.name ? (
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Shield className="h-4 w-4" />
-                  <span>
-                    {t("roleLabel")}: {user.rank.name}
+                  <span className="flex items-center gap-2">
+                    {t("roleLabel")}:
+                    <span
+                      className="rounded-full border px-2 py-0.5 text-xs font-semibold text-foreground"
+                      style={roleGlowStyle ?? undefined}
+                    >
+                      {user.rank.name}
+                    </span>
                   </span>
                 </div>
               ) : null}

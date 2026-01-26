@@ -15,6 +15,7 @@ import {
   type ApiUserPublic,
   type ApiAvatar,
 } from "@/lib/api";
+import { getRankGlowStyle } from "@/lib/rank-colors";
 
 type UserPageProps = {
   params: Promise<{
@@ -229,6 +230,7 @@ export default function UserProfilePage({ params }: UserPageProps) {
   const initials = getUserInitials(profileName);
   const avatarSrc = resolveAvatarSrc(user?.settings?.avatar);
   const rankName = user?.rank?.name || t("labelUser");
+  const rankGlowStyle = getRankGlowStyle(rankName);
   const joinedRaw = parseTimestamp(user?.joinedAt ?? user?.joined);
   const joinedLabel = formatDate(joinedRaw, dateFormatter);
 
@@ -390,7 +392,10 @@ export default function UserProfilePage({ params }: UserPageProps) {
                   <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
                     {profileName}
                   </h1>
-                  <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-foreground/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-foreground">
+                  <div
+                    className="mt-3 inline-flex items-center gap-2 rounded-full border bg-foreground/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-foreground"
+                    style={rankGlowStyle ?? undefined}
+                  >
                     <Crown className="h-3.5 w-3.5" />
                     {rankName}
                   </div>

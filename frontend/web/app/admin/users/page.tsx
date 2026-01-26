@@ -9,6 +9,7 @@ import { Logo } from "@/components/logo";
 import { useTheme } from "@/components/theme-provider";
 import { useAuth } from "@/components/auth-provider";
 import { useLanguage } from "@/components/language-provider";
+import { AdminRanksDialog } from "@/components/admin-ranks-dialog";
 import {
   AdminUserSettingsDialog,
   type AdminUserSettingsTarget,
@@ -145,6 +146,7 @@ export default function AdminUsersPage() {
   const [deleteProfileLoading, setDeleteProfileLoading] = useState(false);
   const [settingsUser, setSettingsUser] =
     useState<AdminUserSettingsTarget | null>(null);
+  const [ranksDialogOpen, setRanksDialogOpen] = useState(false);
   const usersLoadGuardRef = useRef(false);
   const displayName = user?.displayName || user?.username || "";
   const initials = (displayName || "U").slice(0, 2).toUpperCase();
@@ -988,6 +990,11 @@ export default function AdminUsersPage() {
           }
         }}
         onAction={handleSettingsAction}
+        onOpenRanksDialog={() => setRanksDialogOpen(true)}
+      />
+      <AdminRanksDialog
+        open={ranksDialogOpen}
+        onOpenChange={setRanksDialogOpen}
       />
     </div>
   );

@@ -24,6 +24,7 @@ import {
   UserX,
   Vote,
   X,
+  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -31,6 +32,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/components/auth-provider";
 import { useLanguage } from "@/components/language-provider";
+import { AdminRanksDialog } from "@/components/admin-ranks-dialog";
 import {
   AdminUserSettingsDialog,
   type AdminUserSettingsTarget,
@@ -179,6 +181,19 @@ type User = {
   status: UserStatus;
   lastActive: string;
   reports: number;
+};
+
+type SidebarItem = {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+  href?: string;
+};
+
+type SidebarGroup = {
+  id: string;
+  label: string;
+  items: SidebarItem[];
 };
 
 type CountResponse = {
@@ -374,6 +389,7 @@ export default function AdminPage() {
   const [deleteProfileLoading, setDeleteProfileLoading] = useState(false);
   const [settingsUser, setSettingsUser] =
     useState<AdminUserSettingsTarget | null>(null);
+  const [ranksDialogOpen, setRanksDialogOpen] = useState(false);
 
   const [voteCategories, setVoteCategories] = useState<VoteCategory[]>([]);
   const [ideasApproval, setIdeasApproval] = useState<{
@@ -458,47 +474,72 @@ export default function AdminPage() {
     return Math.ceil(diffMs / 1000);
   };
 
-  const sidebarItems = useMemo(
+  const sidebarGroups = useMemo<SidebarGroup[]>(
     () => [
       {
         id: "users",
-        label: t("adminAccessModerationTitle"),
-        icon: Shield,
-        href: "#users",
+        label: t("adminSidebarGroupUsers"),
+        items: [
+          {
+            id: "users",
+            label: t("adminAccessModerationTitle"),
+            icon: Shield,
+            href: "#users",
+          },
+          {
+            id: "ranks",
+            label: t("adminRanksTitle"),
+            icon: Sparkles,
+          },
+        ],
       },
       {
-        id: "overview",
-        label: t("adminStatsTitle"),
-        icon: BarChart3,
-        href: "#overview",
+        id: "stats",
+        label: t("adminSidebarGroupStats"),
+        items: [
+          {
+            id: "overview",
+            label: t("adminStatsTitle"),
+            icon: BarChart3,
+            href: "#overview",
+          },
+          {
+            id: "analytics",
+            label: t("adminStatsActivityTitle"),
+            icon: TrendingUp,
+            href: "#analytics",
+          },
+          {
+            id: "media",
+            label: t("adminMediaTitle"),
+            icon: ImageIcon,
+            href: "#media",
+          },
+        ],
       },
       {
-        id: "analytics",
-        label: t("adminStatsActivityTitle"),
-        icon: TrendingUp,
-        href: "#analytics",
-      },
-      {
-        id: "media",
-        label: t("adminMediaTitle"),
-        icon: ImageIcon,
-        href: "#media",
-      },
-      {
-        id: "submissions",
-        label: t("adminSubmissionsTitle"),
-        icon: CheckCircle2,
-        href: "/admin/submissions",
-      },
-      {
-        id: "support",
-        label: "Поддержка",
-        icon: MessageSquare,
-        href: "/admin/support",
+        id: "features",
+        label: t("adminSidebarGroupFunctional"),
+        items: [
+          {
+            id: "submissions",
+            label: t("adminSubmissionsTitle"),
+            icon: CheckCircle2,
+            href: "/admin/submissions",
+          },
+          {
+            id: "support",
+            label: t("adminSupportTitle"),
+            icon: MessageSquare,
+            href: "/admin/support",
+          },
+        ],
       },
     ],
     [language, t],
   );
+
+  const activeSidebarItemId = ranksDialogOpen ? "ranks" : activeSection;
 
   const statsCards = [
     {
@@ -1362,23 +1403,64 @@ export default function AdminPage() {
         </button>
       </div>
 
-      <nav className="space-y-1">
-        {sidebarItems.map((item) => {
-          const isActive = activeSection === item.id;
+      <nav className="space-y-4">
+        {sidebarGroups.map((group) => {
+          const groupActive = group.items.some(
+            (item) => item.id === activeSidebarItemId,
+          );
           return (
-            <Link
-              key={item.id}
-              href={item.href}
-              className={`flex items-center gap-3 rounded-2xl border border-border/60 px-4 py-2 text-sm font-semibold transition-colors duration-300 ${
-                isActive
-                  ? "bg-foreground text-background shadow-lg shadow-foreground/20"
-                  : "bg-card/90 hover:bg-foreground/90 hover:text-background"
-              }`}
-              onClick={() => setSidebarOpen(false)}
-            >
-              <item.icon className="h-4 w-4 shrink-0" />
-              <span className="truncate">{item.label}</span>
-            </Link>
+            <div key={group.id} className="space-y-2">
+              <div
+                className={`flex items-center justify-between rounded-2xl border border-border/60 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.3em] transition-colors ${
+                  groupActive
+                    ? "bg-foreground text-background shadow-lg shadow-foreground/20"
+                    : "bg-card/80 text-muted-foreground"
+                }`}
+              >
+                <span>{group.label}</span>
+              </div>
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const isActive = item.id === activeSidebarItemId;
+                  const itemClass = `flex w-full items-center gap-3 rounded-2xl border border-border/60 px-4 py-2 text-sm font-semibold transition-colors duration-300 ${
+                    isActive
+                      ? "bg-foreground text-background shadow-lg shadow-foreground/20"
+                      : "bg-card/90 hover:bg-foreground/90 hover:text-background"
+                  }`;
+
+                  if (item.href) {
+                    return (
+                      <Link
+                        key={item.id}
+                        href={item.href}
+                        className={itemClass}
+                        onClick={() => setSidebarOpen(false)}
+                      >
+                        <item.icon className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{item.label}</span>
+                      </Link>
+                    );
+                  }
+
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className={itemClass}
+                      onClick={() => {
+                        if (item.id === "ranks") {
+                          setRanksDialogOpen(true);
+                        }
+                        setSidebarOpen(false);
+                      }}
+                    >
+                      <item.icon className="h-4 w-4 shrink-0" />
+                      <span className="truncate">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           );
         })}
       </nav>
@@ -2428,6 +2510,11 @@ export default function AdminPage() {
                 }
               }}
               onAction={handleSettingsAction}
+              onOpenRanksDialog={() => setRanksDialogOpen(true)}
+            />
+            <AdminRanksDialog
+              open={ranksDialogOpen}
+              onOpenChange={setRanksDialogOpen}
             />
           </div>
         </div>
