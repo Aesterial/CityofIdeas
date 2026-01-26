@@ -13,5 +13,6 @@ type Repository interface {
 	GetProjects(ctx context.Context, offset int, limit int, opts ...ProjectOption) (Projects, error)
 	GetCategories(ctx context.Context) ([]string, error)
 	CreateProject(ctx context.Context, project Project) (*uuid.UUID, error)
+	AddProjectPhoto(ctx context.Context, projectID uuid.UUID, key string, contentType string, sizeBytes int) error
 	ToggleLike(ctx context.Context, id uuid.UUID, userID uint) error
 }

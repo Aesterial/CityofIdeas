@@ -1306,35 +1306,58 @@ func (p *ProjectsRepository) GetProjectsByUID(ctx context.Context, uid int) (pro
 
 func (p *ProjectsRepository) CreateProject(ctx context.Context, info projectdomain.Project) (*uuid.UUID, error) {
 	var projectId uuid.UUID
+	logger.Debug(fmt.Sprintf("latitude: %f, longitude: %f", info.Info.Location.Latitude, info.Info.Location.Longitude), "")
 	if err := p.DB.QueryRowContext(ctx, "INSERT INTO projects (author_uid, info) VALUES ($1, ROW($2, $3, $4::project_categories, ROW($5, $6, $7)::project_location_t)::project_info_t) RETURNING id", info.Author.UID, info.Info.Title, info.Info.Description, info.Info.Category, info.Info.Location.City, info.Info.Location.Latitude, info.Info.Location.Longitude).Scan(&projectId); err != nil {
 		return nil, err
 	}
-	// if len(info.Info.Photos) > 0 {
-	// 	stmt, err := p.DB.PrepareContext(ctx, `
-	// 		INSERT INTO project_photos (project_id, object_key, content_type, size_bytes, created_at)
-	// 		VALUES ($1, $2, $3, $4, now())
-	// 	`)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	defer stmt.Close()
-	// 	for _, photo := range info.Info.Photos {
-	// 		if photo == nil {
-	// 			continue
-	// 		}
-	// 		key := strings.TrimSpace(photo.Key)
-	// 		if key == "" {
-	// 			return nil, apperrors.RequiredDataMissing.AddErrDetails("project photo key is empty")
-	// 		}
-	// 		if _, err = stmt.Exec(projectId, key, strings.TrimSpace(photo.ContentType), photo.SizeBytes); err != nil {
-	// 			return nil, err
-	// 		}
-	// 	}
-	// }
+	if len(info.Info.Photos) > 0 {
+		stmt, err := p.DB.PrepareContext(ctx, `
+			INSERT INTO project_photos (project_id, object_key, content_type, size_bytes, created_at)
+			VALUES ($1, $2, $3, $4, now())
+		`)
+		if err != nil {
+			return nil, err
+		}
+		defer stmt.Close()
+		for _, photo := range info.Info.Photos {
+			if photo == nil {
+				continue
+			}
+			key := strings.TrimSpace(photo.Key)
+			if key == "" {
+				return nil, apperrors.RequiredDataMissing.AddErrDetails("project photo key is empty")
+			}
+			if _, err = stmt.Exec(projectId, key, strings.TrimSpace(photo.ContentType), photo.SizeBytes); err != nil {
+				return nil, err
+			}
+		}
+	}
 	if _, err := p.DB.ExecContext(ctx, "INSERT INTO submissions (project_id) VALUES ($1)", projectId); err != nil {
 		return nil, err
 	}
 	return &projectId, nil
+}
+
+func (p *ProjectsRepository) AddProjectPhoto(ctx context.Context, projectID uuid.UUID, key string, contentType string, sizeBytes int) error {
+	if p == nil || p.DB == nil {
+		return apperrors.NotConfigured
+	}
+	key = strings.TrimSpace(key)
+	if key == "" {
+		return apperrors.RequiredDataMissing.AddErrDetails("project photo key is empty")
+	}
+	contentType = strings.TrimSpace(contentType)
+	content := sql.NullString{String: contentType, Valid: contentType != ""}
+	size := sql.NullInt64{}
+	if sizeBytes > 0 {
+		size = sql.NullInt64{Int64: int64(sizeBytes), Valid: true}
+	}
+	_, err := p.DB.ExecContext(ctx, `
+		INSERT INTO project_photos (project_id, object_key, content_type, size_bytes, created_at)
+		VALUES ($1, $2, $3, $4, now())
+		ON CONFLICT (object_key) DO NOTHING
+	`, projectID, key, content, size)
+	return err
 }
 
 func (p *ProjectsRepository) GetCategories(ctx context.Context) ([]string, error) {
@@ -1783,22 +1806,18 @@ func (s *SubmissionsRepository) GetList(ctx context.Context) ([]*submissions.Sub
 	if err != nil {
 		return nil, err
 	}
-	logger.Debug("Received rows", "")
 	defer func() { _ = rows.Close() }()
 	for rows.Next() {
 		var sub submissions.Submission
 		var reason sql.NullString
-		logger.Debug("Scanning rows", "")
 		if err := rows.Scan(&sub.ID, &sub.ProjectID, &sub.State, &reason); err != nil {
 			return nil, err
 		}
 		if sub.State == "declined" && reason.Valid {
 			sub.Reason = &reason.String
 		}
-		logger.Debug("Appending: "+sub.ProjectID.String(), "")
 		data = append(data, &sub)
 	}
-	logger.Debug("Returning", "")
 	return data, nil
 }
 
@@ -2519,7 +2538,7 @@ func (r *RanksRepository) UsersWithRank(ctx context.Context, name string) ([]*ui
 func (r *RanksRepository) Perms(ctx context.Context, rank string) (*permissions.Permissions, error) {
 	var raw []byte
 	if err := r.DB.QueryRowContext(ctx,
-		`SELECT r.permissions FROM ranks r WHERE r.name = $1`, rank,
+		`SELECT to_jsonb(r.permissions) FROM ranks r WHERE r.name = $1`, rank,
 	).Scan(&raw); err != nil {
 		return nil, err
 	}

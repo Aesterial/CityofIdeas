@@ -13,6 +13,7 @@ import (
 	"Aesterial/backend/internal/infra/logger"
 	apperrors "Aesterial/backend/internal/shared/errors"
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/google/uuid"
@@ -72,9 +73,10 @@ func (s *ProjectService) Create(ctx context.Context, req *projpb.CreateRequest) 
 	if project.Info.Category == "" {
 		return nil, apperrors.RequiredDataMissing.AddErrDetails("category is empty")
 	}
-	if req.Location != nil {
-		project.Info.Location.City = strings.TrimSpace(req.Location.City)
-	}
+	project.Info.Location.City = strings.TrimSpace(req.Location.City)
+	project.Info.Location.Latitude = req.Location.Latitude
+	project.Info.Location.Longitude = req.Location.Longitude
+	logger.Debug(fmt.Sprintf("latitude: %f, longitude: %f", project.Info.Location.Latitude, project.Info.Location.Longitude), "")
 	for _, photo := range req.Photos {
 		avatar := fromProtoAvatar(photo)
 		if avatar == nil {
@@ -104,7 +106,7 @@ func (s *ProjectService) Create(ctx context.Context, req *projpb.CreateRequest) 
 
 	traceID := TraceIDOrNew(ctx)
 	logger.Info("Project created", "projects.create.success", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.Success, traceID)
-	return &projpb.CreateResponse{Id: id.String(),Tracing: traceID}, nil
+	return &projpb.CreateResponse{Id: id.String(), Tracing: traceID}, nil
 }
 
 func (s *ProjectService) Categories(ctx context.Context, _ *emptypb.Empty) (*projpb.CategoriesResponse, error) {

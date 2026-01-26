@@ -11,7 +11,7 @@ import (
 )
 
 func TestStorageServiceReceiveGetPresignNotConfigured(t *testing.T) {
-	svc := grpcserver.NewStorageService(nil)
+	svc := grpcserver.NewStorageService(nil, nil)
 	_, err := svc.ReceiveGetPresign(context.Background(), &storagepb.PresignGetRequest{Key: "avatars/1/current"})
 	assertAppError(t, err, apperrors.NotConfigured)
 }
@@ -21,7 +21,7 @@ func TestStorageServiceReceiveGetPresignSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create storage service: %v", err)
 	}
-	svc := grpcserver.NewStorageService(storageSvc)
+	svc := grpcserver.NewStorageService(storageSvc, nil)
 	resp, err := svc.ReceiveGetPresign(context.Background(), &storagepb.PresignGetRequest{Key: "avatars/1/current"})
 	if err != nil {
 		t.Fatalf("ReceiveGetPresign() error: %v", err)

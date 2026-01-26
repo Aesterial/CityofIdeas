@@ -1,20 +1,25 @@
 package grpcserver
 
 import (
+	projectsapp "Aesterial/backend/internal/app/projects"
 	storageapp "Aesterial/backend/internal/app/storage"
+	"Aesterial/backend/internal/domain/user"
 	storagepb "Aesterial/backend/internal/gen/storage/v1"
 	apperrors "Aesterial/backend/internal/shared/errors"
 	"context"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 type StorageService struct {
 	storagepb.UnimplementedStorageServiceServer
-	storage *storageapp.Service
+	storage  *storageapp.Service
+	projects *projectsapp.Service
 }
 
-func NewStorageService(storage *storageapp.Service) *StorageService {
-	return &StorageService{storage: storage}
+func NewStorageService(storage *storageapp.Service, projects *projectsapp.Service) *StorageService {
+	return &StorageService{storage: storage, projects: projects}
 }
 
 func (s *StorageService) ReceiveGetPresign(ctx context.Context, req *storagepb.PresignGetRequest) (*storagepb.PresignResponse, error) {
@@ -48,6 +53,9 @@ func (s *StorageService) ReceivePutPresign(ctx context.Context, req *storagepb.P
 	key := strings.TrimSpace(req.Key)
 	if key == "" {
 		return nil, apperrors.RequiredDataMissing.AddErrDetails("key is empty")
+	}
+	if err := s.registerProjectPhoto(ctx, key, req.ContentType); err != nil {
+		return nil, apperrors.Wrap(err)
 	}
 	url, err := s.storage.PresignPut(ctx, key, req.ContentType)
 	if err != nil {
@@ -95,4 +103,41 @@ func (s *StorageService) ListProjectAvatars(ctx context.Context, req *storagepb.
 		PicIDs:  ids,
 		Tracing: TraceIDOrNew(ctx),
 	}, nil
+}
+
+func (s *StorageService) registerProjectPhoto(ctx context.Context, key string, contentType string) error {
+	projectID, ok := parseProjectPhotoKey(key)
+	if !ok {
+		return nil
+	}
+	if s.projects == nil {
+		return apperrors.NotConfigured.AddErrDetails("projects service not configured")
+	}
+	return s.projects.AddProjectPhoto(ctx, projectID, &user.Avatar{
+		Key:         key,
+		ContentType: contentType,
+	})
+}
+
+func parseProjectPhotoKey(key string) (uuid.UUID, bool) {
+	key = strings.TrimSpace(key)
+	if key == "" {
+		return uuid.Nil, false
+	}
+	parts := strings.Split(key, "/")
+	if len(parts) < 3 {
+		return uuid.Nil, false
+	}
+	if parts[0] != "photos" {
+		return uuid.Nil, false
+	}
+	projectID := strings.TrimSpace(parts[1])
+	if projectID == "" {
+		return uuid.Nil, false
+	}
+	id, err := uuid.Parse(projectID)
+	if err != nil {
+		return uuid.Nil, false
+	}
+	return id, true
 }
