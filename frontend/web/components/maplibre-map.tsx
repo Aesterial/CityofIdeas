@@ -2,8 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
+import Map from "ol/Map";
+import View from "ol/View";
+import TileLayer from "ol/layer/Tile";
+import VectorLayer from "ol/layer/Vector";
+import VectorSource from "ol/source/Vector";
+import OSM from "ol/source/OSM";
+import Feature from "ol/Feature";
+import Point from "ol/geom/Point";
+import { fromLonLat, toLonLat } from "ol/proj";
+import { Circle as CircleStyle, Fill, Stroke, Style } from "ol/style";
+import { defaults as defaultControls } from "ol/control";
+import "ol/ol.css";
 
 export type MapMarker = {
   id: string;
@@ -23,6 +33,14 @@ type MapLibreMapProps = {
 
 const DEFAULT_CENTER: [number, number] = [86.0877, 55.3541];
 
+const markerStyle = new Style({
+  image: new CircleStyle({
+    radius: 6,
+    fill: new Fill({ color: "#111827" }),
+    stroke: new Stroke({ color: "#ffffff", width: 2 }),
+  }),
+});
+
 export function MapLibreMap({
   center = DEFAULT_CENTER,
   zoom = 12,
@@ -32,13 +50,14 @@ export function MapLibreMap({
   onMapClick,
 }: MapLibreMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
-  const markersRef = useRef<maplibregl.Marker[]>([]);
+  const mapRef = useRef<Map | null>(null);
+  const markerSourceRef = useRef<VectorSource | null>(null);
 
   const onMarkerClickRef = useRef(onMarkerClick);
   const onMapClickRef = useRef(onMapClick);
 
   const [isLoaded, setIsLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     onMarkerClickRef.current = onMarkerClick;
@@ -48,95 +67,108 @@ export function MapLibreMap({
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
-    const map = new maplibregl.Map({
-      container: mapContainerRef.current,
-
-      style: "https://api.maptiler.com/maps/toner-v2/style.json?key=wjV3hWuYtgJbK3Nmy76Z",
-      center: center,
-      zoom: zoom,
-      attributionControl: false,
+    const tileSource = new OSM();
+    tileSource.on("tileloaderror", () => {
+      setLoadError("Map tiles failed to load. Check your connection.");
     });
 
-    map.addControl(
-      new maplibregl.NavigationControl({ showCompass: false }),
-      "top-right",
-    );
+    const markerSource = new VectorSource();
+    const markerLayer = new VectorLayer({
+      source: markerSource,
+      style: markerStyle,
+    });
 
-    map.on("load", () => {
+    const map = new Map({
+      target: mapContainerRef.current,
+      layers: [new TileLayer({ source: tileSource }), markerLayer],
+      view: new View({
+        center: fromLonLat(center),
+        zoom,
+      }),
+      controls: defaultControls({
+        attribution: false,
+        rotate: false,
+        zoom: true,
+      }),
+    });
+
+    map.once("rendercomplete", () => {
       setIsLoaded(true);
-      map.resize();
+      setLoadError(null);
     });
 
-    map.on("click", (event) => {
-      onMapClickRef.current?.([event.lngLat.lng, event.lngLat.lat]);
+    map.on("pointermove", (event) => {
+      const element = map.getTargetElement();
+      if (!element) return;
+      const hit = map.hasFeatureAtPixel(event.pixel);
+      element.style.cursor = hit ? "pointer" : "";
+    });
+
+    map.on("singleclick", (event) => {
+      let clickedMarker: MapMarker | null = null;
+      map.forEachFeatureAtPixel(event.pixel, (feature) => {
+        const marker = feature.get("marker") as MapMarker | undefined;
+        if (marker) {
+          clickedMarker = marker;
+          return true;
+        }
+        return false;
+      });
+
+      if (clickedMarker) {
+        onMarkerClickRef.current?.(clickedMarker);
+        return;
+      }
+
+      if (onMapClickRef.current) {
+        const [lng, lat] = toLonLat(event.coordinate);
+        onMapClickRef.current([lng, lat]);
+      }
     });
 
     mapRef.current = map;
+    markerSourceRef.current = markerSource;
+
+    const resizeObserver = new ResizeObserver(() => {
+      map.updateSize();
+    });
+    resizeObserver.observe(mapContainerRef.current);
 
     return () => {
-      map.remove();
+      resizeObserver.disconnect();
+      map.setTarget(undefined);
       mapRef.current = null;
+      markerSourceRef.current = null;
+      setIsLoaded(false);
     };
   }, []);
 
   useEffect(() => {
-    if (mapRef.current && isLoaded) {
-      mapRef.current.easeTo({
-        center,
-        zoom,
-        duration: 800,
-        essential: true,
-      });
-    }
-  }, [center, zoom, isLoaded]);
+    const map = mapRef.current;
+    if (!map) return;
+
+    const view = map.getView();
+    view.animate({
+      center: fromLonLat(center),
+      zoom,
+      duration: 800,
+    });
+  }, [center, zoom]);
 
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !isLoaded) return;
+    const source = markerSourceRef.current;
+    if (!source) return;
 
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current = [];
+    source.clear(true);
 
     markers.forEach((markerData) => {
-      const el = document.createElement("button");
-      el.type = "button";
-      el.className = "map-custom-marker";
-
-      Object.assign(el.style, {
-        width: "16px",
-        height: "16px",
-        borderRadius: "50%",
-        backgroundColor: "#111827",
-        border: "2px solid #ffffff",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-        cursor: "pointer",
-        transition: "transform 0.2s ease",
+      const feature = new Feature({
+        geometry: new Point(fromLonLat(markerData.coordinates)),
       });
-
-      el.addEventListener(
-        "mouseenter",
-        () => (el.style.transform = "scale(1.2)"),
-      );
-      el.addEventListener(
-        "mouseleave",
-        () => (el.style.transform = "scale(1)"),
-      );
-
-      el.addEventListener("click", (e) => {
-        e.stopPropagation();
-        onMarkerClickRef.current?.(markerData);
-      });
-
-      const m = new maplibregl.Marker({
-        element: el,
-        anchor: "center",
-      })
-        .setLngLat(markerData.coordinates)
-        .addTo(map);
-
-      markersRef.current.push(m);
+      feature.set("marker", markerData);
+      source.addFeature(feature);
     });
-  }, [markers, isLoaded]);
+  }, [markers]);
 
   return (
     <motion.div
@@ -165,12 +197,20 @@ export function MapLibreMap({
               <div className="flex flex-col items-center gap-3">
                 <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
                 <p className="text-xs font-medium text-muted-foreground animate-pulse">
-                  Инициализация карты...
+                  Loading map...
                 </p>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
+
+        {loadError ? (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-muted/90 px-6 text-center">
+            <p className="text-xs font-medium text-muted-foreground">
+              {loadError}
+            </p>
+          </div>
+        ) : null}
 
         <div ref={mapContainerRef} className="absolute inset-0 h-full w-full" />
       </div>
