@@ -606,8 +606,8 @@ export default function AdminPage() {
     const active = audienceSnapshot.active ?? statsSummary.activeUsers ?? 0;
     const offline = audienceSnapshot.offline ?? statsSummary.offlineUsers ?? 0;
     return [
-      { status: t("adminStatsActiveUsers"), value: active },
-      { status: t("adminStatsOfflineUsers"), value: offline },
+      { status: t("adminStatsActiveUsersShort"), value: active },
+      { status: t("adminStatsOfflineUsersShort"), value: offline },
     ];
   }, [
     audienceSnapshot.active,
@@ -1434,7 +1434,12 @@ export default function AdminPage() {
                         key={item.id}
                         href={item.href}
                         className={itemClass}
-                        onClick={() => setSidebarOpen(false)}
+                        onClick={() => {
+                          if (item.href?.startsWith("#")) {
+                            setActiveSection(item.id);
+                          }
+                          setSidebarOpen(false);
+                        }}
                       >
                         <item.icon className="h-4 w-4 shrink-0" />
                         <span className="truncate">{item.label}</span>
@@ -2066,17 +2071,15 @@ export default function AdminPage() {
                               {participationData.map((entry, index) => (
                                 <div
                                   key={entry.status}
-                                  className="flex items-center justify-between"
+                                  className="flex items-center gap-2"
                                 >
-                                  <div className="flex items-center gap-2">
-                                    <span
-                                      className="h-2 w-2 rounded-full"
-                                      style={{
-                                        backgroundColor: `var(--color-chart-${index + 1})`,
-                                      }}
-                                    />
-                                    <span>{entry.status}</span>
-                                  </div>
+                                  <span
+                                    className="h-2 w-2 rounded-full"
+                                    style={{
+                                      backgroundColor: `var(--color-chart-${index + 1})`,
+                                    }}
+                                  />
+                                  <span>{entry.status}</span>
                                   <span className="font-semibold text-foreground">
                                     {entry.value}
                                   </span>
