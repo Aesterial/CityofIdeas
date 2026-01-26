@@ -509,16 +509,11 @@ export function AdminRanksDialog({
     setDeleting(true);
     try {
       await deleteRank(activeRank.name);
-      setRanks((prev) => {
-        const next = prev.filter((item) => item.name !== activeRank.name);
-        setActiveId((current) => {
-          if (current !== activeRank.name) {
-            return current;
-          }
-          return next[0]?.name ?? "new";
-        });
-        return next;
-      });
+      const nextRanks = ranks.filter((item) => item.name !== activeRank.name);
+      setRanks(nextRanks);
+      setActiveId((current) =>
+        current === activeRank.name ? (nextRanks[0]?.name ?? "new") : current,
+      );
       toast.success(t("adminRanksDeleteSuccess"));
       setDeleteOpen(false);
     } catch (deleteError) {
