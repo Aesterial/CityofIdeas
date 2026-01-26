@@ -26,7 +26,7 @@ func Run(repo tickets.Repository, usrepo user.Repository, loc *time.Location, s 
 			case <-ctx.Done():
 				return
 			case <-ticker.C:
-				ts, err := repo.List(ctx)
+				ts, err := repo.List(ctx, false, nil, nil)
 				if err != nil {
 					logger.Error(
 						"Failed to list tickets: "+err.Error(),

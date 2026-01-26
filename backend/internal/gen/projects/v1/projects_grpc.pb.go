@@ -40,7 +40,7 @@ type ProjectServiceClient interface {
 	ByUID(ctx context.Context, in *MadeByRequest, opts ...grpc.CallOption) (*GetResponse, error)
 	GetTop(ctx context.Context, in *GetTopRequest, opts ...grpc.CallOption) (*GetResponse, error)
 	GetArchived(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
-	Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
+	Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error)
 	ChangeTitle(ctx context.Context, in *ChangeRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
 	ChangeDescription(ctx context.Context, in *ChangeRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
 	Delete(ctx context.Context, in *RequestWithID, opts ...grpc.CallOption) (*EmptyResponse, error)
@@ -96,9 +96,9 @@ func (c *projectServiceClient) GetArchived(ctx context.Context, in *GetRequest, 
 	return out, nil
 }
 
-func (c *projectServiceClient) Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
+func (c *projectServiceClient) Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EmptyResponse)
+	out := new(CreateResponse)
 	err := c.cc.Invoke(ctx, ProjectService_Create_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -164,7 +164,7 @@ type ProjectServiceServer interface {
 	ByUID(context.Context, *MadeByRequest) (*GetResponse, error)
 	GetTop(context.Context, *GetTopRequest) (*GetResponse, error)
 	GetArchived(context.Context, *GetRequest) (*GetResponse, error)
-	Create(context.Context, *CreateRequest) (*EmptyResponse, error)
+	Create(context.Context, *CreateRequest) (*CreateResponse, error)
 	ChangeTitle(context.Context, *ChangeRequest) (*EmptyResponse, error)
 	ChangeDescription(context.Context, *ChangeRequest) (*EmptyResponse, error)
 	Delete(context.Context, *RequestWithID) (*EmptyResponse, error)
@@ -192,7 +192,7 @@ func (UnimplementedProjectServiceServer) GetTop(context.Context, *GetTopRequest)
 func (UnimplementedProjectServiceServer) GetArchived(context.Context, *GetRequest) (*GetResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetArchived not implemented")
 }
-func (UnimplementedProjectServiceServer) Create(context.Context, *CreateRequest) (*EmptyResponse, error) {
+func (UnimplementedProjectServiceServer) Create(context.Context, *CreateRequest) (*CreateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Create not implemented")
 }
 func (UnimplementedProjectServiceServer) ChangeTitle(context.Context, *ChangeRequest) (*EmptyResponse, error) {

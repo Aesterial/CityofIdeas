@@ -81,6 +81,11 @@ message CreateRequest {
   ProjectLocation location = 5;
 }
 
+message CreateResponse {
+  string id = 1;
+  string tracing = 2;
+}
+
 message RequestWithID {
   string id = 1;
 }

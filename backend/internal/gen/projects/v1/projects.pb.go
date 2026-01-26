@@ -26,13 +26,13 @@ var File_projects_projects_proto protoreflect.FileDescriptor
 
 const file_projects_projects_proto_rawDesc = "" +
 	"\n" +
-	"\x17projects/projects.proto\x12\vprojects.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x15projects/domain.proto2\xfd\a\n" +
+	"\x17projects/projects.proto\x12\vprojects.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x15projects/domain.proto2\xfe\a\n" +
 	"\x0eProjectService\x12O\n" +
 	"\x03Get\x12\x17.projects.v1.GetRequest\x1a\x18.projects.v1.GetResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/api/projects\x12a\n" +
 	"\x05ByUID\x12\x1a.projects.v1.MadeByRequest\x1a\x18.projects.v1.GetResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/projects/by/{user_id}\x12Y\n" +
 	"\x06GetTop\x12\x1a.projects.v1.GetTopRequest\x1a\x18.projects.v1.GetResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/api/projects/top\x12`\n" +
-	"\vGetArchived\x12\x17.projects.v1.GetRequest\x1a\x18.projects.v1.GetResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/projects/archived\x12a\n" +
-	"\x06Create\x12\x1a.projects.v1.CreateRequest\x1a\x1a.projects.v1.EmptyResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/api/projects/create\x12k\n" +
+	"\vGetArchived\x12\x17.projects.v1.GetRequest\x1a\x18.projects.v1.GetResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/projects/archived\x12b\n" +
+	"\x06Create\x12\x1a.projects.v1.CreateRequest\x1a\x1b.projects.v1.CreateResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/api/projects/create\x12k\n" +
 	"\vChangeTitle\x12\x1a.projects.v1.ChangeRequest\x1a\x1a.projects.v1.EmptyResponse\"$\x82\xd3\xe4\x93\x02\x1e2\x1c/api/projects/{id}/name/{to}\x12w\n" +
 	"\x11ChangeDescription\x12\x1a.projects.v1.ChangeRequest\x1a\x1a.projects.v1.EmptyResponse\"*\x82\xd3\xe4\x93\x02$2\"/api/project/{id}/description/{to}\x12c\n" +
 	"\x06Delete\x12\x1a.projects.v1.RequestWithID\x1a\x1a.projects.v1.EmptyResponse\"!\x82\xd3\xe4\x93\x02\x1b*\x19/api/projects/{id}/delete\x12g\n" +
@@ -51,8 +51,9 @@ var file_projects_projects_proto_goTypes = []any{
 	(*emptypb.Empty)(nil),      // 6: google.protobuf.Empty
 	(*LikeRequest)(nil),        // 7: projects.v1.LikeRequest
 	(*GetResponse)(nil),        // 8: projects.v1.GetResponse
-	(*EmptyResponse)(nil),      // 9: projects.v1.EmptyResponse
-	(*CategoriesResponse)(nil), // 10: projects.v1.CategoriesResponse
+	(*CreateResponse)(nil),     // 9: projects.v1.CreateResponse
+	(*EmptyResponse)(nil),      // 10: projects.v1.EmptyResponse
+	(*CategoriesResponse)(nil), // 11: projects.v1.CategoriesResponse
 }
 var file_projects_projects_proto_depIdxs = []int32{
 	0,  // 0: projects.v1.ProjectService.Get:input_type -> projects.v1.GetRequest
@@ -69,12 +70,12 @@ var file_projects_projects_proto_depIdxs = []int32{
 	8,  // 11: projects.v1.ProjectService.ByUID:output_type -> projects.v1.GetResponse
 	8,  // 12: projects.v1.ProjectService.GetTop:output_type -> projects.v1.GetResponse
 	8,  // 13: projects.v1.ProjectService.GetArchived:output_type -> projects.v1.GetResponse
-	9,  // 14: projects.v1.ProjectService.Create:output_type -> projects.v1.EmptyResponse
-	9,  // 15: projects.v1.ProjectService.ChangeTitle:output_type -> projects.v1.EmptyResponse
-	9,  // 16: projects.v1.ProjectService.ChangeDescription:output_type -> projects.v1.EmptyResponse
-	9,  // 17: projects.v1.ProjectService.Delete:output_type -> projects.v1.EmptyResponse
-	10, // 18: projects.v1.ProjectService.Categories:output_type -> projects.v1.CategoriesResponse
-	9,  // 19: projects.v1.ProjectService.ToggleLike:output_type -> projects.v1.EmptyResponse
+	9,  // 14: projects.v1.ProjectService.Create:output_type -> projects.v1.CreateResponse
+	10, // 15: projects.v1.ProjectService.ChangeTitle:output_type -> projects.v1.EmptyResponse
+	10, // 16: projects.v1.ProjectService.ChangeDescription:output_type -> projects.v1.EmptyResponse
+	10, // 17: projects.v1.ProjectService.Delete:output_type -> projects.v1.EmptyResponse
+	11, // 18: projects.v1.ProjectService.Categories:output_type -> projects.v1.CategoriesResponse
+	10, // 19: projects.v1.ProjectService.ToggleLike:output_type -> projects.v1.EmptyResponse
 	10, // [10:20] is the sub-list for method output_type
 	0,  // [0:10] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name

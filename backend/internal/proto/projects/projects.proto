@@ -21,7 +21,7 @@ service ProjectService {
   rpc GetArchived(GetRequest) returns (GetResponse) {
     option (google.api.http) = {get: "/api/projects/archived"};
   }
-  rpc Create(CreateRequest) returns (EmptyResponse) {
+  rpc Create(CreateRequest) returns (CreateResponse) {
     option (google.api.http) = {
       post: "/api/projects/create"
       body: "*"

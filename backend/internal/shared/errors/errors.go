@@ -2,6 +2,7 @@ package errors
 
 import (
 	stderrors "errors"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
@@ -84,4 +85,5 @@ var (
 	AlreadyExists       = ErrorST{st: status.New(codes.AlreadyExists, "data already exists"), content: "already exists"}
 	NotImplemented      = ErrorST{st: status.New(codes.Unimplemented, "not implemented"), content: "not implemented"}
 	Unavailable         = ErrorST{st: status.New(codes.Unavailable, "unavailable"), content: "service unavailable"}
+	Banned              = ErrorST{st: status.New(codes.PermissionDenied, "user is banned"), content: "user is banned"}
 )

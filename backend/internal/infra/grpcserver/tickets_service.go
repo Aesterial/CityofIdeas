@@ -11,6 +11,7 @@ import (
 	"Aesterial/backend/internal/infra/logger"
 	apperrors "Aesterial/backend/internal/shared/errors"
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -30,6 +31,33 @@ func NewTicketsService(s *tickets.Service, sess *sessionsapp.Service, us *userap
 	return &TicketsService{serv: s, us: us, auth: NewAuthenticator(sess, us), mailer: m}
 }
 
+func (t *TicketsService) hasAccess(ctx context.Context, id uuid.UUID, token *string) (bool, error) {
+	var r ticketsdomain.TicketDataReq
+	requestor, err := t.auth.RequireUser(ctx)
+	if err != nil {
+		if !errors.Is(err, apperrors.InvalidArguments) {
+			return false, err
+		}
+	}
+	if requestor != nil {
+		r.UID = &requestor.UID
+		if err := t.auth.RequirePermissions(ctx, requestor.UID, permsdomain.TicketsViewListAny); err != nil {
+			return false, err
+		} else {
+			r.Staff = true
+		}
+	}
+	if r.UID == nil {
+		r.Token = token
+	}
+	access, err := t.serv.IsReqValid(ctx, id, r)
+	if err != nil {
+		logger.Debug("failed to check is req valid: " + err.Error(), "")
+		return false, apperrors.Wrap(err)
+	}
+	return access, nil
+}
+
 func (t *TicketsService) Create(ctx context.Context, req *tickpb.CreateRequest) (*tickpb.CreateResponse, error) {
 	if t == nil || t.serv == nil {
 		return nil, apperrors.NotConfigured.AddErrDetails("projects service not configured")
@@ -41,9 +69,13 @@ func (t *TicketsService) Create(ctx context.Context, req *tickpb.CreateRequest) 
 		Name:  req.GetName(),
 		Email: req.GetEmail(),
 	}
-	if authUser, err := t.auth.RequireUser(ctx); err == nil && authUser != nil {
+	authUser, err := t.auth.RequireUser(ctx)
+	if err == nil && authUser != nil {
 		requestor.Authorized = true
 		requestor.UID = &authUser.UID
+	}
+	if err != nil && !errors.Is(err, apperrors.AccessDenied) {
+		return nil, apperrors.Wrap(err)
 	}
 	data, err := t.serv.Create(ctx, requestor, ticketsdomain.TicketTopic(strings.ToLower(req.GetTopic())), req.GetBrief())
 	if err != nil {
@@ -75,6 +107,13 @@ func (t *TicketsService) Info(ctx context.Context, req *tickpb.TicketInfoRequest
 	if err != nil {
 		return nil, apperrors.InvalidArguments.AddErrDetails("id is not correct")
 	}
+	access, err := t.hasAccess(ctx, id, req.Token)
+	if err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+	if !access {
+		return nil, apperrors.AccessDenied
+	}
 	info, err := t.serv.Info(ctx, id)
 	if err != nil {
 		logger.Debug("failed to get info about ticket: "+err.Error(), "")
@@ -93,6 +132,13 @@ func (t *TicketsService) Messages(ctx context.Context, req *tickpb.TicketInfoReq
 	id, err := uuid.Parse(req.GetId())
 	if err != nil {
 		return nil, apperrors.InvalidArguments.AddErrDetails("id is not correct")
+	}
+	access, err := t.hasAccess(ctx, id, req.Token)
+	if err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+	if !access {
+		return nil, apperrors.AccessDenied
 	}
 	list, err := t.serv.Messages(ctx, id)
 	if err != nil {
@@ -197,10 +243,27 @@ func (t *TicketsService) List(ctx context.Context, _ *emptypb.Empty) (*tickpb.Ti
 	if t == nil || t.serv == nil {
 		return nil, apperrors.NotConfigured.AddErrDetails("projects service not configured")
 	}
-	list, err := t.serv.List(ctx)
-	if err != nil {
-		logger.Debug("failed to get list of tickets: "+err.Error(), "")
-		return nil, apperrors.Wrap(err)
+	requestor, err := t.auth.RequireUser(ctx)
+	if err != nil || requestor == nil {
+		return nil, err
+	}
+	var list ticketsdomain.Tickets
+	if err := t.auth.RequirePermissions(ctx, requestor.UID, permsdomain.TicketsViewListAny); err != nil {
+		if errors.Is(err, apperrors.AccessDenied) {
+			logger.Debug("checking only for own", "")
+			list, err = t.serv.List(ctx, true, &requestor.UID, nil)
+			if err != nil {
+				return nil, apperrors.Wrap(err)
+			}
+		} else {
+			return nil, apperrors.Wrap(err)
+		}
+	} else {
+		logger.Debug("checking for all", "")
+		list, err = t.serv.List(ctx, false, nil, nil)
+		if err != nil {
+			return nil, apperrors.Wrap(err)
+		}
 	}
 	return &tickpb.TicketsListResponse{List: list.ToProto(), Tracing: TraceIDOrNew(ctx)}, nil
 }
@@ -230,30 +293,6 @@ func (t *TicketsService) AcceptTicket(ctx context.Context, req *tickpb.TicketInf
 	logger.Info("Accepted ticket", "tickets.accept.success", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.Success, traceID)
 	return &tickpb.EmptyResponse{Tracing: traceID}, nil
 }
-
-func (t *TicketsService) Tickets(ctx context.Context, _ *emptypb.Empty) (*tickpb.UserTicketsResponse, error) {
-	if t == nil || t.serv == nil {
-		return nil, apperrors.NotConfigured
-	}
-	requestor, err := t.auth.RequireUser(ctx)
-	if err != nil {
-		return nil, err
-	}
-	list, err := t.serv.List(ctx)
-	if err != nil {
-		return nil, err
-	}
-	resp := make(ticketsdomain.Tickets, 0, len(list))
-	for _, l := range list {
-		if l.Creator.UID != nil && *l.Creator.UID == requestor.UID {
-			resp = append(resp, l)
-		}
-	}
-	traceID := TraceIDOrNew(ctx)
-	logger.Info("Got user tickets", "tickets.user_list.success", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.Success, traceID)
-	return &tickpb.UserTicketsResponse{Tickets: resp.ToProto(), Tracing: traceID}, nil
-}
-
 // Только для не авторизованных пользователей
 func (t *TicketsService) IsValid(ctx context.Context, req *tickpb.IsValidRequest) (*tickpb.IsValidResponse, error) {
 	if t == nil || t.serv == nil {

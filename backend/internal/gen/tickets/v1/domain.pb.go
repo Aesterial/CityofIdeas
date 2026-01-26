@@ -154,6 +154,7 @@ func (x *CreateResponse) GetTracing() string {
 type TicketInfoRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Token         *string                `protobuf:"bytes,2,opt,name=token,proto3,oneof" json:"token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -191,6 +192,13 @@ func (*TicketInfoRequest) Descriptor() ([]byte, []int) {
 func (x *TicketInfoRequest) GetId() string {
 	if x != nil {
 		return x.Id
+	}
+	return ""
+}
+
+func (x *TicketInfoRequest) GetToken() string {
+	if x != nil && x.Token != nil {
+		return *x.Token
 	}
 	return ""
 }
@@ -930,9 +938,11 @@ const file_tickets_domain_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\x05token\x18\x02 \x01(\tH\x00R\x05token\x88\x01\x01\x12\x18\n" +
 	"\atracing\x18\x03 \x01(\tR\atracingB\b\n" +
-	"\x06_token\"#\n" +
+	"\x06_token\"H\n" +
 	"\x11TicketInfoRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\xfe\x04\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\x05token\x18\x02 \x01(\tH\x00R\x05token\x88\x01\x01B\b\n" +
+	"\x06_token\"\xfe\x04\n" +
 	"\n" +
 	"TicketInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12:\n" +
@@ -1051,6 +1061,7 @@ func file_tickets_domain_proto_init() {
 		return
 	}
 	file_tickets_domain_proto_msgTypes[1].OneofWrappers = []any{}
+	file_tickets_domain_proto_msgTypes[2].OneofWrappers = []any{}
 	file_tickets_domain_proto_msgTypes[3].OneofWrappers = []any{}
 	file_tickets_domain_proto_msgTypes[10].OneofWrappers = []any{}
 	file_tickets_domain_proto_msgTypes[14].OneofWrappers = []any{}

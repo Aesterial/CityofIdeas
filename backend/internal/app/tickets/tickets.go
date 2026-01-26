@@ -68,11 +68,11 @@ func (s *Service) Info(ctx context.Context, id uuid.UUID) (*tickets.Ticket, erro
 	return info, nil
 }
 
-func (s *Service) List(ctx context.Context) (tickets.Tickets, error) {
+func (s *Service) List(ctx context.Context, own bool, uid *uint, token *string) (tickets.Tickets, error) {
 	if s == nil || s.repo == nil {
 		return nil, apperrors.NotConfigured
 	}
-	list, err := s.repo.List(ctx)
+	list, err := s.repo.List(ctx, own, uid, token)
 	if err != nil {
 		logger.Debug("error appeared: "+err.Error(), "tickets.list")
 		return nil, apperrors.Wrap(err)

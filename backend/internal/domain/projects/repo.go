@@ -12,6 +12,6 @@ type Repository interface {
 	GetTopProjects(ctx context.Context, limit int, city string) (Projects, error)
 	GetProjects(ctx context.Context, offset int, limit int, opts ...ProjectOption) (Projects, error)
 	GetCategories(ctx context.Context) ([]string, error)
-	CreateProject(ctx context.Context, project Project) error
+	CreateProject(ctx context.Context, project Project) (*uuid.UUID, error)
 	ToggleLike(ctx context.Context, id uuid.UUID, userID uint) error
 }

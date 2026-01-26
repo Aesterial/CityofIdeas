@@ -14,7 +14,7 @@ type Repository interface {
 	Accepted(context.Context, uuid.UUID) (bool, error)
 	Info(context.Context, uuid.UUID) (*Ticket, error)
 	IsReqValid(context.Context, uuid.UUID, TicketDataReq) (bool, error)
-	List(context.Context) (Tickets, error)
+	List(context.Context, bool, *uint, *string) (Tickets, error)
 	Messages(context.Context, uuid.UUID) (TicketMessages, error)
 	GetLatestMessage(context.Context, uuid.UUID) (*TicketMessage, error)
 	User(context.Context, uuid.UUID, TicketDataReq) (*TicketUserData, error)

@@ -690,6 +690,58 @@ func (x *CreateRequest) GetLocation() *ProjectLocation {
 	return nil
 }
 
+type CreateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Tracing       string                 `protobuf:"bytes,2,opt,name=tracing,proto3" json:"tracing,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateResponse) Reset() {
+	*x = CreateResponse{}
+	mi := &file_projects_domain_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateResponse) ProtoMessage() {}
+
+func (x *CreateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_projects_domain_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateResponse.ProtoReflect.Descriptor instead.
+func (*CreateResponse) Descriptor() ([]byte, []int) {
+	return file_projects_domain_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *CreateResponse) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *CreateResponse) GetTracing() string {
+	if x != nil {
+		return x.Tracing
+	}
+	return ""
+}
+
 type RequestWithID struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -699,7 +751,7 @@ type RequestWithID struct {
 
 func (x *RequestWithID) Reset() {
 	*x = RequestWithID{}
-	mi := &file_projects_domain_proto_msgTypes[9]
+	mi := &file_projects_domain_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -711,7 +763,7 @@ func (x *RequestWithID) String() string {
 func (*RequestWithID) ProtoMessage() {}
 
 func (x *RequestWithID) ProtoReflect() protoreflect.Message {
-	mi := &file_projects_domain_proto_msgTypes[9]
+	mi := &file_projects_domain_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -724,7 +776,7 @@ func (x *RequestWithID) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestWithID.ProtoReflect.Descriptor instead.
 func (*RequestWithID) Descriptor() ([]byte, []int) {
-	return file_projects_domain_proto_rawDescGZIP(), []int{9}
+	return file_projects_domain_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *RequestWithID) GetId() string {
@@ -744,7 +796,7 @@ type ChangeRequest struct {
 
 func (x *ChangeRequest) Reset() {
 	*x = ChangeRequest{}
-	mi := &file_projects_domain_proto_msgTypes[10]
+	mi := &file_projects_domain_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -756,7 +808,7 @@ func (x *ChangeRequest) String() string {
 func (*ChangeRequest) ProtoMessage() {}
 
 func (x *ChangeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_projects_domain_proto_msgTypes[10]
+	mi := &file_projects_domain_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -769,7 +821,7 @@ func (x *ChangeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChangeRequest.ProtoReflect.Descriptor instead.
 func (*ChangeRequest) Descriptor() ([]byte, []int) {
-	return file_projects_domain_proto_rawDescGZIP(), []int{10}
+	return file_projects_domain_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ChangeRequest) GetId() string {
@@ -795,7 +847,7 @@ type EmptyResponse struct {
 
 func (x *EmptyResponse) Reset() {
 	*x = EmptyResponse{}
-	mi := &file_projects_domain_proto_msgTypes[11]
+	mi := &file_projects_domain_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -807,7 +859,7 @@ func (x *EmptyResponse) String() string {
 func (*EmptyResponse) ProtoMessage() {}
 
 func (x *EmptyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_projects_domain_proto_msgTypes[11]
+	mi := &file_projects_domain_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -820,7 +872,7 @@ func (x *EmptyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EmptyResponse.ProtoReflect.Descriptor instead.
 func (*EmptyResponse) Descriptor() ([]byte, []int) {
-	return file_projects_domain_proto_rawDescGZIP(), []int{11}
+	return file_projects_domain_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *EmptyResponse) GetTracing() string {
@@ -840,7 +892,7 @@ type CategoriesResponse struct {
 
 func (x *CategoriesResponse) Reset() {
 	*x = CategoriesResponse{}
-	mi := &file_projects_domain_proto_msgTypes[12]
+	mi := &file_projects_domain_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -852,7 +904,7 @@ func (x *CategoriesResponse) String() string {
 func (*CategoriesResponse) ProtoMessage() {}
 
 func (x *CategoriesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_projects_domain_proto_msgTypes[12]
+	mi := &file_projects_domain_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -865,7 +917,7 @@ func (x *CategoriesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CategoriesResponse.ProtoReflect.Descriptor instead.
 func (*CategoriesResponse) Descriptor() ([]byte, []int) {
-	return file_projects_domain_proto_rawDescGZIP(), []int{12}
+	return file_projects_domain_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CategoriesResponse) GetCategories() []string {
@@ -926,7 +978,10 @@ const file_projects_domain_proto_rawDesc = "" +
 	"\x06photos\x18\x03 \x03(\v2\x0f.user.v1.AvatarR\x06photos\x12\x1a\n" +
 	"\bcategory\x18\x04 \x01(\tR\bcategory\x128\n" +
 	"\blocation\x18\x05 \x01(\v2\x1c.projects.v1.ProjectLocationR\blocationB\x0e\n" +
-	"\f_description\"\x1f\n" +
+	"\f_description\":\n" +
+	"\x0eCreateResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
+	"\atracing\x18\x02 \x01(\tR\atracing\"\x1f\n" +
 	"\rRequestWithID\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"/\n" +
 	"\rChangeRequest\x12\x0e\n" +
@@ -969,7 +1024,7 @@ func file_projects_domain_proto_rawDescGZIP() []byte {
 }
 
 var file_projects_domain_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_projects_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_projects_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_projects_domain_proto_goTypes = []any{
 	(ProjectCategory)(0),          // 0: projects.v1.ProjectCategory
 	(ProjectVoteStatus)(0),        // 1: projects.v1.ProjectVoteStatus
@@ -982,25 +1037,26 @@ var file_projects_domain_proto_goTypes = []any{
 	(*ProjectInfo)(nil),           // 8: projects.v1.ProjectInfo
 	(*Project)(nil),               // 9: projects.v1.Project
 	(*CreateRequest)(nil),         // 10: projects.v1.CreateRequest
-	(*RequestWithID)(nil),         // 11: projects.v1.RequestWithID
-	(*ChangeRequest)(nil),         // 12: projects.v1.ChangeRequest
-	(*EmptyResponse)(nil),         // 13: projects.v1.EmptyResponse
-	(*CategoriesResponse)(nil),    // 14: projects.v1.CategoriesResponse
-	(*v1.Avatar)(nil),             // 15: user.v1.Avatar
-	(*v1.UserPublic)(nil),         // 16: user.v1.UserPublic
-	(*timestamppb.Timestamp)(nil), // 17: google.protobuf.Timestamp
+	(*CreateResponse)(nil),        // 11: projects.v1.CreateResponse
+	(*RequestWithID)(nil),         // 12: projects.v1.RequestWithID
+	(*ChangeRequest)(nil),         // 13: projects.v1.ChangeRequest
+	(*EmptyResponse)(nil),         // 14: projects.v1.EmptyResponse
+	(*CategoriesResponse)(nil),    // 15: projects.v1.CategoriesResponse
+	(*v1.Avatar)(nil),             // 16: user.v1.Avatar
+	(*v1.UserPublic)(nil),         // 17: user.v1.UserPublic
+	(*timestamppb.Timestamp)(nil), // 18: google.protobuf.Timestamp
 }
 var file_projects_domain_proto_depIdxs = []int32{
 	9,  // 0: projects.v1.GetResponse.projects:type_name -> projects.v1.Project
-	15, // 1: projects.v1.ProjectInfo.photos:type_name -> user.v1.Avatar
+	16, // 1: projects.v1.ProjectInfo.photos:type_name -> user.v1.Avatar
 	0,  // 2: projects.v1.ProjectInfo.category:type_name -> projects.v1.ProjectCategory
 	7,  // 3: projects.v1.ProjectInfo.location:type_name -> projects.v1.ProjectLocation
-	16, // 4: projects.v1.Project.author:type_name -> user.v1.UserPublic
+	17, // 4: projects.v1.Project.author:type_name -> user.v1.UserPublic
 	8,  // 5: projects.v1.Project.details:type_name -> projects.v1.ProjectInfo
 	1,  // 6: projects.v1.Project.status:type_name -> projects.v1.ProjectVoteStatus
-	16, // 7: projects.v1.Project.liked:type_name -> user.v1.UserPublic
-	17, // 8: projects.v1.Project.createdAt:type_name -> google.protobuf.Timestamp
-	15, // 9: projects.v1.CreateRequest.photos:type_name -> user.v1.Avatar
+	17, // 7: projects.v1.Project.liked:type_name -> user.v1.UserPublic
+	18, // 8: projects.v1.Project.createdAt:type_name -> google.protobuf.Timestamp
+	16, // 9: projects.v1.CreateRequest.photos:type_name -> user.v1.Avatar
 	7,  // 10: projects.v1.CreateRequest.location:type_name -> projects.v1.ProjectLocation
 	11, // [11:11] is the sub-list for method output_type
 	11, // [11:11] is the sub-list for method input_type
@@ -1021,7 +1077,7 @@ func file_projects_domain_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_projects_domain_proto_rawDesc), len(file_projects_domain_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   13,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

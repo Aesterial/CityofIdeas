@@ -61,10 +61,11 @@ func (a *Authenticator) RequireUser(ctx context.Context) (*user.RequestData, err
 
 	valid, err := a.Sessions.IsValid(ctx, sessionID)
 	if err != nil {
-		return nil, apperrors.InvalidArguments
+		logger.Debug("failed to check is session valid: " + err.Error(), "auth.sessions.valid")
+		return nil, apperrors.Wrap(err)
 	}
 	if !valid {
-		return nil, apperrors.InvalidArguments
+		return nil, apperrors.Unauthenticated
 	}
 
 	uid, err := a.Sessions.GetUID(ctx, sessionID)
@@ -78,7 +79,7 @@ func (a *Authenticator) RequireUser(ctx context.Context) (*user.RequestData, err
 	}
 	us := &user.RequestData{UID: *uid, SessionID: sessionID}
 	if banned {
-		return us, apperrors.InvalidArguments
+		return us, apperrors.Banned
 	}
 	return us, nil
 }
@@ -92,7 +93,7 @@ func (a *Authenticator) RequirePermissions(ctx context.Context, uid uint, need .
 	}
 	ok, err := a.User.HasAllPerms(ctx, uid, need...)
 	if err != nil {
-		return apperrors.AccessDenied
+		return apperrors.Wrap(err)
 	}
 	if !ok {
 		return apperrors.AccessDenied

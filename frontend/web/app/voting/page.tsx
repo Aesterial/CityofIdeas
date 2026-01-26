@@ -1,8 +1,8 @@
 ﻿"use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, ListFilter, MapPin, Sparkles } from "lucide-react";
+import { Check, ChevronDown, ListFilter, MapPin, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Header, cities as availableCities } from "@/components/header";
 import { GradientButton } from "@/components/gradient-button";
@@ -167,6 +167,9 @@ export default function VotingPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState(ALL_FILTER);
   const [selectedCity, setSelectedCity] = useState<CityFilter>(ALL_FILTER);
+  const [isCityOpen, setIsCityOpen] = useState(false);
+  const cityDropdownRef = useRef<HTMLDivElement | null>(null);
+  const cityListRef = useRef<HTMLUListElement | null>(null);
   const [sortBy, setSortBy] =
     useState<(typeof sortOptions)[number]["id"]>("popular");
   const { user, status } = useAuth();
@@ -403,6 +406,62 @@ export default function VotingPage() {
     return selectedCity === ALL_FILTER ? "Все города" : selectedCity;
   }, [selectedCity]);
 
+  const handleCityChange = (value: string) => {
+    setSelectedCity(value as CityFilter);
+    setIsCityOpen(false);
+  };
+
+  useEffect(() => {
+    if (!isCityOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!cityDropdownRef.current?.contains(event.target as Node)) {
+        setIsCityOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsCityOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isCityOpen]);
+
+  useEffect(() => {
+    if (!isCityOpen) {
+      return;
+    }
+
+    const list = cityListRef.current;
+    if (!list) {
+      return;
+    }
+
+    const escapeValue =
+      typeof CSS !== "undefined" && typeof CSS.escape === "function"
+        ? CSS.escape
+        : (value: string) => value.replace(/"/g, '\\"');
+    const selected = list.querySelector(
+      `[data-value="${escapeValue(selectedCity)}"]`,
+    ) as HTMLElement | null;
+
+    if (selected) {
+      requestAnimationFrame(() => {
+        selected.scrollIntoView({ block: "nearest" });
+      });
+    }
+  }, [isCityOpen, selectedCity]);
+
   const visibleIdeas = useMemo(() => {
     return ideas.filter((idea) => {
       const categoryOk =
@@ -490,22 +549,60 @@ export default function VotingPage() {
         <label className="mt-3 block text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
           Город
         </label>
-        <div className="relative mt-3">
+        <div className="relative mt-3" ref={cityDropdownRef}>
           <MapPin className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <select
-            value={selectedCity}
-            onChange={(event) =>
-              setSelectedCity(event.target.value as CityFilter)
-            }
-            className="w-full appearance-none rounded-2xl border border-border/60 bg-background px-10 py-3 text-sm font-semibold text-foreground shadow-sm transition focus:outline-none focus:ring-2 focus:ring-foreground/20"
+          <button
+            type="button"
+            aria-haspopup="listbox"
+            aria-expanded={isCityOpen}
+            onClick={() => setIsCityOpen((prev) => !prev)}
+            className="w-full rounded-2xl border border-border/60 bg-background px-10 py-3 text-left text-sm font-semibold text-foreground shadow-sm transition focus:outline-none focus:ring-2 focus:ring-foreground/20"
           >
-            {cityOptions.map((city) => (
-              <option key={city.id} value={city.id}>
-                {city.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            {selectedCityLabel}
+          </button>
+          <ChevronDown
+            className={`pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-transform ${
+              isCityOpen ? "rotate-180" : "rotate-0"
+            }`}
+          />
+          <ul
+            ref={cityListRef}
+            role="listbox"
+            aria-hidden={!isCityOpen}
+            className={`absolute left-0 right-0 z-20 mt-2 h-60 max-h-60 origin-top overflow-auto rounded-2xl border border-border/60 bg-card/95 p-1 shadow-[0_18px_40px_-32px_rgba(0,0,0,0.55)] backdrop-blur transition duration-150 ease-out ${
+              isCityOpen
+                ? "pointer-events-auto scale-100 opacity-100"
+                : "pointer-events-none scale-95 opacity-0"
+            }`}
+          >
+            {cityOptions.map((city) => {
+              const isSelected = selectedCity === city.id;
+              return (
+                <li key={city.id} role="presentation">
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={isSelected}
+                    data-value={city.id}
+                    onClick={() => handleCityChange(city.id)}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-semibold transition ${
+                      isSelected
+                        ? "bg-foreground/10"
+                        : "hover:bg-foreground/10"
+                    }`}
+                  >
+                    <span className="truncate">{city.label}</span>
+                    {isSelected ? (
+                      <Check
+                        aria-hidden="true"
+                        className="h-4 w-4 text-foreground"
+                      />
+                    ) : null}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
         </div>
       </div>
     </div>

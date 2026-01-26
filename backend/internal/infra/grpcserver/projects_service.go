@@ -43,7 +43,7 @@ func NewProjectService(projects *projectsapp.Service, sess *sessionsapp.Service,
 	}
 }
 
-func (s *ProjectService) Create(ctx context.Context, req *projpb.CreateRequest) (*projpb.EmptyResponse, error) {
+func (s *ProjectService) Create(ctx context.Context, req *projpb.CreateRequest) (*projpb.CreateResponse, error) {
 	if s == nil || s.projects == nil {
 		return nil, apperrors.NotConfigured.AddErrDetails("projects service not configured")
 	}
@@ -97,13 +97,14 @@ func (s *ProjectService) Create(ctx context.Context, req *projpb.CreateRequest) 
 		project.Info.Photos = append(project.Info.Photos, avatar)
 	}
 
-	if err := s.projects.CreateProject(ctx, project); err != nil {
+	id, err := s.projects.CreateProject(ctx, project)
+	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
 
 	traceID := TraceIDOrNew(ctx)
 	logger.Info("Project created", "projects.create.success", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.Success, traceID)
-	return &projpb.EmptyResponse{Tracing: traceID}, nil
+	return &projpb.CreateResponse{Id: id.String(),Tracing: traceID}, nil
 }
 
 func (s *ProjectService) Categories(ctx context.Context, _ *emptypb.Empty) (*projpb.CategoriesResponse, error) {

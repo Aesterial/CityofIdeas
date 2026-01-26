@@ -1304,37 +1304,37 @@ func (p *ProjectsRepository) GetProjectsByUID(ctx context.Context, uid int) (pro
 	return projects, nil
 }
 
-func (p *ProjectsRepository) CreateProject(ctx context.Context, info projectdomain.Project) error {
+func (p *ProjectsRepository) CreateProject(ctx context.Context, info projectdomain.Project) (*uuid.UUID, error) {
 	var projectId uuid.UUID
 	if err := p.DB.QueryRowContext(ctx, "INSERT INTO projects (author_uid, info) VALUES ($1, ROW($2, $3, $4::project_categories, ROW($5, $6, $7)::project_location_t)::project_info_t) RETURNING id", info.Author.UID, info.Info.Title, info.Info.Description, info.Info.Category, info.Info.Location.City, info.Info.Location.Latitude, info.Info.Location.Longitude).Scan(&projectId); err != nil {
-		return err
+		return nil, err
 	}
-	if len(info.Info.Photos) > 0 {
-		stmt, err := p.DB.PrepareContext(ctx, `
-			INSERT INTO project_photos (project_id, object_key, content_type, size_bytes, created_at)
-			VALUES ($1, $2, $3, $4, now())
-		`)
-		if err != nil {
-			return err
-		}
-		defer stmt.Close()
-		for _, photo := range info.Info.Photos {
-			if photo == nil {
-				continue
-			}
-			key := strings.TrimSpace(photo.Key)
-			if key == "" {
-				return apperrors.RequiredDataMissing.AddErrDetails("project photo key is empty")
-			}
-			if _, err = stmt.Exec(projectId, key, strings.TrimSpace(photo.ContentType), photo.SizeBytes); err != nil {
-				return err
-			}
-		}
-	}
+	// if len(info.Info.Photos) > 0 {
+	// 	stmt, err := p.DB.PrepareContext(ctx, `
+	// 		INSERT INTO project_photos (project_id, object_key, content_type, size_bytes, created_at)
+	// 		VALUES ($1, $2, $3, $4, now())
+	// 	`)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	defer stmt.Close()
+	// 	for _, photo := range info.Info.Photos {
+	// 		if photo == nil {
+	// 			continue
+	// 		}
+	// 		key := strings.TrimSpace(photo.Key)
+	// 		if key == "" {
+	// 			return nil, apperrors.RequiredDataMissing.AddErrDetails("project photo key is empty")
+	// 		}
+	// 		if _, err = stmt.Exec(projectId, key, strings.TrimSpace(photo.ContentType), photo.SizeBytes); err != nil {
+	// 			return nil, err
+	// 		}
+	// 	}
+	// }
 	if _, err := p.DB.ExecContext(ctx, "INSERT INTO submissions (project_id) VALUES ($1)", projectId); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &projectId, nil
 }
 
 func (p *ProjectsRepository) GetCategories(ctx context.Context) ([]string, error) {
@@ -2283,9 +2283,27 @@ func (t *TicketsRepository) Info(ctx context.Context, id uuid.UUID) (*tickets.Ti
 	return info, nil
 }
 
-func (t *TicketsRepository) List(ctx context.Context) (tickets.Tickets, error) {
+func (t *TicketsRepository) List(ctx context.Context, own bool, uid *uint, token *string) (tickets.Tickets, error) {
+	var (
+		query = "SELECT t.* FROM tickets t ORDER BY t.created DESC"
+		args  []any
+	)
+	if own {
+		switch {
+		case uid != nil:
+			query = "SELECT t.* FROM tickets t WHERE t.authorized = $1 AND t.authorized_uid = $2 ORDER BY t.created DESC"
+			args = []any{true, *uid}
+
+		case token != nil:
+			query = "SELECT t.* FROM tickets t WHERE t.authorized = $1 AND t.requestor_token = $2 ORDER BY t.created DESC"
+			args = []any{false, *token}
+
+		default:
+			return nil, apperrors.InvalidArguments
+		}
+	}
 	var ts tickets.Tickets
-	rows, err := t.DB.QueryContext(ctx, "SELECT t.* FROM tickets t")
+	rows, err := t.DB.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

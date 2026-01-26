@@ -18,33 +18,34 @@ func New(repo projects.Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func (s *Service) CreateProject(ctx context.Context, project projects.Project) error {
+func (s *Service) CreateProject(ctx context.Context, project projects.Project) (*uuid.UUID, error) {
 	if s == nil || s.repo == nil {
-		return apperrors.NotConfigured
+		return nil, apperrors.NotConfigured
 	}
 	if project.Author == nil || project.Author.UID == 0 {
-		return apperrors.RequiredDataMissing.AddErrDetails("author is empty")
+		return nil, apperrors.RequiredDataMissing.AddErrDetails("author is empty")
 	}
 
 	title := strings.TrimSpace(project.Info.Title)
 	if title == "" {
-		return apperrors.RequiredDataMissing.AddErrDetails("title is empty")
+		return nil, apperrors.RequiredDataMissing.AddErrDetails("title is empty")
 	}
 	project.Info.Title = title
 
 	project.Info.Description = strings.TrimSpace(project.Info.Description)
 	project.Info.Category = projects.ProjectCategory(strings.TrimSpace(project.Info.Category.String()))
 	if project.Info.Category == "" {
-		return apperrors.RequiredDataMissing.AddErrDetails("category is empty")
+		return nil, apperrors.RequiredDataMissing.AddErrDetails("category is empty")
 	}
 
 	project.Info.Location.City = strings.TrimSpace(project.Info.Location.City)
 
-	if err := s.repo.CreateProject(ctx, project); err != nil {
+	id, err := s.repo.CreateProject(ctx, project)
+	if err != nil {
 		logger.Debug("error appeared: "+err.Error(), "projects.create_project")
-		return apperrors.Wrap(err)
+		return nil, apperrors.Wrap(err)
 	}
-	return nil
+	return id, nil
 }
 
 func (s *Service) GetCategories(ctx context.Context) ([]string, error) {
