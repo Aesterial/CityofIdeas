@@ -826,21 +826,25 @@ export async function fetchRankUsers(
   if (!trimmed) {
     throw new Error("Rank name is required.");
   }
+
   const encoded = encodeURIComponent(trimmed);
+
   const payload = await apiRequest<ApiRankUsersResponse | ApiUserPublic[]>(
     `/api/ranks/${encoded}/users`,
-    {
-      method: "GET",
-      signal: options?.signal,
-    },
+    { method: "GET", signal: options?.signal },
   );
-  const records = Array.isArray(payload)
+
+  const records: ApiUserPublic[] = Array.isArray(payload)
     ? payload
-    : (payload?.users ?? payload?.data ?? []);
+    : Array.isArray(payload?.users)
+      ? payload.users
+      : [];
+
   return records
-    .map(toUserListItem)
-    .filter((item): item is UserListItem => Boolean(item));
+    .map((u): UserListItem | null => toUserListItem(u))
+    .filter((u): u is UserListItem => u !== null);
 }
+
 
 export async function fetchUsers(options?: {
   signal?: AbortSignal;
