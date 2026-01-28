@@ -473,6 +473,15 @@ export default function AdminUsersPage() {
     });
   };
 
+  const handleRoleUpdated = (userID: number, role: string) => {
+    setUsers((prev) =>
+      prev.map((item) => (item.userID === userID ? { ...item, role } : item)),
+    );
+    setSettingsUser((prev) =>
+      prev && prev.userID === userID ? { ...prev, role } : prev,
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
       <div className="pointer-events-none absolute -top-40 right-0 h-[28rem] w-[28rem] rounded-full bg-foreground/5 blur-3xl" />
@@ -991,6 +1000,7 @@ export default function AdminUsersPage() {
         }}
         onAction={handleSettingsAction}
         onOpenRanksDialog={() => setRanksDialogOpen(true)}
+        onRoleUpdated={handleRoleUpdated}
       />
       <AdminRanksDialog
         open={ranksDialogOpen}

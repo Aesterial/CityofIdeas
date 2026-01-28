@@ -1377,6 +1377,15 @@ export default function AdminPage() {
     });
   };
 
+  const handleRoleUpdated = (userID: number, role: string) => {
+    setUsers((prev) =>
+      prev.map((item) => (item.userID === userID ? { ...item, role } : item)),
+    );
+    setSettingsUser((prev) =>
+      prev && prev.userID === userID ? { ...prev, role } : prev,
+    );
+  };
+
   const sidebar = (
     <motion.aside
       data-tutorial="admin-sidebar"
@@ -2514,6 +2523,7 @@ export default function AdminPage() {
               }}
               onAction={handleSettingsAction}
               onOpenRanksDialog={() => setRanksDialogOpen(true)}
+              onRoleUpdated={handleRoleUpdated}
             />
             <AdminRanksDialog
               open={ranksDialogOpen}

@@ -22,6 +22,7 @@ import { useLanguage } from "@/components/language-provider";
 import {
   fetchRanksList,
   fetchUserPermissions,
+  setUserRank,
   updateUserPermission,
   type ApiRankListItem,
 } from "@/lib/api";
@@ -49,6 +50,7 @@ type AdminUserSettingsDialogProps = {
   onOpenChange: (open: boolean) => void;
   onAction?: (action: SettingsAction, user: AdminUserSettingsTarget) => void;
   onOpenRanksDialog?: () => void;
+  onRoleUpdated?: (userID: number, role: string) => void;
 };
 
 type PermissionEntry = {
@@ -135,6 +137,7 @@ export function AdminUserSettingsDialog({
   onOpenChange,
   onAction,
   onOpenRanksDialog,
+  onRoleUpdated,
 }: AdminUserSettingsDialogProps) {
   const { t, language } = useLanguage();
   const [section, setSection] = useState<SettingsSection>("permissions");
@@ -154,8 +157,10 @@ export function AdminUserSettingsDialog({
   const [ranksError, setRanksError] = useState<string | null>(null);
   const [ranksReloadKey, setRanksReloadKey] = useState(0);
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [currentRole, setCurrentRole] = useState("");
   const [roleExpiresAt, setRoleExpiresAt] = useState<Date | null>(null);
   const [roleCalendarOpen, setRoleCalendarOpen] = useState(false);
+  const [roleUpdating, setRoleUpdating] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -167,9 +172,12 @@ export function AdminUserSettingsDialog({
     if (!open || !user) {
       return;
     }
-    setSelectedRole(user.role || t("labelUser"));
+    const initialRole = user.role || t("labelUser");
+    setCurrentRole(initialRole);
+    setSelectedRole(initialRole);
     setRoleExpiresAt(null);
     setRoleCalendarOpen(false);
+    setRoleUpdating(false);
   }, [open, user?.userID, user?.role, t]);
 
   useEffect(() => {
@@ -320,7 +328,7 @@ export function AdminUserSettingsDialog({
 
   const activeSection =
     sections.find((item) => item.id === section) ?? sections[0];
-  const displayRole = user?.role || t("labelUser");
+  const displayRole = currentRole || t("labelUser");
   const roleGlowStyle = getRankGlowStyle(displayRole);
   const roleHasChanges =
     (selectedRole ?? displayRole) !== displayRole || roleExpiresAt !== null;
@@ -336,11 +344,31 @@ export function AdminUserSettingsDialog({
     setRoleExpiresAt(null);
   };
 
-  const handleRoleApply = () => {
-    if (!roleHasChanges) {
+  const handleRoleApply = async () => {
+    if (!user || !roleHasChanges || roleUpdating) {
       return;
     }
-    toast.message(t("adminUserSettingsRoleUnavailable"));
+    const nextRole = (selectedRole ?? displayRole).trim();
+    if (!nextRole) {
+      return;
+    }
+    setRoleUpdating(true);
+    try {
+      await setUserRank(user.userID, nextRole, roleExpiresAt);
+      setCurrentRole(nextRole);
+      setSelectedRole(nextRole);
+      setRoleExpiresAt(null);
+      toast.success(t("adminUserSettingsRoleSaveSuccess"), {
+        description: user.name,
+      });
+      onRoleUpdated?.(user.userID, nextRole);
+    } catch (error) {
+      toast.error(t("adminUserSettingsRoleSaveError"), {
+        description: error instanceof Error ? error.message : undefined,
+      });
+    } finally {
+      setRoleUpdating(false);
+    }
   };
 
   if (!user) {
@@ -612,6 +640,7 @@ export function AdminUserSettingsDialog({
                                     : "border-border/60 bg-background/70 text-foreground hover:border-foreground/40",
                                 )}
                                 style={rankGlowStyle ?? undefined}
+                                disabled={roleUpdating}
                               >
                                 <div className="flex items-start justify-between gap-3">
                                   <div>
@@ -671,6 +700,7 @@ export function AdminUserSettingsDialog({
                               <button
                                 type="button"
                                 className="flex w-full items-center justify-between gap-3 rounded-2xl border border-border/60 bg-background/80 px-3 py-2.5 text-left text-[13px] sm:px-4 sm:py-3 sm:text-sm"
+                                disabled={roleUpdating}
                               >
                                 <div>
                                   <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground sm:text-[11px]">
@@ -708,6 +738,7 @@ export function AdminUserSettingsDialog({
                               type="button"
                               onClick={() => handleRoleQuickAdd(1)}
                               className="rounded-2xl border border-border/60 bg-background/70 px-3 py-2 text-[11px] font-semibold transition hover:bg-foreground hover:text-background sm:text-xs"
+                              disabled={roleUpdating}
                             >
                               +{t("adminBanDuration24h")}
                             </button>
@@ -715,6 +746,7 @@ export function AdminUserSettingsDialog({
                               type="button"
                               onClick={() => handleRoleQuickAdd(7)}
                               className="rounded-2xl border border-border/60 bg-background/70 px-3 py-2 text-[11px] font-semibold transition hover:bg-foreground hover:text-background sm:text-xs"
+                              disabled={roleUpdating}
                             >
                               +{t("adminBanDuration7d")}
                             </button>
@@ -722,6 +754,7 @@ export function AdminUserSettingsDialog({
                               type="button"
                               onClick={() => handleRoleQuickAdd(30)}
                               className="rounded-2xl border border-border/60 bg-background/70 px-3 py-2 text-[11px] font-semibold transition hover:bg-foreground hover:text-background sm:text-xs"
+                              disabled={roleUpdating}
                             >
                               +{t("adminBanDuration30d")}
                             </button>
@@ -729,6 +762,7 @@ export function AdminUserSettingsDialog({
                               type="button"
                               onClick={() => setRoleCalendarOpen(true)}
                               className="rounded-2xl border border-border/60 bg-background/70 px-3 py-2 text-[11px] font-semibold transition hover:bg-foreground hover:text-background sm:text-xs"
+                              disabled={roleUpdating}
                             >
                               {t("adminUserSettingsRolePickDate")}
                             </button>
@@ -742,7 +776,7 @@ export function AdminUserSettingsDialog({
                         <button
                           type="button"
                           onClick={handleRoleReset}
-                          disabled={!roleHasChanges}
+                          disabled={!roleHasChanges || roleUpdating}
                           className="rounded-full border border-border/70 px-3 py-1.5 text-[11px] font-semibold transition hover:bg-foreground hover:text-background disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:py-2 sm:text-xs"
                         >
                           {t("adminUserSettingsRoleReset")}
@@ -750,10 +784,12 @@ export function AdminUserSettingsDialog({
                         <button
                           type="button"
                           onClick={handleRoleApply}
-                          disabled={!roleHasChanges}
+                          disabled={!roleHasChanges || roleUpdating}
                           className="rounded-full bg-foreground px-3 py-1.5 text-[11px] font-semibold text-background transition hover:shadow-lg hover:shadow-foreground/20 disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:py-2 sm:text-xs"
                         >
-                          {t("adminUserSettingsRoleApply")}
+                          {roleUpdating
+                            ? t("adminUserSettingsRoleSaving")
+                            : t("adminUserSettingsRoleApply")}
                         </button>
                       </div>
                     </div>

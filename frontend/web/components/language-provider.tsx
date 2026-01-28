@@ -1035,6 +1035,21 @@ export const translations: Translations = {
     EN: "Apply",
     KZ: "Қолдану",
   },
+  adminUserSettingsRoleSaving: {
+    RU: "Сохранение...",
+    EN: "Saving...",
+    KZ: "Сақталуда...",
+  },
+  adminUserSettingsRoleSaveSuccess: {
+    RU: "Ранг обновлён.",
+    EN: "Rank updated.",
+    KZ: "Ранг жаңартылды.",
+  },
+  adminUserSettingsRoleSaveError: {
+    RU: "Не удалось обновить ранг.",
+    EN: "Failed to update rank.",
+    KZ: "Рангты жаңарту мүмкін болмады.",
+  },
   adminUserSettingsRoleReset: {
     RU: "Сбросить",
     EN: "Reset",

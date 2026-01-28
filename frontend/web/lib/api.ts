@@ -695,6 +695,36 @@ export async function updateUserPermission(
   );
 }
 
+export async function setUserRank(
+  userID: number,
+  rank: string,
+  expiresAt?: Date | string | null,
+): Promise<void> {
+  if (!Number.isFinite(userID) || userID <= 0) {
+    throw new Error("User id is required.");
+  }
+  const trimmedRank = rank.trim();
+  if (!trimmedRank) {
+    throw new Error("Rank is required.");
+  }
+  const body: Record<string, unknown> = {
+    userID,
+    rank: trimmedRank,
+  };
+  if (expiresAt) {
+    const dateValue =
+      typeof expiresAt === "string" ? new Date(expiresAt) : expiresAt;
+    if (Number.isNaN(dateValue.getTime())) {
+      throw new Error("Invalid expiration date.");
+    }
+    body.expires = dateValue.toISOString();
+  }
+  await apiRequest(`/api/user/${userID}/rank/set`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
 export async function fetchRanksList(options?: {
   signal?: AbortSignal;
 }): Promise<ApiRankListItem[]> {
@@ -844,7 +874,6 @@ export async function fetchRankUsers(
     .map((u): UserListItem | null => toUserListItem(u))
     .filter((u): u is UserListItem => u !== null);
 }
-
 
 export async function fetchUsers(options?: {
   signal?: AbortSignal;
