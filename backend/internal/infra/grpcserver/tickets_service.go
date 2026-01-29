@@ -34,6 +34,22 @@ func NewTicketsService(s *tickets.Service, sess *sessionsapp.Service, us *userap
 	return &TicketsService{serv: s, us: us, auth: NewAuthenticator(sess, us), mailer: m, storage: storage}
 }
 
+func (t *TicketsService) canAcceptTicket(ctx context.Context, uid uint) (bool, error) {
+	perms := []permsdomain.Permission{
+		permsdomain.TicketsAccept,
+		permsdomain.TicketsAll,
+		permsdomain.TicketsViewListAny,
+	}
+	for _, perm := range perms {
+		if err := t.auth.RequirePermissions(ctx, uid, perm); err == nil {
+			return true, nil
+		} else if !errors.Is(err, apperrors.AccessDenied) {
+			return false, err
+		}
+	}
+	return false, nil
+}
+
 func (t *TicketsService) canAccessAnyTicket(ctx context.Context, uid uint) (bool, error) {
 	perms := []permsdomain.Permission{
 		permsdomain.TicketsAll,
@@ -336,8 +352,12 @@ func (t *TicketsService) AcceptTicket(ctx context.Context, req *tickpb.TicketInf
 	if err != nil || requestor == nil {
 		return nil, err
 	}
-	if err := t.auth.RequirePermissions(ctx, requestor.UID, permsdomain.TicketsAccept); err != nil {
+	canAccept, err := t.canAcceptTicket(ctx, requestor.UID)
+	if err != nil {
 		return nil, err
+	}
+	if !canAccept {
+		return nil, apperrors.AccessDenied
 	}
 	id, err := uuid.Parse(req.GetId())
 	if err != nil {
