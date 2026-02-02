@@ -67,6 +67,12 @@ type ApiUserSettings = {
   session_live_time?: number | null;
   sessionLiveTime?: number | null;
   avatar?: ApiAvatar | null;
+  totp_enabled?: boolean | null;
+  totpEnabled?: boolean | null;
+  mfa_enabled?: boolean | null;
+  mfaEnabled?: boolean | null;
+  two_factor_enabled?: boolean | null;
+  twoFactorEnabled?: boolean | null;
 };
 
 export type ApiUserPublic = {
@@ -241,11 +247,47 @@ export type AuthUser = {
   uid: number;
   username: string;
   email?: string;
+  emailVerified?: boolean;
   displayName?: string;
   description?: string;
   avatar?: ApiAvatar | null;
   rank?: ApiRank | null;
+  totpEnabled?: boolean;
   joined?: string;
+};
+
+export type AuthChallengeType = "totp" | "email" | "unknown";
+
+export type AuthChallenge = {
+  type: AuthChallengeType;
+  token?: string;
+  verifyUrl?: string;
+  resendUrl?: string;
+  destination?: string;
+  expiresAt?: string;
+  length?: number;
+  redirectUrl?: string;
+  loginMethod?: "password" | "vk";
+};
+
+export type AuthResult = {
+  status: "ok" | "challenge";
+  challenge?: AuthChallenge;
+  redirectUrl?: string;
+};
+
+export type TotpEnrollment = {
+  secret?: string;
+  otpauthUrl?: string;
+  qrBase64?: string;
+  manualUrl?: string;
+  token?: string;
+  digits?: number;
+  period?: number;
+};
+
+export type TotpConfirmResult = {
+  recoveryCodes: string[];
 };
 
 export type UserListItem = {
@@ -291,6 +333,61 @@ function isPermissionsResponse(
 ): payload is ApiPermissionsResponse {
   return typeof payload === "object" && payload !== null && "data" in payload;
 }
+
+const toRecord = (value: unknown): Record<string, unknown> | null => {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+  return value as Record<string, unknown>;
+};
+
+const pickString = (
+  record: Record<string, unknown> | null | undefined,
+  keys: string[],
+): string | undefined => {
+  if (!record) {
+    return undefined;
+  }
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+  }
+  return undefined;
+};
+
+const pickBoolean = (
+  record: Record<string, unknown> | null | undefined,
+  keys: string[],
+): boolean | undefined => {
+  if (!record) {
+    return undefined;
+  }
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "boolean") {
+      return value;
+    }
+  }
+  return undefined;
+};
+
+const pickNumber = (
+  record: Record<string, unknown> | null | undefined,
+  keys: string[],
+): number | undefined => {
+  if (!record) {
+    return undefined;
+  }
+  for (const key of keys) {
+    const value = record[key];
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+  }
+  return undefined;
+};
 
 function toAvatar(value: unknown): ApiAvatar | undefined {
   if (!value || typeof value !== "object") {
@@ -415,18 +512,233 @@ function toAuthUser(payload: ApiUser | ApiUserResponse): AuthUser {
   const rank = publicUser?.rank ?? user.rank ?? undefined;
   const joined =
     publicUser?.joined ?? publicUser?.joinedAt ?? user.joined ?? user.joinedAt;
+  const emailVerified = user.email?.verified ?? false;
+  const settingsRecord = toRecord(settings);
+  const userRecord = toRecord(user);
+  const publicRecord = toRecord(publicUser);
+  const totpEnabled =
+    pickBoolean(settingsRecord, [
+      "totpEnabled",
+      "totp_enabled",
+      "mfaEnabled",
+      "mfa_enabled",
+      "twoFactorEnabled",
+      "two_factor_enabled",
+    ]) ??
+    pickBoolean(userRecord, [
+      "totpEnabled",
+      "totp_enabled",
+      "mfaEnabled",
+      "mfa_enabled",
+      "twoFactorEnabled",
+      "two_factor_enabled",
+    ]) ??
+    pickBoolean(publicRecord, [
+      "totpEnabled",
+      "totp_enabled",
+      "mfaEnabled",
+      "mfa_enabled",
+      "twoFactorEnabled",
+      "two_factor_enabled",
+    ]) ??
+    false;
 
   return {
     uid,
     username,
     email: user.email?.address,
+    emailVerified,
     displayName,
     description,
     avatar,
     rank,
+    totpEnabled,
     joined,
   };
 }
+
+const normalizeAuthChallengeType = (
+  value?: string,
+  destination?: string,
+): AuthChallengeType => {
+  const normalized = value?.trim().toLowerCase();
+  if (normalized) {
+    if (
+      normalized.includes("totp") ||
+      normalized.includes("auth") ||
+      normalized.includes("app")
+    ) {
+      return "totp";
+    }
+    if (normalized.includes("mail") || normalized.includes("email")) {
+      return "email";
+    }
+  }
+  if (destination && destination.includes("@")) {
+    return "email";
+  }
+  return "unknown";
+};
+
+const parseAuthChallenge = (
+  record: Record<string, unknown> | null,
+): AuthChallenge | null => {
+  if (!record) {
+    return null;
+  }
+
+  const required =
+    pickBoolean(record, [
+      "required",
+      "require",
+      "codeRequired",
+      "code_required",
+      "otpRequired",
+      "otp_required",
+      "twoFactorRequired",
+      "two_factor_required",
+      "mfaRequired",
+      "mfa_required",
+    ]) ?? false;
+  const typeValue = pickString(record, [
+    "type",
+    "method",
+    "channel",
+    "delivery",
+    "codeType",
+    "code_type",
+    "otpType",
+    "otp_type",
+    "mfaType",
+    "mfa_type",
+  ]);
+  const token = pickString(record, [
+    "token",
+    "challenge",
+    "challengeId",
+    "challenge_id",
+    "session",
+    "sessionId",
+    "session_id",
+  ]);
+  const verifyUrl = pickString(record, [
+    "verifyUrl",
+    "verify_url",
+    "verificationUrl",
+    "verification_url",
+    "confirmUrl",
+    "confirm_url",
+    "checkUrl",
+    "check_url",
+  ]);
+  const resendUrl = pickString(record, ["resendUrl", "resend_url", "resend"]);
+  const destination = pickString(record, [
+    "destination",
+    "email",
+    "maskedEmail",
+    "masked_email",
+    "address",
+    "mail",
+  ]);
+  const expiresAt = pickString(record, [
+    "expiresAt",
+    "expires_at",
+    "expires",
+    "validUntil",
+    "valid_until",
+  ]);
+  const length = pickNumber(record, [
+    "length",
+    "codeLength",
+    "code_length",
+    "digits",
+  ]);
+
+  if (!required && !typeValue && !token && !verifyUrl && !resendUrl) {
+    return null;
+  }
+
+  return {
+    type: normalizeAuthChallengeType(typeValue, destination),
+    token,
+    verifyUrl,
+    resendUrl,
+    destination,
+    expiresAt,
+    length,
+  };
+};
+
+const extractAuthChallenge = (payload: unknown): AuthChallenge | null => {
+  const root = toRecord(payload);
+  if (!root) {
+    return null;
+  }
+  const data = toRecord(root.data);
+  const candidates = [
+    toRecord(root.challenge),
+    toRecord(root.twoFactor),
+    toRecord(root.two_factor),
+    toRecord(data?.challenge),
+    toRecord(data?.twoFactor),
+    toRecord(data?.two_factor),
+    data,
+    root,
+  ];
+  for (const candidate of candidates) {
+    const parsed = parseAuthChallenge(candidate);
+    if (parsed) {
+      return parsed;
+    }
+  }
+
+  const dataString =
+    pickString(root, ["data", "status", "result"]) ??
+    pickString(data, ["data", "status", "result"]);
+  if (dataString) {
+    const normalized = dataString.toLowerCase();
+    if (normalized.includes("otp") || normalized.includes("code")) {
+      return { type: normalizeAuthChallengeType(normalized, undefined) };
+    }
+  }
+  return null;
+};
+
+const normalizeAuthResult = (payload: unknown): AuthResult => {
+  const root = toRecord(payload);
+  const data = root ? toRecord(root.data) : null;
+  const redirectUrl =
+    pickString(root, [
+      "redirectUrl",
+      "redirect_url",
+      "returnUrl",
+      "return_url",
+      "nextUrl",
+      "next_url",
+      "next",
+    ]) ??
+    pickString(data, [
+      "redirectUrl",
+      "redirect_url",
+      "returnUrl",
+      "return_url",
+      "nextUrl",
+      "next_url",
+      "next",
+    ]);
+  const challenge = extractAuthChallenge(payload);
+  if (challenge) {
+    return {
+      status: "challenge",
+      challenge: {
+        ...challenge,
+        redirectUrl: challenge.redirectUrl ?? redirectUrl,
+      },
+      redirectUrl,
+    };
+  }
+  return { status: "ok", redirectUrl };
+};
 
 async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -521,11 +833,12 @@ export async function registerUser(payload: RegisterPayload): Promise<void> {
 
 export async function authorizeUser(
   payload: AuthorizationPayload,
-): Promise<void> {
-  await apiRequest("/api/login/authorization", {
+): Promise<AuthResult> {
+  const response = await apiRequest<unknown>("/api/login/authorization", {
     method: "POST",
     body: JSON.stringify(payload),
   });
+  return normalizeAuthResult(response);
 }
 
 export async function requestPasswordReset(
@@ -553,6 +866,200 @@ export async function resetPassword(
   await apiRequest("/api/login/reset-password", {
     method: "POST",
     body: JSON.stringify({ email, password, token }),
+  });
+}
+
+export async function requestEmailVerification(payload: {
+  email: string;
+}): Promise<void> {
+  const email = payload.email.trim();
+  if (!email) {
+    throw new Error("Email is required.");
+  }
+  await apiRequest("/api/login/verify-email/start", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function verifyEmail(payload: {
+  email: string;
+  token: string;
+}): Promise<void> {
+  const email = payload.email.trim();
+  const token = payload.token.trim();
+  if (!email || !token) {
+    throw new Error("Email and token are required.");
+  }
+  await apiRequest("/api/login/verify-email", {
+    method: "POST",
+    body: JSON.stringify({ email, token }),
+  });
+}
+
+export async function verifyAuthCode(payload: {
+  code: string;
+  challenge?: AuthChallenge | null;
+}): Promise<AuthResult> {
+  const code = payload.code.trim();
+  if (!code) {
+    throw new Error("Code is required.");
+  }
+  const endpoint =
+    payload.challenge?.verifyUrl?.trim() || "/api/login/authorization/verify";
+  const body: Record<string, unknown> = { code };
+  if (payload.challenge?.token) {
+    body.token = payload.challenge.token;
+  }
+  if (payload.challenge?.type && payload.challenge.type !== "unknown") {
+    body.type = payload.challenge.type;
+  }
+  if (
+    payload.challenge?.destination &&
+    !payload.challenge.destination.includes("*")
+  ) {
+    body.destination = payload.challenge.destination;
+  }
+  if (payload.challenge?.loginMethod) {
+    body.method = payload.challenge.loginMethod;
+  }
+  const response = await apiRequest<unknown>(endpoint, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+  return normalizeAuthResult(response);
+}
+
+export async function resendAuthCode(challenge: AuthChallenge): Promise<void> {
+  const endpoint =
+    challenge.resendUrl?.trim() || "/api/login/authorization/resend";
+  const body: Record<string, unknown> = {};
+  if (challenge.token) {
+    body.token = challenge.token;
+  }
+  if (challenge.type && challenge.type !== "unknown") {
+    body.type = challenge.type;
+  }
+  if (challenge.destination && !challenge.destination.includes("*")) {
+    body.destination = challenge.destination;
+  }
+  await apiRequest(endpoint, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function startTotpEnrollment(): Promise<TotpEnrollment> {
+  const payload = await apiRequest<Record<string, unknown>>(
+    "/api/auth/2fa/setup",
+    {
+      method: "POST",
+    },
+  );
+  const record = toRecord(payload) ?? {};
+  const data = toRecord(record.data) ?? record;
+  return {
+    secret:
+      pickString(data, ["secret", "key"]) ??
+      pickString(record, ["secret", "key"]),
+    otpauthUrl:
+      pickString(data, ["otpauthUrl", "otpauth_url", "uri", "otpauth"]) ??
+      pickString(record, ["otpauthUrl", "otpauth_url", "uri", "otpauth"]),
+    qrBase64:
+      pickString(data, [
+        "qrBase64",
+        "qr_base64",
+        "qr",
+        "qrCode",
+        "qr_code",
+        "image",
+        "imageBase64",
+        "image_base64",
+      ]) ??
+      pickString(record, [
+        "qrBase64",
+        "qr_base64",
+        "qr",
+        "qrCode",
+        "qr_code",
+        "image",
+        "imageBase64",
+        "image_base64",
+      ]),
+    manualUrl:
+      pickString(data, ["manualUrl", "manual_url", "url", "setupUrl"]) ??
+      pickString(record, ["manualUrl", "manual_url", "url", "setupUrl"]),
+    token:
+      pickString(data, ["token", "challenge", "challengeId", "challenge_id"]) ??
+      pickString(record, ["token", "challenge", "challengeId", "challenge_id"]),
+    digits:
+      pickNumber(data, ["digits", "length", "codeLength", "code_length"]) ??
+      pickNumber(record, ["digits", "length", "codeLength", "code_length"]),
+    period:
+      pickNumber(data, ["period", "interval"]) ??
+      pickNumber(record, ["period", "interval"]),
+  };
+}
+
+const parseRecoveryCodes = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => (typeof item === "string" ? item.trim() : ""))
+      .filter(Boolean);
+  }
+  if (typeof value === "string") {
+    return value
+      .split(/[\n,;]+/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+export async function confirmTotpEnrollment(payload: {
+  code: string;
+  token?: string;
+}): Promise<TotpConfirmResult> {
+  const code = payload.code.trim();
+  if (!code) {
+    throw new Error("Code is required.");
+  }
+  const body: Record<string, unknown> = { code };
+  if (payload.token) {
+    body.token = payload.token;
+  }
+  const response = await apiRequest<Record<string, unknown>>(
+    "/api/auth/2fa/confirm",
+    {
+      method: "POST",
+      body: JSON.stringify(body),
+    },
+  );
+  const record = toRecord(response) ?? {};
+  const data = toRecord(record.data) ?? record;
+  const codesFromData = parseRecoveryCodes(
+    data.recoveryCodes ?? data.recovery_codes ?? data.codes ?? data.recovery,
+  );
+  const codes =
+    codesFromData.length > 0
+      ? codesFromData
+      : parseRecoveryCodes(
+          record.recoveryCodes ??
+            record.recovery_codes ??
+            record.codes ??
+            record.recovery,
+        );
+  return { recoveryCodes: codes };
+}
+
+export async function disableTotp(payload?: { code?: string }): Promise<void> {
+  const body: Record<string, unknown> = {};
+  if (payload?.code) {
+    body.code = payload.code.trim();
+  }
+  await apiRequest("/api/user/totp/disable", {
+    method: "POST",
+    body: JSON.stringify(body),
   });
 }
 
@@ -585,7 +1092,7 @@ export async function startVkAuth(): Promise<{
 export async function completeVkAuth(
   code: string,
   state: string,
-): Promise<{ redirectUrl?: string; tracing?: string }> {
+): Promise<AuthResult> {
   const params = new URLSearchParams();
   params.set("code", code);
   params.set("state", state);
@@ -595,9 +1102,14 @@ export async function completeVkAuth(
       method: "GET",
     },
   );
+  const result = normalizeAuthResult(payload);
   return {
-    redirectUrl: payload.redirectUrl ?? payload.redirect_url ?? undefined,
-    tracing: payload.tracing,
+    ...result,
+    redirectUrl:
+      result.redirectUrl ??
+      payload.redirectUrl ??
+      payload.redirect_url ??
+      undefined,
   };
 }
 

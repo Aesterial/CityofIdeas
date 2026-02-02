@@ -7,6 +7,7 @@ import { GradientButton } from "@/components/gradient-button";
 import { useLanguage } from "@/components/language-provider";
 import { Logo } from "@/components/logo";
 import { useTheme } from "@/components/theme-provider";
+import { saveAuthChallenge } from "@/lib/auth-challenge";
 import { requestPasswordReset, startVkAuth } from "@/lib/api";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -25,6 +26,22 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type AuthMode = "login" | "register" | "forgot"; // | "forgot-password"
+
+const maskEmail = (value: string) => {
+  const trimmed = value.trim();
+  const [user, domain] = trimmed.split("@");
+  if (!domain) {
+    return trimmed;
+  }
+  if (!user) {
+    return `***@${domain}`;
+  }
+  if (user.length <= 2) {
+    return `${user[0]}***@${domain}`;
+  }
+  const middle = "*".repeat(Math.max(1, user.length - 2));
+  return `${user[0]}${middle}${user[user.length - 1]}@${domain}`;
+};
 
 export default function AuthPage() {
   const router = useRouter();
@@ -162,8 +179,33 @@ export default function AuthPage() {
     setIsSubmitting(true);
     const submitStart = Date.now();
     try {
+      let redirectUrl: string | undefined = "/";
       if (mode === "login") {
-        await login({ usermail: email, password });
+        const result = await login({ usermail: email, password });
+        redirectUrl = result.redirectUrl ?? "/";
+        if (result.status === "challenge") {
+          const elapsed = Date.now() - submitStart;
+          if (elapsed < minWelcomeMs) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, minWelcomeMs - elapsed),
+            );
+          }
+          const baseChallenge = result.challenge ?? { type: "unknown" };
+          const resolvedType =
+            baseChallenge.type === "unknown" && email
+              ? "email"
+              : baseChallenge.type;
+          saveAuthChallenge({
+            ...baseChallenge,
+            type: resolvedType,
+            loginMethod: "password",
+            destination:
+              baseChallenge.destination || (email ? maskEmail(email) : ""),
+            redirectUrl,
+          });
+          router.push("/login/verify");
+          return;
+        }
       } else {
         await register({ username: name, email, password });
       }
@@ -173,7 +215,7 @@ export default function AuthPage() {
           setTimeout(resolve, minWelcomeMs - elapsed),
         );
       }
-      router.push("/");
+      router.push(redirectUrl || "/");
     } catch (err) {
       setErrorMessage(
         err instanceof Error ? err.message : "Something went wrong.",

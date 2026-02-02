@@ -172,8 +172,10 @@ export default function VotingPage() {
   const cityListRef = useRef<HTMLUListElement | null>(null);
   const [sortBy, setSortBy] =
     useState<(typeof sortOptions)[number]["id"]>("popular");
+  const [actionError, setActionError] = useState<string | null>(null);
   const { user, status } = useAuth();
   const { t } = useLanguage();
+  const isEmailVerified = Boolean(user?.emailVerified);
   const categoryLabels = useMemo<Record<string, string>>(
     () => ({
       improvement: t("landscaping"),
@@ -326,6 +328,10 @@ export default function VotingPage() {
   };
 
   const handleVote = async (id: string) => {
+    if (!isEmailVerified) {
+      setActionError(t("emailVerificationRequiredVotingBody"));
+      return;
+    }
     let wasUpdated = false;
     const snapshot = updateIdea(id, (idea) => {
       if (idea.isVoted) {
@@ -347,6 +353,12 @@ export default function VotingPage() {
       );
     }
   };
+
+  useEffect(() => {
+    if (isEmailVerified) {
+      setActionError(null);
+    }
+  }, [isEmailVerified]);
 
   const resetFilters = () => {
     setSelectedCategory(ALL_FILTER);
@@ -586,9 +598,7 @@ export default function VotingPage() {
                     data-value={city.id}
                     onClick={() => handleCityChange(city.id)}
                     className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm font-semibold transition ${
-                      isSelected
-                        ? "bg-foreground/10"
-                        : "hover:bg-foreground/10"
+                      isSelected ? "bg-foreground/10" : "hover:bg-foreground/10"
                     }`}
                   >
                     <span className="truncate">{city.label}</span>
@@ -791,6 +801,43 @@ export default function VotingPage() {
                         </div>
                       </motion.div>
                     ) : null}
+                    {!isEmailVerified ? (
+                      <motion.div
+                        className="rounded-[2rem] border border-amber-500/40 bg-amber-500/10 px-5 py-4 text-sm text-amber-700 shadow-[0_18px_40px_-32px_rgba(0,0,0,0.45)]"
+                        initial={{ opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <p className="font-semibold">
+                              {t("emailVerificationRequiredTitle")}
+                            </p>
+                            <p className="text-xs text-amber-700/80">
+                              {t("emailVerificationRequiredVotingBody")}
+                            </p>
+                          </div>
+                          <Link href="/account" className="inline-flex">
+                            <button
+                              type="button"
+                              className="rounded-full border border-amber-500/50 px-4 py-2 text-xs font-semibold text-amber-700 transition-all duration-300 hover:bg-amber-500/20"
+                            >
+                              {t("emailVerificationGoToAccount")}
+                            </button>
+                          </Link>
+                        </div>
+                      </motion.div>
+                    ) : null}
+                    {actionError ? (
+                      <motion.div
+                        className="rounded-[2rem] border border-destructive/50 bg-destructive/10 px-5 py-4 text-sm text-destructive shadow-[0_18px_40px_-32px_rgba(0,0,0,0.45)]"
+                        initial={{ opacity: 0, y: -6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {actionError}
+                      </motion.div>
+                    ) : null}
 
                     <motion.div
                       key={`${selectedCategory}-${selectedCity}-${sortBy}-${sortedIdeas.length}`}
@@ -903,9 +950,15 @@ export default function VotingPage() {
                                     <GradientButton
                                       className="px-5 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm"
                                       onClick={() => handleVote(idea.id)}
-                                      disabled={idea.isVoted}
+                                      disabled={
+                                        !isEmailVerified || idea.isVoted
+                                      }
                                     >
-                                      {idea.isVoted ? "Голос учтен" : t("vote")}
+                                      {idea.isVoted
+                                        ? "Голос учтен"
+                                        : isEmailVerified
+                                          ? t("vote")
+                                          : t("emailVerificationRequiredTitle")}
                                     </GradientButton>
                                   </div>
                                 </div>

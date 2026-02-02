@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Header } from "@/components/header";
 import { useLanguage } from "@/components/language-provider";
 import { completeVkAuth } from "@/lib/api";
+import { saveAuthChallenge } from "@/lib/auth-challenge";
 
 export default function VkCallbackPage() {
   const router = useRouter();
@@ -23,6 +24,16 @@ export default function VkCallbackPage() {
     completeVkAuth(code, state)
       .then((response) => {
         if (!active) {
+          return;
+        }
+        if (response.status === "challenge") {
+          const baseChallenge = response.challenge ?? { type: "unknown" };
+          saveAuthChallenge({
+            ...baseChallenge,
+            loginMethod: "vk",
+            redirectUrl: response.redirectUrl ?? baseChallenge.redirectUrl,
+          });
+          router.replace("/login/verify");
           return;
         }
         const redirectUrl = response.redirectUrl?.trim() || "/";

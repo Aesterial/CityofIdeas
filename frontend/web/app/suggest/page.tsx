@@ -59,7 +59,7 @@ export default function SuggestPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const imagesRef = useRef<SelectedImage[]>([]);
-  const { status } = useAuth();
+  const { status, user } = useAuth();
   const { t } = useLanguage();
   const categoryOptions = [
     { id: "improvement", label: t("landscaping") },
@@ -216,6 +216,42 @@ export default function SuggestPage() {
                 Авторизация
               </GradientButton>
             </Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (user && !user.emailVerified) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-24 pb-12 px-4 sm:pt-28 sm:pb-16 sm:px-6">
+          <div className="container mx-auto max-w-lg text-center">
+            <p className="text-lg font-semibold">
+              {t("emailVerificationRequiredTitle")}
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {t("emailVerificationRequiredProjectsBody")}
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              {t("emailVerificationSupportHint")}
+            </p>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <Link href="/account" className="inline-flex">
+                <GradientButton className="px-6 py-3 text-sm">
+                  {t("emailVerificationGoToAccount")}
+                </GradientButton>
+              </Link>
+              <Link href="/support" className="inline-flex">
+                <button
+                  type="button"
+                  className="rounded-full border border-border/70 px-6 py-3 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
+                >
+                  {t("emailVerificationGoToSupport")}
+                </button>
+              </Link>
+            </div>
           </div>
         </main>
       </div>

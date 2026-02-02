@@ -13,6 +13,7 @@ import type {
   AvatarUploadPayload,
   ApiPermissions,
   AuthorizationPayload,
+  AuthResult,
   AuthUser,
   RegisterPayload,
 } from "@/lib/api";
@@ -35,7 +36,7 @@ type AuthContextValue = {
   status: AuthStatus;
   user: AuthUser | null;
   permissions: ApiPermissions | null;
-  login: (payload: AuthorizationPayload) => Promise<void>;
+  login: (payload: AuthorizationPayload) => Promise<AuthResult>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: (options?: { silent?: boolean }) => Promise<void>;
@@ -160,8 +161,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(
     async (payload: AuthorizationPayload) => {
-      await authorizeUser(payload);
+      const result = await authorizeUser(payload);
+      if (result.status === "challenge") {
+        return result;
+      }
       await refreshUser({ silent: true });
+      return result;
     },
     [refreshUser],
   );

@@ -2174,6 +2174,281 @@ export const translations: Translations = {
     EN: "Failed to complete VK sign in.",
     KZ: "VK \u0430\u0440\u049b\u044b\u043b\u044b \u043a\u0456\u0440\u0443\u0434\u0456 \u0430\u044f\u049b\u0442\u0430\u0443 \u043c\u04af\u043c\u043a\u0456\u043d \u0431\u043e\u043b\u043c\u0430\u0434\u044b.",
   },
+  authCodeTitle: {
+    RU: "Подтверждение входа",
+    EN: "Sign-in verification",
+    KZ: "Кіруді растау",
+  },
+  authCodeSubtitleEmail: {
+    RU: "Введите код из письма.",
+    EN: "Enter the code from the email.",
+    KZ: "Электрондық поштадан келген кодты енгізіңіз.",
+  },
+  authCodeSubtitleTotp: {
+    RU: "Введите код из приложения-аутентификатора.",
+    EN: "Enter the code from your authenticator app.",
+    KZ: "Аутентификатор қолданбасындағы кодты енгізіңіз.",
+  },
+  authCodeEmailSentTo: {
+    RU: "Код отправлен на",
+    EN: "Code sent to",
+    KZ: "Код жіберілді",
+  },
+  authCodeInputLabel: {
+    RU: "Код подтверждения",
+    EN: "Verification code",
+    KZ: "Растау коды",
+  },
+  authCodeSubmit: {
+    RU: "Подтвердить вход",
+    EN: "Verify sign in",
+    KZ: "Кіруді растау",
+  },
+  authCodeResend: {
+    RU: "Отправить код ещё раз",
+    EN: "Resend code",
+    KZ: "Кодты қайта жіберу",
+  },
+  authCodeResent: {
+    RU: "Код отправлен повторно.",
+    EN: "Code resent.",
+    KZ: "Код қайта жіберілді.",
+  },
+  authCodeMissing: {
+    RU: "Данные для подтверждения не найдены.",
+    EN: "Verification details are missing.",
+    KZ: "Растау деректері табылмады.",
+  },
+  authCodeBack: {
+    RU: "Назад ко входу",
+    EN: "Back to sign in",
+    KZ: "Кіруге қайту",
+  },
+  authCodeError: {
+    RU: "Неверный код.",
+    EN: "Invalid code.",
+    KZ: "Код қате.",
+  },
+  emailVerificationRequiredTitle: {
+    RU: "Подтвердите email",
+    EN: "Verify your email",
+    KZ: "Email-ды растаңыз",
+  },
+  emailVerificationRequiredProjectsBody: {
+    RU: "Подтвердите почту, чтобы создавать проекты.",
+    EN: "Verify your email to submit projects.",
+    KZ: "Жобаларды ұсыну үшін email-ды растаңыз.",
+  },
+  emailVerificationRequiredVotingBody: {
+    RU: "Подтвердите почту, чтобы голосовать.",
+    EN: "Verify your email to vote.",
+    KZ: "Дауыс беру үшін email-ды растаңыз.",
+  },
+  emailVerificationSupportHint: {
+    RU: "В поддержку можно обращаться без подтверждения.",
+    EN: "You can contact support without verification.",
+    KZ: "Қолдауға растаусыз жаза аласыз.",
+  },
+  emailVerificationGoToAccount: {
+    RU: "Перейти в аккаунт",
+    EN: "Go to account",
+    KZ: "Аккаунтқа өту",
+  },
+  emailVerificationGoToSupport: {
+    RU: "Поддержка",
+    EN: "Support",
+    KZ: "Қолдау",
+  },
+  accountSecurityTitle: {
+    RU: "Безопасность",
+    EN: "Security",
+    KZ: "Қауіпсіздік",
+  },
+  accountSecuritySubtitle: {
+    RU: "Управляйте подтверждением почты и 2FA.",
+    EN: "Manage email verification and 2FA.",
+    KZ: "Email растауды және 2FA басқару.",
+  },
+  accountEmailVerificationTitle: {
+    RU: "Подтверждение почты",
+    EN: "Email verification",
+    KZ: "Email растау",
+  },
+  accountEmailVerified: {
+    RU: "Почта подтверждена",
+    EN: "Email verified",
+    KZ: "Email расталған",
+  },
+  accountEmailNotVerified: {
+    RU: "Почта не подтверждена",
+    EN: "Email not verified",
+    KZ: "Email расталмаған",
+  },
+  accountEmailVerifyAction: {
+    RU: "Отправить письмо",
+    EN: "Send verification email",
+    KZ: "Растау хатын жіберу",
+  },
+  accountEmailVerifySending: {
+    RU: "Отправляем...",
+    EN: "Sending...",
+    KZ: "Жіберілуде...",
+  },
+  accountEmailVerifySent: {
+    RU: "Письмо отправлено. Проверьте почту.",
+    EN: "Email sent. Check your inbox.",
+    KZ: "Хат жіберілді. Поштаңызды тексеріңіз.",
+  },
+  accountEmailVerifyMissing: {
+    RU: "Укажите email в профиле.",
+    EN: "Add an email to your profile.",
+    KZ: "Профильге email қосыңыз.",
+  },
+  accountTotpTitle: {
+    RU: "Двухфакторная защита (TOTP)",
+    EN: "Two-factor authentication (TOTP)",
+    KZ: "Екі факторлы қорғаныс (TOTP)",
+  },
+  accountTotpSubtitle: {
+    RU: "Используйте приложения-аутентификаторы.",
+    EN: "Use authenticator apps.",
+    KZ: "Аутентификатор қолданбасын қолданыңыз.",
+  },
+  accountTotpEnabled: {
+    RU: "Включено",
+    EN: "Enabled",
+    KZ: "Қосулы",
+  },
+  accountTotpDisabled: {
+    RU: "Выключено",
+    EN: "Disabled",
+    KZ: "Өшірілген",
+  },
+  accountTotpEnableAction: {
+    RU: "Подключить TOTP",
+    EN: "Enable TOTP",
+    KZ: "TOTP қосу",
+  },
+  accountTotpDisableAction: {
+    RU: "Отключить TOTP",
+    EN: "Disable TOTP",
+    KZ: "TOTP өшіру",
+  },
+  accountTotpSetupHint: {
+    RU: "Сканируйте QR-код и введите код из приложения.",
+    EN: "Scan the QR code and enter the app code.",
+    KZ: "QR-кодты сканерлеп, қолданба кодын енгізіңіз.",
+  },
+  accountTotpSecretLabel: {
+    RU: "Секретный ключ",
+    EN: "Secret key",
+    KZ: "Құпия кілт",
+  },
+  accountTotpCodeLabel: {
+    RU: "Код из приложения",
+    EN: "App code",
+    KZ: "Қолданба коды",
+  },
+  accountTotpConfirmAction: {
+    RU: "Подтвердить",
+    EN: "Confirm",
+    KZ: "Растау",
+  },
+  accountTotpCancelAction: {
+    RU: "Отменить",
+    EN: "Cancel",
+    KZ: "Болдырмау",
+  },
+  accountTotpSetupSuccess: {
+    RU: "TOTP успешно подключён.",
+    EN: "TOTP enabled.",
+    KZ: "TOTP қосылды.",
+  },
+  accountTotpDisableHint: {
+    RU: "Введите код из приложения для отключения.",
+    EN: "Enter your app code to disable.",
+    KZ: "Өшіру үшін қолданба кодын енгізіңіз.",
+  },
+  accountTotpDisableSuccess: {
+    RU: "TOTP отключён.",
+    EN: "TOTP disabled.",
+    KZ: "TOTP өшірілді.",
+  },
+  accountTotpSetupError: {
+    RU: "Не удалось настроить TOTP.",
+    EN: "Failed to set up TOTP.",
+    KZ: "TOTP баптау сәтсіз аяқталды.",
+  },
+  accountTotpModalTitle: {
+    RU: "Привязка TOTP",
+    EN: "TOTP setup",
+    KZ: "TOTP баптау",
+  },
+  accountTotpModalSubtitle: {
+    RU: "Сканируйте QR-код или вставьте ссылку вручную.",
+    EN: "Scan the QR code or add the manual URL.",
+    KZ: "QR-кодты сканерлеңіз немесе сілтемені қолмен енгізіңіз.",
+  },
+  accountTotpManualLabel: {
+    RU: "Ссылка для ручной вставки",
+    EN: "Manual setup URL",
+    KZ: "Қолмен енгізу сілтемесі",
+  },
+  accountTotpRecoveryTitle: {
+    RU: "Коды восстановления",
+    EN: "Recovery codes",
+    KZ: "Қалпына келтіру кодтары",
+  },
+  accountTotpRecoveryHint: {
+    RU: "Сохраните их в безопасном месте.",
+    EN: "Store them in a safe place.",
+    KZ: "Оларды қауіпсіз жерде сақтаңыз.",
+  },
+  accountTotpRecoveryShow: {
+    RU: "Показать",
+    EN: "Show",
+    KZ: "Көрсету",
+  },
+  accountTotpRecoveryHide: {
+    RU: "Скрыть",
+    EN: "Hide",
+    KZ: "Жасыру",
+  },
+  accountTotpCloseAction: {
+    RU: "Закрыть",
+    EN: "Close",
+    KZ: "Жабу",
+  },
+  emailVerifyTitle: {
+    RU: "Подтверждение почты",
+    EN: "Email verification",
+    KZ: "Email растау",
+  },
+  emailVerifySubtitle: {
+    RU: "Введите email и код из письма.",
+    EN: "Enter your email and the code from the email.",
+    KZ: "Email-ды және хаттағы кодты енгізіңіз.",
+  },
+  emailVerifyAction: {
+    RU: "Подтвердить",
+    EN: "Verify",
+    KZ: "Растау",
+  },
+  emailVerifySuccess: {
+    RU: "Почта подтверждена.",
+    EN: "Email verified.",
+    KZ: "Email расталды.",
+  },
+  emailVerifyTokenMissing: {
+    RU: "Токен подтверждения отсутствует.",
+    EN: "Verification token is missing.",
+    KZ: "Растау токені жоқ.",
+  },
+  emailVerifyError: {
+    RU: "Не удалось подтвердить почту.",
+    EN: "Failed to verify email.",
+    KZ: "Email растау сәтсіз аяқталды.",
+  },
 };
 
 interface LanguageContextType {

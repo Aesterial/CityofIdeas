@@ -17,6 +17,11 @@ import { getRankGlowStyle } from "@/lib/rank-colors";
 import { GradientButton } from "@/components/gradient-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -24,6 +29,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  confirmTotpEnrollment,
+  disableTotp,
+  requestEmailVerification,
+  startTotpEnrollment,
+  type TotpEnrollment,
+} from "@/lib/api";
 
 const getInitials = (value: string) => {
   const parts = value.trim().split(/\s+/).filter(Boolean);
@@ -41,6 +53,7 @@ export default function AccountPage() {
   const {
     user,
     status,
+    refreshUser,
     updateDisplayName,
     updateProfileDescription,
     updateAvatar,
@@ -67,6 +80,23 @@ export default function AccountPage() {
     null,
   );
   const [deleteProfileLoading, setDeleteProfileLoading] = useState(false);
+  const [emailVerifyLoading, setEmailVerifyLoading] = useState(false);
+  const [emailVerifyError, setEmailVerifyError] = useState<string | null>(null);
+  const [emailVerifySuccess, setEmailVerifySuccess] = useState<string | null>(
+    null,
+  );
+  const [totpSetup, setTotpSetup] = useState<TotpEnrollment | null>(null);
+  const [totpSetupOpen, setTotpSetupOpen] = useState(false);
+  const [totpRecoveryCodes, setTotpRecoveryCodes] = useState<string[]>([]);
+  const [totpRecoveryRevealed, setTotpRecoveryRevealed] = useState(false);
+  const [totpEnableCode, setTotpEnableCode] = useState("");
+  const [totpDisableCode, setTotpDisableCode] = useState("");
+  const [totpAction, setTotpAction] = useState<
+    "start" | "confirm" | "disable" | null
+  >(null);
+  const [totpError, setTotpError] = useState<string | null>(null);
+  const [totpSuccess, setTotpSuccess] = useState<string | null>(null);
+  const [totpDisableOpen, setTotpDisableOpen] = useState(false);
   const isAvatarSaving = avatarAction !== null;
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const roleGlowStyle = getRankGlowStyle(user?.rank?.name);
@@ -90,6 +120,20 @@ export default function AccountPage() {
   useEffect(() => {
     setProfileDescription(user?.description ?? "");
   }, [user?.description]);
+
+  useEffect(() => {
+    if (user?.emailVerified) {
+      setEmailVerifyError(null);
+      setEmailVerifySuccess(null);
+    }
+  }, [user?.emailVerified]);
+
+  useEffect(() => {
+    if (user?.totpEnabled && totpRecoveryCodes.length === 0) {
+      setTotpSetup(null);
+      setTotpEnableCode("");
+    }
+  }, [user?.totpEnabled, totpRecoveryCodes.length]);
 
   const handleAvatarSelect = () => {
     avatarInputRef.current?.click();
@@ -270,6 +314,96 @@ export default function AccountPage() {
     }
   };
 
+  const handleSendVerificationEmail = async () => {
+    if (!user?.email) {
+      setEmailVerifyError(t("accountEmailVerifyMissing"));
+      return;
+    }
+    setEmailVerifyError(null);
+    setEmailVerifySuccess(null);
+    setEmailVerifyLoading(true);
+    try {
+      await requestEmailVerification({ email: user.email });
+      setEmailVerifySuccess(t("accountEmailVerifySent"));
+    } catch (err) {
+      setEmailVerifyError(
+        err instanceof Error ? err.message : t("emailVerifyError"),
+      );
+    } finally {
+      setEmailVerifyLoading(false);
+    }
+  };
+
+  const handleTotpStart = async () => {
+    setTotpError(null);
+    setTotpSuccess(null);
+    setTotpRecoveryCodes([]);
+    setTotpRecoveryRevealed(false);
+    setTotpSetupOpen(true);
+    setTotpAction("start");
+    try {
+      const setup = await startTotpEnrollment();
+      setTotpSetup(setup);
+    } catch (err) {
+      setTotpError(
+        err instanceof Error ? err.message : t("accountTotpSetupError"),
+      );
+    } finally {
+      setTotpAction(null);
+    }
+  };
+
+  const handleTotpConfirm = async () => {
+    if (!totpEnableCode.trim()) {
+      setTotpError(t("authCodeError"));
+      return;
+    }
+    setTotpError(null);
+    setTotpSuccess(null);
+    setTotpAction("confirm");
+    try {
+      const result = await confirmTotpEnrollment({
+        code: totpEnableCode,
+        token: totpSetup?.token,
+      });
+      setTotpSuccess(t("accountTotpSetupSuccess"));
+      setTotpRecoveryCodes(result.recoveryCodes);
+      setTotpRecoveryRevealed(false);
+      setTotpSetup(null);
+      setTotpEnableCode("");
+      await refreshUser({ silent: true });
+    } catch (err) {
+      setTotpError(
+        err instanceof Error ? err.message : t("accountTotpSetupError"),
+      );
+    } finally {
+      setTotpAction(null);
+    }
+  };
+
+  const handleTotpDisable = async () => {
+    if (!totpDisableCode.trim()) {
+      setTotpError(t("accountTotpDisableHint"));
+      return;
+    }
+    setTotpError(null);
+    setTotpSuccess(null);
+    setTotpAction("disable");
+    try {
+      await disableTotp({ code: totpDisableCode });
+      setTotpSuccess(t("accountTotpDisableSuccess"));
+      setTotpDisableCode("");
+      setTotpDisableOpen(false);
+      await refreshUser({ silent: true });
+    } catch (err) {
+      setTotpError(
+        err instanceof Error ? err.message : t("accountTotpSetupError"),
+      );
+    } finally {
+      setTotpAction(null);
+    }
+  };
+
   if (status === "loading") {
     return (
       <div className="min-h-screen bg-background">
@@ -300,6 +434,18 @@ export default function AccountPage() {
     Boolean(user.username) && displayName.trim() !== user.username;
   const canDeleteDescription = Boolean(profileDescription.trim());
   const isDeleteProfileMatch = deleteProfileInput.trim() === user.username;
+  const isEmailVerified = Boolean(user.emailVerified);
+  const isTotpEnabled = Boolean(user.totpEnabled);
+  const totpQrBase64 = totpSetup?.qrBase64;
+  const totpManualUrl = totpSetup?.manualUrl ?? totpSetup?.otpauthUrl;
+  const totpSecret = totpSetup?.secret;
+  const isTotpBusy = totpAction !== null;
+  const totpLength = Math.min(Math.max(totpSetup?.digits ?? 6, 4), 10);
+  const totpQrImage = totpQrBase64
+    ? totpQrBase64.startsWith("data:")
+      ? totpQrBase64
+      : `data:image/png;base64,${totpQrBase64}`
+    : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -453,12 +599,179 @@ export default function AccountPage() {
             </div>
           </motion.div>
 
+          <motion.div
+            className="rounded-3xl border border-border/70 bg-card/90 p-6"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.15 }}
+          >
+            <div>
+              <h2 className="text-xl font-semibold">
+                {t("accountSecurityTitle")}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {t("accountSecuritySubtitle")}
+              </p>
+            </div>
+
+            <div className="mt-5 grid gap-4">
+              <div className="rounded-2xl border border-border/60 bg-background/70 p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold">
+                      {t("accountEmailVerificationTitle")}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {user.email ?? t("accountEmailVerifyMissing")}
+                    </p>
+                  </div>
+                  <span
+                    className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+                      isEmailVerified
+                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600"
+                        : "border-amber-500/40 bg-amber-500/10 text-amber-600"
+                    }`}
+                  >
+                    {isEmailVerified
+                      ? t("accountEmailVerified")
+                      : t("accountEmailNotVerified")}
+                  </span>
+                </div>
+                {!isEmailVerified ? (
+                  <div className="mt-4 flex flex-wrap items-center gap-3">
+                    <GradientButton
+                      type="button"
+                      className="px-5 py-2 text-xs sm:text-sm"
+                      onClick={() => void handleSendVerificationEmail()}
+                      disabled={emailVerifyLoading}
+                    >
+                      {emailVerifyLoading
+                        ? t("accountEmailVerifySending")
+                        : t("accountEmailVerifyAction")}
+                    </GradientButton>
+                  </div>
+                ) : null}
+                {emailVerifyError ? (
+                  <p className="mt-2 text-xs text-destructive">
+                    {emailVerifyError}
+                  </p>
+                ) : null}
+                {emailVerifySuccess ? (
+                  <p className="mt-2 text-xs text-foreground">
+                    {emailVerifySuccess}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="rounded-2xl border border-border/60 bg-background/70 p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold">
+                      {t("accountTotpTitle")}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("accountTotpSubtitle")}
+                    </p>
+                  </div>
+                  <span
+                    className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+                      isTotpEnabled
+                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600"
+                        : "border-muted-foreground/30 bg-muted/40 text-muted-foreground"
+                    }`}
+                  >
+                    {isTotpEnabled
+                      ? t("accountTotpEnabled")
+                      : t("accountTotpDisabled")}
+                  </span>
+                </div>
+
+                {!isTotpEnabled ? (
+                  <div className="mt-4 flex flex-wrap items-center gap-3">
+                    <GradientButton
+                      type="button"
+                      className="px-5 py-2 text-xs sm:text-sm"
+                      onClick={() => void handleTotpStart()}
+                      disabled={isTotpBusy}
+                    >
+                      {totpAction === "start"
+                        ? t("saving")
+                        : t("accountTotpEnableAction")}
+                    </GradientButton>
+                  </div>
+                ) : (
+                  <div className="mt-4 space-y-3">
+                    {!totpDisableOpen ? (
+                      <GradientButton
+                        type="button"
+                        className="px-5 py-2 text-xs sm:text-sm"
+                        onClick={() => setTotpDisableOpen(true)}
+                        disabled={isTotpBusy}
+                      >
+                        {t("accountTotpDisableAction")}
+                      </GradientButton>
+                    ) : (
+                      <div className="space-y-3">
+                        <p className="text-xs text-muted-foreground">
+                          {t("accountTotpDisableHint")}
+                        </p>
+                        <InputOTP
+                          maxLength={6}
+                          value={totpDisableCode}
+                          onChange={setTotpDisableCode}
+                          inputMode="numeric"
+                        >
+                          <InputOTPGroup className="gap-2">
+                            {Array.from({ length: 6 }).map((_, index) => (
+                              <InputOTPSlot key={index} index={index} />
+                            ))}
+                          </InputOTPGroup>
+                        </InputOTP>
+                        <div className="flex flex-wrap gap-2">
+                          <GradientButton
+                            type="button"
+                            className="px-5 py-2 text-xs sm:text-sm"
+                            onClick={() => void handleTotpDisable()}
+                            disabled={totpAction === "disable"}
+                          >
+                            {totpAction === "disable"
+                              ? t("saving")
+                              : t("accountTotpDisableAction")}
+                          </GradientButton>
+                          <button
+                            type="button"
+                            className="rounded-full border border-border/70 px-4 py-2 text-xs font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
+                            onClick={() => {
+                              setTotpDisableOpen(false);
+                              setTotpDisableCode("");
+                              setTotpError(null);
+                            }}
+                            disabled={isTotpBusy}
+                          >
+                            {t("accountTotpCancelAction")}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {totpError ? (
+                  <p className="mt-3 text-xs text-destructive">{totpError}</p>
+                ) : null}
+                {totpSuccess ? (
+                  <p className="mt-3 text-xs text-foreground">{totpSuccess}</p>
+                ) : null}
+              </div>
+            </div>
+          </motion.div>
+
           <motion.form
             onSubmit={handleSubmit}
             className="rounded-3xl border border-border/70 bg-card/90 p-6"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
+            transition={{ duration: 0.4, delay: 0.25 }}
           >
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-3">
@@ -511,6 +824,149 @@ export default function AccountPage() {
           </motion.form>
         </div>
       </main>
+
+      <Dialog
+        open={totpSetupOpen}
+        onOpenChange={(open) => {
+          setTotpSetupOpen(open);
+          if (!open) {
+            setTotpSetup(null);
+            setTotpEnableCode("");
+            setTotpError(null);
+            setTotpSuccess(null);
+            setTotpRecoveryCodes([]);
+            setTotpRecoveryRevealed(false);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("accountTotpModalTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("accountTotpModalSubtitle")}
+            </DialogDescription>
+          </DialogHeader>
+
+          {totpAction === "start" ? (
+            <div className="rounded-2xl border border-border/70 bg-background/70 px-4 py-3 text-sm text-muted-foreground">
+              {t("accountTotpSetupHint")}
+            </div>
+          ) : null}
+
+          {totpQrImage ? (
+            <div className="flex flex-col gap-3">
+              <div className="inline-flex self-center rounded-2xl border border-border/60 bg-white p-3">
+                <img src={totpQrImage} alt="TOTP QR" className="h-40 w-40" />
+              </div>
+              {totpManualUrl ? (
+                <div className="space-y-1 text-xs text-muted-foreground">
+                  <span className="block">{t("accountTotpManualLabel")}</span>
+                  <code className="block rounded-xl border border-border/60 bg-background px-3 py-2 text-[11px] font-semibold text-foreground break-all">
+                    {totpManualUrl}
+                  </code>
+                </div>
+              ) : null}
+              {totpSecret ? (
+                <div className="space-y-1 text-xs text-muted-foreground">
+                  <span className="block">{t("accountTotpSecretLabel")}</span>
+                  <code className="block rounded-xl border border-border/60 bg-background px-3 py-2 text-[11px] font-semibold text-foreground">
+                    {totpSecret}
+                  </code>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {totpSetup ? (
+            <div className="space-y-3">
+              <label className="block text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                {t("accountTotpCodeLabel")}
+              </label>
+              <InputOTP
+                maxLength={totpLength}
+                value={totpEnableCode}
+                onChange={setTotpEnableCode}
+                inputMode="numeric"
+              >
+                <InputOTPGroup className="gap-2">
+                  {Array.from({ length: totpLength }).map((_, index) => (
+                    <InputOTPSlot key={index} index={index} />
+                  ))}
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+          ) : null}
+
+          {totpError ? (
+            <p className="text-xs text-destructive">{totpError}</p>
+          ) : null}
+          {totpSuccess ? (
+            <p className="text-xs text-foreground">{totpSuccess}</p>
+          ) : null}
+
+          {totpRecoveryCodes.length > 0 ? (
+            <div className="rounded-2xl border border-border/60 bg-background/70 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm font-semibold">
+                  {t("accountTotpRecoveryTitle")}
+                </p>
+                <button
+                  type="button"
+                  className="text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                  onClick={() => setTotpRecoveryRevealed((prev) => !prev)}
+                >
+                  {totpRecoveryRevealed
+                    ? t("accountTotpRecoveryHide")
+                    : t("accountTotpRecoveryShow")}
+                </button>
+              </div>
+              {!totpRecoveryRevealed ? (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {t("accountTotpRecoveryHint")}
+                </p>
+              ) : null}
+              <div
+                className={`mt-3 grid gap-2 text-xs font-semibold ${
+                  totpRecoveryRevealed
+                    ? "text-foreground"
+                    : "blur-sm select-none pointer-events-none text-muted-foreground"
+                }`}
+              >
+                {totpRecoveryCodes.map((code, index) => (
+                  <span
+                    key={`${code}-${index}`}
+                    className="rounded-lg border border-border/60 bg-background px-3 py-2 text-center"
+                  >
+                    {code}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          <DialogFooter>
+            {totpSetup ? (
+              <GradientButton
+                type="button"
+                className="px-5 py-2 text-sm"
+                onClick={() => void handleTotpConfirm()}
+                disabled={totpAction === "confirm"}
+              >
+                {totpAction === "confirm"
+                  ? t("saving")
+                  : t("accountTotpConfirmAction")}
+              </GradientButton>
+            ) : null}
+            <button
+              type="button"
+              onClick={() => setTotpSetupOpen(false)}
+              className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
+            >
+              {t("accountTotpCloseAction")}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={deleteProfileOpen}
