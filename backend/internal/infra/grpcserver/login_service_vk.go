@@ -115,6 +115,7 @@ func (s *LoginService) VkCallback(ctx context.Context, req *loginpb.VKCallbackRe
 	state := strings.TrimSpace(req.GetState())
 	deviceID := strings.TrimSpace(req.GetDeviceId())
 	if code == "" || state == "" || deviceID == "" {
+		logger.Debug("code or state or deviceID is missing", "")
 		return nil, apperrors.RequiredDataMissing.AddErrDetails("code, state or device_id is empty")
 	}
 	codeVerifier, err := verifyVKState(cfg.stateSecret, cfg.stateTTL, state)
@@ -130,10 +131,12 @@ func (s *LoginService) VkCallback(ctx context.Context, req *loginpb.VKCallbackRe
 	}
 	email := strings.TrimSpace(tokenResp.Email)
 	if email == "" {
+		logger.Debug("email is missing", "")
 		return nil, apperrors.RequiredDataMissing.AddErrDetails("vk email is empty")
 	}
 	userID := tokenResp.UserID
 	if userID == 0 {
+		logger.Debug("user id is empty", "")
 		return nil, apperrors.InvalidArguments.AddErrDetails("vk user id is empty")
 	}
 
@@ -211,6 +214,7 @@ func (s *LoginService) VkCallback(ctx context.Context, req *loginpb.VKCallbackRe
 	}
 
 	if uid == nil {
+		logger.Debug("uid is empty", "")
 		return nil, apperrors.ServerError.AddErrDetails("uid is empty")
 	}
 
