@@ -1813,7 +1813,7 @@ func (s *StatisticsRepository) StatisticsRecap(ctx context.Context, since time.T
 
 	for rows.Next() {
 		var (
-			id        int
+			id        uuid.UUID
 			at        time.Time
 			online    int64
 			offline   int64
@@ -1826,7 +1826,7 @@ func (s *StatisticsRepository) StatisticsRecap(ctx context.Context, since time.T
 		}
 
 		rec := &statpb.StatisticsRecap{
-			Id: strconv.Itoa(id),
+			Id: id.String(),
 			At: timestamppb.New(at),
 			UsersActivity: &statpb.UsersActivity{
 				Active:  uint32(online),
