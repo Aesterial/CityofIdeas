@@ -23,6 +23,8 @@ import (
 	"strings"
 	"time"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -490,29 +492,73 @@ func generateVKState(secret string) (string, string, error) {
 }
 
 func verifyVKState(secret string, ttl time.Duration, state string) (string, error) {
-	parts := strings.Split(state, ".")
-	if len(parts) != 4 {
-		return "", errors.New("invalid state format")
+	state = strings.TrimSpace(state)
+	if state == "" {
+		return "", status.New(codes.InvalidArgument, "invalid state format").Err()
 	}
-	data := parts[0] + "." + parts[1] + "." + parts[2]
-	expected := signState(secret, data)
-	if !hmac.Equal([]byte(expected), []byte(parts[3])) {
-		return "", errors.New("invalid state signature")
+
+	validateTS := func(ts int64) error {
+		now := time.Now().Unix()
+		if ts > now+300 {
+			return status.New(codes.InvalidArgument, "state timestamp is in the future").Err()
+		}
+		if now-ts > int64(ttl.Seconds()) {
+			return status.New(codes.InvalidArgument, "state expired").Err()
+		}
+		return nil
 	}
-	ts, err := strconv.ParseInt(parts[1], 10, 64)
-	if err != nil {
-		return "", errors.New("invalid state timestamp")
+
+	if strings.Count(state, ".") == 3 {
+		parts := strings.Split(state, ".")
+		if len(parts) != 4 {
+			return "", status.New(codes.InvalidArgument, "invalid state format").Err()
+		}
+		data := parts[0] + "." + parts[1] + "." + parts[2]
+		expected := signState(secret, data)
+		if !hmac.Equal([]byte(expected), []byte(parts[3])) {
+			return "", status.New(codes.InvalidArgument, "invalid state signature").Err()
+		}
+		ts, err := strconv.ParseInt(parts[1], 10, 64)
+		if err != nil {
+			return "", status.New(codes.InvalidArgument, "invalid state timestamp").Err()
+		}
+		if err := validateTS(ts); err != nil {
+			return "", err
+		}
+		codeVerifier := strings.TrimSpace(parts[2])
+		if codeVerifier == "" {
+			return "", status.New(codes.InvalidArgument, "state code verifier is empty").Err()
+		}
+		return codeVerifier, nil
 	}
-	now := time.Now().Unix()
-	if ts > now+300 {
-		return "", errors.New("state timestamp is in the future")
+
+	raw, err := base64.RawURLEncoding.DecodeString(state)
+	if err != nil || len(raw) <= sha256.Size {
+		return "", status.New(codes.InvalidArgument, "invalid state format").Err()
 	}
-	if now-ts > int64(ttl.Seconds()) {
-		return "", errors.New("state expired")
+	payload := raw[:len(raw)-sha256.Size]
+	sig := raw[len(raw)-sha256.Size:]
+
+	mac := hmac.New(sha256.New, []byte(secret))
+	_, _ = mac.Write(payload)
+	expected := mac.Sum(nil)
+	if !hmac.Equal(expected, sig) {
+		return "", status.New(codes.InvalidArgument, "invalid state signature").Err()
 	}
-	codeVerifier := strings.TrimSpace(parts[2])
+
+	var p struct {
+		TS int64  `json:"ts"`
+		V  string `json:"v"`
+	}
+	if err := json.Unmarshal(payload, &p); err != nil {
+		return "", status.New(codes.InvalidArgument, "invalid state format").Err()
+	}
+	if err := validateTS(p.TS); err != nil {
+		return "", err
+	}
+	codeVerifier := strings.TrimSpace(p.V)
 	if codeVerifier == "" {
-		return "", errors.New("state code verifier is empty")
+		return "", status.New(codes.InvalidArgument, "state code verifier is empty").Err()
 	}
 	return codeVerifier, nil
 }
