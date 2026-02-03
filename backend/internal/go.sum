@@ -1,3 +1,5 @@
+github.com/SevereCloud/vksdk/v3 v3.2.2 h1:kSIl4bv4R8DflGqjrfkJZcDca6+NamJKtq8ozZ5z4ao=
+github.com/SevereCloud/vksdk/v3 v3.2.2/go.mod h1:pu8XeDePNv5SaUbp1NzWEdi6O1akYD6xkuM+aCUCOO4=
 github.com/aws/aws-sdk-go-v2 v1.41.0 h1:tNvqh1s+v0vFYdA1xq0aOJH+Y5cRyZ5upu6roPgPKd4=
 github.com/aws/aws-sdk-go-v2 v1.41.0/go.mod h1:MayyLB8y+buD9hZqkCW3kX1AKq07Y5pXxtgB+rRFhz0=
 github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.4 h1:489krEF9xIGkOaaX3CE/Be2uWjiXrkCH6gUX+bZA/BU=

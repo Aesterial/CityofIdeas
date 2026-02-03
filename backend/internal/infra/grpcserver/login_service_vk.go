@@ -24,16 +24,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/SevereCloud/vksdk/v3/api"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
-	vkAuthEndpoint  = "https://id.vk.com/authorize"
-	vkUsersEndpoint = "https://api.vk.com/method/users.get"
-	vkDefaultScope  = "email"
-	vkDefaultAPI    = "5.131"
+	vkAuthEndpoint = "https://id.vk.com/authorize"
+	vkDefaultScope = "email"
+	vkDefaultAPI   = "5.131"
 )
 
 var vkTokenEndpoint = "https://id.vk.com/oauth2/token"
@@ -470,37 +470,35 @@ func exchangeVKCode(ctx context.Context, cfg vkConfig, code string, codeVerifier
 }
 
 func fetchVKProfile(ctx context.Context, cfg vkConfig, accessToken string, userID int64) (vkUser, error) {
-	u, _ := url.Parse(vkUsersEndpoint)
-	q := u.Query()
-	q.Set("user_ids", strconv.FormatInt(userID, 10))
-	q.Set("fields", "domain,photo_200,photo_200_orig,photo_max,photo_max_orig,photo_400_orig,photo_100,photo_100_orig")
-	q.Set("access_token", accessToken)
-	q.Set("v", cfg.apiVersion)
-	u.RawQuery = q.Encode()
+	if err := ctx.Err(); err != nil {
+		return vkUser{}, vkNetError("vk users.get", err)
+	}
+	vk := api.NewVK(accessToken)
+	vk.Client = vkHTTPClient()
+	if strings.TrimSpace(cfg.apiVersion) != "" {
+		vk.Version = cfg.apiVersion
+	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	resp, err := vk.UsersGet(api.Params{
+		"user_ids": strconv.FormatInt(userID, 10),
+		"fields":   "domain,photo_200,photo_200_orig,photo_max,photo_max_orig,photo_400_orig,photo_100,photo_100_orig",
+	})
 	if err != nil {
 		return vkUser{}, apperrors.Wrap(err)
 	}
-	resp, err := vkHTTPClient().Do(req)
-	if err != nil {
-		return vkUser{}, apperrors.Wrap(err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return vkUser{}, apperrors.ServerError.AddErrDetails("vk users.get failed")
-	}
-	var data vkUsersResponse
-	if err := decodeJSON(resp.Body, &data); err != nil {
-		return vkUser{}, apperrors.Wrap(err)
-	}
-	if data.Error != nil {
-		return vkUser{}, apperrors.InvalidArguments.AddErrDetails(data.Error.ErrorMsg)
-	}
-	if len(data.Response) == 0 {
+	if len(resp) == 0 {
 		return vkUser{}, apperrors.RecordNotFound
 	}
-	return data.Response[0], nil
+
+	raw, err := json.Marshal(resp[0])
+	if err != nil {
+		return vkUser{}, apperrors.Wrap(err)
+	}
+	var profile vkUser
+	if err := json.Unmarshal(raw, &profile); err != nil {
+		return vkUser{}, apperrors.Wrap(err)
+	}
+	return profile, nil
 }
 
 func pickVKAvatar(profile vkUser) string {
