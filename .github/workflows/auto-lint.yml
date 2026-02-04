@@ -20,7 +20,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version-file: backend/go.mod
+          go-version-file: backend/go.work
           cache: true
 
       - name: gofmt (check)
@@ -65,7 +65,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if npm run -s | grep -qE '(^| )lint($|:)'; then
+          if node -e "const s=require('./package.json').scripts||{}; process.exit(s.lint?0:1)"; then
             npm run lint
           else
             npx --no-install next lint || (echo "No lint script and next lint failed" && exit 1)
@@ -75,7 +75,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if npm run -s | grep -qE '(^| )typecheck($|:)'; then
+          if node -e "const s=require('./package.json').scripts||{}; process.exit(s.typecheck?0:1)"; then
             npm run typecheck
           else
             npx --no-install tsc --noEmit
@@ -85,9 +85,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if npm run -s | grep -qE '(^| )format:check($|:)'; then
+          if node -e "const s=require('./package.json').scripts||{}; process.exit(s['format:check']?0:1)"; then
             npm run format:check
-          elif npm run -s | grep -qE '(^| )prettier:check($|:)'; then
+          elif node -e "const s=require('./package.json').scripts||{}; process.exit(s['prettier:check']?0:1)"; then
             npm run prettier:check
           else
             echo "No prettier check script; skipping"

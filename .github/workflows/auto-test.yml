@@ -20,7 +20,7 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version-file: backend/go.mod
+          go-version-file: backend/go.work
           cache: true
 
       - name: go test (unit)
@@ -53,7 +53,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if npm run -s | grep -qE '(^| )test($|:)'; then
+          if node -e "const s=require('./package.json').scripts||{}; process.exit(s.test?0:1)"; then
             npm test
           else
             echo "No test script; skipping"
