@@ -36,7 +36,7 @@ const (
 	vkDefaultAPI   = "5.131"
 )
 
-var vkTokenEndpoint = "https://id.vk.com/oauth2/token"
+var vkTokenEndpoint = "https://id.vk.com/oauth2/auth"
 
 type vkConfig struct {
 	clientID           string
