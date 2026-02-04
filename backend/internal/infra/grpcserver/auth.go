@@ -61,8 +61,12 @@ func (a *Authenticator) RequireUser(ctx context.Context, nocheck ...bool) (*user
 
 	valid, err := a.Sessions.IsValid(ctx, sessionID)
 	if err != nil {
-		if len(nocheck) > 0 && nocheck[0] == true && errors.Is(err, apperrors.NeedVerify) {
-			valid = true
+		if errors.Is(err, apperrors.NeedVerify) {
+			if len(nocheck) > 0 && nocheck[0] == true {
+				valid = true
+			} else {
+				return nil, apperrors.NeedVerify
+			}
 		} else {
 			logger.Debug("failed to check is session valid: " + err.Error(), "auth.sessions.valid")
 			return nil, apperrors.Wrap(err)
