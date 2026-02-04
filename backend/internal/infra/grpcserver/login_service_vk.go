@@ -25,19 +25,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/SevereCloud/vksdk/v3/api"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
-	vkAuthEndpoint = "https://id.vk.com/authorize"
-	vkDefaultScope = "email"
-	vkDefaultAPI   = "5.131"
+	vkAuthEndpoint     = "https://id.vk.ru/authorize"
+	vkTokenEndpoint    = "https://id.vk.ru/oauth2/auth"
+	vkUserInfoEndpoint = "https://id.vk.ru/oauth2/user_info"
+	vkDefaultScope     = "email vkid.personal_info"
+	vkDefaultAPI       = "5.131"
 )
-
-var vkTokenEndpoint = "https://id.vk.com/oauth2/auth"
 
 type vkConfig struct {
 	clientID           string
@@ -64,15 +63,11 @@ type vkTokenResponse struct {
 	ErrorMessageAlt string `json:"error_msg_alt"`
 }
 
-type vkAPIError struct {
-	ErrorCode int    `json:"error_code"`
-	ErrorMsg  string `json:"error_msg"`
-}
-
 type vkUser struct {
 	ID            int64  `json:"id"`
 	FirstName     string `json:"first_name"`
 	LastName      string `json:"last_name"`
+	Email         string `json:"email"`
 	Domain        string `json:"domain"`
 	Photo200      string `json:"photo_200"`
 	Photo200Orig  string `json:"photo_200_orig"`
@@ -83,9 +78,11 @@ type vkUser struct {
 	PhotoBaseOrig string `json:"photo_100_orig"`
 }
 
-type vkUsersResponse struct {
-	Response []vkUser    `json:"response"`
-	Error    *vkAPIError `json:"error"`
+type vkUserInfoResponse struct {
+	User         vkUser `json:"user"`
+	Error        string `json:"error"`
+	ErrorDesc    string `json:"error_description"`
+	ErrorMessage string `json:"error_msg"`
 }
 
 func (s *LoginService) VkStart(ctx context.Context, _ *emptypb.Empty) (*loginpb.VKStartResponse, error) {
@@ -137,15 +134,29 @@ func (s *LoginService) VkCallback(ctx context.Context, req *loginpb.VKCallbackRe
 		logger.Debug("error appeared: "+err.Error(), "")
 		return nil, err
 	}
-	email := strings.TrimSpace(tokenResp.Email)
-	if email == "" {
-		logger.Debug("email is missing", "")
-		return nil, apperrors.RequiredDataMissing.AddErrDetails("vk email is empty")
+
+	profile, err := fetchVKProfile(ctx, cfg, tokenResp.AccessToken)
+	if err != nil {
+		logger.Debug("error appeared: "+err.Error(), "")
+		return nil, err
 	}
+
 	userID := tokenResp.UserID
+	if profile.ID != 0 {
+		userID = profile.ID
+	}
 	if userID == 0 {
 		logger.Debug("user id is empty", "")
 		return nil, apperrors.InvalidArguments.AddErrDetails("vk user id is empty")
+	}
+
+	email := strings.TrimSpace(profile.Email)
+	if email == "" {
+		email = strings.TrimSpace(tokenResp.Email)
+	}
+	if email == "" {
+		logger.Debug("email is missing", "")
+		return nil, apperrors.RequiredDataMissing.AddErrDetails("vk email is empty")
 	}
 
 	if s.verification != nil {
@@ -157,12 +168,6 @@ func (s *LoginService) VkCallback(ctx context.Context, req *loginpb.VKCallbackRe
 		if banned {
 			return nil, apperrors.AccessDenied.AddErrDetails("email is banned")
 		}
-	}
-
-	profile, err := fetchVKProfile(ctx, cfg, tokenResp.AccessToken, userID)
-	if err != nil {
-		logger.Debug("error appeared: "+err.Error(), "")
-		return nil, err
 	}
 
 	linkedID := strconv.FormatInt(userID, 10)
@@ -485,36 +490,96 @@ func exchangeVKCode(ctx context.Context, cfg vkConfig, code string, codeVerifier
 	return nil, apperrors.ServerError.AddErrDetails("vk token exchange failed")
 }
 
-func fetchVKProfile(ctx context.Context, cfg vkConfig, accessToken string, userID int64) (vkUser, error) {
+func fetchVKProfile(ctx context.Context, cfg vkConfig, accessToken string) (vkUser, error) {
 	if err := ctx.Err(); err != nil {
-		return vkUser{}, vkNetError("vk users.get", err)
+		return vkUser{}, vkNetError("vk user info", err)
 	}
-	vk := api.NewVK(accessToken)
-	vk.Client = vkHTTPClient()
-	if strings.TrimSpace(cfg.apiVersion) != "" {
-		vk.Version = cfg.apiVersion
+	if strings.TrimSpace(accessToken) == "" {
+		return vkUser{}, apperrors.RequiredDataMissing.AddErrDetails("vk access token is empty")
 	}
 
-	resp, err := vk.UsersGet(api.Params{
-		"user_ids": strconv.FormatInt(userID, 10),
-		"fields":   "domain,photo_200,photo_200_orig,photo_max,photo_max_orig,photo_400_orig,photo_100,photo_100_orig",
-	})
-	if err != nil {
-		return vkUser{}, apperrors.Wrap(err)
-	}
-	if len(resp) == 0 {
-		return vkUser{}, apperrors.RecordNotFound
+	form := url.Values{}
+	form.Set("access_token", accessToken)
+	form.Set("client_id", cfg.clientID)
+	payload := form.Encode()
+
+	const maxRetries = 2
+	var lastErr error
+
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		if err := ctx.Err(); err != nil {
+			return vkUser{}, vkNetError("vk user info", err)
+		}
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, vkUserInfoEndpoint, strings.NewReader(payload))
+		if err != nil {
+			return vkUser{}, apperrors.Wrap(err)
+		}
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		req.Header.Set("Accept", "application/json")
+		req.Header.Set("User-Agent", "AesterialBackend/1.0")
+
+		resp, err := vkHTTPClient().Do(req)
+		if err != nil {
+			if ctx.Err() != nil {
+				return vkUser{}, vkNetError("vk user info", ctx.Err())
+			}
+			if attempt < maxRetries && isRetryableVKNetError(err) {
+				lastErr = err
+				time.Sleep(time.Duration(attempt+1) * 300 * time.Millisecond)
+				continue
+			}
+			return vkUser{}, vkNetError("vk user info", err)
+		}
+
+		body, readErr := io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+		if readErr != nil {
+			if attempt < maxRetries && isRetryableVKNetError(readErr) {
+				lastErr = readErr
+				time.Sleep(time.Duration(attempt+1) * 300 * time.Millisecond)
+				continue
+			}
+			return vkUser{}, apperrors.Wrap(readErr)
+		}
+
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			msg := vkUserInfoErrorMessage(body)
+			detail := fmt.Sprintf("status %d: %s", resp.StatusCode, msg)
+			if resp.StatusCode >= 500 && attempt < maxRetries {
+				lastErr = fmt.Errorf("vk user info %s", detail)
+				time.Sleep(time.Duration(attempt+1) * 400 * time.Millisecond)
+				continue
+			}
+			if resp.StatusCode >= 500 {
+				return vkUser{}, apperrors.ServerError.AddErrDetails("vk user info failed: " + detail)
+			}
+			return vkUser{}, apperrors.InvalidArguments.AddErrDetails("vk user info failed: " + detail)
+		}
+
+		var info vkUserInfoResponse
+		if err := json.Unmarshal(body, &info); err != nil {
+			return vkUser{}, apperrors.Wrap(err)
+		}
+		if msg := strings.TrimSpace(info.Error); msg != "" {
+			if info.ErrorMessage != "" {
+				msg = info.ErrorMessage
+			}
+			if info.ErrorDesc != "" {
+				msg = info.ErrorDesc
+			}
+			return vkUser{}, apperrors.InvalidArguments.AddErrDetails(msg)
+		}
+		if info.User.ID == 0 {
+			return vkUser{}, apperrors.RecordNotFound
+		}
+		return info.User, nil
 	}
 
-	raw, err := json.Marshal(resp[0])
-	if err != nil {
-		return vkUser{}, apperrors.Wrap(err)
+	if lastErr != nil {
+		return vkUser{}, vkNetError("vk user info", lastErr)
 	}
-	var profile vkUser
-	if err := json.Unmarshal(raw, &profile); err != nil {
-		return vkUser{}, apperrors.Wrap(err)
-	}
-	return profile, nil
+	return vkUser{}, apperrors.ServerError.AddErrDetails("vk user info failed")
 }
 
 func pickVKAvatar(profile vkUser) string {
@@ -789,6 +854,32 @@ func vkTokenErrorMessage(body []byte) string {
 		}
 		if msg == "" {
 			msg = strings.TrimSpace(token.ErrorReasonAlt)
+		}
+		if msg != "" {
+			return msg
+		}
+	}
+	raw := strings.TrimSpace(string(body))
+	raw = redactVKSecrets(raw)
+	if raw == "" {
+		return "empty response"
+	}
+	const limit = 300
+	if len(raw) > limit {
+		return raw[:limit] + "..."
+	}
+	return raw
+}
+
+func vkUserInfoErrorMessage(body []byte) string {
+	var info vkUserInfoResponse
+	if err := json.Unmarshal(body, &info); err == nil {
+		msg := strings.TrimSpace(info.Error)
+		if msg == "" {
+			msg = strings.TrimSpace(info.ErrorMessage)
+		}
+		if msg == "" {
+			msg = strings.TrimSpace(info.ErrorDesc)
 		}
 		if msg != "" {
 			return msg
