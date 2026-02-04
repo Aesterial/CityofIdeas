@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package ranks.v1;
 
-import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
 import "permissions/domain.proto";
 import "user/domain.proto";
 
@@ -47,6 +47,7 @@ message Rank {
   uint32 color = 2;
   string description = 3;
   google.protobuf.Timestamp added = 4;
+  int32 weight = 5;
 }
 
 message RankResponse {

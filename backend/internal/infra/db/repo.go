@@ -2764,7 +2764,7 @@ func (r *RanksRepository) List(ctx context.Context) ([]*rank.Rank, error) {
 	for rows.Next() {
 		var ra rank.Rank
 		var perms any
-		if err = rows.Scan(&ra.Name, &ra.Color, &ra.Description, &perms, &ra.AddedAt); err != nil {
+		if err = rows.Scan(&ra.Name, &ra.Color, &ra.Description, &perms, &ra.AddedAt, &ra.Weight); err != nil {
 			return nil, err
 		}
 		list = append(list, &ra)

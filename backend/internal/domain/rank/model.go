@@ -13,6 +13,7 @@ type Rank struct {
 	Color       int
 	Description string
 	AddedAt     time.Time
+	Weight      int
 }
 
 type UserRank struct {
@@ -53,5 +54,6 @@ func (r *Rank) ToProto() *rankpb.Rank {
 		Color:       uint32(r.Color),
 		Description: r.Description,
 		Added:       added(),
+		Weight:      int32(r.Weight),
 	}
 }

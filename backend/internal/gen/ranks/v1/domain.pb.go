@@ -367,6 +367,7 @@ type Rank struct {
 	Color         uint32                 `protobuf:"varint,2,opt,name=color,proto3" json:"color,omitempty"`
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	Added         *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=added,proto3" json:"added,omitempty"`
+	Weight        int32                  `protobuf:"varint,5,opt,name=weight,proto3" json:"weight,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -427,6 +428,13 @@ func (x *Rank) GetAdded() *timestamppb.Timestamp {
 		return x.Added
 	}
 	return nil
+}
+
+func (x *Rank) GetWeight() int32 {
+	if x != nil {
+		return x.Weight
+	}
+	return 0
 }
 
 type RankResponse struct {
@@ -537,7 +545,7 @@ var File_ranks_domain_proto protoreflect.FileDescriptor
 
 const file_ranks_domain_proto_rawDesc = "" +
 	"\n" +
-	"\x12ranks/domain.proto\x12\branks.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/protobuf/struct.proto\x1a\x18permissions/domain.proto\x1a\x11user/domain.proto\"\xc4\x01\n" +
+	"\x12ranks/domain.proto\x12\branks.v1\x1a\x1cgoogle/protobuf/struct.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x18permissions/domain.proto\x1a\x11user/domain.proto\"\xc4\x01\n" +
 	"\rCreateRequest\x12B\n" +
 	"\vpermissions\x18\x01 \x01(\v2\x1b.permissions.v1.PermissionsH\x00R\vpermissions\x88\x01\x01\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
@@ -560,12 +568,13 @@ const file_ranks_domain_proto_rawDesc = "" +
 	"\rUsersResponse\x12\x10\n" +
 	"\x03len\x18\x01 \x01(\rR\x03len\x12)\n" +
 	"\x05users\x18\x02 \x03(\v2\x13.user.v1.UserPublicR\x05users\x12\x18\n" +
-	"\atracing\x18\x03 \x01(\tR\atracing\"\x84\x01\n" +
+	"\atracing\x18\x03 \x01(\tR\atracing\"\x9c\x01\n" +
 	"\x04Rank\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05color\x18\x02 \x01(\rR\x05color\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x120\n" +
-	"\x05added\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\x05added\"L\n" +
+	"\x05added\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\x05added\x12\x16\n" +
+	"\x06weight\x18\x05 \x01(\x05R\x06weight\"L\n" +
 	"\fRankResponse\x12\"\n" +
 	"\x04data\x18\x01 \x01(\v2\x0e.ranks.v1.RankR\x04data\x12\x18\n" +
 	"\atracing\x18\x02 \x01(\tR\atracing\"O\n" +
