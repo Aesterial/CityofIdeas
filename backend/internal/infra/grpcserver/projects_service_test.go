@@ -9,6 +9,7 @@ import (
 	projpb "Aesterial/backend/internal/gen/projects/v1"
 	grpcserver "Aesterial/backend/internal/infra/grpcserver"
 	apperrors "Aesterial/backend/internal/shared/errors"
+
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -37,7 +38,11 @@ func (p *projectsRepoStub) GetCategories(context.Context) ([]string, error) {
 	return p.categories, nil
 }
 
-func (p *projectsRepoStub) CreateProject(context.Context, projects.Project) error {
+func (p *projectsRepoStub) CreateProject(context.Context, projects.Project) (*uuid.UUID, error) {
+	return nil, nil
+}
+
+func (p *projectsRepoStub) AddProjectPhoto(context.Context, uuid.UUID, string, string, int) error {
 	return nil
 }
 

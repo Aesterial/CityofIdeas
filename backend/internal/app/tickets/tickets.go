@@ -22,13 +22,17 @@ func New(r tickets.Repository, u user.Repository, m *mailer.Service) *Service {
 	return &Service{repo: r}
 }
 
-func (s *Service) Create(ctx context.Context, requestor tickets.TicketCreationRequestor, topic tickets.TicketTopic, brief string) (*tickets.TicketCreationData, error) {
+func (s *Service) Create(ctx context.Context, requestor tickets.TicketCreationRequestor, topic tickets.TicketTopic, brief string, content string) (*tickets.TicketCreationData, error) {
 	if s == nil || s.repo == nil {
 		return nil, apperrors.NotConfigured
 	}
 	data, err := s.repo.Create(ctx, requestor, topic, brief)
 	if err != nil {
 		logger.Debug("error appeared: "+err.Error(), "tickets.create")
+		return nil, apperrors.Wrap(err)
+	}
+	err = s.CreateMessage(ctx, data.ID, content, tickets.TicketDataReq{UID: requestor.UID, Token: requestor.Token, Staff: false})
+	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
 	return data, nil

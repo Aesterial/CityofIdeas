@@ -10,6 +10,7 @@ import (
 	rankpb "Aesterial/backend/internal/gen/ranks/v1"
 	grpcserver "Aesterial/backend/internal/infra/grpcserver"
 	apperrors "Aesterial/backend/internal/shared/errors"
+
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -48,6 +49,14 @@ func (r *rankRepoStub) Perms(context.Context, string) (*permissions.Permissions,
 
 func (r *rankRepoStub) ChangePerms(context.Context, string, permissions.Permission, bool) error {
 	return nil
+}
+
+func (r *rankRepoStub) IsExists(context.Context, string) (bool, error) {
+	return false, nil
+}
+
+func (r *rankRepoStub) CanEdit(context.Context, string, string) (bool, error) {
+	return true, nil
 }
 
 func TestRanksServiceCreateMissingName(t *testing.T) {

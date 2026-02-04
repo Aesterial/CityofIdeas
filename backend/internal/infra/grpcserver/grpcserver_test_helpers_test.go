@@ -123,9 +123,11 @@ type authSessionsRepoStub struct {
 
 	isValidFn     func(ctx context.Context, sessionID uuid.UUID) (bool, error)
 	getSessionFn  func(ctx context.Context, sessionID uuid.UUID) (*sessionsdomain.Session, error)
-	getSessionsFn func(ctx context.Context, uid uint) ([]*sessionsdomain.Session, error)
+	getSessionsFn func(ctx context.Context, uid uint) (*sessionsdomain.Sessions, error)
 	getUIDFn      func(ctx context.Context, sessionID uuid.UUID) (*uint, error)
 	setRevokedFn  func(ctx context.Context, sessionID uuid.UUID) error
+	setMFADoneFn  func(ctx context.Context, sessionID uuid.UUID) error
+	resetMFAsFn   func(ctx context.Context, uid uint) error
 	addSessionFn  func(ctx context.Context, sessionID uuid.UUID, agentHash string, expires time.Time, uid uint) error
 	updateLastFn  func(ctx context.Context, sessionID uuid.UUID) error
 }
@@ -147,7 +149,7 @@ func (s *authSessionsRepoStub) GetSession(ctx context.Context, sessionID uuid.UU
 	return nil, nil
 }
 
-func (s *authSessionsRepoStub) GetSessions(ctx context.Context, uid uint) ([]*sessionsdomain.Session, error) {
+func (s *authSessionsRepoStub) GetSessions(ctx context.Context, uid uint) (*sessionsdomain.Sessions, error) {
 	if s.getSessionsFn != nil {
 		return s.getSessionsFn(ctx, uid)
 	}
@@ -168,6 +170,20 @@ func (s *authSessionsRepoStub) GetUID(ctx context.Context, sessionID uuid.UUID) 
 func (s *authSessionsRepoStub) SetRevoked(ctx context.Context, sessionID uuid.UUID) error {
 	if s.setRevokedFn != nil {
 		return s.setRevokedFn(ctx, sessionID)
+	}
+	return nil
+}
+
+func (s *authSessionsRepoStub) SetMFACompleted(ctx context.Context, sessionID uuid.UUID) error {
+	if s.setMFADoneFn != nil {
+		return s.setMFADoneFn(ctx, sessionID)
+	}
+	return nil
+}
+
+func (s *authSessionsRepoStub) ResetMFAs(ctx context.Context, uid uint) error {
+	if s.resetMFAsFn != nil {
+		return s.resetMFAsFn(ctx, uid)
 	}
 	return nil
 }
@@ -214,6 +230,22 @@ type authUserRepoStub struct {
 	hasAllPermsFn           func(ctx context.Context, uid uint, perms ...permissions.Permission) (bool, error)
 	permsFn                 func(ctx context.Context, uid uint) (*permissions.Permissions, error)
 	changePermsFn           func(ctx context.Context, uid uint, perm permissions.Permission, state bool) error
+	setRankFn               func(ctx context.Context, uid uint, rank string, expires *time.Time) error
+	setCodeUsedFn           func(ctx context.Context, hash string) error
+	getRecoveryCodesFn      func(ctx context.Context, uid uint) ([]string, error)
+	cascadeRecoveryCodesFn  func(ctx context.Context, uid uint, codes []string) error
+	appendRecoveryCodesFn   func(ctx context.Context, uid uint, codes []string) error
+	setConfirmedFn          func(ctx context.Context, uid uint) error
+	setPendingTOTPFn        func(ctx context.Context, uid uint, pending string) error
+	getPendingTOTPFn        func(ctx context.Context, uid uint) (*string, error)
+	isTOTPEnabledFn         func(ctx context.Context, uid uint) (bool, error)
+	resetTOTPFn             func(ctx context.Context, uid uint) error
+	isValidRecoveryFn       func(ctx context.Context, uid uint, code string) (bool, error)
+	isTOTPendingFn          func(ctx context.Context, uid uint) (bool, error)
+	getTOTPLastStepFn       func(ctx context.Context, uid uint) (*int64, error)
+	getTOTPSecretFn         func(ctx context.Context, uid uint) (string, error)
+	setTOTPLastStepFn       func(ctx context.Context, uid uint, step int64) error
+	canEditFn               func(ctx context.Context, user uint, target uint) (bool, error)
 }
 
 func (u *authUserRepoStub) GetList(ctx context.Context) ([]*userpb.UserPublic, error) {
@@ -403,4 +435,116 @@ func (u *authUserRepoStub) ChangePerms(ctx context.Context, uid uint, perm permi
 		return u.changePermsFn(ctx, uid, perm, state)
 	}
 	return nil
+}
+
+func (u *authUserRepoStub) SetRank(ctx context.Context, uid uint, rank string, expires *time.Time) error {
+	if u.setRankFn != nil {
+		return u.setRankFn(ctx, uid, rank, expires)
+	}
+	return nil
+}
+
+func (u *authUserRepoStub) SetCodeUsed(ctx context.Context, hash string) error {
+	if u.setCodeUsedFn != nil {
+		return u.setCodeUsedFn(ctx, hash)
+	}
+	return nil
+}
+
+func (u *authUserRepoStub) GetRecoveryCodes(ctx context.Context, uid uint) ([]string, error) {
+	if u.getRecoveryCodesFn != nil {
+		return u.getRecoveryCodesFn(ctx, uid)
+	}
+	return nil, nil
+}
+
+func (u *authUserRepoStub) CascadeRecoveryCodes(ctx context.Context, uid uint, codes []string) error {
+	if u.cascadeRecoveryCodesFn != nil {
+		return u.cascadeRecoveryCodesFn(ctx, uid, codes)
+	}
+	return nil
+}
+
+func (u *authUserRepoStub) AppendRecoveryCodes(ctx context.Context, uid uint, codes []string) error {
+	if u.appendRecoveryCodesFn != nil {
+		return u.appendRecoveryCodesFn(ctx, uid, codes)
+	}
+	return nil
+}
+
+func (u *authUserRepoStub) SetConfirmed(ctx context.Context, uid uint) error {
+	if u.setConfirmedFn != nil {
+		return u.setConfirmedFn(ctx, uid)
+	}
+	return nil
+}
+
+func (u *authUserRepoStub) SetPendingTOTP(ctx context.Context, uid uint, pending string) error {
+	if u.setPendingTOTPFn != nil {
+		return u.setPendingTOTPFn(ctx, uid, pending)
+	}
+	return nil
+}
+
+func (u *authUserRepoStub) GetPendingTOTP(ctx context.Context, uid uint) (*string, error) {
+	if u.getPendingTOTPFn != nil {
+		return u.getPendingTOTPFn(ctx, uid)
+	}
+	return nil, nil
+}
+
+func (u *authUserRepoStub) IsTOTPEnabled(ctx context.Context, uid uint) (bool, error) {
+	if u.isTOTPEnabledFn != nil {
+		return u.isTOTPEnabledFn(ctx, uid)
+	}
+	return false, nil
+}
+
+func (u *authUserRepoStub) ResetTOTP(ctx context.Context, uid uint) error {
+	if u.resetTOTPFn != nil {
+		return u.resetTOTPFn(ctx, uid)
+	}
+	return nil
+}
+
+func (u *authUserRepoStub) IsValidRecovery(ctx context.Context, uid uint, code string) (bool, error) {
+	if u.isValidRecoveryFn != nil {
+		return u.isValidRecoveryFn(ctx, uid, code)
+	}
+	return false, nil
+}
+
+func (u *authUserRepoStub) IsTOTPending(ctx context.Context, uid uint) (bool, error) {
+	if u.isTOTPendingFn != nil {
+		return u.isTOTPendingFn(ctx, uid)
+	}
+	return false, nil
+}
+
+func (u *authUserRepoStub) GetTOTPLastStep(ctx context.Context, uid uint) (*int64, error) {
+	if u.getTOTPLastStepFn != nil {
+		return u.getTOTPLastStepFn(ctx, uid)
+	}
+	return nil, nil
+}
+
+func (u *authUserRepoStub) GetTOTPSecret(ctx context.Context, uid uint) (string, error) {
+	if u.getTOTPSecretFn != nil {
+		return u.getTOTPSecretFn(ctx, uid)
+	}
+	return "", nil
+}
+
+func (u *authUserRepoStub) SetTOTPLastStep(ctx context.Context, uid uint, step int64) error {
+	if u.setTOTPLastStepFn != nil {
+		return u.setTOTPLastStepFn(ctx, uid, step)
+	}
+	return nil
+}
+
+func (u *authUserRepoStub) CanEdit(ctx context.Context, user uint, target uint) (bool, error) {
+	if u.canEditFn != nil {
+		return u.canEditFn(ctx, user, target)
+	}
+	return true, nil
 }

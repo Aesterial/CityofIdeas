@@ -2361,7 +2361,7 @@ func (m *MaintenanceRepository) GetList(ctx context.Context) (maintenance.Inform
 
 var _ tickets.Repository = (*TicketsRepository)(nil)
 
-const defaultTicketSystemMessage = "Ticket created. We'll respond soon."
+const defaultTicketSystemMessage = "Ticket created, we'll respond soon..."
 
 func (t *TicketsRepository) Create(ctx context.Context, data tickets.TicketCreationRequestor, topic tickets.TicketTopic, brief string) (*tickets.TicketCreationData, error) {
 	if topic == "" || !topic.Valid() {
@@ -2619,8 +2619,8 @@ func (t *TicketsRepository) parseMessage(scanner scanner) (*tickets.TicketMessag
 			author.Authorized = false
 		}
 	case tickets.AuthorSystem:
-		name := "aesterial Tickets System"
-		email := "aesterial@tickets"
+		name := "Aesterial Tickets System"
+		email := "tickets@aesterial.xyz"
 		author.AuthorName = &name
 		author.AuthorEmail = &email
 	}

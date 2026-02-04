@@ -39,7 +39,7 @@ func NewAuthenticator(sessions *sessionsapp.Service, us *userapp.Service) *Authe
 	}
 }
 
-func (a *Authenticator) RequireUser(ctx context.Context) (*user.RequestData, error) {
+func (a *Authenticator) RequireUser(ctx context.Context, nocheck ...bool) (*user.RequestData, error) {
 	if a == nil || a.Sessions == nil {
 		return nil, apperrors.NotConfigured
 	}
@@ -61,8 +61,12 @@ func (a *Authenticator) RequireUser(ctx context.Context) (*user.RequestData, err
 
 	valid, err := a.Sessions.IsValid(ctx, sessionID)
 	if err != nil {
-		logger.Debug("failed to check is session valid: " + err.Error(), "auth.sessions.valid")
-		return nil, apperrors.Wrap(err)
+		if len(nocheck) > 0 && nocheck[0] == true && errors.Is(err, apperrors.NeedVerify) {
+			valid = true
+		} else {
+			logger.Debug("failed to check is session valid: " + err.Error(), "auth.sessions.valid")
+			return nil, apperrors.Wrap(err)
+		}
 	}
 	if !valid {
 		return nil, apperrors.Unauthenticated

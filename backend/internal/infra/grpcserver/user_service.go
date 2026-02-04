@@ -44,15 +44,17 @@ func NewUserService(info *userinfo.Service, modifier *usermodifier.Service, sess
 }
 
 func (s *UserService) Self(ctx context.Context, _ *emptypb.Empty) (*userpb.UserSelfResponse, error) {
-	requestor, err := s.auth.RequireUser(ctx)
-	if err != nil {
+	requestor, err := s.auth.RequireUser(ctx, true)
+	if err != nil && !errors.Is(err, apperrors.NeedVerify) {
+		logger.Debug("failed to get info about self: " + err.Error(), "")
 		return nil, err
 	}
 	if requestor == nil {
 		return nil, apperrors.Unauthenticated.AddErrDetails("user not logged in")
 	}
 	u, err := s.info.GetSelf(ctx, requestor.SessionID)
-	if err != nil {
+	if err != nil && !errors.Is(err, apperrors.NeedVerify) {
+		logger.Debug("error while getting info: " + err.Error(), "")
 		return nil, apperrors.Wrap(err)
 	}
 	traceID := TraceIDOrNew(ctx)
@@ -451,7 +453,7 @@ func (s *UserService) HasPermissions(ctx context.Context, req *userpb.HasPermiss
 }
 
 func (s *UserService) Permissions(ctx context.Context, req *userpb.OtherUserRequest) (*permpb.PermissionsResponse, error) {
-	requestor, err := s.auth.RequireUser(ctx)
+	requestor, err := s.auth.RequireUser(ctx, true)
 	if err != nil {
 		return nil, err
 	}

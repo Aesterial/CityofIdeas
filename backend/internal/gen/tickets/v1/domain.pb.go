@@ -29,6 +29,7 @@ type CreateRequest struct {
 	Email         string                 `protobuf:"bytes,2,opt,name=email,proto3" json:"email,omitempty"`
 	Topic         string                 `protobuf:"bytes,3,opt,name=topic,proto3" json:"topic,omitempty"`
 	Brief         string                 `protobuf:"bytes,4,opt,name=brief,proto3" json:"brief,omitempty"`
+	Content       string                 `protobuf:"bytes,5,opt,name=content,proto3" json:"content,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -87,6 +88,13 @@ func (x *CreateRequest) GetTopic() string {
 func (x *CreateRequest) GetBrief() string {
 	if x != nil {
 		return x.Brief
+	}
+	return ""
+}
+
+func (x *CreateRequest) GetContent() string {
+	if x != nil {
+		return x.Content
 	}
 	return ""
 }
@@ -928,12 +936,13 @@ var File_tickets_domain_proto protoreflect.FileDescriptor
 const file_tickets_domain_proto_rawDesc = "" +
 	"\n" +
 	"\x14tickets/domain.proto\x12\n" +
-	"tickets.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x11user/domain.proto\"e\n" +
+	"tickets.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x11user/domain.proto\"\x7f\n" +
 	"\rCreateRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x14\n" +
 	"\x05topic\x18\x03 \x01(\tR\x05topic\x12\x14\n" +
-	"\x05brief\x18\x04 \x01(\tR\x05brief\"_\n" +
+	"\x05brief\x18\x04 \x01(\tR\x05brief\x12\x18\n" +
+	"\acontent\x18\x05 \x01(\tR\acontent\"_\n" +
 	"\x0eCreateResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
 	"\x05token\x18\x02 \x01(\tH\x00R\x05token\x88\x01\x01\x12\x18\n" +

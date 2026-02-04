@@ -306,16 +306,10 @@ export default function SupportPage() {
         email: resolvedEmail,
         topic: getCategoryLabel(copy, formData.category),
         brief,
+        content,
       });
       if (token && typeof window !== "undefined") {
         window.sessionStorage.setItem(`support.ticket.token.${id}`, token);
-      }
-      if (content) {
-        try {
-          await createTicketMessage(id, content, token ? { token } : undefined);
-        } catch {
-          // Ignore message errors to avoid blocking ticket creation.
-        }
       }
       router.push(`/support/${encodeURIComponent(id)}`);
     } catch (error) {

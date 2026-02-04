@@ -233,6 +233,7 @@ export type CreateTicketPayload = {
   email?: string;
   topic: string;
   brief: string;
+  content: string;
 };
 
 type ApiBanInfoResponse = {
@@ -1807,13 +1808,17 @@ export async function createTicket(
 ): Promise<TicketCreateResult> {
   const topic = payload.topic.trim();
   const brief = payload.brief.trim();
+  const content = payload.brief.trim();
   if (!topic) {
     throw new Error("Ticket topic is required.");
   }
   if (!brief) {
     throw new Error("Ticket brief is required.");
   }
-  const body: Record<string, unknown> = { topic, brief };
+  if (!content) {
+    throw new Error("Ticket content is required")
+  }
+  const body: Record<string, unknown> = { topic, brief, content };
   const name = payload.name?.trim();
   const email = payload.email?.trim();
   if (name) {
