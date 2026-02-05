@@ -486,6 +486,7 @@ export default function SupportPage() {
 
                 <div>
                   <label className="block text-sm font-medium mb-2">
+                    <MessageSquare className="inline h-4 w-4 mr-2" />
                     {copy.messageLabel}
                   </label>
                   <textarea
