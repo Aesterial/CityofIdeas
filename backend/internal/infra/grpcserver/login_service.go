@@ -369,7 +369,7 @@ func (s *LoginService) CheckTOTP(ctx context.Context, req *loginpb.ConfirmTOTPRe
 	if s == nil || s.login == nil {
 		return nil, apperrors.NotConfigured
 	}
-	requestor, err := s.auth.RequireUser(ctx)
+	requestor, err := s.auth.RequireUser(ctx, true)
 	if err != nil && !errors.Is(err, apperrors.NeedVerify) {
 		return nil, err
 	}
