@@ -1,12 +1,12 @@
 # To build use command: docker compose -f docker-compose.yml -f docker-compose.build.yml build
 services:
-  backend:
+  aesterial_backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     image: ivanskem/aesterial-jcup:backend-latest
 
-  frontend:
+  aesterial_frontend:
     build:
       context: ./frontend/web
       dockerfile: Dockerfile

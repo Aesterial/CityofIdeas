@@ -161,7 +161,9 @@ func (s *Service) sendMail(ctx context.Context, to string, subject string, htmlB
 
 	logger.Debug("sending to: "+to, "")
 
-	if err := s.smtpSend(ctx, to, msg.Bytes()); err != nil {
+	smtpCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	if err := s.smtpSend(smtpCtx, to, msg.Bytes()); err != nil {
 		logger.Debug("smtp send failed: "+err.Error(), "mailer.send")
 		return "", apperrors.Unavailable.AddErrDetails("failed to send email")
 	}
