@@ -311,13 +311,6 @@ export default function SupportPage() {
       if (token && typeof window !== "undefined") {
         window.sessionStorage.setItem(`support.ticket.token.${id}`, token);
       }
-      if (content) {
-        try {
-          await createTicketMessage(id, content, token ? { token } : undefined);
-        } catch {
-          // waynut simakov_ceo_IT technics. (на самом деле я не ловлю ошибку изза того что там какой то баг на беке и пришлось писать по ублюдски)
-        }
-      }
       router.push(`/support/${encodeURIComponent(id)}`);
     } catch (error) {
       setSubmitError(copy.submitError);

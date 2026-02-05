@@ -329,22 +329,26 @@ func (t *TicketsService) List(ctx context.Context, _ *emptypb.Empty) (*tickpb.Ti
 		return nil, err
 	}
 	var list ticketsdomain.Tickets
-	if err := t.auth.RequirePermissions(ctx, requestor.UID, permsdomain.TicketsViewListAny); err != nil {
-		if errors.Is(err, apperrors.AccessDenied) {
-			logger.Debug("checking only for own", "")
-			list, err = t.serv.List(ctx, true, &requestor.UID, nil)
-			if err != nil {
-				return nil, apperrors.Wrap(err)
-			}
-		} else {
-			return nil, apperrors.Wrap(err)
-		}
-	} else {
-		logger.Debug("checking for all", "")
-		list, err = t.serv.List(ctx, false, nil, nil)
-		if err != nil {
-			return nil, apperrors.Wrap(err)
-		}
+	// if err := t.auth.RequirePermissions(ctx, requestor.UID, permsdomain.TicketsViewListAny); err != nil {
+	// 	if errors.Is(err, apperrors.AccessDenied) {
+	// 		logger.Debug("checking only for own", "")
+	// 		list, err = t.serv.List(ctx, true, &requestor.UID, nil)
+	// 		if err != nil {
+	// 			return nil, apperrors.Wrap(err)
+	// 		}
+	// 	} else {
+	// 		return nil, apperrors.Wrap(err)
+	// 	}
+	// } else {
+	// 	logger.Debug("checking for all", "")
+	// 	list, err = t.serv.List(ctx, false, nil, nil)
+	// 	if err != nil {
+	// 		return nil, apperrors.Wrap(err)
+	// 	}
+	// }
+	list, err = t.serv.List(ctx, true, &requestor.UID, nil)
+	if err != nil {
+		return nil, apperrors.Wrap(err)
 	}
 	return &tickpb.TicketsListResponse{List: list.ToProto(), Tracing: TraceIDOrNew(ctx)}, nil
 }

@@ -406,7 +406,6 @@ func (u *UserRepository) GetEmail(ctx context.Context, uid uint) (*user.Email, e
 		logger.Debug("failed to receive email: "+err.Error(), "")
 		return nil, err
 	}
-	logger.Debug("received email: "+email.Address, "")
 	return &email, nil
 }
 
