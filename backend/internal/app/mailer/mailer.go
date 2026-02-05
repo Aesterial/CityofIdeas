@@ -126,9 +126,6 @@ func (s *Service) sendMail(ctx context.Context, to string, subject string, htmlB
 	if to == "" {
 		return "", apperrors.RequiredDataMissing.AddErrDetails("email is empty")
 	}
-	// if strings.ContainsAny(to, "aesterial.xyz") {
-	// 	return "", nil
-	// }
 	if htmlBody == "" && textBody == "" {
 		return "", apperrors.RequiredDataMissing.AddErrDetails("email body is empty")
 	}
@@ -157,7 +154,8 @@ func (s *Service) sendMail(ctx context.Context, to string, subject string, htmlB
 	}
 	msg.WriteString("\r\n")
 	msg.WriteString(body)
-	logger.Debug("sending to: " + to, "")
+
+	logger.Debug("sending to: "+to, "")
 
 	if err := s.smtpSend(ctx, to, msg.Bytes()); err != nil {
 		logger.Debug("smtp send failed: "+err.Error(), "mailer.send")
@@ -165,6 +163,67 @@ func (s *Service) sendMail(ctx context.Context, to string, subject string, htmlB
 	}
 
 	return messageID, nil
+}
+
+func (s *Service) smtpSend(ctx context.Context, to string, msg []byte) error {
+	host := s.env.Mailer.Host
+	port := s.env.Mailer.Port
+
+	addr := net.JoinHostPort(host, strconv.Itoa(port))
+
+	dialer := &net.Dialer{Timeout: 10 * time.Second}
+	conn, err := tls.DialWithDialer(dialer, "tcp", addr, &tls.Config{
+		ServerName: host,
+		MinVersion: tls.VersionTLS12,
+	})
+	if err != nil {
+		return fmt.Errorf("tls dial: %w", err)
+	}
+	defer conn.Close()
+
+	c, err := smtp.NewClient(conn, host)
+	if err != nil {
+		return fmt.Errorf("smtp client: %w", err)
+	}
+	defer c.Close()
+
+	done := make(chan struct{})
+	go func() {
+		select {
+		case <-ctx.Done():
+			_ = c.Close()
+		case <-done:
+		}
+	}()
+	defer close(done)
+
+	if s.env.Mailer.User != "" {
+		auth := smtp.PlainAuth("", s.env.Mailer.User, s.env.Mailer.Pass, host)
+		if err := c.Auth(auth); err != nil {
+			return fmt.Errorf("smtp auth: %w", err)
+		}
+	}
+
+	if err := c.Mail(transactionalFrom); err != nil {
+		return fmt.Errorf("smtp mail from: %w", err)
+	}
+	if err := c.Rcpt(to); err != nil {
+		return fmt.Errorf("smtp rcpt to: %w", err)
+	}
+
+	w, err := c.Data()
+	if err != nil {
+		return fmt.Errorf("smtp data: %w", err)
+	}
+	if _, err := w.Write(msg); err != nil {
+		_ = w.Close()
+		return fmt.Errorf("smtp write: %w", err)
+	}
+	if err := w.Close(); err != nil {
+		return fmt.Errorf("smtp data close: %w", err)
+	}
+
+	return c.Quit()
 }
 
 func (s *Service) validateConfig() error {
@@ -215,70 +274,6 @@ func formatAddress(name string, email string) string {
 		return email
 	}
 	return fmt.Sprintf("%s <%s>", name, email)
-}
-
-func (s *Service) smtpSend(ctx context.Context, to string, msg []byte) error {
-	addr := fmt.Sprintf("%s:%d", s.host, s.port)
-	dialer := &net.Dialer{Timeout: 10 * time.Second}
-
-	var conn net.Conn
-	var err error
-
-	if s.secure {
-		tlsConfig := &tls.Config{ServerName: s.host}
-		conn, err = tls.DialWithDialer(dialer, "tcp", addr, tlsConfig)
-	} else {
-		conn, err = dialer.DialContext(ctx, "tcp", addr)
-	}
-	if err != nil {
-		return err
-	}
-
-	if err := applyDeadline(ctx, conn); err != nil {
-		_ = conn.Close()
-		return err
-	}
-
-	client, err := smtp.NewClient(conn, s.host)
-	if err != nil {
-		_ = conn.Close()
-		return err
-	}
-	defer client.Close()
-
-	if !s.secure {
-		if ok, _ := client.Extension("STARTTLS"); ok {
-			tlsConfig := &tls.Config{ServerName: s.host}
-			if err := client.StartTLS(tlsConfig); err != nil {
-				return err
-			}
-		}
-	}
-
-	auth := smtp.PlainAuth("", s.user, s.pass, s.host)
-	if err := client.Auth(auth); err != nil {
-		return err
-	}
-
-	if err := client.Mail(transactionalFrom); err != nil {
-		return err
-	}
-	if err := client.Rcpt(to); err != nil {
-		return err
-	}
-
-	writer, err := client.Data()
-	if err != nil {
-		return err
-	}
-	if _, err := writer.Write(msg); err != nil {
-		_ = writer.Close()
-		return err
-	}
-	if err := writer.Close(); err != nil {
-		return err
-	}
-	return client.Quit()
 }
 
 func applyDeadline(ctx context.Context, conn net.Conn) error {

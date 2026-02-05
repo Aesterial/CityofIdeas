@@ -171,7 +171,7 @@ func (s *sessionsRepoStub) GetSession(ctx context.Context, sessionID uuid.UUID) 
 	return nil, nil
 }
 
-func (s *sessionsRepoStub) GetSessions(ctx context.Context, uid uint) ([]*sessionsdomain.Session, error) {
+func (s *sessionsRepoStub) GetSessions(ctx context.Context, uid uint) (*sessionsdomain.Sessions, error) {
 	return nil, nil
 }
 
@@ -180,6 +180,14 @@ func (s *sessionsRepoStub) GetUID(ctx context.Context, sessionID uuid.UUID) (*ui
 }
 
 func (s *sessionsRepoStub) SetRevoked(ctx context.Context, sessionID uuid.UUID) error {
+	return nil
+}
+
+func (s *sessionsRepoStub) SetMFACompleted(ctx context.Context, sessionID uuid.UUID) error {
+	return nil
+}
+
+func (s *sessionsRepoStub) ResetMFAs(ctx context.Context, uid uint) error {
 	return nil
 }
 
@@ -308,6 +316,70 @@ func (u *userRepoStub) ChangePerms(ctx context.Context, uid uint, perm permissio
 
 func (u *userRepoStub) GetUserLastActive(ctx context.Context, uid uint) (*time.Time, error) {
 	return nil, nil
+}
+
+func (u *userRepoStub) SetRank(ctx context.Context, uid uint, rank string, expires *time.Time) error {
+	return nil
+}
+
+func (u *userRepoStub) SetCodeUsed(ctx context.Context, hash string) error {
+	return nil
+}
+
+func (u *userRepoStub) GetRecoveryCodes(ctx context.Context, uid uint) ([]string, error) {
+	return nil, nil
+}
+
+func (u *userRepoStub) CascadeRecoveryCodes(ctx context.Context, uid uint, codes []string) error {
+	return nil
+}
+
+func (u *userRepoStub) AppendRecoveryCodes(ctx context.Context, uid uint, codes []string) error {
+	return nil
+}
+
+func (u *userRepoStub) SetConfirmed(ctx context.Context, uid uint) error {
+	return nil
+}
+
+func (u *userRepoStub) SetPendingTOTP(ctx context.Context, uid uint, pending string) error {
+	return nil
+}
+
+func (u *userRepoStub) GetPendingTOTP(ctx context.Context, uid uint) (*string, error) {
+	return nil, nil
+}
+
+func (u *userRepoStub) IsTOTPEnabled(ctx context.Context, uid uint) (bool, error) {
+	return false, nil
+}
+
+func (u *userRepoStub) ResetTOTP(ctx context.Context, uid uint) error {
+	return nil
+}
+
+func (u *userRepoStub) IsValidRecovery(ctx context.Context, uid uint, code string) (bool, error) {
+	return false, nil
+}
+
+func (u *userRepoStub) IsTOTPending(ctx context.Context, uid uint) (bool, error) {
+	return false, nil
+}
+
+func (u *userRepoStub) GetTOTPLastStep(ctx context.Context, uid uint) (*int64, error) {
+	return nil, nil
+}
+
+func (u *userRepoStub) GetTOTPSecret(ctx context.Context, uid uint) (string, error) {
+	return "", nil
+}
+
+func (u *userRepoStub) SetTOTPLastStep(ctx context.Context, uid uint, step int64) error {
+	return nil
+}
+
+func (u *userRepoStub) CanEdit(ctx context.Context, user uint, target uint) (bool, error) {
+	return true, nil
 }
 
 type verificationRepoStub struct{}

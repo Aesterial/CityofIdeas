@@ -13,6 +13,7 @@ import (
 	submpb "Aesterial/backend/internal/gen/submissions/v1"
 	grpcserver "Aesterial/backend/internal/infra/grpcserver"
 	apperrors "Aesterial/backend/internal/shared/errors"
+
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -62,7 +63,11 @@ func (p *submissionsProjectsRepoStub) GetCategories(context.Context) ([]string, 
 	return nil, nil
 }
 
-func (p *submissionsProjectsRepoStub) CreateProject(context.Context, projects.Project) error {
+func (p *submissionsProjectsRepoStub) CreateProject(context.Context, projects.Project) (*uuid.UUID, error) {
+	return nil, nil
+}
+
+func (p *submissionsProjectsRepoStub) AddProjectPhoto(context.Context, uuid.UUID, string, string, int) error {
 	return nil
 }
 

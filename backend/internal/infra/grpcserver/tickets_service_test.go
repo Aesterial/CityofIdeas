@@ -3,7 +3,9 @@ package grpcserver_test
 import (
 	"context"
 	"testing"
+	"time"
 
+	"Aesterial/backend/internal/app/mailer"
 	ticketsapp "Aesterial/backend/internal/app/tickets"
 	ticketsdomain "Aesterial/backend/internal/domain/tickets"
 	tickpb "Aesterial/backend/internal/gen/tickets/v1"
@@ -42,7 +44,7 @@ func (t *ticketsRepoStub) IsReqValid(context.Context, uuid.UUID, ticketsdomain.T
 	return true, nil
 }
 
-func (t *ticketsRepoStub) List(context.Context) (ticketsdomain.Tickets, error) {
+func (t *ticketsRepoStub) List(context.Context, bool, *uint, *string) (ticketsdomain.Tickets, error) {
 	return nil, nil
 }
 
@@ -62,12 +64,17 @@ func (t *ticketsRepoStub) Close(context.Context, uuid.UUID, ticketsdomain.Ticket
 	return nil
 }
 
+func (t *ticketsRepoStub) LatestAt(context.Context, uuid.UUID) (*time.Time, error) {
+	return nil, nil
+}
+
 func TestTicketsServiceCreateSuccess(t *testing.T) {
+	ctx, sessionsSvc, userSvc, _, _ := newAuthDeps(t, 10)
 	token := "token-1"
 	repo := &ticketsRepoStub{createData: &ticketsdomain.TicketCreationData{ID: uuid.New(), Token: &token}}
-	svc := grpcserver.NewTicketsService(ticketsapp.New(repo), nil, nil, nil, nil)
+	svc := grpcserver.NewTicketsService(ticketsapp.New(repo, &authUserRepoStub{}, mailer.New(mailer.Config{})), sessionsSvc, userSvc, nil, nil)
 
-	resp, err := svc.Create(context.Background(), &tickpb.CreateRequest{Name: "Bob", Email: "bob@example.com", Topic: "other", Brief: "help"})
+	resp, err := svc.Create(ctx, &tickpb.CreateRequest{Name: "Bob", Email: "bob@example.com", Topic: "other", Brief: "help", Content: "please help"})
 	if err != nil {
 		t.Fatalf("Create() error: %v", err)
 	}
@@ -77,8 +84,9 @@ func TestTicketsServiceCreateSuccess(t *testing.T) {
 }
 
 func TestTicketsServiceMessageCreateRequiresToken(t *testing.T) {
+	_, sessionsSvc, userSvc, _, _ := newAuthDeps(t, 10)
 	repo := &ticketsRepoStub{}
-	svc := grpcserver.NewTicketsService(ticketsapp.New(repo), nil, nil, nil, nil)
+	svc := grpcserver.NewTicketsService(ticketsapp.New(repo, &authUserRepoStub{}, mailer.New(mailer.Config{})), sessionsSvc, userSvc, nil, nil)
 
 	_, err := svc.MessageCreate(context.Background(), &tickpb.TicketMessageCreate{Id: uuid.New().String()})
 	assertAppError(t, err, apperrors.RequiredDataMissing)

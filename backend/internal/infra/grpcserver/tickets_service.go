@@ -148,7 +148,10 @@ func (t *TicketsService) Create(ctx context.Context, req *tickpb.CreateRequest) 
 	if err != nil && !errors.Is(err, apperrors.AccessDenied) {
 		return nil, apperrors.Wrap(err)
 	}
-	data, err := t.serv.Create(ctx, requestor, ticketsdomain.TicketTopic(strings.ToLower(req.GetTopic())), req.GetBrief())
+	if req.GetBrief() == "" || req.GetContent() == "" || req.GetTopic() == "" {
+		return nil, apperrors.InvalidArguments
+	}
+	data, err := t.serv.Create(ctx, requestor, ticketsdomain.TicketTopic(strings.ToLower(req.GetTopic())), req.GetBrief(), req.GetContent())
 	if err != nil {
 		logger.Debug("error in creation ticket: "+err.Error(), "")
 		return nil, apperrors.Wrap(err)

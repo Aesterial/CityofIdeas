@@ -11,6 +11,7 @@ message CreateRequest {
   string email = 2;
   string topic = 3;
   string brief = 4;
+  string content = 5;
 }
 
 message CreateResponse {

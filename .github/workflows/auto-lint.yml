@@ -1,0 +1,103 @@
+name: lint
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  go_lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.work
+          cache: true
+
+      - name: gofmt (check)
+        shell: bash
+        run: |
+          set -euo pipefail
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            echo "$unformatted"
+            echo "gofmt: files need formatting"
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          working-directory: backend
+          args: --timeout=5m
+
+  web_lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend/web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/web/package-lock.json
+
+      - name: npm ci
+        run: npm ci
+
+      - name: ESLint / Next lint (if present)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if node -e "const s=require('./package.json').scripts||{}; process.exit(s.lint?0:1)"; then
+            if [ -x ./node_modules/.bin/eslint ]; then
+              npm run lint
+            else
+              echo "Skipping lint: lint script exists but eslint is not installed."
+              echo "Add eslint to devDependencies to enable linting."
+            fi
+          else
+            if [ -x ./node_modules/.bin/next ]; then
+              npx --no-install next lint || (echo "No lint script and next lint failed" && exit 1)
+            else
+              echo "Skipping lint: no lint script and next is not installed."
+            fi
+          fi
+
+      - name: TypeScript typecheck (if script exists, else tsc)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if node -e "const s=require('./package.json').scripts||{}; process.exit(s.typecheck?0:1)"; then
+            npm run typecheck
+          else
+            npx --no-install tsc --noEmit
+          fi
+
+      - name: Prettier (optional, if script exists)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if node -e "const s=require('./package.json').scripts||{}; process.exit(s['format:check']?0:1)"; then
+            npm run format:check
+          elif node -e "const s=require('./package.json').scripts||{}; process.exit(s['prettier:check']?0:1)"; then
+            npm run prettier:check
+          else
+            echo "No prettier check script; skipping"
+          fi

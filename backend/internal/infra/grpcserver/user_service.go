@@ -44,15 +44,17 @@ func NewUserService(info *userinfo.Service, modifier *usermodifier.Service, sess
 }
 
 func (s *UserService) Self(ctx context.Context, _ *emptypb.Empty) (*userpb.UserSelfResponse, error) {
-	requestor, err := s.auth.RequireUser(ctx)
-	if err != nil {
+	requestor, err := s.auth.RequireUser(ctx, true)
+	if err != nil && !errors.Is(err, apperrors.NeedVerify) {
+		logger.Debug("failed to get info about self: "+err.Error(), "")
 		return nil, err
 	}
 	if requestor == nil {
 		return nil, apperrors.Unauthenticated.AddErrDetails("user not logged in")
 	}
 	u, err := s.info.GetSelf(ctx, requestor.SessionID)
-	if err != nil {
+	if err != nil && !errors.Is(err, apperrors.NeedVerify) {
+		logger.Debug("error while getting info: "+err.Error(), "")
 		return nil, apperrors.Wrap(err)
 	}
 	traceID := TraceIDOrNew(ctx)
@@ -219,9 +221,16 @@ func (s *UserService) Ban(ctx context.Context, req *userpb.BanUserRequest) (*use
 		return nil, err
 	}
 	traceID := TraceIDOrNew(ctx)
+	can, err := s.info.CanEdit(ctx, requestor.UID, uint(req.GetUserID()))
+	if err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+	if !can {
+		return nil, apperrors.AccessDenied
+	}
 	err = s.info.Ban(ctx, user.BanInfo{Executor: requestor.UID, Target: uint(req.UserID), Reason: req.Reason, Expire: time.Now().Add(req.Duration.AsDuration())})
 	if err != nil {
-		return &userpb.EmptyResponse{Tracing: traceID}, err
+		return &userpb.EmptyResponse{Tracing: traceID}, apperrors.Wrap(err)
 	}
 	logger.Info("Banned user", "user.ban.success", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.Success, traceID)
 	return &userpb.EmptyResponse{Tracing: traceID}, nil
@@ -239,6 +248,13 @@ func (s *UserService) Unban(ctx context.Context, req *userpb.OtherUserRequest) (
 		return nil, err
 	}
 	traceID := TraceIDOrNew(ctx)
+	can, err := s.info.CanEdit(ctx, requestor.UID, uint(req.GetUserID()))
+	if err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+	if !can {
+		return nil, apperrors.AccessDenied
+	}
 	err = s.info.UnBan(ctx, uint(req.UserID))
 	if err != nil {
 		return &userpb.EmptyResponse{Tracing: traceID}, err
@@ -437,7 +453,7 @@ func (s *UserService) HasPermissions(ctx context.Context, req *userpb.HasPermiss
 }
 
 func (s *UserService) Permissions(ctx context.Context, req *userpb.OtherUserRequest) (*permpb.PermissionsResponse, error) {
-	requestor, err := s.auth.RequireUser(ctx)
+	requestor, err := s.auth.RequireUser(ctx, true)
 	if err != nil {
 		return nil, err
 	}
@@ -527,7 +543,7 @@ func (s *UserService) SetRank(ctx context.Context, req *userpb.SetRankRequest) (
 		expires = &as
 	}
 	if err := s.info.SetRank(ctx, uint(req.UserID), req.GetRank(), expires); err != nil {
-		logger.Debug("Failed to set rank: " + err.Error(), "")
+		logger.Debug("Failed to set rank: "+err.Error(), "")
 		return nil, apperrors.ServerError
 	}
 	return &userpb.EmptyResponse{Tracing: TraceIDOrNew(ctx)}, nil

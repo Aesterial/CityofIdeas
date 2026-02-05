@@ -306,6 +306,7 @@ export default function SupportPage() {
         email: resolvedEmail,
         topic: getCategoryLabel(copy, formData.category),
         brief,
+        content,
       });
       if (token && typeof window !== "undefined") {
         window.sessionStorage.setItem(`support.ticket.token.${id}`, token);

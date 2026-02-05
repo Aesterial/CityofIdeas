@@ -234,6 +234,7 @@ export type CreateTicketPayload = {
   email?: string;
   topic: string;
   brief: string;
+  content: string;
 };
 
 type ApiBanInfoResponse = {
@@ -1124,7 +1125,7 @@ export async function startVkAuth(): Promise<{
   state?: string;
 }> {
   const payload = await apiRequest<VkStartResponse>("/api/login/vk/start", {
-    method: "GET",
+    method: "POST",
   });
   const authUrl = payload.authUrl ?? payload.auth_url ?? "";
   if (!authUrl) {
@@ -1136,14 +1137,17 @@ export async function startVkAuth(): Promise<{
 export async function completeVkAuth(
   code: string,
   state: string,
+  device_id: string,
 ): Promise<AuthResult> {
-  const params = new URLSearchParams();
-  params.set("code", code);
-  params.set("state", state);
   const payload = await apiRequest<VkCallbackResponse>(
-    `/api/login/vk/callback?${params.toString()}`,
+    `/api/login/vk/callback`,
     {
-      method: "GET",
+      method: "POST",
+      body: JSON.stringify({
+        code,
+        state,
+        device_id,
+      })
     },
   );
   const result = normalizeAuthResult(payload);
@@ -1871,13 +1875,17 @@ export async function createTicket(
 ): Promise<TicketCreateResult> {
   const topic = payload.topic.trim();
   const brief = payload.brief.trim();
+  const content = payload.brief.trim();
   if (!topic) {
     throw new Error("Ticket topic is required.");
   }
   if (!brief) {
     throw new Error("Ticket brief is required.");
   }
-  const body: Record<string, unknown> = { topic, brief };
+  if (!content) {
+    throw new Error("Ticket content is required")
+  }
+  const body: Record<string, unknown> = { topic, brief, content };
   const name = payload.name?.trim();
   const email = payload.email?.trim();
   if (name) {
