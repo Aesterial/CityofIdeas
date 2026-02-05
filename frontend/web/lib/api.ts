@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "@/lib/api-base";
-import { emitMfaRequired } from "@/lib/mfa-required";
+import { emitMfaRequired, isMfaRequiredMessage } from "@/lib/mfa-required";
 import { StatusCodes } from "http-status-codes";
 
 export type RegisterPayload = {
@@ -471,7 +471,6 @@ const toRankListItem = (value: ApiRankListEntry): ApiRankListItem | null => {
 
 const BAN_STORAGE_KEY = "banInfo";
 const BANNED_ERROR_MATCH = "user is banned";
-const MFA_REQUIRED_MATCH = "mfa_required";
 
 function isBannedResponse(
   status: number,
@@ -492,8 +491,7 @@ function isBannedResponse(
   );
 }
 
-const includesMfaRequired = (value: unknown) =>
-  typeof value === "string" && value.toLowerCase().includes(MFA_REQUIRED_MATCH);
+const includesMfaRequired = (value: unknown) => isMfaRequiredMessage(value);
 
 const isMfaRequiredPayload = (payload: unknown): boolean => {
   if (includesMfaRequired(payload)) {
@@ -1147,7 +1145,7 @@ export async function completeVkAuth(
         code,
         state,
         device_id,
-      })
+      }),
     },
   );
   const result = normalizeAuthResult(payload);
@@ -1883,7 +1881,7 @@ export async function createTicket(
     throw new Error("Ticket brief is required.");
   }
   if (!content) {
-    throw new Error("Ticket content is required")
+    throw new Error("Ticket content is required");
   }
   const body: Record<string, unknown> = { topic, brief, content };
   const name = payload.name?.trim();

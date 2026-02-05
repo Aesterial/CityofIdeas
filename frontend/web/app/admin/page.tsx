@@ -54,6 +54,7 @@ import {
   type ApiAvatar,
 } from "@/lib/api";
 import { API_BASE_URL } from "@/lib/api-base";
+import { emitMfaRequired, isMfaRequiredMessage } from "@/lib/mfa-required";
 import {
   ChartContainer,
   ChartLegend,
@@ -335,6 +336,22 @@ const isBannedResponse = (
     includesBan(message)
   );
 };
+
+const isMfaRequiredResponse = (
+  status: number,
+  data: { error?: string; data?: unknown; message?: string } | null,
+  message: string,
+) => {
+  if (status !== 403) {
+    return false;
+  }
+  return (
+    isMfaRequiredMessage(message) ||
+    isMfaRequiredMessage(data?.message) ||
+    isMfaRequiredMessage(data?.error) ||
+    isMfaRequiredMessage(data?.data)
+  );
+};
 async function requestJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     credentials: "include",
@@ -369,6 +386,9 @@ async function requestJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   }
   if (isBannedResponse(response.status, data, message)) {
     await handleBannedUser({ signal });
+  }
+  if (isMfaRequiredResponse(response.status, data, message)) {
+    emitMfaRequired({ reason: message });
   }
   throw new Error(message);
 }

@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { API_BASE_URL } from "@/lib/api-base";
+import { emitMfaRequired, isMfaRequiredMessage } from "@/lib/mfa-required";
 
 export const dynamic = "force-static";
 
@@ -134,6 +135,21 @@ export default function MaintenancePage() {
           return;
         }
         if (!response.ok) {
+          if (response.status === 403) {
+            const payload = (await response.json().catch(() => null)) as {
+              message?: unknown;
+            } | null;
+            const message =
+              payload && typeof payload === "object" ? payload.message : null;
+            if (
+              isMfaRequiredMessage(message) ||
+              isMfaRequiredMessage(payload)
+            ) {
+              emitMfaRequired({
+                reason: typeof message === "string" ? message : undefined,
+              });
+            }
+          }
           return;
         }
         const contentType = response.headers.get("content-type") || "";

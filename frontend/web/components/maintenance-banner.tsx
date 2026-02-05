@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { API_BASE_URL } from "@/lib/api-base";
+import { emitMfaRequired, isMfaRequiredMessage } from "@/lib/mfa-required";
 
 const BANNER_HEIGHT_PX = 32;
 
@@ -47,6 +48,21 @@ export function MaintenanceBanner() {
         );
 
         if (!response.ok) {
+          if (response.status === 403) {
+            const payload = (await response.json().catch(() => null)) as {
+              message?: unknown;
+            } | null;
+            const message =
+              payload && typeof payload === "object" ? payload.message : null;
+            if (
+              isMfaRequiredMessage(message) ||
+              isMfaRequiredMessage(payload)
+            ) {
+              emitMfaRequired({
+                reason: typeof message === "string" ? message : undefined,
+              });
+            }
+          }
           setVisible(false);
           return;
         }
