@@ -13,7 +13,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"strconv"
 	"strings"
 
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -293,32 +292,4 @@ func (s *RanksService) PermsPatch(ctx context.Context, req *rankpb.PermsPatchReq
 	traceID := TraceIDOrNew(ctx)
 	logger.Info("Updated rank permissions", "ranks.perms.patch.success", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.Success, traceID)
 	return &rankpb.EmptyResponse{Tracing: traceID}, nil
-}
-
-func parseRankColor(raw string) (int, error) {
-	trimmed := strings.TrimSpace(raw)
-	if trimmed == "" {
-		return 0, apperrors.InvalidArguments.AddErrDetails("rank color is empty")
-	}
-	trimmed = strings.TrimPrefix(trimmed, "#")
-	base := 10
-	lowered := strings.ToLower(trimmed)
-	if strings.HasPrefix(lowered, "0x") {
-		base = 0
-	} else {
-		for _, r := range trimmed {
-			if (r >= 'a' && r <= 'f') || (r >= 'A' && r <= 'F') {
-				base = 16
-				break
-			}
-		}
-	}
-	val, err := strconv.ParseInt(trimmed, base, 32)
-	if err != nil {
-		return 0, apperrors.InvalidArguments.AddErrDetails("invalid rank color")
-	}
-	if val <= 0 {
-		return 0, apperrors.InvalidArguments.AddErrDetails("rank color is empty")
-	}
-	return int(val), nil
 }

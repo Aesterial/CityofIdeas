@@ -12,7 +12,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
 )
 
@@ -79,16 +78,6 @@ func TraceUnaryInterceptor() grpc.UnaryServerInterceptor {
 
 		return resp, err
 	}
-}
-
-func grpcPeerAddr(ctx context.Context) string {
-	if p, ok := peer.FromContext(ctx); ok && p.Addr != nil {
-		addr := p.Addr.String()
-		if addr != "" {
-			return addr
-		}
-	}
-	return "unknown"
 }
 
 func traceResult(code codes.Code) logger.EventResult {

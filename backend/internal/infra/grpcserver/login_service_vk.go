@@ -803,11 +803,6 @@ func buildVKUsername(profile vkUser, linkedID string) string {
 	return linkedID
 }
 
-func decodeJSON(body io.Reader, out any) error {
-	dec := json.NewDecoder(body)
-	return dec.Decode(out)
-}
-
 var vkHTTPClientInstance = &http.Client{
 	Timeout: 25 * time.Second,
 	Transport: &http.Transport{

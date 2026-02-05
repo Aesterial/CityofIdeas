@@ -62,7 +62,7 @@ func (a *Authenticator) RequireUser(ctx context.Context, nocheck ...bool) (*user
 	valid, err := a.Sessions.IsValid(ctx, sessionID)
 	if err != nil {
 		if errors.Is(err, apperrors.NeedVerify) {
-			if len(nocheck) > 0 && nocheck[0] == true {
+			if len(nocheck) > 0 && nocheck[0] {
 				valid = true
 			} else {
 				return nil, apperrors.NeedVerify

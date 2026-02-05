@@ -84,7 +84,7 @@ type Environment struct {
 }
 
 func (e Environment) Loaded() bool {
-	return e.load == true
+	return e.load
 }
 
 func (e *Environment) MarkLoaded() {

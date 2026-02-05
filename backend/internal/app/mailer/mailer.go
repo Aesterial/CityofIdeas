@@ -302,10 +302,3 @@ func formatAddress(name string, email string) string {
 	}
 	return fmt.Sprintf("%s <%s>", name, email)
 }
-
-func applyDeadline(ctx context.Context, conn net.Conn) error {
-	if deadline, ok := ctx.Deadline(); ok {
-		return conn.SetDeadline(deadline)
-	}
-	return conn.SetDeadline(time.Now().Add(30 * time.Second))
-}

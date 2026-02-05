@@ -60,20 +60,6 @@ func New() (*Service, error) {
 		))
 	}
 
-	if endpoint != "" {
-		opts = append(opts, awscfg.WithEndpointResolverWithOptions(
-			aws.EndpointResolverWithOptionsFunc(func(service, region string, _ ...interface{}) (aws.Endpoint, error) {
-				if service == s3.ServiceID {
-					return aws.Endpoint{
-						URL:           endpoint,
-						SigningRegion: region,
-					}, nil
-				}
-				return aws.Endpoint{}, &aws.EndpointNotFoundError{}
-			}),
-		))
-	}
-
 	awsCfg, err := awscfg.LoadDefaultConfig(context.Background(), opts...)
 	if err != nil {
 		logger.Debug("error appeared: "+err.Error(), "storage.new")
@@ -82,6 +68,9 @@ func New() (*Service, error) {
 
 	s3Client := s3.NewFromConfig(awsCfg, func(o *s3.Options) {
 		o.UsePathStyle = cfg.ForcePathStyle
+		if endpoint != "" {
+			o.EndpointResolver = s3.EndpointResolverFromURL(endpoint)
+		}
 	})
 
 	ttl := time.Duration(cfg.PresignTTLSeconds) * time.Second

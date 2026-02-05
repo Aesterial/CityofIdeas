@@ -293,7 +293,9 @@ func (t *TicketsService) MessageCreate(ctx context.Context, req *tickpb.TicketMe
 			logger.Debug("failed to get username: "+err.Error(), "")
 			return nil, apperrors.Wrap(err)
 		}
-		t.mailer.SendTicketMessage(ctx, email, id.String(), sender, req.Content)
+		if err := t.mailer.SendTicketMessage(ctx, email, id.String(), sender, req.Content); err != nil {
+			logger.Debug("failed to send ticket message: "+err.Error(), "")
+		}
 	}
 	return &tickpb.EmptyResponse{Tracing: TraceIDOrNew(ctx)}, nil
 }

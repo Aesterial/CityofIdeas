@@ -1,10 +1,12 @@
 package grpcserver_test
 
 import (
+	"context"
 	"testing"
 
 	grpcserver "Aesterial/backend/internal/infra/grpcserver"
 	apperrors "Aesterial/backend/internal/shared/errors"
+
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -31,6 +33,6 @@ func TestUserServiceOtherNilRequest(t *testing.T) {
 
 func TestUserServiceDeleteSelfAvatarNotImplemented(t *testing.T) {
 	svc := grpcserver.NewUserService(nil, nil, nil, nil)
-	_, err := svc.DeleteSelfAvatar(nil, &emptypb.Empty{})
+	_, err := svc.DeleteSelfAvatar(context.TODO(), &emptypb.Empty{})
 	assertAppError(t, err, apperrors.NotConfigured)
 }

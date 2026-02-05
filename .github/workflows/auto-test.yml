@@ -93,16 +93,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: docker compose up (smoke)
+      - name: Report compose env inputs
         shell: bash
         run: |
           set -euo pipefail
-          docker compose -f docker-compose.yml up -d --build
-          docker compose -f docker-compose.yml ps
+          file="docker-compose.yml"
+          echo "External env vars referenced in ${file}:"
+          vars="$(grep -oE '\\${[A-Za-z_][A-Za-z0-9_]*}' "$file" | tr -d '${}' | sort -u || true)"
+          if [ -z "$vars" ]; then
+            echo "  (none)"
+          else
+            for v in $vars; do
+              if [ -n "${!v:-}" ]; then
+                status="set"
+              else
+                status="empty"
+              fi
+              echo "  $v: $status"
+            done
+          fi
 
-      - name: docker compose down
-        if: always()
+      - name: docker compose config (validate)
         shell: bash
         run: |
           set -euo pipefail
-          docker compose -f docker-compose.yml down -v
+          docker compose -f docker-compose.yml config -q

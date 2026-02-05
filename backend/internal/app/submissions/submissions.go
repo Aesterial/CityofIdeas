@@ -4,22 +4,11 @@ import (
 	"Aesterial/backend/internal/domain/projects"
 	"Aesterial/backend/internal/domain/submissions"
 	"Aesterial/backend/internal/domain/user"
-	projpb "Aesterial/backend/internal/gen/projects/v1"
 	submpb "Aesterial/backend/internal/gen/submissions/v1"
-	userpb "Aesterial/backend/internal/gen/user/v1"
 	"Aesterial/backend/internal/infra/logger"
 	apperrors "Aesterial/backend/internal/shared/errors"
 	"context"
 	"strings"
-)
-
-const (
-	projectCategoryImprovement   = "\u0431\u043B\u0430\u0433\u043E\u0443\u0441\u0442\u0440\u043E\u0439\u0441\u0442\u0432\u043E"
-	projectCategoryRoadsSidewalk = "\u0434\u043E\u0440\u043E\u0433\u0438 \u0438 \u0442\u0440\u043E\u0442\u0443\u0430\u0440\u044B"
-	projectCategoryLighting      = "\u043E\u0441\u0432\u0435\u0449\u0435\u043D\u0438\u0435"
-	projectCategoryPlaygrounds   = "\u0434\u0435\u0442\u0441\u043A\u0438\u0435 \u043F\u043B\u043E\u0449\u0430\u0434\u043A\u0438"
-	projectCategoryParks         = "\u043F\u0430\u0440\u043A\u0438 \u0438 \u0441\u043A\u0432\u0435\u0440\u044B"
-	projectCategoryOther         = "\u0434\u0440\u0443\u0433\u043E\u0435"
 )
 
 type Service struct {
@@ -30,54 +19,6 @@ type Service struct {
 
 func New(repo submissions.Repository, proj projects.Repository, usrs user.Repository) *Service {
 	return &Service{repo: repo, proj: proj, usrs: usrs}
-}
-
-// toGenProject переводит тип проекта из стандартного в тот, что запрашивает gRPC.
-//
-// Deprecated: используйте projects.Project.ToProto() вместо toGenProject(*projects.Project).
-func toGenProject(p *projects.Project) *projpb.Project {
-	convAvatars := func() []*userpb.Avatar {
-		var photos []*userpb.Avatar
-		for _, av := range p.Info.Photos {
-			photos = append(photos, av.ToPublic())
-		}
-		return photos
-	}
-	cat := func() projpb.ProjectCategory {
-		if v, ok := projpb.ProjectCategory_value[p.Info.Category.String()]; ok {
-			return projpb.ProjectCategory(v)
-		}
-		switch strings.ToLower(strings.TrimSpace(p.Info.Category.String())) {
-		case projectCategoryImprovement:
-			return projpb.ProjectCategory_IMPROVEMENT
-		case projectCategoryRoadsSidewalk:
-			return projpb.ProjectCategory_ROADSIDEWALKS
-		case projectCategoryLighting:
-			return projpb.ProjectCategory_LIGHTING
-		case projectCategoryPlaygrounds:
-			return projpb.ProjectCategory_PLAYGROUNDS
-		case projectCategoryParks:
-			return projpb.ProjectCategory_PARKS
-		case projectCategoryOther:
-			return projpb.ProjectCategory_OTHER
-		default:
-			return projpb.ProjectCategory_UNSPECIFIED
-		}
-	}
-	return &projpb.Project{
-		Id: p.ID.String(),
-		Details: &projpb.ProjectInfo{
-			Title:       p.Info.Title,
-			Description: p.Info.Description,
-			Photos:      convAvatars(),
-			Category:    cat(),
-			Location: &projpb.ProjectLocation{
-				City:      p.Info.Location.City,
-				Longitude: p.Info.Location.Longitude,
-				Latitude:  p.Info.Location.Latitude,
-			},
-		},
-	}
 }
 
 func (s *Service) GetList(ctx context.Context) ([]*submpb.ListResponseTarget, error) {
