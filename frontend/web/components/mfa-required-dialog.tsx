@@ -112,6 +112,9 @@ export function MfaRequiredDialog() {
     <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
+          return;
+        }
         if (!isSubmitting) {
           setOpen(nextOpen);
         }
@@ -120,7 +123,10 @@ export function MfaRequiredDialog() {
       <DialogContent
         className="w-full max-w-md rounded-3xl border-border/70 bg-card/95 p-6 shadow-2xl z-[110]"
         overlayClassName="bg-black/45 backdrop-blur-sm z-[100]"
-        showCloseButton={!isSubmitting}
+        showCloseButton={false}
+        onEscapeKeyDown={(event) => event.preventDefault()}
+        onPointerDownOutside={(event) => event.preventDefault()}
+        onInteractOutside={(event) => event.preventDefault()}
       >
         <DialogHeader className="gap-2 text-left">
           <DialogTitle className="text-2xl">{t("authCodeTitle")}</DialogTitle>
