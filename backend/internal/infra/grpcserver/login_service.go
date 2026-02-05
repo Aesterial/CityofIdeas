@@ -370,7 +370,7 @@ func (s *LoginService) CheckTOTP(ctx context.Context, req *loginpb.ConfirmTOTPRe
 		return nil, apperrors.NotConfigured
 	}
 	requestor, err := s.auth.RequireUser(ctx)
-	if err != nil {
+	if err != nil && !errors.Is(err, apperrors.NeedVerify) {
 		return nil, err
 	}
 	if requestor == nil {
@@ -381,14 +381,14 @@ func (s *LoginService) CheckTOTP(ctx context.Context, req *loginpb.ConfirmTOTPRe
 		return nil, apperrors.InvalidArguments
 	}
 	correct, err := s.login.CheckTOTP(ctx, requestor.UID, req.GetCode())
-	if err != nil {
+	if err != nil && !errors.Is(err, apperrors.NeedVerify) {
 		logger.Debug("error on checking totp code: "+err.Error(), "")
 		return nil, apperrors.Wrap(err)
 	}
 	if !correct {
 		return nil, apperrors.InvalidArguments
 	}
-	if err := s.login.Sessions.SetMFACompleted(ctx, requestor.SessionID); err != nil {
+	if err := s.login.Sessions.SetMFACompleted(ctx, requestor.SessionID); err != nil && !errors.Is(err, apperrors.NeedVerify) {
 		logger.Debug("failed to set mfa completed: "+err.Error(), "")
 		return nil, apperrors.Wrap(err)
 	}
