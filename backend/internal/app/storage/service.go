@@ -69,7 +69,7 @@ func New() (*Service, error) {
 	s3Client := s3.NewFromConfig(awsCfg, func(o *s3.Options) {
 		o.UsePathStyle = cfg.ForcePathStyle
 		if endpoint != "" {
-			o.EndpointResolver = s3.EndpointResolverFromURL(endpoint)
+			o.BaseEndpoint = aws.String(endpoint)
 		}
 	})
 
