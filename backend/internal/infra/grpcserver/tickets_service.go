@@ -293,7 +293,7 @@ func (t *TicketsService) MessageCreate(ctx context.Context, req *tickpb.TicketMe
 			logger.Debug("failed to get username: "+err.Error(), "")
 			return nil, apperrors.Wrap(err)
 		}
-		if err := t.mailer.SendTicketMessage(ctx, email, id.String(), sender, req.Content); err != nil {
+		if _, err := t.mailer.SendTicketMessage(ctx, email, id.String(), sender, req.Content); err != nil {
 			logger.Debug("failed to send ticket message: "+err.Error(), "")
 		}
 	}
