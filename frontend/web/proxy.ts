@@ -5,6 +5,7 @@ const DEV_API_BASE_URL = "http://127.0.0.1:8080";
 const CACHE_TTL_MS = 0.5 * 60 * 1000;
 const REQUEST_TIMEOUT_MS = 1500;
 const REFRESH_PARAM = "maintenanceRefresh";
+const LOGIN_CHECK_PATH = "/api/login/check";
 
 let cachedActive: boolean | null = null;
 let cachedAt = 0;
@@ -62,6 +63,48 @@ const readActiveFlag = (payload: unknown): boolean | null => {
     }
   }
   return null;
+};
+
+type AuthCheckStatus =
+  | "authenticated"
+  | "anonymous"
+  | "mfa_required"
+  | "unknown";
+
+const fetchAuthStatus = async (
+  request: NextRequest,
+): Promise<AuthCheckStatus> => {
+  const base = resolveApiBaseUrl(request);
+  const normalizedBase =
+    process.env.NODE_ENV === "production" ? ensureHttps(base) : base;
+  const url = `${stripTrailingSlash(normalizedBase)}${LOGIN_CHECK_PATH}`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Cookie: request.headers.get("cookie") ?? "",
+      },
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    if (response.status === 200) {
+      return "authenticated";
+    }
+    if (response.status === 400) {
+      return "anonymous";
+    }
+    if (response.status === 403) {
+      return "mfa_required";
+    }
+    return "unknown";
+  } catch {
+    return "unknown";
+  } finally {
+    clearTimeout(timeoutId);
+  }
 };
 
 const fetchMaintenanceActive = async (request: NextRequest) => {
@@ -138,8 +181,14 @@ const getMaintenanceActive = async (
 };
 
 export async function proxy(request: NextRequest) {
+  const authStatus = await fetchAuthStatus(request);
+  const requiresMfa = authStatus === "mfa_required";
+
   if (DISABLE_MAINTENANCE_CHECKS) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.headers.set("x-auth-status", authStatus);
+    response.headers.set("x-mfa-required", requiresMfa ? "1" : "0");
+    return response;
   }
   const { pathname, searchParams } = request.nextUrl;
   const forceRefresh = searchParams.has(REFRESH_PARAM);
@@ -150,19 +199,31 @@ export async function proxy(request: NextRequest) {
         const url = request.nextUrl.clone();
         url.searchParams.delete(REFRESH_PARAM);
         url.pathname = "/";
-        return NextResponse.redirect(url, 307);
+        const response = NextResponse.redirect(url, 307);
+        response.headers.set("x-auth-status", authStatus);
+        response.headers.set("x-mfa-required", requiresMfa ? "1" : "0");
+        return response;
       }
     }
-    return NextResponse.next();
+    const response = NextResponse.next();
+    response.headers.set("x-auth-status", authStatus);
+    response.headers.set("x-mfa-required", requiresMfa ? "1" : "0");
+    return response;
   }
   const isActive = await getMaintenanceActive(request, forceRefresh);
   if (isActive) {
     const url = request.nextUrl.clone();
     url.searchParams.delete(REFRESH_PARAM);
     url.pathname = "/technics";
-    return NextResponse.redirect(url, 307);
+    const response = NextResponse.redirect(url, 307);
+    response.headers.set("x-auth-status", authStatus);
+    response.headers.set("x-mfa-required", requiresMfa ? "1" : "0");
+    return response;
   }
-  return NextResponse.next();
+  const response = NextResponse.next();
+  response.headers.set("x-auth-status", authStatus);
+  response.headers.set("x-mfa-required", requiresMfa ? "1" : "0");
+  return response;
 }
 
 export const config = {
