@@ -44,13 +44,21 @@ jobs:
           (cd internal && go vet ./...)
           (cd starter && go vet ./...)
 
-      - name: golangci-lint
+      - name: golangci-lint (internal)
         uses: golangci/golangci-lint-action@v6
         with:
-          version: latest
+          version: v1.64.8
           install-mode: goinstall
-          working-directory: backend
-          args: --timeout=5m
+          working-directory: backend/internal
+          args: --timeout=5m --path-prefix=backend/internal
+
+      - name: golangci-lint (starter)
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.64.8
+          install-mode: goinstall
+          working-directory: backend/starter
+          args: --timeout=5m --path-prefix=backend/starter
 
   web_lint:
     runs-on: ubuntu-latest

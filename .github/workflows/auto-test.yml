@@ -10,6 +10,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  compose_check:
+    runs-on: ubuntu-latest
+    outputs:
+      exists: ${{ steps.check.outputs.exists }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f docker-compose.yml ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
   go_tests:
     runs-on: ubuntu-latest
     defaults:
@@ -22,12 +38,23 @@ jobs:
         with:
           go-version-file: backend/go.work
           cache: true
+          cache-dependency-path: |
+            backend/internal/go.sum
+            backend/starter/go.sum
 
       - name: go test (unit)
-        run: go test ./... -count=1
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd internal && go test ./... -count=1)
+          (cd starter && go test ./... -count=1)
 
       - name: go test (race)
-        run: go test ./... -race -count=1
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd internal && go test ./... -race -count=1)
+          (cd starter && go test ./... -race -count=1)
 
   web_tests:
     runs-on: ubuntu-latest
@@ -60,7 +87,8 @@ jobs:
           fi
 
   integration_smoke:
-    if: ${{ hashFiles('docker-compose.yml') != '' }}
+    if: ${{ needs.compose_check.outputs.exists == 'true' }}
+    needs: compose_check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
