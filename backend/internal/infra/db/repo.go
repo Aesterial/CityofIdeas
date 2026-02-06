@@ -23,6 +23,7 @@ import (
 	"context"
 	"crypto/rand"
 	"database/sql"
+	"github.com/lib/pq"
 	"errors"
 	"strconv"
 	"strings"
@@ -1126,7 +1127,11 @@ func (l *LoginRepository) Register(ctx context.Context, require login.RegisterRe
 		$3) RETURNING uid`,
 		require.Username, require.Email, require.Password).Scan(&id)
 	if err != nil {
-		return nil, err
+	    var pqErr *pq.Error
+	    if errors.As(err, &pqErr) && string(pqErr.Code) == "23505" {
+	        return nil, apperrors.AlreadyExists
+	    }
+	    return nil, err
 	}
 	return &id, nil
 }
