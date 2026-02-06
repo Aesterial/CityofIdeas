@@ -367,10 +367,10 @@ export function Header() {
                           <button
                             type="button"
                             onClick={() => void handleLogout()}
-                            className="group relative overflow-hidden rounded-2xl border border-border bg-card/70 px-4 py-3 text-left transition hover:bg-muted/60"
+                            className="group relative overflow-hidden rounded-2xl border border-border bg-card/70 px-4 py-3 text-left transition hover:border-destructive/30 hover:bg-destructive/5"
                           >
                             <span className="relative flex items-center gap-4">
-                              <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-destructive text-destructive-foreground">
+                              <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-destructive/30 bg-destructive/10 text-destructive">
                                 <LogOut className="h-5 w-5" />
                               </span>
                               <span className="text-base font-semibold">
@@ -646,6 +646,7 @@ export function Header() {
                   </DropdownMenuItem>
 
                   <DropdownMenuItem
+                    variant="destructive"
                     onSelect={(event) => {
                       event.preventDefault();
                       void handleLogout();
