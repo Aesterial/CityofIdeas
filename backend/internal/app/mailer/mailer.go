@@ -80,10 +80,10 @@ func (s *Service) SendEmailVerify(ctx context.Context, email string, token strin
 	cfg := config.Get()
 	verifyURL := fmt.Sprintf(
 		"https://%s/login/email-verify#token=%s",
-		cfg.Cookies.Domain,
+		cfg.Mailer.Domain,
 		url.QueryEscape(token),
 	)
-	subject := "Email verification for " + cfg.Cookies.Domain
+	subject := "Email verification for " + cfg.Mailer.Domain
 	htmlBody := fmt.Sprintf(
 		`<p>Confirm your email via this link:</p><p><a href="%s">Confirm email</a></p>`,
 		verifyURL,
@@ -95,9 +95,9 @@ func (s *Service) SendEmailVerify(ctx context.Context, email string, token strin
 
 func (s *Service) SendPasswordReset(ctx context.Context, email string, token string) (string, error) {
 	cfg := config.Get()
-	resetUrl := fmt.Sprintf("https://%s/login/reset-password#token=%s", cfg.Cookies.Domain, url.QueryEscape(token))
+	resetUrl := fmt.Sprintf("https://%s/login/reset-password#token=%s", cfg.Mailer.Domain, url.QueryEscape(token))
 
-	subject := "Password reset for " + cfg.Cookies.Domain
+	subject := "Password reset for " + cfg.Mailer.Domain
 	htmlBody := fmt.Sprintf(
 		`<p>Reset your password via this link:</p><p><a href="%s">Reset password</a></p>`,
 		resetUrl,
@@ -112,8 +112,8 @@ func (s *Service) SendRegistrationPassword(ctx context.Context, email string, pa
 		return "", apperrors.RequiredDataMissing.AddErrDetails("password is empty")
 	}
 	cfg := config.Get()
-	loginUrl := fmt.Sprintf("https://%s/login", cfg.Cookies.Domain)
-	subject := "Welcome to " + cfg.Cookies.Domain
+	loginUrl := fmt.Sprintf("https://%s/login", cfg.Mailer.Domain)
+	subject := "Welcome to " + cfg.Mailer.Domain
 	htmlBody := fmt.Sprintf(
 		`<p>Your account has been created via VK.</p><p>Password: <strong>%s</strong></p><p>You can log in here: <a href="%s">%s</a></p>`,
 		password,
