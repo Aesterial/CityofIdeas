@@ -113,6 +113,7 @@ func ensure() {
 			FromName: envValue("SMTP_FROM_NAME"),
 			Secure:   parseBool("SMTP_SECURE", false),
 			StartTLS: parseBool("SMTP_STARTTLS", false),
+			Domain:   envValue("MAILER_DOMAIN"),
 		},
 		VK: domain.VK{
 			ClientID:           envValue("VK_CLIENT_ID"),

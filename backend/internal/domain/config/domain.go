@@ -56,6 +56,7 @@ type Mailer struct {
 	FromName string
 	Secure   bool
 	StartTLS bool
+	Domain   string
 }
 
 type VK struct {

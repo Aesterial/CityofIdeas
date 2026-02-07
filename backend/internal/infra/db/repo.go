@@ -28,6 +28,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lib/pq"
+
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -1116,6 +1118,7 @@ func (l *LoginRepository) Register(ctx context.Context, require login.RegisterRe
 	if require.IsEmpty() {
 		return nil, apperrors.RequiredDataMissing.AddErrDetails("some of params is empty")
 	}
+	require.Email, require.Username = strings.ToLower(require.Email), strings.ToLower(require.Username)
 	var id uint
 	err := l.DB.QueryRowContext(ctx, `
 		INSERT INTO users (username, email, password)
@@ -1125,6 +1128,10 @@ func (l *LoginRepository) Register(ctx context.Context, require login.RegisterRe
 		$3) RETURNING uid`,
 		require.Username, require.Email, require.Password).Scan(&id)
 	if err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && string(pqErr.Code) == "23505" {
+			return nil, apperrors.AlreadyExists
+		}
 		return nil, err
 	}
 	return &id, nil
@@ -1134,6 +1141,7 @@ func (l *LoginRepository) Authorization(ctx context.Context, require login.Autho
 	if require.IsEmpty() {
 		return nil, apperrors.RequiredDataMissing.AddErrDetails("some of params is empty")
 	}
+	require.Usermail = strings.ToLower(require.Usermail)
 	var uid uint
 	if err := l.DB.QueryRowContext(ctx, "SELECT u.uid FROM users u WHERE u.username = $1", require.Usermail).Scan(&uid); err != nil {
 		if !errors.Is(err, sql.ErrNoRows) {
@@ -1707,15 +1715,15 @@ func (s *StatisticsRepository) SaveStatisticsRecap(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	usersActivity, err := s.UsersActivity(ctx, lastDay)
+	active, err := s.GetOnlineUsers(ctx, lastDay)
 	if err != nil {
 		return err
 	}
-	lastActivity, ok := usersActivity[lastDay]
-	if !ok {
-		lastActivity = &statpb.UsersActivity{}
+	offline, err := s.GetOfflineUsers(ctx, lastDay)
+	if err != nil {
+		return err
 	}
-	if _, err := s.DB.ExecContext(ctx, "INSERT INTO statistics_recap (at, us_activity, new_ideas, vote_count) VALUES ($1, ROW($2, $3)::users_activity_t, $4, $5)", lastDay, lastActivity.Active, lastActivity.Offline, newIdeas, voteCount); err != nil {
+	if _, err := s.DB.ExecContext(ctx, "INSERT INTO statistics_recap (at, us_activity, new_ideas, vote_count) VALUES ($1, ROW($2, $3)::users_activity_t, $4, $5)", lastDay, offline, active, newIdeas, voteCount); err != nil {
 		return err
 	}
 	return nil
