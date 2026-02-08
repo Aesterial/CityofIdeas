@@ -324,106 +324,106 @@ func parseRowsToUsers(ctx context.Context, rows *sql.Rows, getAvatar func(contex
 				}
 			}
 			_ = permissionsRaw
-			
+
 		case 14:
-		    var emailRaw sql.NullString
-		    var settingsRaw sql.NullString
-		    var rankRaw sql.NullString
-		    var permissionsRaw sql.NullString
-		    var password sql.NullString
-		
-		    var totpEnabled bool
-		    var totpSecret sql.NullString
-		    var totpPendingSecret sql.NullString
-		    var totpConfirmedAt sql.NullTime
-		    var totpLastStep sql.NullInt64
-		    var totpPendingCreatedAt sql.NullTime
-		
-		    if err := rows.Scan(
-		        &usr.UID,
-		        &usr.Username,
-		        &emailRaw,
-		        &settingsRaw,
-		        &rankRaw,
-		        &permissionsRaw,
-		        &usr.Joined,
-		        &password,
-		        &totpEnabled,
-		        &totpSecret,
-		        &totpPendingSecret,
-		        &totpConfirmedAt,
-		        &totpLastStep,
-		        &totpPendingCreatedAt,
-		    ); err != nil {
-		        return nil, err
-		    }
-		
-		    _ = password
-		    _ = totpEnabled
-		    _ = totpSecret
-		    _ = totpPendingSecret
-		    _ = totpConfirmedAt
-		    _ = totpLastStep
-		    _ = totpPendingCreatedAt
-		
-		    if emailRaw.Valid {
-		        fields, err := parseComposite(emailRaw.String)
-		        if err != nil {
-		            return nil, err
-		        }
-		        if len(fields) < 2 {
-		            return nil, fmt.Errorf("email composite has %d fields", len(fields))
-		        }
-		        if fields[0].Valid {
-		            usr.Email.Address = fields[0].Value
-		        }
-		        if fields[1].Valid {
-		            verified, err := parsePostgresBool(fields[1].Value)
-		            if err != nil {
-		                return nil, err
-		            }
-		            usr.Email.Verified = verified
-		        }
-		    }
-		
-		    if settingsRaw.Valid {
-		        fields, err := parseComposite(settingsRaw.String)
-		        if err != nil {
-		            return nil, err
-		        }
-		        if len(fields) >= 1 && fields[0].Valid {
-		            displayName := strings.TrimSpace(fields[0].Value)
-		            if displayName != "" {
-		                usr.Settings.DisplayName = &displayName
-		            }
-		        }
-		        if len(fields) >= 3 && fields[2].Valid && fields[2].Value != "" {
-		            liveTime, err := strconv.Atoi(fields[2].Value)
-		            if err != nil {
-		                return nil, err
-		            }
-		            usr.Settings.SessionLiveTime = liveTime
-		        }
-		    }
-		
-		    if rankRaw.Valid {
-		        fields, err := parseComposite(rankRaw.String)
-		        if err != nil {
-		            return nil, err
-		        }
-		        if len(fields) >= 1 && fields[0].Valid {
-		            usr.Rank.Name = fields[0].Value
-		        }
-		        if len(fields) >= 2 && fields[1].Valid && fields[1].Value != "" {
-		            expiresAt, err := parsePostgresTime(fields[1].Value)
-		            if err != nil {
-		                return nil, err
-		            }
-		            usr.Rank.Expires = &expiresAt
-		        }
-		    }
-		
-		    _ = permissionsRaw
+			var emailRaw sql.NullString
+			var settingsRaw sql.NullString
+			var rankRaw sql.NullString
+			var permissionsRaw sql.NullString
+			var password sql.NullString
+
+			var totpEnabled bool
+			var totpSecret sql.NullString
+			var totpPendingSecret sql.NullString
+			var totpConfirmedAt sql.NullTime
+			var totpLastStep sql.NullInt64
+			var totpPendingCreatedAt sql.NullTime
+
+			if err := rows.Scan(
+				&usr.UID,
+				&usr.Username,
+				&emailRaw,
+				&settingsRaw,
+				&rankRaw,
+				&permissionsRaw,
+				&usr.Joined,
+				&password,
+				&totpEnabled,
+				&totpSecret,
+				&totpPendingSecret,
+				&totpConfirmedAt,
+				&totpLastStep,
+				&totpPendingCreatedAt,
+			); err != nil {
+				return nil, err
+			}
+
+			_ = password
+			_ = totpEnabled
+			_ = totpSecret
+			_ = totpPendingSecret
+			_ = totpConfirmedAt
+			_ = totpLastStep
+			_ = totpPendingCreatedAt
+
+			if emailRaw.Valid {
+				fields, err := parseComposite(emailRaw.String)
+				if err != nil {
+					return nil, err
+				}
+				if len(fields) < 2 {
+					return nil, fmt.Errorf("email composite has %d fields", len(fields))
+				}
+				if fields[0].Valid {
+					usr.Email.Address = fields[0].Value
+				}
+				if fields[1].Valid {
+					verified, err := parsePostgresBool(fields[1].Value)
+					if err != nil {
+						return nil, err
+					}
+					usr.Email.Verified = verified
+				}
+			}
+
+			if settingsRaw.Valid {
+				fields, err := parseComposite(settingsRaw.String)
+				if err != nil {
+					return nil, err
+				}
+				if len(fields) >= 1 && fields[0].Valid {
+					displayName := strings.TrimSpace(fields[0].Value)
+					if displayName != "" {
+						usr.Settings.DisplayName = &displayName
+					}
+				}
+				if len(fields) >= 3 && fields[2].Valid && fields[2].Value != "" {
+					liveTime, err := strconv.Atoi(fields[2].Value)
+					if err != nil {
+						return nil, err
+					}
+					usr.Settings.SessionLiveTime = liveTime
+				}
+			}
+
+			if rankRaw.Valid {
+				fields, err := parseComposite(rankRaw.String)
+				if err != nil {
+					return nil, err
+				}
+				if len(fields) >= 1 && fields[0].Valid {
+					usr.Rank.Name = fields[0].Value
+				}
+				if len(fields) >= 2 && fields[1].Valid && fields[1].Value != "" {
+					expiresAt, err := parsePostgresTime(fields[1].Value)
+					if err != nil {
+						return nil, err
+					}
+					usr.Rank.Expires = &expiresAt
+				}
+			}
+
+			_ = permissionsRaw
 		default:
 			return nil, fmt.Errorf("unexpected users columns count: %d", len(cols))
 		}
@@ -565,20 +565,24 @@ func (u *UserRepository) GetUserLastActive(ctx context.Context, uid uint) (*time
 func (u *UserRepository) GetSettings(ctx context.Context, uid uint) (*user.Settings, error) {
 	var err error
 	rowMain := u.DB.QueryRowContext(ctx,
-		"SELECT (u.settings).session_live_time, (u.settings).display_name FROM users u WHERE u.uid = $1",
+		"SELECT (u.settings).session_live_time, (u.settings).display_name, (u.settings).description FROM users u WHERE u.uid = $1",
 		uid)
 	if err = rowMain.Err(); err != nil {
 		return nil, err
 	}
 	var s user.Settings
 	var displayName sql.NullString
-	if err = rowMain.Scan(&s.SessionLiveTime, &displayName); err != nil {
+	var description sql.NullString
+	if err = rowMain.Scan(&s.SessionLiveTime, &displayName, &description); err != nil {
 		return nil, err
 	}
 	if displayName.Valid {
 		if displayName.String != "" {
 			s.DisplayName = &displayName.String
 		}
+	}
+	if description.Valid {
+		s.Description = description.String
 	}
 	s.Avatar, err = u.GetAvatar(ctx, uid)
 	if err != nil {
@@ -712,8 +716,29 @@ func (u *UserRepository) UpdateDisplayName(ctx context.Context, uid uint, displa
 	}
 	res, err := u.DB.ExecContext(ctx, `
 		UPDATE users u
-		SET settings = ROW($1, (u.settings).avatar, (u.settings).session_live_time)::user_settings_t
+		SET settings = ROW($1, (u.settings).description, (u.settings).avatar, (u.settings).session_live_time)::user_settings_t
 		WHERE u.uid = $2`, displayName, uid)
+	if err != nil {
+		return err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return apperrors.RecordNotFound
+	}
+	return nil
+}
+
+func (u *UserRepository) UpdateDescription(ctx context.Context, uid uint, description string) error {
+	if uid == 0 {
+		return apperrors.InvalidArguments
+	}
+	res, err := u.DB.ExecContext(ctx, `
+		UPDATE users u
+		SET settings = ROW((u.settings).display_name, $1, (u.settings).avatar, (u.settings).session_live_time)::user_settings_t
+		WHERE u.uid = $2`, description, uid)
 	if err != nil {
 		return err
 	}

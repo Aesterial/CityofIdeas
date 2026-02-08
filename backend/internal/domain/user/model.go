@@ -53,6 +53,7 @@ type SessionTime struct {
 
 type Settings struct {
 	DisplayName     *string
+	Description     string
 	Avatar          *Avatar
 	SessionLiveTime int
 	TOTPEnabled     bool
@@ -101,6 +102,7 @@ func (u *User) ToPublic() *userpb.UserPublic {
 		Rank:     &userpb.Rank{Name: u.Rank.Name, Expires: rankExpires()},
 		Settings: &userpb.UserPublicSettings{
 			DisplayName: displayName,
+			Description: u.Settings.Description,
 			Avatar:      avatar,
 		},
 		Banned:   u.Banned,
@@ -125,6 +127,7 @@ func (u *User) ToSelf() *userpb.UserSelf {
 	if u.Settings != nil {
 		self.Settings = &userpb.UserSettings{
 			DisplayName:     u.Settings.DisplayName,
+			Description:     u.Settings.Description,
 			SessionLiveTime: int32(u.Settings.SessionLiveTime),
 			TotpEnabled:     u.Settings.TOTPEnabled,
 		}

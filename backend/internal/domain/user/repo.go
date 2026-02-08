@@ -24,6 +24,7 @@ type Repository interface {
 	GetUserLastActive(ctx context.Context, uid uint) (*time.Time, error)
 	GetAvatar(ctx context.Context, uid uint) (*Avatar, error)
 	UpdateDisplayName(ctx context.Context, uid uint, displayName string) error
+	UpdateDescription(ctx context.Context, uid uint, description string) error
 	SetEmailVerifiedByAddress(ctx context.Context, email string, verified bool) error
 	UpdatePasswordByEmail(ctx context.Context, email string, passwordHash string) error
 	IsExists(ctx context.Context, user User) (bool, error)

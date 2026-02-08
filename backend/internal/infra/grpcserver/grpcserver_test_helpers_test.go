@@ -113,6 +113,7 @@ func testUser(uid uint) *user.User {
 		UID:      uid,
 		Username: "tester",
 		Rank:     &rank.UserRank{Rank: rank.Rank{Name: "member"}},
+		Settings: &user.Settings{},
 		Joined:   time.Now(),
 	}
 }
@@ -216,6 +217,7 @@ type authUserRepoStub struct {
 	getUserLastActiveFn     func(ctx context.Context, uid uint) (*time.Time, error)
 	getAvatarFn             func(ctx context.Context, uid uint) (*user.Avatar, error)
 	updateDisplayNameFn     func(ctx context.Context, uid uint, displayName string) error
+	updateDescriptionFn     func(ctx context.Context, uid uint, description string) error
 	setEmailVerifiedFn      func(ctx context.Context, email string, verified bool) error
 	updatePasswordByEmailFn func(ctx context.Context, email string, passwordHash string) error
 	isExistsFn              func(ctx context.Context, user user.User) (bool, error)
@@ -336,6 +338,13 @@ func (u *authUserRepoStub) GetAvatar(ctx context.Context, uid uint) (*user.Avata
 func (u *authUserRepoStub) UpdateDisplayName(ctx context.Context, uid uint, displayName string) error {
 	if u.updateDisplayNameFn != nil {
 		return u.updateDisplayNameFn(ctx, uid, displayName)
+	}
+	return nil
+}
+
+func (u *authUserRepoStub) UpdateDescription(ctx context.Context, uid uint, description string) error {
+	if u.updateDescriptionFn != nil {
+		return u.updateDescriptionFn(ctx, uid, description)
 	}
 	return nil
 }

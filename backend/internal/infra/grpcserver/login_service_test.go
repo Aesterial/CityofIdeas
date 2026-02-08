@@ -286,6 +286,10 @@ func (u *userRepoStub) UpdateDisplayName(ctx context.Context, uid uint, displayN
 	return nil
 }
 
+func (u *userRepoStub) UpdateDescription(ctx context.Context, uid uint, description string) error {
+	return nil
+}
+
 func (u *userRepoStub) SetEmailVerifiedByAddress(ctx context.Context, email string, verified bool) error {
 	return nil
 }

@@ -21,27 +21,28 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_Self_FullMethodName             = "/user.v1.UserService/Self"
-	UserService_Other_FullMethodName            = "/user.v1.UserService/Other"
-	UserService_Users_FullMethodName            = "/user.v1.UserService/Users"
-	UserService_Sessions_FullMethodName         = "/user.v1.UserService/Sessions"
-	UserService_RevokeSession_FullMethodName    = "/user.v1.UserService/RevokeSession"
-	UserService_Ban_FullMethodName              = "/user.v1.UserService/Ban"
-	UserService_Unban_FullMethodName            = "/user.v1.UserService/Unban"
-	UserService_BanInfo_FullMethodName          = "/user.v1.UserService/BanInfo"
-	UserService_BanInfoOther_FullMethodName     = "/user.v1.UserService/BanInfoOther"
-	UserService_UpdateSelfName_FullMethodName   = "/user.v1.UserService/UpdateSelfName"
-	UserService_UpdateSelfAvatar_FullMethodName = "/user.v1.UserService/UpdateSelfAvatar"
-	UserService_DeleteSelfAvatar_FullMethodName = "/user.v1.UserService/DeleteSelfAvatar"
-	UserService_DeleteUserAvatar_FullMethodName = "/user.v1.UserService/DeleteUserAvatar"
-	UserService_SendMessage_FullMethodName      = "/user.v1.UserService/SendMessage"
-	UserService_SetRank_FullMethodName          = "/user.v1.UserService/SetRank"
-	UserService_Messages_FullMethodName         = "/user.v1.UserService/Messages"
-	UserService_HasPermissions_FullMethodName   = "/user.v1.UserService/HasPermissions"
-	UserService_Permissions_FullMethodName      = "/user.v1.UserService/Permissions"
-	UserService_ChangePerms_FullMethodName      = "/user.v1.UserService/ChangePerms"
-	UserService_DeleteProfile_FullMethodName    = "/user.v1.UserService/DeleteProfile"
-	UserService_ActivateRank_FullMethodName     = "/user.v1.UserService/ActivateRank"
+	UserService_Self_FullMethodName                  = "/user.v1.UserService/Self"
+	UserService_Other_FullMethodName                 = "/user.v1.UserService/Other"
+	UserService_Users_FullMethodName                 = "/user.v1.UserService/Users"
+	UserService_Sessions_FullMethodName              = "/user.v1.UserService/Sessions"
+	UserService_RevokeSession_FullMethodName         = "/user.v1.UserService/RevokeSession"
+	UserService_Ban_FullMethodName                   = "/user.v1.UserService/Ban"
+	UserService_Unban_FullMethodName                 = "/user.v1.UserService/Unban"
+	UserService_BanInfo_FullMethodName               = "/user.v1.UserService/BanInfo"
+	UserService_BanInfoOther_FullMethodName          = "/user.v1.UserService/BanInfoOther"
+	UserService_UpdateSelfName_FullMethodName        = "/user.v1.UserService/UpdateSelfName"
+	UserService_UpdateSelfDescription_FullMethodName = "/user.v1.UserService/UpdateSelfDescription"
+	UserService_UpdateSelfAvatar_FullMethodName      = "/user.v1.UserService/UpdateSelfAvatar"
+	UserService_DeleteSelfAvatar_FullMethodName      = "/user.v1.UserService/DeleteSelfAvatar"
+	UserService_DeleteUserAvatar_FullMethodName      = "/user.v1.UserService/DeleteUserAvatar"
+	UserService_SendMessage_FullMethodName           = "/user.v1.UserService/SendMessage"
+	UserService_SetRank_FullMethodName               = "/user.v1.UserService/SetRank"
+	UserService_Messages_FullMethodName              = "/user.v1.UserService/Messages"
+	UserService_HasPermissions_FullMethodName        = "/user.v1.UserService/HasPermissions"
+	UserService_Permissions_FullMethodName           = "/user.v1.UserService/Permissions"
+	UserService_ChangePerms_FullMethodName           = "/user.v1.UserService/ChangePerms"
+	UserService_DeleteProfile_FullMethodName         = "/user.v1.UserService/DeleteProfile"
+	UserService_ActivateRank_FullMethodName          = "/user.v1.UserService/ActivateRank"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -58,6 +59,7 @@ type UserServiceClient interface {
 	BanInfo(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*BanInfoResponse, error)
 	BanInfoOther(ctx context.Context, in *OtherUserRequest, opts ...grpc.CallOption) (*BanInfoResponse, error)
 	UpdateSelfName(ctx context.Context, in *ChangeSelfNameRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
+	UpdateSelfDescription(ctx context.Context, in *ChangeSelfDescriptionRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
 	UpdateSelfAvatar(ctx context.Context, in *Avatar, opts ...grpc.CallOption) (*EmptyResponse, error)
 	DeleteSelfAvatar(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*EmptyResponse, error)
 	DeleteUserAvatar(ctx context.Context, in *OtherUserRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
@@ -173,6 +175,16 @@ func (c *userServiceClient) UpdateSelfName(ctx context.Context, in *ChangeSelfNa
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(EmptyResponse)
 	err := c.cc.Invoke(ctx, UserService_UpdateSelfName_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UpdateSelfDescription(ctx context.Context, in *ChangeSelfDescriptionRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EmptyResponse)
+	err := c.cc.Invoke(ctx, UserService_UpdateSelfDescription_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -303,6 +315,7 @@ type UserServiceServer interface {
 	BanInfo(context.Context, *emptypb.Empty) (*BanInfoResponse, error)
 	BanInfoOther(context.Context, *OtherUserRequest) (*BanInfoResponse, error)
 	UpdateSelfName(context.Context, *ChangeSelfNameRequest) (*EmptyResponse, error)
+	UpdateSelfDescription(context.Context, *ChangeSelfDescriptionRequest) (*EmptyResponse, error)
 	UpdateSelfAvatar(context.Context, *Avatar) (*EmptyResponse, error)
 	DeleteSelfAvatar(context.Context, *emptypb.Empty) (*EmptyResponse, error)
 	DeleteUserAvatar(context.Context, *OtherUserRequest) (*EmptyResponse, error)
@@ -353,6 +366,9 @@ func (UnimplementedUserServiceServer) BanInfoOther(context.Context, *OtherUserRe
 }
 func (UnimplementedUserServiceServer) UpdateSelfName(context.Context, *ChangeSelfNameRequest) (*EmptyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateSelfName not implemented")
+}
+func (UnimplementedUserServiceServer) UpdateSelfDescription(context.Context, *ChangeSelfDescriptionRequest) (*EmptyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateSelfDescription not implemented")
 }
 func (UnimplementedUserServiceServer) UpdateSelfAvatar(context.Context, *Avatar) (*EmptyResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateSelfAvatar not implemented")
@@ -584,6 +600,24 @@ func _UserService_UpdateSelfName_Handler(srv interface{}, ctx context.Context, d
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServiceServer).UpdateSelfName(ctx, req.(*ChangeSelfNameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UpdateSelfDescription_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ChangeSelfDescriptionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdateSelfDescription(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UpdateSelfDescription_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdateSelfDescription(ctx, req.(*ChangeSelfDescriptionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -832,6 +866,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateSelfName",
 			Handler:    _UserService_UpdateSelfName_Handler,
+		},
+		{
+			MethodName: "UpdateSelfDescription",
+			Handler:    _UserService_UpdateSelfDescription_Handler,
 		},
 		{
 			MethodName: "UpdateSelfAvatar",

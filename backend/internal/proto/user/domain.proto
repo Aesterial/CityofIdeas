@@ -33,14 +33,16 @@ message Avatar {
 
 message UserSettings {
   optional string displayName = 1;
-  optional Avatar avatar = 2;
-  int32 sessionLiveTime = 3;
-  bool totp_enabled = 4;
+  string description = 2;
+  optional Avatar avatar = 3;
+  int32 sessionLiveTime = 4;
+  bool totp_enabled = 5;
 }
 
 message UserPublicSettings {
   optional string displayName = 1;
-  optional Avatar avatar = 2;
+  string description = 2;
+  optional Avatar avatar = 3;
 }
 
 message Rank {
@@ -94,6 +96,10 @@ message Message {
 
 message ChangeSelfNameRequest {
   string name = 1;
+}
+
+message ChangeSelfDescriptionRequest {
+  string description = 1;
 }
 
 message UserSelfResponse {

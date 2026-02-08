@@ -300,6 +300,7 @@ create type users_rank_t as (
 
 create type user_settings_t as (
     display_name varchar(255),
+    description text,
     avatar picture_t,
     session_live_time int
 );
@@ -310,7 +311,7 @@ create table users (
     username varchar(64) not null,
 
     email users_email_t not null default ROW('', false)::users_email_t,
-    settings user_settings_t not null default ROW('', ROW(NULL, NULL, NULL, NULL)::picture_t, 30)::user_settings_t,
+    settings user_settings_t not null default ROW('', '', ROW(NULL, NULL, NULL, NULL)::picture_t, 30)::user_settings_t,
     rank users_rank_t not null default ROW('user', NULL)::users_rank_t,
     permissions permissions_t not null default permissions_empty(),
 

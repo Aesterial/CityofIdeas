@@ -163,6 +163,30 @@ func (s *UserService) UpdateSelfName(ctx context.Context, req *userpb.ChangeSelf
 	return &userpb.EmptyResponse{Tracing: traceID}, nil
 }
 
+func (s *UserService) UpdateSelfDescription(ctx context.Context, req *userpb.ChangeSelfDescriptionRequest) (*userpb.EmptyResponse, error) {
+	requestor, err := s.auth.RequireUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err := s.auth.RequirePermissions(ctx, requestor.UID, permissions.UsersSettingsChangeDescriptionOwn); err != nil {
+		return nil, err
+	}
+	if req == nil {
+		return nil, apperrors.RequiredDataMissing.AddErrDetails("request is empty")
+	}
+	traceID := TraceIDOrNew(ctx)
+	if requestor != nil {
+		logger.Info("Requested self description update", "user.update_self_name.request", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.None, traceID)
+	}
+	if err := s.info.UpdateDescription(ctx, requestor.UID, req.Description); err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+	if requestor != nil {
+		logger.Info("Updated self description", "user.update_self_description.success", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.Success, traceID)
+	}
+	return &userpb.EmptyResponse{Tracing: traceID}, nil
+}
+
 func (s *UserService) UpdateSelfAvatar(ctx context.Context, req *userpb.Avatar) (*userpb.EmptyResponse, error) {
 	requestor, err := s.auth.RequireUser(ctx)
 	if err != nil {

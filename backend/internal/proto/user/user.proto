@@ -46,6 +46,9 @@ service UserService {
   rpc UpdateSelfName(ChangeSelfNameRequest) returns (EmptyResponse) {
     option (google.api.http) = {patch: "/api/user/change/name/{name}"};
   }
+  rpc UpdateSelfDescription(ChangeSelfDescriptionRequest) returns (EmptyResponse) {
+    option (google.api.http) = {patch: "/api/user/change/description/{description}"};
+  }
   rpc UpdateSelfAvatar(Avatar) returns (EmptyResponse) {
     option (google.api.http) = {
       post: "/api/user/avatar"

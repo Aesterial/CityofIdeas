@@ -83,6 +83,7 @@ func TestSubmissionsServiceListSuccess(t *testing.T) {
 		Author: &user.User{UID: 10, Username: "tester", Rank: testUser(10).Rank, Joined: time.Now()},
 		At:     time.Now(),
 	}
+	project.Author.Settings = &user.Settings{}
 
 	subRepo := &submissionsRepoStub{list: []*subdomain.Submission{{ID: 1, ProjectID: project.ID, State: "active"}}}
 	projRepo := &submissionsProjectsRepoStub{project: project}

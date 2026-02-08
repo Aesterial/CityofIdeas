@@ -165,6 +165,17 @@ func (s *Service) UpdateDisplayName(ctx context.Context, uid uint, displayName s
 	return nil
 }
 
+func (s *Service) UpdateDescription(ctx context.Context, uid uint, description string) error {
+	if uid == 0 {
+		return apperrors.InvalidArguments
+	}
+	if err := s.repo.UpdateDescription(ctx, uid, description); err != nil {
+		logger.Debug("error on change description: " + err.Error(), "")
+		return apperrors.Wrap(err)
+	}
+	return nil
+}
+
 func (s *Service) SetEmailVerifiedByAddress(ctx context.Context, email string, verified bool) error {
 	if strings.TrimSpace(email) == "" {
 		return apperrors.RequiredDataMissing.AddErrDetails("email is empty")
