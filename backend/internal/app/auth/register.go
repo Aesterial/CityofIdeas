@@ -5,6 +5,7 @@ import (
 	"Aesterial/backend/internal/infra/logger"
 	apperrors "Aesterial/backend/internal/shared/errors"
 	"context"
+	"strings"
 )
 
 func (s *Service) Register(ctx context.Context, required domain.RegisterRequire) (*uint, error) {
@@ -17,6 +18,7 @@ func (s *Service) Register(ctx context.Context, required domain.RegisterRequire)
 		logger.Debug("error appeared: "+err.Error(), "auth.register.hash")
 		return nil, apperrors.Wrap(err)
 	}
+	required.Username = strings.Join(strings.Fields(required.Username), "_")
 	uid, err := s.repo.Register(ctx, required)
 	if err != nil {
 		logger.Debug("error appeared: "+err.Error(), "auth.register")
