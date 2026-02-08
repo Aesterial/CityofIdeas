@@ -5,8 +5,10 @@ import (
 	"Aesterial/backend/internal/infra/logger"
 	apperrors "Aesterial/backend/internal/shared/errors"
 	"context"
+	"strings"
 
 	"errors"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -15,6 +17,7 @@ func (s *Service) Authorization(ctx context.Context, required domain.Authorizati
 		logger.Debug("received login: "+required.Usermail+" | received password: "+required.Password, "service.authorization")
 		return nil, apperrors.RequiredDataMissing
 	}
+	required.Usermail = strings.Join(strings.Fields(required.Usermail), "_")
 	uid, err := s.repo.Authorization(ctx, required)
 	if err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
