@@ -402,6 +402,7 @@ export default function AdminPage() {
   const [mounted, setMounted] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("users");
+  const [quickMenuOpen, setQuickMenuOpen] = useState(false);
 
   const [statsSummary, setStatsSummary] = useState<StatsSummary>({
     activeUsers: null,
@@ -443,6 +444,22 @@ export default function AdminPage() {
   const [mediaCoveragePoints, setMediaCoveragePoints] = useState<
     MediaCoveragePoint[]
   >([]);
+  // ----------------------
+  const [headerCompact, setHeaderCompact] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setHeaderCompact(window.scrollY > 12);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const headerVariants = {
+    hidden: { opacity: 0, y: -10, filter: "blur(6px)" },
+    visible: { opacity: 1, y: 0, filter: "blur(0px)" },
+  };
+
+  // -------------------------
   const [qualityScores, setQualityScores] = useState<QualityScore[]>([]);
   const [audienceSnapshot, setAudienceSnapshot] = useState<{
     active: number | null;
@@ -575,6 +592,65 @@ export default function AdminPage() {
       },
     ],
     [language, t],
+  );
+  const quickMenuLinks = useMemo(
+    () => [
+      {
+        href: "#users",
+        section: "users",
+        label: t("adminAccessModerationTitle"),
+        icon: Shield,
+      },
+      {
+        href: "#overview",
+        section: "overview",
+        label: t("adminStatsTitle"),
+        icon: BarChart3,
+      },
+      {
+        href: "#analytics",
+        section: "analytics",
+        label: t("adminStatsActivityTitle"),
+        icon: TrendingUp,
+      },
+      {
+        href: "#media",
+        section: "media",
+        label: t("adminMediaTitle"),
+        icon: ImageIcon,
+      },
+      {
+        href: "/admin/users",
+        label: t("adminUsersManageTitle"),
+        icon: Users,
+      },
+      {
+        href: "/admin/submissions",
+        label: t("adminSubmissionsTitle"),
+        icon: CheckCircle2,
+      },
+      {
+        href: "/admin/submissions/pending",
+        label: t("statusPending"),
+        icon: Sparkles,
+      },
+      {
+        href: "/admin/submissions/approved",
+        label: t("statusApproved"),
+        icon: Shield,
+      },
+      {
+        href: "/admin/submissions/declined",
+        label: t("statusDeclined"),
+        icon: X,
+      },
+      {
+        href: "/admin/support",
+        label: t("adminSupportTitle"),
+        icon: MessageSquare,
+      },
+    ],
+    [t],
   );
 
   const activeSidebarItemId = ranksDialogOpen ? "ranks" : activeSection;
@@ -1539,121 +1615,341 @@ export default function AdminPage() {
 
           <div className="flex min-h-screen w-full flex-col lg:pl-[320px]  rounded-bl-[48px] overflow-hidden">
             <header
-              className="sticky top-0 z-20  backdrop-blur"
+              className="sticky top-0 z-20"
               style={{ top: "var(--maintenance-banner-height)" }}
             >
-              <div className="px-4 py-3 sm:px-6 lg:px-10">
-                <div className="relative overflow-hidden rounded-md border border-border/60 bg-card/80 shadow-[0_20px_40px_-32px_rgba(0,0,0,0.6)] sm:rounded-md">
-                  <div className="pointer-events-none absolute inset-x-2 top-0 h-[3px] rounded-md opacity-80 sm:rounded-full" />
-                  <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-4 lg:px-6">
-                    <div className="flex items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setSidebarOpen(true)}
-                        className="lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/90 text-foreground shadow-sm hover:bg-foreground hover:text-background"
-                        aria-label="Open menu"
-                      >
-                        <Menu className="h-5 w-5" />
-                      </button>
-                    </div>
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={headerVariants}
+                transition={{ duration: 0.28, ease: "easeOut" }}
+                className="px-4 sm:px-6 lg:px-10"
+              >
+                <motion.div
+                  layout
+                  transition={{ type: "spring", stiffness: 520, damping: 44 }}
+                  className={[
+                    "relative overflow-hidden rounded-2xl border",
+                    "bg-background/80 backdrop-blur",
+                    "shadow-[0_18px_40px_-32px_rgba(0,0,0,0.65)]",
+                    headerCompact ? "border-border/60" : "border-border/70",
+                  ].join(" ")}
+                >
+                
+                  <motion.div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-foreground/20"
+                    initial={{ scaleX: 0, opacity: 0 }}
+                    animate={{ scaleX: 1, opacity: headerCompact ? 0.5 : 0.75 }}
+                    transition={{ duration: 0.35, ease: "easeOut" }}
+                    style={{ transformOrigin: "0% 50%" }}
+                  />
 
-                    <div className="flex w-full items-center gap-2 sm:gap-3">
-                      <p className="hidden lg:block text-s textforeground max-w-[260px] text-left">
+                  <motion.div
+                    layout
+                    className={[
+                      "flex items-center gap-2",
+                      headerCompact
+                        ? "px-3 py-2 sm:px-4"
+                        : "px-4 py-3 sm:px-5 sm:py-3",
+                    ].join(" ")}
+                  >
+                 
+                    <motion.button
+                      type="button"
+                      onClick={() => setSidebarOpen(true)}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      className="lg:hidden inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background/90 text-foreground hover:bg-foreground hover:text-background"
+                      aria-label="Open menu"
+                    >
+                      <Menu className="h-5 w-5" />
+                    </motion.button>
+
+            
+                    <motion.div
+                      layout
+                      className="hidden lg:flex min-w-0 items-center gap-2"
+                    >
+                      <span className="h-3 w-px bg-border/70" />
+                      <p className="truncate text-sm text-muted-foreground">
                         {t("adminHeaderNote")}
                       </p>
+                    </motion.div>
 
-                      <div className="ml-auto flex flex-wrap items-center justify-end gap-2 sm:gap-3">
-                        <button
-                          type="button"
-                          onClick={toggleTheme}
-                          data-tutorial="admin-theme-toggle"
-                          className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-border/70 bg-background px-4 text-xs font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
-                        >
-                          {mounted ? (
-                            theme === "light" ? (
-                              <Moon className="h-4 w-4" />
-                            ) : (
-                              <Sun className="h-4 w-4" />
-                            )
-                          ) : null}
-                          {t("adminThemeToggle")}
-                        </button>
-
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button
-                              type="button"
-                              className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
-                            >
-                              <Globe className="h-4 w-4" />
-                              {language}
-                              <ChevronDown className="h-3 w-3" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            align="end"
-                            className="min-w-[90px]"
+                
+                    <div className="ml-auto flex items-center gap-2 sm:gap-3">
+                      <DropdownMenu
+                        open={quickMenuOpen}
+                        onOpenChange={setQuickMenuOpen}
+                      >
+                        <DropdownMenuTrigger asChild>
+                          <motion.button
+                            type="button"
+                            whileHover={{ scale: 1.04 }}
+                            whileTap={{ scale: 0.96 }}
+                            className="group relative inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-border/70 bg-background text-foreground hover:bg-foreground hover:text-background"
+                            aria-label={t("adminPanel")}
+                            title={t("adminPanel")}
                           >
-                            {languageOptions.map((option) => (
-                              <DropdownMenuItem
-                                key={option.code}
-                                onClick={() => setLanguage(option.code)}
-                              >
-                                {option.label}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button
-                              type="button"
-                              className="flex items-center gap-3 rounded-full border border-border/60 bg-background/90 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
-                            >
-                              <Avatar className="h-9 w-9">
-                                {avatarSrc ? (
-                                  <AvatarImage
-                                    src={avatarSrc}
-                                    alt={
-                                      displayName || user?.username || "admin"
-                                    }
-                                  />
-                                ) : null}
-                                <AvatarFallback className="text-xs font-semibold">
-                                  {initials}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span className="text-sm font-semibold">
-                                {displayName || user?.username || "admin"}
-                              </span>
-                              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-56">
-                            <DropdownMenuItem asChild>
-                              <Link href="/account">
-                                <Shield className="h-4 w-4" />
-                                {t("accountSettings")}
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onSelect={(event) => {
-                                event.preventDefault();
-                                void handleLogout();
+                            <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.18),transparent_55%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                            <Sparkles className="relative h-4 w-4" />
+                            <motion.span
+                              aria-hidden
+                              className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-foreground/70 group-hover:bg-background"
+                              animate={{
+                                scale: [1, 1.35, 1],
+                                opacity: [0.55, 1, 0.55],
                               }}
+                              transition={{
+                                duration: 1.8,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                              }}
+                            />
+                          </motion.button>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent
+                          align="end"
+                          sideOffset={10}
+                          className="w-[calc(100vw-1rem)] sm:w-[360px] max-w-[96vw] sm:max-w-[92vw] overflow-hidden rounded-2xl border-border/70 bg-background/95 p-0 shadow-[0_28px_70px_-45px_rgba(0,0,0,0.7)] backdrop-blur-xl"
+                        >
+                          <motion.div
+                            initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            transition={{ duration: 0.2, ease: "easeOut" }}
+                            className="relative"
+                          >
+                            <div className="pointer-events-none absolute -left-14 -top-12 h-28 w-28 rounded-full bg-foreground/10 blur-2xl" />
+                            <div className="pointer-events-none absolute -right-16 top-8 h-32 w-32 rounded-full bg-foreground/10 blur-2xl" />
+
+                            <div className="relative border-b border-border/70 px-4 pb-3 pt-4">
+                              <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                                Admin Hub
+                              </p>
+                              <p className="text-sm font-semibold">
+                                {t("adminPanelTitle")}
+                              </p>
+                            </div>
+
+                            <div className="max-h-[36vh] sm:max-h-[300px] space-y-1 overflow-y-auto p-2">
+                              {quickMenuLinks.map((item) => {
+                                const Icon = item.icon;
+                                return (
+                                  <DropdownMenuItem
+                                    key={item.href}
+                                    asChild
+                                    className="rounded-xl px-2.5 py-2.5 sm:px-3"
+                                    onSelect={() => {
+                                      if (item.section) {
+                                        setActiveSection(item.section);
+                                      }
+                                      setQuickMenuOpen(false);
+                                    }}
+                                  >
+                                    <Link
+                                      href={item.href}
+                                      className="group flex items-center gap-3"
+                                    >
+                                      <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-background sm:h-9 sm:w-9">
+                                        <Icon className="h-4 w-4" />
+                                      </span>
+                                      <span className="min-w-0 truncate text-[13px] font-medium sm:text-sm">
+                                        {item.label}
+                                      </span>
+                                    </Link>
+                                  </DropdownMenuItem>
+                                );
+                              })}
+                            </div>
+
+                            <DropdownMenuSeparator className="mx-0" />
+
+                            <div className="space-y-3 p-3">
+                              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    toggleTheme();
+                                    setQuickMenuOpen(false);
+                                  }}
+                                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-border/70 bg-background px-3 py-2 text-xs font-semibold transition-colors hover:bg-foreground hover:text-background"
+                                >
+                                  {mounted ? (
+                                    theme === "light" ? (
+                                      <Moon className="h-3.5 w-3.5" />
+                                    ) : (
+                                      <Sun className="h-3.5 w-3.5" />
+                                    )
+                                  ) : null}
+                                  {t("adminThemeToggle")}
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setRanksDialogOpen(true);
+                                    setQuickMenuOpen(false);
+                                  }}
+                                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-border/70 bg-background px-3 py-2 text-xs font-semibold transition-colors hover:bg-foreground hover:text-background"
+                                >
+                                  <Sparkles className="h-3.5 w-3.5" />
+                                  {t("adminRanksTitle")}
+                                </button>
+                              </div>
+
+                              <div className="grid grid-cols-3 gap-2">
+                                {languageOptions.map((option) => {
+                                  const active = option.code === language;
+                                  return (
+                                    <button
+                                      key={option.code}
+                                      type="button"
+                                      onClick={() => {
+                                        setLanguage(option.code);
+                                        setQuickMenuOpen(false);
+                                      }}
+                                      className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                                        active
+                                          ? "border-foreground bg-foreground text-background"
+                                          : "border-border/70 bg-background hover:bg-foreground hover:text-background"
+                                      }`}
+                                    >
+                                      {option.label}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                <Link
+                                  href="/account"
+                                  onClick={() => setQuickMenuOpen(false)}
+                                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-border/70 bg-background px-3 py-2 text-xs font-semibold transition-colors hover:bg-foreground hover:text-background"
+                                >
+                                  <Settings className="h-3.5 w-3.5" />
+                                  {t("accountSettings")}
+                                </Link>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    void handleLogout();
+                                    setQuickMenuOpen(false);
+                                  }}
+                                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
+                                >
+                                  <LogOut className="h-3.5 w-3.5" />
+                                  {t("logout")}
+                                </button>
+                              </div>
+                            </div>
+                          </motion.div>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+
+                 
+                      <motion.button
+                        type="button"
+                        onClick={toggleTheme}
+                        data-tutorial="admin-theme-toggle"
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        className="hidden sm:inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background text-foreground hover:bg-foreground hover:text-background"
+                        aria-label={t("adminThemeToggle")}
+                        title={t("adminThemeToggle")}
+                      >
+                        {mounted ? (
+                          theme === "light" ? (
+                            <Moon className="h-4 w-4" />
+                          ) : (
+                            <Sun className="h-4 w-4" />
+                          )
+                        ) : null}
+                      </motion.button>
+
+                
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <motion.button
+                            type="button"
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
+                            className="hidden sm:inline-flex h-10 items-center gap-2 rounded-full border border-border/70 bg-background px-3 text-sm font-semibold hover:bg-foreground hover:text-background"
+                          >
+                            <Globe className="h-4 w-4" />
+                            <span className="w-[28px] text-center">
+                              {language}
+                            </span>
+                            <ChevronDown className="h-3 w-3" />
+                          </motion.button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="min-w-[90px]"
+                        >
+                          {languageOptions.map((option) => (
+                            <DropdownMenuItem
+                              key={option.code}
+                              onClick={() => setLanguage(option.code)}
                             >
-                              <LogOut className="h-4 w-4" />
-                              {t("logout")}
+                              {option.label}
                             </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+
+                    
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <motion.button
+                            type="button"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background p-0 text-sm font-semibold hover:bg-foreground hover:text-background sm:w-auto sm:justify-start sm:gap-2 sm:px-2 sm:pr-3"
+                          >
+                            <Avatar className="h-8 w-8">
+                              {avatarSrc ? (
+                                <AvatarImage
+                                  src={avatarSrc}
+                                  alt={displayName || user?.username || "admin"}
+                                />
+                              ) : null}
+                              <AvatarFallback className="text-[10px] font-semibold">
+                                {initials}
+                              </AvatarFallback>
+                            </Avatar>
+
+                            <span className="hidden sm:block max-w-[140px] truncate">
+                              {displayName || user?.username || "admin"}
+                            </span>
+                            <ChevronDown className="hidden h-4 w-4 text-muted-foreground sm:block" />
+                          </motion.button>
+                        </DropdownMenuTrigger>
+
+                        <DropdownMenuContent align="end" className="w-56">
+                          <DropdownMenuItem asChild>
+                            <Link href="/account">
+                              <Shield className="h-4 w-4" />
+                              {t("accountSettings")}
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onSelect={(event) => {
+                              event.preventDefault();
+                              void handleLogout();
+                            }}
+                          >
+                            <LogOut className="h-4 w-4" />
+                            {t("logout")}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
-                  </div>
-                </div>
-              </div>
+                  </motion.div>
+                </motion.div>
+              </motion.div>
             </header>
 
             <main className="px-4 pb-16 pt-8 sm:px-6 lg:px-10">
