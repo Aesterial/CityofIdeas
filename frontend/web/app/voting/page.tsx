@@ -21,7 +21,7 @@ interface IdeaCard {
   title: string;
   address: string;
   description: string;
-  mapImage: string;
+  coordinates: Coordinates | null;
   photoImage: string;
   category: string;
   city: string;
@@ -61,6 +61,8 @@ const CATEGORY_ALIAS_MAP: Record<string, string> = {
 
 const UNKNOWN_CITY_LABEL = "Не указан";
 const UNKNOWN_ADDRESS_LABEL = "Адрес не указан";
+const MAP_FALLBACK_IMAGE = "/aerial-view-of-city-block-kemerovo.jpg";
+const PHOTO_FALLBACK_IMAGE = "/aerial-view-residential-area-kemerovo.jpg";
 
 const extractUserId = (value: unknown) => {
   if (!value || typeof value !== "object") {
@@ -108,6 +110,63 @@ const buildMapPreviewSrc = (coords: Coordinates | null) => {
   });
   return `https://staticmap.openstreetmap.de/staticmap.php?${params.toString()}`;
 };
+
+const buildYandexMapPreviewSrc = (coords: Coordinates | null) => {
+  if (!coords) {
+    return "";
+  }
+
+  const [lng, lat] = coords;
+  const params = new URLSearchParams({
+    ll: `${lng.toFixed(6)},${lat.toFixed(6)}`,
+    z: "15",
+    l: "map",
+    size: "650,360",
+    pt: `${lng.toFixed(6)},${lat.toFixed(6)},pm2rdm`,
+  });
+  return `https://static-maps.yandex.ru/1.x/?${params.toString()}`;
+};
+
+const buildMapPreviewSources = (coords: Coordinates | null) => {
+  const sources = [buildMapPreviewSrc(coords), buildYandexMapPreviewSrc(coords)]
+    .map((src) => src.trim())
+    .filter(Boolean);
+  return Array.from(new Set([...sources, MAP_FALLBACK_IMAGE]));
+};
+
+function MapPreviewImage({
+  title,
+  coordinates,
+}: {
+  title: string;
+  coordinates: Coordinates | null;
+}) {
+  const sources = useMemo(
+    () => buildMapPreviewSources(coordinates),
+    [coordinates],
+  );
+  const sourcesKey = useMemo(() => sources.join("|"), [sources]);
+  const [sourceIndex, setSourceIndex] = useState(0);
+
+  useEffect(() => {
+    setSourceIndex(0);
+  }, [sourcesKey]);
+
+  const src = sources[Math.min(sourceIndex, sources.length - 1)];
+
+  return (
+    <img
+      src={src}
+      alt={`Карта - ${title}`}
+      className="h-full w-full object-cover"
+      onError={() => {
+        setSourceIndex((current) =>
+          current < sources.length - 1 ? current + 1 : current,
+        );
+      }}
+    />
+  );
+}
 
 const parseTimestamp = (value: unknown) => {
   if (typeof value === "string") {
@@ -300,8 +359,7 @@ export default function VotingPage() {
 
         const photos = Array.isArray(info?.photos) ? info?.photos : [];
         const coordinates = resolveCoordinates(location);
-        const mapImage = buildMapPreviewSrc(coordinates) || "/placeholder.svg";
-        const photoImage = toImageSrc(photos[0]) || "/placeholder.svg";
+        const photoImage = toImageSrc(photos[0]) || PHOTO_FALLBACK_IMAGE;
 
         const liked = Array.isArray(project.liked) ? project.liked : [];
         const userId = user?.uid;
@@ -315,7 +373,7 @@ export default function VotingPage() {
           title,
           address,
           description,
-          mapImage,
+          coordinates,
           photoImage,
           category: resolveCategoryLabel(info?.category),
           city,
@@ -995,12 +1053,9 @@ export default function VotingPage() {
                                       whileHover={{ scale: 1.03 }}
                                       transition={{ duration: 0.3 }}
                                     >
-                                      <img
-                                        src={
-                                          idea.mapImage || "/placeholder.svg"
-                                        }
-                                        alt={`Карта - ${idea.title}`}
-                                        className="h-full w-full object-cover"
+                                      <MapPreviewImage
+                                        title={idea.title}
+                                        coordinates={idea.coordinates}
                                       />
                                       <span className="absolute bottom-2 left-2 rounded-full bg-background/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                                         Карта
@@ -1013,11 +1068,14 @@ export default function VotingPage() {
                                       transition={{ duration: 0.3 }}
                                     >
                                       <img
-                                        src={
-                                          idea.photoImage || "/placeholder.svg"
-                                        }
+                                        src={idea.photoImage}
                                         alt={`Фото - ${idea.title}`}
                                         className="h-full w-full object-cover"
+                                        onError={(event) => {
+                                          event.currentTarget.onerror = null;
+                                          event.currentTarget.src =
+                                            PHOTO_FALLBACK_IMAGE;
+                                        }}
                                       />
                                       <span className="absolute bottom-2 left-2 rounded-full bg-background/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                                         Фото

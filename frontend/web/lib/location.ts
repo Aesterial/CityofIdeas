@@ -53,6 +53,34 @@ export const resolveCoordinates = (
       }
     }
   }
+  if (coords && typeof coords === "object") {
+    const nested = coords as Record<string, unknown>;
+    const nestedLat = normalizeNumber(
+      nested.lat ?? nested.latitude ?? nested.y ?? nested.latDeg,
+    );
+    const nestedLng = normalizeNumber(
+      nested.lng ?? nested.lon ?? nested.longitude ?? nested.x,
+    );
+    if (nestedLat != null && nestedLng != null) {
+      return [nestedLng, nestedLat];
+    }
+  }
+  if (typeof coords === "string") {
+    const normalized = coords.trim().replace(/;/g, ",");
+    const parts = normalized.split(",").map((part) => normalizeNumber(part));
+    if (parts.length >= 2 && parts[0] != null && parts[1] != null) {
+      const first = parts[0];
+      const second = parts[1];
+      const isLatFirst = Math.abs(first) <= 90 && Math.abs(second) <= 180;
+      const isLngFirst = Math.abs(first) <= 180 && Math.abs(second) <= 90;
+      if (isLngFirst) {
+        return [first, second];
+      }
+      if (isLatFirst) {
+        return [second, first];
+      }
+    }
+  }
 
   return null;
 };
@@ -113,9 +141,7 @@ export async function reverseGeocode(
     return COORDINATE_IN_FLIGHT.get(key) ?? null;
   }
 
-  const controller = options?.timeoutMs
-    ? new AbortController()
-    : undefined;
+  const controller = options?.timeoutMs ? new AbortController() : undefined;
   const timeoutId = options?.timeoutMs
     ? setTimeout(() => controller?.abort(), options.timeoutMs)
     : null;
