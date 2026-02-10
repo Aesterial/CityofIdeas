@@ -149,11 +149,13 @@ const toDateString = (value: unknown): string => {
 
 const normalizeStatus = (
   value: string,
-  options: { closedAt?: string; hasAssignee?: boolean },
+  options: { closedAt?: string; acceptedAt?: string; hasAssignee?: boolean },
 ): TicketStatus => {
   const normalized = value.trim().toLowerCase();
   if (
     normalized.includes("close") ||
+    normalized.includes("закры") ||
+    normalized.includes("жаб") ||
     normalized.includes("resolved") ||
     normalized.includes("done")
   ) {
@@ -161,6 +163,9 @@ const normalizeStatus = (
   }
   if (
     normalized.includes("progress") ||
+    normalized.includes("обработ") ||
+    normalized.includes("в работе") ||
+    normalized.includes("қарал") ||
     normalized.includes("accept") ||
     normalized.includes("assigned")
   ) {
@@ -168,6 +173,8 @@ const normalizeStatus = (
   }
   if (
     normalized.includes("new") ||
+    normalized.includes("ожида") ||
+    normalized.includes("күт") ||
     normalized.includes("open") ||
     normalized.includes("pending")
   ) {
@@ -176,7 +183,7 @@ const normalizeStatus = (
   if (options.closedAt) {
     return "closed";
   }
-  if (options.hasAssignee) {
+  if (options.acceptedAt || options.hasAssignee) {
     return "in_progress";
   }
   return "new";
@@ -299,6 +306,12 @@ export const mapTicket = (payload: ApiTicket): Ticket | null => {
       record.resolvedAt ??
       record.resolved_at,
   );
+  const acceptedAt = toDateString(
+    record.acceptedAt ??
+      record.accepted_at ??
+      record.acceptedOn ??
+      record.accepted_on,
+  );
 
   const requesterRecord = pickRecord(record, [
     "requester",
@@ -321,6 +334,7 @@ export const mapTicket = (payload: ApiTicket): Ticket | null => {
     undefined;
 
   const assigneeRecord = pickRecord(record, [
+    "acceptor",
     "assignee",
     "assignedTo",
     "assigned_to",
@@ -352,6 +366,7 @@ export const mapTicket = (payload: ApiTicket): Ticket | null => {
   const statusSource = pickString(record, ["status", "state"]);
   const status = normalizeStatus(statusSource, {
     closedAt,
+    acceptedAt,
     hasAssignee: Boolean(assignee),
   });
 
