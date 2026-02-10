@@ -720,6 +720,21 @@ export const translations: Translations = {
     EN: "Functionality",
     KZ: "Функционал",
   },
+  adminQuickGroupMain: {
+    RU: "Основное",
+    EN: "Main",
+    KZ: "Негізгі",
+  },
+  adminQuickGroupAnalytics: {
+    RU: "Аналитика",
+    EN: "Analytics",
+    KZ: "Аналитика",
+  },
+  adminQuickGroupModeration: {
+    RU: "Проекты на модерации",
+    EN: "Projects on moderation",
+    KZ: "Модерациядағы жобалар",
+  },
   adminRanksTitle: {
     RU: "Ранги",
     EN: "Ranks",
