@@ -914,18 +914,14 @@ export async function requestEmailVerification(payload: {
   });
 }
 
-export async function verifyEmail(payload: {
-  email: string;
-  token: string;
-}): Promise<void> {
-  const email = payload.email.trim();
+export async function verifyEmail(payload: { token: string }): Promise<void> {
   const token = payload.token.trim();
-  if (!email || !token) {
-    throw new Error("Email and token are required.");
+  if (!token) {
+    throw new Error("Token is required.");
   }
   await apiRequest("/api/login/verify-email", {
     method: "POST",
-    body: JSON.stringify({ email, token }),
+    body: JSON.stringify({ token }),
   });
 }
 

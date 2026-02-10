@@ -1,11 +1,10 @@
 "use client";
 
-import type React from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight, Mail, Moon, Sun } from "lucide-react";
+import { ArrowRight, Moon, Sun } from "lucide-react";
 
 import { GradientButton } from "@/components/gradient-button";
 import { useLanguage } from "@/components/language-provider";
@@ -19,14 +18,41 @@ export default function EmailVerifyPage() {
   const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [token, setToken] = useState("");
-  const [email, setEmail] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const autoVerificationTriggered = useRef(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const runVerification = useCallback(
+    async (verificationToken: string) => {
+      const normalizedToken = verificationToken.trim();
+
+      if (!normalizedToken) {
+        setErrorMessage(t("emailVerifyTokenMissing"));
+        return;
+      }
+
+      setIsSubmitting(true);
+      setErrorMessage(null);
+      setSuccessMessage(null);
+
+      try {
+        await verifyEmail({ token: normalizedToken });
+        setSuccessMessage(t("emailVerifySuccess"));
+      } catch (err) {
+        setErrorMessage(
+          err instanceof Error ? err.message : t("emailVerifyError"),
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [t],
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -36,36 +62,19 @@ export default function EmailVerifyPage() {
     const searchParams = new URLSearchParams(window.location.search);
     const nextToken =
       hashParams.get("token") || searchParams.get("token") || "";
-    setToken(nextToken.trim());
-  }, []);
+    const normalizedToken = nextToken.trim();
+    setToken(normalizedToken);
+    if (autoVerificationTriggered.current) {
+      return;
+    }
+    autoVerificationTriggered.current = true;
+    void runVerification(normalizedToken);
+  }, [runVerification]);
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleSubmit = async () => {
     setErrorMessage(null);
     setSuccessMessage(null);
-
-    const trimmedEmail = email.trim();
-
-    if (!token) {
-      setErrorMessage(t("emailVerifyTokenMissing"));
-      return;
-    }
-    if (!trimmedEmail) {
-      setErrorMessage(t("accountEmailVerifyMissing"));
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await verifyEmail({ email: trimmedEmail, token });
-      setSuccessMessage(t("emailVerifySuccess"));
-    } catch (err) {
-      setErrorMessage(
-        err instanceof Error ? err.message : t("emailVerifyError"),
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+    await runVerification(token);
   };
 
   return (
@@ -118,7 +127,7 @@ export default function EmailVerifyPage() {
             </p>
           </motion.div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+          <div className="space-y-4 sm:space-y-5">
             {errorMessage ? (
               <div className="rounded-2xl border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                 {errorMessage}
@@ -131,41 +140,22 @@ export default function EmailVerifyPage() {
             ) : null}
 
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 }}
-            >
-              <label className="block text-sm font-medium mb-2">
-                {t("email")}
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="email@example.com"
-                  className="w-full bg-card border border-border rounded-2xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all duration-300 sm:py-4"
-                />
-              </div>
-            </motion.div>
-
-            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
               className="pt-2 sm:pt-4"
             >
               <GradientButton
-                type="submit"
+                type="button"
                 className="w-full flex items-center justify-center gap-3"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !token}
+                onClick={() => void handleSubmit()}
               >
                 {isSubmitting ? "Loading..." : t("emailVerifyAction")}
                 <ArrowRight className="w-5 h-5" />
               </GradientButton>
             </motion.div>
-          </form>
+          </div>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
             <button

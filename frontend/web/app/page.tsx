@@ -28,7 +28,15 @@ import {
   formatCoordinates,
   resolveCoordinates,
 } from "@/lib/location";
-import { ArrowRight, MapPin, Users, Lightbulb } from "lucide-react";
+import {
+  ArrowRight,
+  Bell,
+  CheckCircle2,
+  Lightbulb,
+  MapPin,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 import type { Variants } from "framer-motion";
 import { Logo } from "@/components/logo";
 import { useAuth } from "@/components/auth-provider";
@@ -360,6 +368,21 @@ export default function HomePage() {
   }, [selectedProject]);
 
   const hasMapMarkers = mapMarkers.length > 0;
+  const phonePreviewIdeas = useMemo(() => {
+    const fallback = [82, 64, 48];
+    if (popularIdeas.length) {
+      return popularIdeas.slice(0, 3).map((idea, index) => ({
+        id: `${idea.rank}-${idea.address}`,
+        title: idea.address,
+        progress: fallback[index] ?? 40,
+      }));
+    }
+    return fallback.map((progress, index) => ({
+      id: `preview-${index + 1}`,
+      title: `${t("ideas")} ${index + 1}`,
+      progress,
+    }));
+  }, [popularIdeas, t]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -534,34 +557,128 @@ export default function HomePage() {
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: 0.3 }}
             >
-              <div className="relative">
-                <div className="relative w-[72vw] max-w-[280px] h-[420px] bg-foreground rounded-[3.5rem] p-3 shadow-2xl sm:w-64 sm:h-[520px] lg:w-72 lg:h-[580px]">
-                  <div className="absolute -right-1 top-28 w-1 h-12 bg-foreground rounded-l-sm" />
-                  <div className="absolute -left-1 top-24 w-1 h-8 bg-foreground rounded-r-sm" />
-                  <div className="absolute -left-1 top-36 w-1 h-16 bg-foreground rounded-r-sm" />
+              <div className="relative px-2 sm:px-0">
+                <div className="pointer-events-none absolute inset-0 -z-10">
+                  <motion.div
+                    className="absolute left-1/2 top-8 h-52 w-52 -translate-x-1/2 rounded-full bg-foreground/12 blur-3xl sm:h-72 sm:w-72"
+                    animate={{ opacity: [0.35, 0.6, 0.35] }}
+                    transition={{
+                      duration: 3.4,
+                      repeat: Number.POSITIVE_INFINITY,
+                    }}
+                  />
+                  <div className="absolute bottom-4 right-0 h-28 w-28 rounded-full bg-foreground/10 blur-2xl sm:h-36 sm:w-36" />
+                </div>
 
-                  <div className="bg-background w-full h-full rounded-[3rem] overflow-hidden relative">
-                    <div className="absolute top-3 left-1/2 -translate-x-1/2 w-28 h-8 bg-foreground rounded-full" />
+                <motion.div
+                  className="relative h-[500px] w-[78vw] max-w-[320px] rounded-[3.4rem] bg-foreground p-3 shadow-[0_26px_70px_-38px_rgba(0,0,0,0.75)] sm:h-[600px] sm:w-[300px] lg:h-[620px] lg:w-[320px]"
+                  whileHover={{ y: -6, rotate: -1 }}
+                  transition={{ duration: 0.35 }}
+                >
+                  <div className="absolute -right-1 top-28 h-12 w-1 rounded-l-sm bg-foreground" />
+                  <div className="absolute -left-1 top-24 h-8 w-1 rounded-r-sm bg-foreground" />
+                  <div className="absolute -left-1 top-36 h-16 w-1 rounded-r-sm bg-foreground" />
 
-                    <div className="pt-14 px-3 h-full flex flex-col items-center justify-center sm:pt-16 sm:px-4">
-                      <motion.div
-                        className="text-center"
-                        animate={{ opacity: [0.5, 1, 0.5] }}
-                        transition={{
-                          duration: 2,
-                          repeat: Number.POSITIVE_INFINITY,
-                        }}
-                      >
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted flex items-center justify-center">
-                          <MapPin className="w-8 h-8 text-muted-foreground" />
+                  <div className="relative h-full overflow-hidden rounded-[2.9rem] border border-border/20 bg-background">
+                    <div className="absolute left-1/2 top-3 h-7 w-28 -translate-x-1/2 rounded-full bg-foreground" />
+                    <div className="absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.14),transparent_68%)]" />
+
+                    <div className="relative z-10 flex h-full flex-col px-3 pb-4 pt-14 sm:px-4 sm:pt-16">
+                      <div className="rounded-2xl border border-border/70 bg-card/90 p-3 shadow-[0_16px_30px_-24px_rgba(0,0,0,0.55)]">
+                        <div className="flex items-center justify-between">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-foreground/30 bg-foreground/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.15em]">
+                            <Bell className="h-3 w-3" />
+                            Live
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold">
+                            <TrendingUp className="h-3.5 w-3.5" />
+                            +24%
+                          </span>
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          {t("ideas")}
+                        <p className="mt-3 text-sm font-semibold">
+                          {t("voting")}
                         </p>
+                        <p className="mt-1 text-[11px] text-muted-foreground">
+                          {t("mostPopularIdeas")}
+                        </p>
+                        <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                          <motion.div
+                            className="h-full rounded-full bg-foreground"
+                            initial={{ width: "20%" }}
+                            animate={{ width: "78%" }}
+                            transition={{ duration: 1, delay: 0.2 }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="mt-3 space-y-2.5">
+                        {phonePreviewIdeas.map((idea, index) => (
+                          <motion.div
+                            key={idea.id}
+                            className="rounded-2xl border border-border/60 bg-card/80 p-2.5"
+                            initial={{ opacity: 0, y: 10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.15 + index * 0.08 }}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border/70 text-xs font-semibold">
+                                {index + 1}
+                              </span>
+                              <p className="line-clamp-1 text-xs font-medium">
+                                {idea.title}
+                              </p>
+                              <span className="ml-auto text-[10px] font-semibold text-muted-foreground">
+                                {idea.progress}%
+                              </span>
+                            </div>
+                            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                              <motion.div
+                                className="h-full rounded-full bg-foreground"
+                                initial={{ width: 0 }}
+                                whileInView={{ width: `${idea.progress}%` }}
+                                viewport={{ once: true }}
+                                transition={{
+                                  duration: 0.45,
+                                  delay: index * 0.1,
+                                }}
+                              />
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+
+                      <div className="mt-auto grid grid-cols-2 gap-2.5">
+                        <div className="rounded-2xl border border-border/60 bg-card/85 p-2.5">
+                          <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                            {t("ideas")}
+                          </p>
+                          <p className="mt-1 text-lg font-semibold">
+                            {popularIdeas.length || MAP_PROJECTS_LIMIT}
+                          </p>
+                        </div>
+                        <div className="rounded-2xl border border-border/60 bg-card/85 p-2.5">
+                          <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                            {t("vote")}
+                          </p>
+                          <p className="mt-1 inline-flex items-center gap-1 text-lg font-semibold">
+                            <CheckCircle2 className="h-4 w-4" />
+                            2.1k
+                          </p>
+                        </div>
+                      </div>
+
+                      <motion.div
+                        className="mt-3 flex items-center justify-between rounded-2xl border border-border/70 bg-foreground px-3 py-2 text-xs font-semibold text-background"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.99 }}
+                      >
+                        <span>{t("start")}</span>
+                        <ArrowRight className="h-4 w-4" />
                       </motion.div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </motion.div>
           </div>

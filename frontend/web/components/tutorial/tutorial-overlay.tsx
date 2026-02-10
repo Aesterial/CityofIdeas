@@ -26,11 +26,25 @@ export function TutorialOverlay({
   padding = 8,
   borderRadius = 16,
 }: OverlayProps) {
+  const normalizedPadding = useMemo(() => {
+    const minDimension = Math.min(targetRect.width, targetRect.height);
+    const maxForTarget = Math.max(6, minDimension * 0.25);
+    return Math.min(padding, maxForTarget);
+  }, [padding, targetRect.height, targetRect.width]);
+
   const hole = useMemo(() => {
-    const top = clamp(targetRect.top - padding, 0, viewport.height);
-    const left = clamp(targetRect.left - padding, 0, viewport.width);
-    const right = clamp(targetRect.right + padding, 0, viewport.width);
-    const bottom = clamp(targetRect.bottom + padding, 0, viewport.height);
+    const top = clamp(targetRect.top - normalizedPadding, 0, viewport.height);
+    const left = clamp(targetRect.left - normalizedPadding, 0, viewport.width);
+    const right = clamp(
+      targetRect.right + normalizedPadding,
+      0,
+      viewport.width,
+    );
+    const bottom = clamp(
+      targetRect.bottom + normalizedPadding,
+      0,
+      viewport.height,
+    );
 
     return {
       top,
@@ -40,7 +54,16 @@ export function TutorialOverlay({
       width: Math.max(0, right - left),
       height: Math.max(0, bottom - top),
     };
-  }, [padding, targetRect, viewport.height, viewport.width]);
+  }, [normalizedPadding, targetRect, viewport.height, viewport.width]);
+
+  const resolvedBorderRadius = useMemo(() => {
+    const targetBasedRadius = borderRadius + normalizedPadding * 0.6;
+    return clamp(
+      targetBasedRadius,
+      8,
+      Math.max(8, Math.min(hole.width / 2, hole.height / 2)),
+    );
+  }, [borderRadius, hole.height, hole.width, normalizedPadding]);
 
   const segments = useMemo<Segment[]>(
     () =>
@@ -83,14 +106,13 @@ export function TutorialOverlay({
       {segments.map((segment, index) => (
         <motion.div
           key={index}
-          className="pointer-events-auto absolute bg-slate-950/60 backdrop-blur-sm"
+          className="pointer-events-auto absolute bg-slate-950/58 backdrop-blur-[3px]"
           style={{
             top: segment.top,
             left: segment.left,
             width: segment.width,
             height: segment.height,
           }}
-          layout
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -104,9 +126,8 @@ export function TutorialOverlay({
           left: hole.left,
           width: hole.width,
           height: hole.height,
-          borderRadius,
+          borderRadius: resolvedBorderRadius,
         }}
-        layout
         animate={{ opacity: [0.25, 0.5, 0.25], scale: [1, 1.02, 1] }}
         transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
       />
@@ -117,9 +138,8 @@ export function TutorialOverlay({
           left: hole.left,
           width: hole.width,
           height: hole.height,
-          borderRadius,
+          borderRadius: resolvedBorderRadius,
         }}
-        layout
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.98 }}

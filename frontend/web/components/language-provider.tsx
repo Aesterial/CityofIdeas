@@ -2440,9 +2440,9 @@ export const translations: Translations = {
     KZ: "Email растау",
   },
   emailVerifySubtitle: {
-    RU: "Введите email и код из письма.",
-    EN: "Enter your email and the code from the email.",
-    KZ: "Email-ды және хаттағы кодты енгізіңіз.",
+    RU: "Подтверждение выполнится автоматически после перехода по ссылке из письма.",
+    EN: "Verification runs automatically when you open the link from the email.",
+    KZ: "Поштадағы сілтемені ашқаннан кейін растау автоматты түрде орындалады.",
   },
   emailVerifyAction: {
     RU: "Подтвердить",

@@ -9,7 +9,7 @@ import {
 } from "react";
 
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { TutorialOverlay } from "./tutorial-overlay";
 import { TutorialTooltip } from "./tutorial-tooltip";
 
@@ -48,11 +48,12 @@ export function TutorialProvider({
   children,
   storageKey = DEFAULT_STORAGE_KEY,
   labels,
-  padding = 30,
+  padding = 16,
 }: TutorialProviderProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
+  const [targetBorderRadius, setTargetBorderRadius] = useState(16);
   const [viewport, setViewport] = useState({ width: 0, height: 0 });
   const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
@@ -106,15 +107,35 @@ export function TutorialProvider({
 
   const step = isActive ? steps[currentStep] : null;
 
+  const resolveBorderRadius = useCallback((element: HTMLElement) => {
+    const computed = window.getComputedStyle(element);
+    const radiusCandidates = [
+      computed.borderTopLeftRadius,
+      computed.borderTopRightRadius,
+      computed.borderBottomRightRadius,
+      computed.borderBottomLeftRadius,
+      computed.borderRadius,
+    ];
+    const parsed = radiusCandidates
+      .map((value) => Number.parseFloat(value))
+      .filter((value) => Number.isFinite(value) && value > 0);
+    if (!parsed.length) {
+      return 12;
+    }
+    return Math.max(...parsed);
+  }, []);
+
   useEffect(() => {
     if (!isActive || !step) {
       setTargetRect(null);
+      setTargetBorderRadius(16);
       return;
     }
 
     const element = document.querySelector(step.selector) as HTMLElement | null;
     if (!element) {
       setTargetRect(null);
+      setTargetBorderRadius(16);
       return;
     }
 
@@ -123,6 +144,7 @@ export function TutorialProvider({
     const update = () => {
       const rect = element.getBoundingClientRect();
       setTargetRect(rect);
+      setTargetBorderRadius(resolveBorderRadius(element));
       setViewport({ width: window.innerWidth, height: window.innerHeight });
     };
 
@@ -141,34 +163,29 @@ export function TutorialProvider({
       window.removeEventListener("resize", update);
       resizeObserver?.disconnect();
     };
-  }, [isActive, step]);
+  }, [isActive, resolveBorderRadius, step]);
 
   const overlay =
     portalTarget && isActive && step && targetRect && viewport.width > 0 ? (
       <AnimatePresence>
-        <motion.div key={`overlay-${currentStep}`}>
-          <TutorialOverlay
-            targetRect={targetRect}
-            viewport={viewport}
-            padding={padding}
-          />
-        </motion.div>
-      
-        <motion.div key={`tooltip-${currentStep}`}>
-          <TutorialTooltip
-            step={step}
-            stepIndex={currentStep}
-            stepsCount={steps.length}
-            labels={mergedLabels}
-            targetRect={targetRect}
-            viewport={viewport}
-            onNext={handleNext}
-            onPrev={handlePrev}
-            onSkip={handleSkip}
-          />
-        </motion.div>
+        <TutorialOverlay
+          targetRect={targetRect}
+          viewport={viewport}
+          padding={padding}
+          borderRadius={targetBorderRadius}
+        />
+        <TutorialTooltip
+          step={step}
+          stepIndex={currentStep}
+          stepsCount={steps.length}
+          labels={mergedLabels}
+          targetRect={targetRect}
+          viewport={viewport}
+          onNext={handleNext}
+          onPrev={handlePrev}
+          onSkip={handleSkip}
+        />
       </AnimatePresence>
-
     ) : null;
 
   return (
