@@ -1,6 +1,7 @@
 package db
 
 import (
+	appconfig "Aesterial/backend/internal/app/config"
 	"Aesterial/backend/internal/domain/login"
 	"Aesterial/backend/internal/domain/maintenance"
 	"Aesterial/backend/internal/domain/permissions"
@@ -20,6 +21,7 @@ import (
 	statpb "Aesterial/backend/internal/gen/statistics/v1"
 	"Aesterial/backend/internal/infra/logger"
 	apperrors "Aesterial/backend/internal/shared/errors"
+	"Aesterial/backend/internal/shared/safe"
 	"context"
 	"crypto/rand"
 	"database/sql"
@@ -1571,16 +1573,18 @@ func getProject(ctx context.Context, id uuid.UUID, db *sql.DB) (*projectdomain.P
 	return &project, nil
 }
 
-const maxProjectHydrationWorkers = 16
+const defaultProjectHydrationWorkers = 16
+const defaultProjectHydrationTimeout = 20 * time.Second
 
 func hydrateProjectsByIDs(ctx context.Context, db *sql.DB, ids []uuid.UUID) (projectdomain.Projects, error) {
 	if len(ids) == 0 {
 		return projectdomain.Projects{}, nil
 	}
 
+	maxWorkers, hydrationTimeout := projectHydrationSettings()
 	workers := len(ids)
-	if workers > maxProjectHydrationWorkers {
-		workers = maxProjectHydrationWorkers
+	if workers > maxWorkers {
+		workers = maxWorkers
 	}
 	if workers < 1 {
 		workers = 1
@@ -1607,7 +1611,9 @@ func hydrateProjectsByIDs(ctx context.Context, db *sql.DB, ids []uuid.UUID) (pro
 			}
 			defer func() { <-sem }()
 
-			project, err := getProject(ctx, id, db)
+			project, err := safe.GoAsync[*projectdomain.Project](ctx, hydrationTimeout, func(taskCtx context.Context) (*projectdomain.Project, error) {
+				return getProject(taskCtx, id, db)
+			})
 			if err != nil {
 				once.Do(func() {
 					firstErr = err
@@ -1625,6 +1631,22 @@ func hydrateProjectsByIDs(ctx context.Context, db *sql.DB, ids []uuid.UUID) (pro
 	}
 
 	return projects, nil
+}
+
+func projectHydrationSettings() (int, time.Duration) {
+	cfg := appconfig.Get().Async
+
+	workers := cfg.ProjectsHydrationWorkers
+	if workers < 1 {
+		workers = defaultProjectHydrationWorkers
+	}
+
+	timeout := time.Duration(cfg.ProjectsHydrationTimeoutSeconds) * time.Second
+	if timeout <= 0 {
+		timeout = defaultProjectHydrationTimeout
+	}
+
+	return workers, timeout
 }
 
 func (p *ProjectsRepository) GetProject(ctx context.Context, id uuid.UUID) (*projectdomain.Project, error) {

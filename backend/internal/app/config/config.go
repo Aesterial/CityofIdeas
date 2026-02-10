@@ -36,8 +36,8 @@ func parseBool(key string, def bool) bool {
 	return b
 }
 
-func parseInt(key string, def int) int {
-	raw := strings.TrimSpace(os.Getenv(key))
+func parseInt(def int, keys ...string) int {
+	raw := envValue(keys...)
 	if raw == "" {
 		return def
 	}
@@ -103,11 +103,11 @@ func ensure() {
 			SecretKey:         envValue("STORAGE_SECRET_KEY"),
 			UseSSL:            parseBool("STORAGE_USE_SSL", false),
 			ForcePathStyle:    parseBool("STORAGE_FORCE_PATH_STYLE", false),
-			PresignTTLSeconds: parseInt("STORAGE_PRESIGN_TTL_SECONDS", 900),
+			PresignTTLSeconds: parseInt(900, "STORAGE_PRESIGN_TTL_SECONDS"),
 		},
 		Mailer: domain.Mailer{
 			Host:     envValue("SMTP_HOST"),
-			Port:     parseInt("SMTP_PORT", 0),
+			Port:     parseInt(0, "SMTP_PORT"),
 			User:     envValue("SMTP_USER"),
 			Pass:     envValue("SMTP_PASS"),
 			FromName: envValue("SMTP_FROM_NAME"),
@@ -122,8 +122,15 @@ func ensure() {
 			Scope:              envValue("VK_SCOPE"),
 			APIVersion:         envValue("VK_API_VERSION"),
 			SuccessRedirectURL: envValue("VK_SUCCESS_REDIRECT_URL", "VK_REDIRECT_SUCCESS_URL"),
-			StateTTLSeconds:    parseInt("VK_STATE_TTL_SECONDS", 600),
+			StateTTLSeconds:    parseInt(600, "VK_STATE_TTL_SECONDS"),
 			StateSecret:        envValue("VK_STATE_SECRET"),
+		},
+		Async: domain.Async{
+			SubmissionsHydrationWorkers:        parseInt(16, "ASYNC_SUBMISSIONS_HYDRATION_WORKERS"),
+			SubmissionsHydrationTimeoutSeconds: parseInt(15, "ASYNC_SUBMISSIONS_HYDRATION_TIMEOUT_SECONDS"),
+			ProjectsHydrationWorkers:           parseInt(16, "ASYNC_PROJECTS_HYDRATION_WORKERS"),
+			ProjectsHydrationTimeoutSeconds:    parseInt(20, "ASYNC_PROJECTS_HYDRATION_TIMEOUT_SECONDS"),
+			MediaPresignWorkers:                parseInt(16, "ASYNC_MEDIA_PRESIGN_WORKERS"),
 		},
 	}
 	env.MarkLoaded()

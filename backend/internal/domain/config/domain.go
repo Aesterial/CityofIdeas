@@ -48,6 +48,14 @@ type Startup struct {
 	HTTPPort string
 }
 
+type Async struct {
+	SubmissionsHydrationWorkers        int
+	SubmissionsHydrationTimeoutSeconds int
+	ProjectsHydrationWorkers           int
+	ProjectsHydrationTimeoutSeconds    int
+	MediaPresignWorkers                int
+}
+
 type Mailer struct {
 	Host     string
 	Port     int
@@ -80,6 +88,7 @@ type Environment struct {
 	Database Database
 	Mailer   Mailer
 	VK       VK
+	Async    Async
 
 	load bool
 }

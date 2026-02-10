@@ -1,6 +1,7 @@
 package grpcserver
 
 import (
+	"Aesterial/backend/internal/app/config"
 	storageapp "Aesterial/backend/internal/app/storage"
 	projpb "Aesterial/backend/internal/gen/projects/v1"
 	userpb "Aesterial/backend/internal/gen/user/v1"
@@ -9,7 +10,7 @@ import (
 	"sync"
 )
 
-const maxPresignWorkers = 16
+const defaultPresignWorkers = 16
 
 func applyPresignedAvatarURL(ctx context.Context, storage *storageapp.Service, avatar *userpb.Avatar) {
 	if storage == nil || avatar == nil {
@@ -105,9 +106,10 @@ func addAvatarKey(keys map[string]struct{}, avatar *userpb.Avatar) {
 }
 
 func presignURLMap(ctx context.Context, storage *storageapp.Service, keys []string) map[string]string {
+	maxWorkers := mediaPresignWorkers()
 	workers := len(keys)
-	if workers > maxPresignWorkers {
-		workers = maxPresignWorkers
+	if workers > maxWorkers {
+		workers = maxWorkers
 	}
 	if workers < 1 {
 		workers = 1
@@ -148,6 +150,14 @@ func presignURLMap(ctx context.Context, storage *storageapp.Service, keys []stri
 		urls[item.key] = item.url
 	}
 	return urls
+}
+
+func mediaPresignWorkers() int {
+	workers := config.Get().Async.MediaPresignWorkers
+	if workers < 1 {
+		return defaultPresignWorkers
+	}
+	return workers
 }
 
 func applyPresignedProjectURLsFromMap(project *projpb.Project, urls map[string]string) {

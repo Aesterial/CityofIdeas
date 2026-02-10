@@ -1,18 +1,24 @@
 package submissions
 
 import (
+	"Aesterial/backend/internal/app/config"
 	"Aesterial/backend/internal/domain/projects"
 	"Aesterial/backend/internal/domain/submissions"
 	"Aesterial/backend/internal/domain/user"
 	submpb "Aesterial/backend/internal/gen/submissions/v1"
 	"Aesterial/backend/internal/infra/logger"
 	apperrors "Aesterial/backend/internal/shared/errors"
+	"Aesterial/backend/internal/shared/safe"
 	"context"
 	"strings"
 	"sync"
+	"time"
 )
 
-const maxHydrationWorkers = 16
+const (
+	defaultHydrationWorkers = 16
+	defaultHydrationTimeout = 15 * time.Second
+)
 
 type Service struct {
 	repo submissions.Repository
@@ -34,12 +40,10 @@ func (s *Service) GetList(ctx context.Context) ([]*submpb.ListResponseTarget, er
 		return []*submpb.ListResponseTarget{}, nil
 	}
 
+	maxWorkers, hydrationTimeout := submissionsHydrationSettings()
 	workers := len(data)
-	if workers > maxHydrationWorkers {
-		workers = maxHydrationWorkers
-	}
-	if workers < 1 {
-		workers = 1
+	if workers > maxWorkers {
+		workers = maxWorkers
 	}
 
 	response := make([]*submpb.ListResponseTarget, len(data))
@@ -78,34 +82,37 @@ func (s *Service) GetList(ctx context.Context) ([]*submpb.ListResponseTarget, er
 				return
 			}
 
-			p, err := s.proj.GetProject(ctx, v.ProjectID)
+			target, err := safe.GoAsync[*submpb.ListResponseTarget](ctx, hydrationTimeout, func(taskCtx context.Context) (*submpb.ListResponseTarget, error) {
+				p, err := s.proj.GetProject(taskCtx, v.ProjectID)
+				if err != nil {
+					return nil, err
+				}
+				if p == nil || p.Author == nil {
+					return nil, apperrors.RecordNotFound
+				}
+
+				author, err := s.usrs.GetUserByUID(taskCtx, p.Author.UID)
+				if err != nil {
+					return nil, err
+				}
+				p.Author = author
+
+				reason := ""
+				if v.Reason != nil {
+					reason = *v.Reason
+				}
+				return &submpb.ListResponseTarget{
+					Id:     int32(v.ID),
+					Info:   p.ToProto(),
+					State:  v.State,
+					Reason: reason,
+				}, nil
+			})
 			if err != nil {
-				setErr(err, "submissions.get_list.project")
+				setErr(err, "submissions.get_list.hydrate")
 				return
 			}
-			if p == nil || p.Author == nil {
-				setErr(apperrors.RecordNotFound, "submissions.get_list.project")
-				return
-			}
-
-			author, err := s.usrs.GetUserByUID(ctx, p.Author.UID)
-			if err != nil {
-				setErr(err, "submissions.get_list.author")
-				return
-			}
-			p.Author = author
-
-			reason := ""
-			if v.Reason != nil {
-				reason = *v.Reason
-			}
-
-			response[i] = &submpb.ListResponseTarget{
-				Id:     int32(v.ID),
-				Info:   p.ToProto(),
-				State:  v.State,
-				Reason: reason,
-			}
+			response[i] = target
 		}()
 	}
 
@@ -158,4 +165,20 @@ func (s *Service) Decline(ctx context.Context, id int32, reason string) error {
 		return apperrors.Wrap(err)
 	}
 	return nil
+}
+
+func submissionsHydrationSettings() (int, time.Duration) {
+	cfg := config.Get().Async
+
+	workers := cfg.SubmissionsHydrationWorkers
+	if workers < 1 {
+		workers = defaultHydrationWorkers
+	}
+
+	timeout := time.Duration(cfg.SubmissionsHydrationTimeoutSeconds) * time.Second
+	if timeout <= 0 {
+		timeout = defaultHydrationTimeout
+	}
+
+	return workers, timeout
 }
