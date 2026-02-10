@@ -26,6 +26,7 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/lib/pq"
@@ -1570,6 +1571,62 @@ func getProject(ctx context.Context, id uuid.UUID, db *sql.DB) (*projectdomain.P
 	return &project, nil
 }
 
+const maxProjectHydrationWorkers = 16
+
+func hydrateProjectsByIDs(ctx context.Context, db *sql.DB, ids []uuid.UUID) (projectdomain.Projects, error) {
+	if len(ids) == 0 {
+		return projectdomain.Projects{}, nil
+	}
+
+	workers := len(ids)
+	if workers > maxProjectHydrationWorkers {
+		workers = maxProjectHydrationWorkers
+	}
+	if workers < 1 {
+		workers = 1
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	projects := make([]*projectdomain.Project, len(ids))
+	sem := make(chan struct{}, workers)
+	var wg sync.WaitGroup
+	var once sync.Once
+	var firstErr error
+
+	for i, id := range ids {
+		i, id := i, id
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			select {
+			case sem <- struct{}{}:
+			case <-ctx.Done():
+				return
+			}
+			defer func() { <-sem }()
+
+			project, err := getProject(ctx, id, db)
+			if err != nil {
+				once.Do(func() {
+					firstErr = err
+					cancel()
+				})
+				return
+			}
+			projects[i] = project
+		}()
+	}
+
+	wg.Wait()
+	if firstErr != nil {
+		return nil, firstErr
+	}
+
+	return projects, nil
+}
+
 func (p *ProjectsRepository) GetProject(ctx context.Context, id uuid.UUID) (*projectdomain.Project, error) {
 	return getProject(ctx, id, p.DB)
 }
@@ -1602,7 +1659,6 @@ func (p *ProjectsRepository) GetTopProjects(ctx context.Context, limit int, city
 }
 
 func (p *ProjectsRepository) GetProjectsByUID(ctx context.Context, uid int) (projectdomain.Projects, error) {
-	var projects []*projectdomain.Project
 	rows, err := p.DB.QueryContext(ctx, "SELECT p.id FROM projects p WHERE p.author_uid = $1", uid)
 	if err != nil {
 		return nil, err
@@ -1613,18 +1669,18 @@ func (p *ProjectsRepository) GetProjectsByUID(ctx context.Context, uid int) (pro
 			logger.Error("failed to close rows: "+err.Error(), "system.db.rows.close", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
 		}
 	}(rows)
+	ids := make([]uuid.UUID, 0, 16)
 	for rows.Next() {
 		var id uuid.UUID
 		if err = rows.Scan(&id); err != nil {
 			return nil, err
 		}
-		project, err := p.GetProject(ctx, id)
-		if err != nil {
-			return nil, err
-		}
-		projects = append(projects, project)
+		ids = append(ids, id)
 	}
-	return projects, nil
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return hydrateProjectsByIDs(ctx, p.DB, ids)
 }
 
 func (p *ProjectsRepository) CreateProject(ctx context.Context, info projectdomain.Project) (*uuid.UUID, error) {
@@ -1703,8 +1759,6 @@ func (p *ProjectsRepository) GetCategories(ctx context.Context) ([]string, error
 	return result, nil
 }
 func (p *ProjectsRepository) GetProjects(ctx context.Context, offset int, limit int, opts ...projectdomain.ProjectOption) (projectdomain.Projects, error) {
-	var projects []*projectdomain.Project
-
 	q := &projectdomain.ProjectQuery{}
 	for _, opt := range opts {
 		if opt != nil {
@@ -1743,23 +1797,20 @@ func (p *ProjectsRepository) GetProjects(ctx context.Context, offset int, limit 
 	}
 	defer func() { _ = rows.Close() }()
 
+	ids := make([]uuid.UUID, 0, 16)
 	for rows.Next() {
 		var id uuid.UUID
 		if err = rows.Scan(&id); err != nil {
 			return nil, err
 		}
-		project, err := getProject(ctx, id, p.DB)
-		if err != nil {
-			return nil, err
-		}
-		projects = append(projects, project)
+		ids = append(ids, id)
 	}
 
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 
-	return projects, nil
+	return hydrateProjectsByIDs(ctx, p.DB, ids)
 }
 
 func (p *ProjectsRepository) ToggleLike(ctx context.Context, id uuid.UUID, userID uint) error {

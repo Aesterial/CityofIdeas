@@ -6,6 +6,7 @@ import (
 	storageapp "Aesterial/backend/internal/app/storage"
 	"Aesterial/backend/internal/app/submissions"
 	"Aesterial/backend/internal/domain/permissions"
+	projpb "Aesterial/backend/internal/gen/projects/v1"
 	submpb "Aesterial/backend/internal/gen/submissions/v1"
 	"Aesterial/backend/internal/infra/logger"
 	apperrors "Aesterial/backend/internal/shared/errors"
@@ -82,12 +83,14 @@ func (s *SubmissionsService) List(ctx context.Context, _ *emptypb.Empty) (*submp
 	if err != nil {
 		return nil, apperrors.Wrap(err)
 	}
+	projects := make([]*projpb.Project, 0, len(list))
 	for _, item := range list {
 		if item == nil || item.Info == nil {
 			continue
 		}
-		applyPresignedProjectURLs(ctx, s.storage, item.Info)
+		projects = append(projects, item.Info)
 	}
+	applyPresignedProjectsURLs(ctx, s.storage, projects)
 	traceID := TraceIDOrNew(ctx)
 	logger.Info("Got submissions list", "submissions.list.success", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.Success, traceID)
 	return &submpb.ListResponse{Data: list, Tracing: traceID}, nil
