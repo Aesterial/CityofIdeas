@@ -450,8 +450,9 @@ export default function UserProfilePage({ params }: UserPageProps) {
             {userProjects.length ? (
               <div className="mt-5 grid gap-4 md:grid-cols-2">
                 {userProjects.map((project) => (
-                  <article
+                  <Link
                     key={project.id}
+                    href={`/projects/${encodeURIComponent(project.id)}`}
                     className="rounded-2xl border border-border/60 bg-background/70 p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/40"
                   >
                     <div className="flex items-start justify-between gap-4">
@@ -481,7 +482,7 @@ export default function UserProfilePage({ params }: UserPageProps) {
                       </span>
                       <span>{project.city}</span>
                     </div>
-                  </article>
+                  </Link>
                 ))}
               </div>
             ) : (

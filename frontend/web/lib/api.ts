@@ -210,6 +210,13 @@ type ApiProjectsResponse = {
   tracing?: string;
 };
 
+type ApiProjectResponse = {
+  data?: ApiProject | null;
+  project?: ApiProject | null;
+  info?: ApiProject | null;
+  tracing?: string;
+};
+
 type ApiTopProjectsResponse = {
   projects?: ApiProject[] | null;
   data?: ApiProject[] | null;
@@ -1623,6 +1630,34 @@ export async function fetchProjects(options?: {
   );
   const records = payload?.projects ?? [];
   return Array.isArray(records) ? records : [];
+}
+
+export async function fetchProjectById(
+  projectID: string,
+  options?: { signal?: AbortSignal },
+): Promise<ApiProject | null> {
+  const encodedId = encodeURIComponent(projectID.trim());
+  if (!encodedId) {
+    throw new Error("Project id is required.");
+  }
+  const payload = await apiRequest<ApiProjectResponse | ApiProject>(
+    `/api/projects/${encodedId}`,
+    {
+      method: "GET",
+      signal: options?.signal,
+    },
+  );
+
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  if ("id" in payload || "info" in payload || "details" in payload) {
+    return payload as ApiProject;
+  }
+
+  const wrapped = payload as ApiProjectResponse;
+  return wrapped.data ?? wrapped.project ?? wrapped.info ?? null;
 }
 
 export async function fetchTopProjects(options?: {
