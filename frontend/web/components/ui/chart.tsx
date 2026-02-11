@@ -188,8 +188,7 @@ function ChartTooltipContent({
             <div
               key={item.dataKey}
               className={cn(
-                "[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5",
-                indicator === "dot" && "items-center",
+                "[&>svg]:text-muted-foreground flex w-full flex-nowrap items-center gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5",
               )}
             >
               {formatter && item?.value !== undefined && item.name ? (
@@ -221,23 +220,24 @@ function ChartTooltipContent({
                     )
                   )}
                   <div
-                    className={cn(
-                      "flex flex-1 justify-between leading-none",
-                      nestLabel ? "items-end" : "items-center",
-                    )}
-                  >
-                    <div className="grid gap-1.5">
-                      {nestLabel ? tooltipLabel : null}
-                      <span className="text-muted-foreground">
-                        {itemConfig?.label || item.name}
-                      </span>
+                      className={cn(
+                        "flex flex-1 min-w-0 items-center justify-between gap-3 leading-none",
+                        nestLabel && "items-end",
+                      )}
+                    >
+                      <div className="grid min-w-0 gap-1.5">
+                        {nestLabel ? tooltipLabel : null}
+                        <span className="text-muted-foreground truncate">
+                          {itemConfig?.label || item.name}
+                        </span>
+                      </div>
+                  
+                      {item.value !== undefined && item.value !== null && (
+                        <span className="text-foreground shrink-0 font-mono font-medium tabular-nums">
+                          {Number(item.value).toLocaleString()}
+                        </span>
+                      )}
                     </div>
-                    {item.value && (
-                      <span className="text-foreground font-mono font-medium tabular-nums">
-                        {item.value.toLocaleString()}
-                      </span>
-                    )}
-                  </div>
                 </>
               )}
             </div>
