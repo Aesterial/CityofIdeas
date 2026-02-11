@@ -5,6 +5,7 @@ import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Header } from "@/components/header";
 import { useAuth } from "@/components/auth-provider";
 import { GradientButton } from "@/components/gradient-button";
@@ -53,6 +54,7 @@ const createImageId = () => {
 };
 
 export default function SuggestPage() {
+  const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState<SuggestCategoryId>("improvement");
@@ -274,14 +276,9 @@ export default function SuggestPage() {
         images.map((image) => image.file),
       );
 
-      setDescription("");
-      setTitle("");
-      setMapSelection(null);
-      setImages((current) => {
-        current.forEach((image) => URL.revokeObjectURL(image.preview));
-        return [];
-      });
-      setSubmitSuccess(t("projectSubmitSuccess"));
+      const encodedProjectId = encodeURIComponent(String(id));
+      router.push(`/projects/${encodedProjectId}`);
+      return;
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : t("projectSubmitErrorGeneric"),
