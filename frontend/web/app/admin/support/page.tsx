@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import {
   CalendarDays,
@@ -399,13 +399,14 @@ export default function AdminSupportPage() {
   }, [messages, notify, selectedId, selectedTicket?.subject]);
 
   useEffect(() => {
-    if (!messagesEndRef.current || !pendingScrollRef.current) {
+    const container = messagesScrollRef.current;
+    if (!container || !pendingScrollRef.current) {
       return;
     }
     if (shouldStickToBottomRef.current) {
-      messagesEndRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "end",
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: "auto",
       });
     }
     pendingScrollRef.current = false;
@@ -636,11 +637,14 @@ export default function AdminSupportPage() {
     const isModal = variant === "modal";
     const isWindow = variant === "window";
     const maxHeightClass =
-      variant === "page" ? "max-h-[240px]" : "max-h-[60vh]";
+      variant === "page" ? "max-h-[240px]" : "max-h-[46dvh] sm:max-h-[60vh]";
     const title = selectedTicket?.subject || "Диалог";
     const showSkeleton = loadingDetails && messages.length === 0;
     const wrapperClass = framed
-      ? "rounded-3xl border border-border/70 bg-card/90 p-6"
+      ? cn(
+          "rounded-3xl border border-border/70 bg-card/90 p-6",
+          isModal && "max-h-[calc(100dvh-1.5rem)] overflow-y-auto",
+        )
       : "";
 
     return (
@@ -732,124 +736,115 @@ export default function AdminSupportPage() {
               maxHeightClass,
             )}
           >
-            <AnimatePresence initial={false}>
-              {messages.map((message) => {
-                const isMine =
-                  currentUserId != null && message.authorId != null
-                    ? String(currentUserId) === String(message.authorId)
-                    : false;
-                const authorLabel = resolveAuthorName(message);
-                const roleLabel = resolveAuthorRole(message);
-                const initials = getInitials(authorLabel);
-                const authorId =
-                  message.authorId != null ? String(message.authorId) : "";
-                const canLinkAuthor = Boolean(authorId) && !message.isStaff;
-                const avatarSrc = resolveAvatarSrc(message.avatar);
-                const bubbleClass = isMine
-                  ? "bg-foreground text-background"
-                  : message.isStaff
-                    ? "border border-foreground/15 bg-background"
-                    : "bg-muted/80";
-                const metaTextClass = isMine
-                  ? "text-background/70"
-                  : "text-muted-foreground";
-                const nameClass = isMine
-                  ? "text-background"
-                  : "text-foreground";
-                const roleClass = isMine
-                  ? "border border-background/30 text-background/80"
-                  : "border border-border/60 text-muted-foreground";
+            {messages.map((message) => {
+              const isMine =
+                currentUserId != null && message.authorId != null
+                  ? String(currentUserId) === String(message.authorId)
+                  : false;
+              const authorLabel = resolveAuthorName(message);
+              const roleLabel = resolveAuthorRole(message);
+              const initials = getInitials(authorLabel);
+              const authorId =
+                message.authorId != null ? String(message.authorId) : "";
+              const canLinkAuthor = Boolean(authorId) && !message.isStaff;
+              const avatarSrc = resolveAvatarSrc(message.avatar);
+              const bubbleClass = isMine
+                ? "bg-foreground text-background"
+                : message.isStaff
+                  ? "border border-foreground/15 bg-background"
+                  : "bg-muted/80";
+              const metaTextClass = isMine
+                ? "text-background/70"
+                : "text-muted-foreground";
+              const nameClass = isMine ? "text-background" : "text-foreground";
+              const roleClass = isMine
+                ? "border border-background/30 text-background/80"
+                : "border border-border/60 text-muted-foreground";
 
-                return (
-                  <motion.div
-                    key={message.id}
-                    layout
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    transition={{ duration: 0.2 }}
-                    className={cn(
-                      "flex items-start gap-3",
-                      isMine ? "justify-end" : "justify-start",
-                    )}
-                  >
-                    {!isMine ? (
-                      <Avatar className="h-9 w-9">
-                        {avatarSrc ? (
-                          <AvatarImage src={avatarSrc} alt={authorLabel} />
-                        ) : null}
-                        <AvatarFallback
-                          className={cn(
-                            "text-xs font-semibold",
-                            message.isStaff && "bg-foreground text-background",
-                          )}
-                        >
-                          {initials}
-                        </AvatarFallback>
-                      </Avatar>
-                    ) : null}
-                    <div
-                      className={cn(
-                        "max-w-[80%] rounded-2xl px-4 py-3 text-sm",
-                        bubbleClass,
-                      )}
-                    >
-                      <div
+              return (
+                <div
+                  key={message.id}
+                  className={cn(
+                    "flex items-start gap-3",
+                    isMine ? "justify-end" : "justify-start",
+                  )}
+                >
+                  {!isMine ? (
+                    <Avatar className="h-9 w-9">
+                      {avatarSrc ? (
+                        <AvatarImage src={avatarSrc} alt={authorLabel} />
+                      ) : null}
+                      <AvatarFallback
                         className={cn(
-                          "flex flex-wrap items-center gap-2 text-xs",
-                          metaTextClass,
+                          "text-xs font-semibold",
+                          message.isStaff && "bg-foreground text-background",
                         )}
                       >
-                        {canLinkAuthor ? (
-                          <Link
-                            href={`/users/${authorId}`}
-                            className={cn(
-                              "font-semibold hover:underline",
-                              nameClass,
-                            )}
-                          >
-                            {authorLabel}
-                          </Link>
-                        ) : (
-                          <span className={cn("font-semibold", nameClass)}>
-                            {authorLabel}
-                          </span>
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : null}
+                  <div
+                    className={cn(
+                      "max-w-[80%] rounded-2xl px-4 py-3 text-sm",
+                      bubbleClass,
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "flex flex-wrap items-center gap-2 text-xs",
+                        metaTextClass,
+                      )}
+                    >
+                      {canLinkAuthor ? (
+                        <Link
+                          href={`/users/${authorId}`}
+                          className={cn(
+                            "font-semibold hover:underline",
+                            nameClass,
+                          )}
+                        >
+                          {authorLabel}
+                        </Link>
+                      ) : (
+                        <span className={cn("font-semibold", nameClass)}>
+                          {authorLabel}
+                        </span>
+                      )}
+                      <span
+                        className={cn(
+                          "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em]",
+                          roleClass,
                         )}
-                        <span
-                          className={cn(
-                            "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em]",
-                            roleClass,
-                          )}
-                        >
-                          {roleLabel}
-                        </span>
-                        <span>
-                          {formatTime(message.createdAt, timeFormatter)}
-                        </span>
-                      </div>
-                      <p className="mt-2 whitespace-pre-wrap text-sm">
-                        {message.message}
-                      </p>
+                      >
+                        {roleLabel}
+                      </span>
+                      <span>
+                        {formatTime(message.createdAt, timeFormatter)}
+                      </span>
                     </div>
-                    {isMine ? (
-                      <Avatar className="h-9 w-9">
-                        {avatarSrc ? (
-                          <AvatarImage src={avatarSrc} alt={authorLabel} />
-                        ) : null}
-                        <AvatarFallback
-                          className={cn(
-                            "text-xs font-semibold",
-                            message.isStaff && "bg-foreground text-background",
-                          )}
-                        >
-                          {initials}
-                        </AvatarFallback>
-                      </Avatar>
-                    ) : null}
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+                    <p className="mt-2 whitespace-pre-wrap text-sm">
+                      {message.message}
+                    </p>
+                  </div>
+                  {isMine ? (
+                    <Avatar className="h-9 w-9">
+                      {avatarSrc ? (
+                        <AvatarImage src={avatarSrc} alt={authorLabel} />
+                      ) : null}
+                      <AvatarFallback
+                        className={cn(
+                          "text-xs font-semibold",
+                          message.isStaff && "bg-foreground text-background",
+                        )}
+                      >
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : null}
+                </div>
+              );
+            })}
             <div ref={messagesEndRef} />
           </div>
         ) : (
@@ -1248,18 +1243,26 @@ export default function AdminSupportPage() {
       </main>
 
       {dialogOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
+        <div className="fixed inset-0 z-50 flex items-end justify-center px-3 py-3 sm:items-center sm:px-4 sm:py-6">
           <button
             type="button"
             onClick={() => setDialogOpen(false)}
             className="absolute inset-0 bg-background/50 backdrop-blur-md"
             aria-label="Close dialog"
           />
-          <div className="relative w-full max-w-4xl">
+          <div className="relative w-full max-w-4xl max-h-[calc(100dvh-1.5rem)]">
             {renderConversation({
               variant: "modal",
               onClose: () => setDialogOpen(false),
             })}
+            <button
+              type="button"
+              onClick={() => setDialogOpen(false)}
+              className="absolute bottom-3 right-3 inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/95 px-3 py-1.5 text-xs font-semibold shadow-lg backdrop-blur transition-all duration-300 hover:bg-foreground hover:text-background sm:hidden"
+            >
+              <X className="h-3.5 w-3.5" />
+              Закрыть окно
+            </button>
           </div>
         </div>
       ) : null}

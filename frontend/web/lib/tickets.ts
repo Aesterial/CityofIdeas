@@ -488,7 +488,47 @@ export const mapTicketMessages = (
   payload: ApiTicketMessage[],
 ): TicketMessage[] =>
   payload
-    .map((item, index) =>
-      mapTicketMessage(item, { fallbackId: `message-${index}` }),
-    )
-    .filter((item): item is TicketMessage => Boolean(item));
+    .map((item, index) => {
+      const record =
+        item && typeof item === "object" ? (item as RecordValue) : null;
+      const fallbackSource = [
+        toStringValue(
+          record?.createdAt ??
+            record?.created_at ??
+            record?.at ??
+            record?.sentAt ??
+            record?.sent_at ??
+            record?.timestamp,
+        ),
+        toStringValue(
+          record?.message ?? record?.text ?? record?.content ?? record?.body,
+        ),
+        toStringValue(
+          record?.authorId ?? record?.userId ?? record?.user_id ?? record?.uid,
+        ),
+        toStringValue(
+          record?.authorName ??
+            record?.senderName ??
+            record?.name ??
+            record?.username,
+        ),
+      ]
+        .join("|")
+        .toLowerCase()
+        .replace(/\s+/g, "_")
+        .replace(/[^a-z0-9_|-]/g, "")
+        .slice(0, 96);
+      const fallbackId = fallbackSource
+        ? `message-${fallbackSource}`
+        : `message-${index}`;
+      return mapTicketMessage(item, { fallbackId });
+    })
+    .filter((item): item is TicketMessage => Boolean(item))
+    .sort((a, b) => {
+      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      if (aTime !== bTime) {
+        return aTime - bTime;
+      }
+      return a.id.localeCompare(b.id);
+    });
