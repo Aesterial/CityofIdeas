@@ -12,6 +12,9 @@ service SubmissionsService {
   rpc List(google.protobuf.Empty) returns (ListResponse) {
     option (google.api.http) = {get: "/api/submissions/list"};
   }
+  rpc Get(GetRequest) returns (GetResponse) {
+    option (google.api.http) = {get: "/api/submissions/{id}"};
+  }
   rpc Approve(ApproveRequest) returns (DataResponse) {
     option (google.api.http) = {
       post: "/api/submissions/{id}/approve"

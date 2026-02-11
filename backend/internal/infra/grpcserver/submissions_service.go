@@ -95,3 +95,29 @@ func (s *SubmissionsService) List(ctx context.Context, _ *emptypb.Empty) (*submp
 	logger.Info("Got submissions list", "submissions.list.success", logger.EventActor{Type: logger.User, ID: requestor.UID}, logger.Success, traceID)
 	return &submpb.ListResponse{Data: list, Tracing: traceID}, nil
 }
+
+func (s *SubmissionsService) Get(ctx context.Context, req *submpb.GetRequest) (*submpb.GetResponse, error) {
+	if s == nil || s.submissions == nil {
+		return nil, apperrors.NotConfigured
+	}
+	if req.GetId() == 0 {
+		return nil, apperrors.InvalidArguments
+	}
+	requestor, err := s.auth.RequireUser(ctx)
+	if err != nil || requestor == nil {
+		return nil, apperrors.Unauthenticated.AddErrDetails("permission denied")
+	}
+	data, err := s.submissions.GetByID(ctx, req.GetId())
+	if err != nil {
+		logger.Debug("error on getting submissions info: "+err.Error(), "")
+		return nil, apperrors.Wrap(err)
+	}
+	err = s.auth.RequirePermissions(ctx, requestor.UID, permissions.SubmissionsView)
+	if err != nil {
+		if data.Info.Author.UserID != uint32(requestor.UID) {
+			return nil, apperrors.AccessDenied.AddErrDetails("permission denied")
+		}
+	}
+	applyPresignedProjectURLs(ctx, s.storage, data.Info)
+	return &submpb.GetResponse{Data: data, Tracing: TraceIDOrNew(ctx)}, nil
+}

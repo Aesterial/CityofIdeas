@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	SubmissionsService_List_FullMethodName    = "/submissions.v1.SubmissionsService/List"
+	SubmissionsService_Get_FullMethodName     = "/submissions.v1.SubmissionsService/Get"
 	SubmissionsService_Approve_FullMethodName = "/submissions.v1.SubmissionsService/Approve"
 	SubmissionsService_Decline_FullMethodName = "/submissions.v1.SubmissionsService/Decline"
 )
@@ -30,6 +31,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SubmissionsServiceClient interface {
 	List(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListResponse, error)
+	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
 	Approve(ctx context.Context, in *ApproveRequest, opts ...grpc.CallOption) (*DataResponse, error)
 	Decline(ctx context.Context, in *DeclineRequest, opts ...grpc.CallOption) (*DataResponse, error)
 }
@@ -46,6 +48,16 @@ func (c *submissionsServiceClient) List(ctx context.Context, in *emptypb.Empty, 
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListResponse)
 	err := c.cc.Invoke(ctx, SubmissionsService_List_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *submissionsServiceClient) Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetResponse)
+	err := c.cc.Invoke(ctx, SubmissionsService_Get_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -77,6 +89,7 @@ func (c *submissionsServiceClient) Decline(ctx context.Context, in *DeclineReque
 // for forward compatibility.
 type SubmissionsServiceServer interface {
 	List(context.Context, *emptypb.Empty) (*ListResponse, error)
+	Get(context.Context, *GetRequest) (*GetResponse, error)
 	Approve(context.Context, *ApproveRequest) (*DataResponse, error)
 	Decline(context.Context, *DeclineRequest) (*DataResponse, error)
 	mustEmbedUnimplementedSubmissionsServiceServer()
@@ -91,6 +104,9 @@ type UnimplementedSubmissionsServiceServer struct{}
 
 func (UnimplementedSubmissionsServiceServer) List(context.Context, *emptypb.Empty) (*ListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedSubmissionsServiceServer) Get(context.Context, *GetRequest) (*GetResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Get not implemented")
 }
 func (UnimplementedSubmissionsServiceServer) Approve(context.Context, *ApproveRequest) (*DataResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Approve not implemented")
@@ -133,6 +149,24 @@ func _SubmissionsService_List_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(SubmissionsServiceServer).List(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SubmissionsService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SubmissionsServiceServer).Get(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SubmissionsService_Get_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SubmissionsServiceServer).Get(ctx, req.(*GetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -183,6 +217,10 @@ var SubmissionsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "List",
 			Handler:    _SubmissionsService_List_Handler,
+		},
+		{
+			MethodName: "Get",
+			Handler:    _SubmissionsService_Get_Handler,
 		},
 		{
 			MethodName: "Approve",

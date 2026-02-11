@@ -389,6 +389,31 @@ create table ranks (
     added_at timestamptz not null default now()
 );
 
+create or replace function set_rank_weight_by_name()
+returns trigger
+language plpgsql
+as $$
+begin
+    new.weight := case lower(new.name)
+        when 'root' then 100
+        when 'staff' then 90
+        when 'moderator' then 60
+        when 'support' then 40
+        when 'user' then 10
+        when 'default' then 10
+        else new.weight
+    end;
+
+    return new;
+end;
+$$;
+
+drop trigger if exists ranks_set_weight on ranks;
+create trigger ranks_set_weight
+    before insert or update of name on ranks
+    for each row
+    execute function set_rank_weight_by_name();
+
 create unique index user_avatars_object_key_uq on user_avatars (object_key);
 
 create table rank_activations (

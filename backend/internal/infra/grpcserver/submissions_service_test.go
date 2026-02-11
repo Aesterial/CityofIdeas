@@ -27,6 +27,10 @@ func (s *submissionsRepoStub) GetList(context.Context) ([]*subdomain.Submission,
 	return s.list, nil
 }
 
+func (s *submissionsRepoStub) GetByID(ctx context.Context, id int32) (*subdomain.Submission, error) {
+	return nil, nil
+}
+
 func (s *submissionsRepoStub) AlreadySetted(context.Context, int32) (bool, error) {
 	return false, nil
 }

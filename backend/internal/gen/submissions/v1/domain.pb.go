@@ -66,6 +66,50 @@ func (x *DataResponse) GetTracing() string {
 	return ""
 }
 
+type GetRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRequest) Reset() {
+	*x = GetRequest{}
+	mi := &file_submissions_domain_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRequest) ProtoMessage() {}
+
+func (x *GetRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_submissions_domain_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRequest.ProtoReflect.Descriptor instead.
+func (*GetRequest) Descriptor() ([]byte, []int) {
+	return file_submissions_domain_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *GetRequest) GetId() int32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
 type ApproveRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -75,7 +119,7 @@ type ApproveRequest struct {
 
 func (x *ApproveRequest) Reset() {
 	*x = ApproveRequest{}
-	mi := &file_submissions_domain_proto_msgTypes[1]
+	mi := &file_submissions_domain_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -87,7 +131,7 @@ func (x *ApproveRequest) String() string {
 func (*ApproveRequest) ProtoMessage() {}
 
 func (x *ApproveRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_submissions_domain_proto_msgTypes[1]
+	mi := &file_submissions_domain_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -100,7 +144,7 @@ func (x *ApproveRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ApproveRequest.ProtoReflect.Descriptor instead.
 func (*ApproveRequest) Descriptor() ([]byte, []int) {
-	return file_submissions_domain_proto_rawDescGZIP(), []int{1}
+	return file_submissions_domain_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ApproveRequest) GetId() int32 {
@@ -120,7 +164,7 @@ type DeclineRequest struct {
 
 func (x *DeclineRequest) Reset() {
 	*x = DeclineRequest{}
-	mi := &file_submissions_domain_proto_msgTypes[2]
+	mi := &file_submissions_domain_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -132,7 +176,7 @@ func (x *DeclineRequest) String() string {
 func (*DeclineRequest) ProtoMessage() {}
 
 func (x *DeclineRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_submissions_domain_proto_msgTypes[2]
+	mi := &file_submissions_domain_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -145,7 +189,7 @@ func (x *DeclineRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeclineRequest.ProtoReflect.Descriptor instead.
 func (*DeclineRequest) Descriptor() ([]byte, []int) {
-	return file_submissions_domain_proto_rawDescGZIP(), []int{2}
+	return file_submissions_domain_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *DeclineRequest) GetId() int32 {
@@ -162,9 +206,77 @@ func (x *DeclineRequest) GetReason() string {
 	return ""
 }
 
+type Target struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Info          *v1.Project            `protobuf:"bytes,2,opt,name=info,proto3" json:"info,omitempty"`
+	State         string                 `protobuf:"bytes,3,opt,name=state,proto3" json:"state,omitempty"`
+	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Target) Reset() {
+	*x = Target{}
+	mi := &file_submissions_domain_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Target) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Target) ProtoMessage() {}
+
+func (x *Target) ProtoReflect() protoreflect.Message {
+	mi := &file_submissions_domain_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Target.ProtoReflect.Descriptor instead.
+func (*Target) Descriptor() ([]byte, []int) {
+	return file_submissions_domain_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Target) GetId() int32 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *Target) GetInfo() *v1.Project {
+	if x != nil {
+		return x.Info
+	}
+	return nil
+}
+
+func (x *Target) GetState() string {
+	if x != nil {
+		return x.State
+	}
+	return ""
+}
+
+func (x *Target) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
 type ListResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Data          []*ListResponseTarget  `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
+	Data          []*Target              `protobuf:"bytes,1,rep,name=data,proto3" json:"data,omitempty"`
 	Tracing       string                 `protobuf:"bytes,2,opt,name=tracing,proto3" json:"tracing,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -172,7 +284,7 @@ type ListResponse struct {
 
 func (x *ListResponse) Reset() {
 	*x = ListResponse{}
-	mi := &file_submissions_domain_proto_msgTypes[3]
+	mi := &file_submissions_domain_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -184,7 +296,7 @@ func (x *ListResponse) String() string {
 func (*ListResponse) ProtoMessage() {}
 
 func (x *ListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_submissions_domain_proto_msgTypes[3]
+	mi := &file_submissions_domain_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -197,10 +309,10 @@ func (x *ListResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListResponse.ProtoReflect.Descriptor instead.
 func (*ListResponse) Descriptor() ([]byte, []int) {
-	return file_submissions_domain_proto_rawDescGZIP(), []int{3}
+	return file_submissions_domain_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *ListResponse) GetData() []*ListResponseTarget {
+func (x *ListResponse) GetData() []*Target {
 	if x != nil {
 		return x.Data
 	}
@@ -214,31 +326,29 @@ func (x *ListResponse) GetTracing() string {
 	return ""
 }
 
-type ListResponseTarget struct {
+type GetResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Info          *v1.Project            `protobuf:"bytes,2,opt,name=info,proto3" json:"info,omitempty"`
-	State         string                 `protobuf:"bytes,3,opt,name=state,proto3" json:"state,omitempty"`
-	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
+	Data          *Target                `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
+	Tracing       string                 `protobuf:"bytes,2,opt,name=tracing,proto3" json:"tracing,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ListResponseTarget) Reset() {
-	*x = ListResponseTarget{}
-	mi := &file_submissions_domain_proto_msgTypes[4]
+func (x *GetResponse) Reset() {
+	*x = GetResponse{}
+	mi := &file_submissions_domain_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ListResponseTarget) String() string {
+func (x *GetResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ListResponseTarget) ProtoMessage() {}
+func (*GetResponse) ProtoMessage() {}
 
-func (x *ListResponseTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_submissions_domain_proto_msgTypes[4]
+func (x *GetResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_submissions_domain_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -249,35 +359,21 @@ func (x *ListResponseTarget) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ListResponseTarget.ProtoReflect.Descriptor instead.
-func (*ListResponseTarget) Descriptor() ([]byte, []int) {
-	return file_submissions_domain_proto_rawDescGZIP(), []int{3, 0}
+// Deprecated: Use GetResponse.ProtoReflect.Descriptor instead.
+func (*GetResponse) Descriptor() ([]byte, []int) {
+	return file_submissions_domain_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *ListResponseTarget) GetId() int32 {
+func (x *GetResponse) GetData() *Target {
 	if x != nil {
-		return x.Id
-	}
-	return 0
-}
-
-func (x *ListResponseTarget) GetInfo() *v1.Project {
-	if x != nil {
-		return x.Info
+		return x.Data
 	}
 	return nil
 }
 
-func (x *ListResponseTarget) GetState() string {
+func (x *GetResponse) GetTracing() string {
 	if x != nil {
-		return x.State
-	}
-	return ""
-}
-
-func (x *ListResponseTarget) GetReason() string {
-	if x != nil {
-		return x.Reason
+		return x.Tracing
 	}
 	return ""
 }
@@ -288,20 +384,26 @@ const file_submissions_domain_proto_rawDesc = "" +
 	"\n" +
 	"\x18submissions/domain.proto\x12\x0esubmissions.v1\x1a\x15projects/domain.proto\"(\n" +
 	"\fDataResponse\x12\x18\n" +
-	"\atracing\x18\x01 \x01(\tR\atracing\" \n" +
+	"\atracing\x18\x01 \x01(\tR\atracing\"\x1c\n" +
+	"\n" +
+	"GetRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x05R\x02id\" \n" +
 	"\x0eApproveRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\"8\n" +
 	"\x0eDeclineRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x16\n" +
-	"\x06reason\x18\x02 \x01(\tR\x06reason\"\xd3\x01\n" +
-	"\fListResponse\x127\n" +
-	"\x04data\x18\x01 \x03(\v2#.submissions.v1.ListResponse.targetR\x04data\x12\x18\n" +
-	"\atracing\x18\x02 \x01(\tR\atracing\x1ap\n" +
-	"\x06target\x12\x0e\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\"p\n" +
+	"\x06Target\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12(\n" +
 	"\x04info\x18\x02 \x01(\v2\x14.projects.v1.ProjectR\x04info\x12\x14\n" +
 	"\x05state\x18\x03 \x01(\tR\x05state\x12\x16\n" +
-	"\x06reason\x18\x04 \x01(\tR\x06reasonB;Z9Aesterial/backend/internal/gen/submissions/v1;submissionsb\x06proto3"
+	"\x06reason\x18\x04 \x01(\tR\x06reason\"T\n" +
+	"\fListResponse\x12*\n" +
+	"\x04data\x18\x01 \x03(\v2\x16.submissions.v1.TargetR\x04data\x12\x18\n" +
+	"\atracing\x18\x02 \x01(\tR\atracing\"S\n" +
+	"\vGetResponse\x12*\n" +
+	"\x04data\x18\x01 \x01(\v2\x16.submissions.v1.TargetR\x04data\x12\x18\n" +
+	"\atracing\x18\x02 \x01(\tR\atracingB;Z9Aesterial/backend/internal/gen/submissions/v1;submissionsb\x06proto3"
 
 var (
 	file_submissions_domain_proto_rawDescOnce sync.Once
@@ -315,23 +417,26 @@ func file_submissions_domain_proto_rawDescGZIP() []byte {
 	return file_submissions_domain_proto_rawDescData
 }
 
-var file_submissions_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_submissions_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_submissions_domain_proto_goTypes = []any{
-	(*DataResponse)(nil),       // 0: submissions.v1.DataResponse
-	(*ApproveRequest)(nil),     // 1: submissions.v1.ApproveRequest
-	(*DeclineRequest)(nil),     // 2: submissions.v1.DeclineRequest
-	(*ListResponse)(nil),       // 3: submissions.v1.ListResponse
-	(*ListResponseTarget)(nil), // 4: submissions.v1.ListResponse.target
-	(*v1.Project)(nil),         // 5: projects.v1.Project
+	(*DataResponse)(nil),   // 0: submissions.v1.DataResponse
+	(*GetRequest)(nil),     // 1: submissions.v1.GetRequest
+	(*ApproveRequest)(nil), // 2: submissions.v1.ApproveRequest
+	(*DeclineRequest)(nil), // 3: submissions.v1.DeclineRequest
+	(*Target)(nil),         // 4: submissions.v1.Target
+	(*ListResponse)(nil),   // 5: submissions.v1.ListResponse
+	(*GetResponse)(nil),    // 6: submissions.v1.GetResponse
+	(*v1.Project)(nil),     // 7: projects.v1.Project
 }
 var file_submissions_domain_proto_depIdxs = []int32{
-	4, // 0: submissions.v1.ListResponse.data:type_name -> submissions.v1.ListResponse.target
-	5, // 1: submissions.v1.ListResponse.target.info:type_name -> projects.v1.Project
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	7, // 0: submissions.v1.Target.info:type_name -> projects.v1.Project
+	4, // 1: submissions.v1.ListResponse.data:type_name -> submissions.v1.Target
+	4, // 2: submissions.v1.GetResponse.data:type_name -> submissions.v1.Target
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_submissions_domain_proto_init() }
@@ -345,7 +450,7 @@ func file_submissions_domain_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_submissions_domain_proto_rawDesc), len(file_submissions_domain_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

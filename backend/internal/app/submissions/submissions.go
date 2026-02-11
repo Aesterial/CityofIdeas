@@ -30,14 +30,14 @@ func New(repo submissions.Repository, proj projects.Repository, usrs user.Reposi
 	return &Service{repo: repo, proj: proj, usrs: usrs}
 }
 
-func (s *Service) GetList(ctx context.Context) ([]*submpb.ListResponseTarget, error) {
+func (s *Service) GetList(ctx context.Context) ([]*submpb.Target, error) {
 	data, err := s.repo.GetList(ctx)
 	if err != nil {
 		logger.Debug("error appeared: "+err.Error(), "submissions.get_list")
 		return nil, apperrors.Wrap(err)
 	}
 	if len(data) == 0 {
-		return []*submpb.ListResponseTarget{}, nil
+		return []*submpb.Target{}, nil
 	}
 
 	maxWorkers, hydrationTimeout := submissionsHydrationSettings()
@@ -46,7 +46,7 @@ func (s *Service) GetList(ctx context.Context) ([]*submpb.ListResponseTarget, er
 		workers = maxWorkers
 	}
 
-	response := make([]*submpb.ListResponseTarget, len(data))
+	response := make([]*submpb.Target, len(data))
 	sem := make(chan struct{}, workers)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -82,7 +82,7 @@ func (s *Service) GetList(ctx context.Context) ([]*submpb.ListResponseTarget, er
 				return
 			}
 
-			target, err := safe.GoAsync[*submpb.ListResponseTarget](ctx, hydrationTimeout, func(taskCtx context.Context) (*submpb.ListResponseTarget, error) {
+			target, err := safe.GoAsync[*submpb.Target](ctx, hydrationTimeout, func(taskCtx context.Context) (*submpb.Target, error) {
 				p, err := s.proj.GetProject(taskCtx, v.ProjectID)
 				if err != nil {
 					return nil, err
@@ -101,7 +101,7 @@ func (s *Service) GetList(ctx context.Context) ([]*submpb.ListResponseTarget, er
 				if v.Reason != nil {
 					reason = *v.Reason
 				}
-				return &submpb.ListResponseTarget{
+				return &submpb.Target{
 					Id:     int32(v.ID),
 					Info:   p.ToProto(),
 					State:  v.State,
@@ -130,13 +130,29 @@ func (s *Service) GetList(ctx context.Context) ([]*submpb.ListResponseTarget, er
 	return filtered, nil
 }
 
-func (s *Service) GetActive(ctx context.Context) ([]*submpb.ListResponseTarget, error) {
+func (s *Service) GetByID(ctx context.Context, id int32) (*submpb.Target, error) {
+	info, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	pr, err := s.proj.GetProject(ctx, info.ProjectID)
+	if err != nil {
+		return nil, err
+	}
+	var reason string
+	if info.Reason != nil {
+		reason = *info.Reason
+	}
+	return &submpb.Target{Id: int32(info.ID), Info: pr.ToProto(), State: info.State, Reason: reason}, nil
+}
+
+func (s *Service) GetActive(ctx context.Context) ([]*submpb.Target, error) {
 	data, err := s.GetList(ctx)
 	if err != nil {
 		logger.Debug("error appeared: "+err.Error(), "submissions.get_active")
 		return nil, err
 	}
-	var response []*submpb.ListResponseTarget
+	var response []*submpb.Target
 	for _, v := range data {
 		if strings.ToLower(v.State) == "active" {
 			response = append(response, v)

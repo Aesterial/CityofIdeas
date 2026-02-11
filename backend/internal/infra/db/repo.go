@@ -2217,6 +2217,18 @@ func (s *SubmissionsRepository) GetList(ctx context.Context) ([]*submissions.Sub
 	return data, nil
 }
 
+func (s *SubmissionsRepository) GetByID(ctx context.Context, id int32) (*submissions.Submission, error) {
+	var data submissions.Submission
+	var reason sql.NullString
+	if err := s.DB.QueryRowContext(ctx, "SELECT s.project_id, s.state, s.reason FROM submissions s WHERE s.id = $1", id).Scan(&data.ProjectID, &data.State, &reason); err != nil {
+		return nil, err
+	}
+	if reason.Valid {
+		data.Reason = &reason.String
+	}
+	return &data, nil
+}
+
 func (s *SubmissionsRepository) AlreadySetted(ctx context.Context, id int32) (bool, error) {
 	if id == 0 {
 		return false, apperrors.InvalidArguments.AddErrDetails("invalid id")

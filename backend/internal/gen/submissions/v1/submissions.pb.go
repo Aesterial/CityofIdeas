@@ -26,28 +26,33 @@ var File_submissions_submissions_proto protoreflect.FileDescriptor
 
 const file_submissions_submissions_proto_rawDesc = "" +
 	"\n" +
-	"\x1dsubmissions/submissions.proto\x12\x0esubmissions.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x18submissions/domain.proto2\xd7\x02\n" +
+	"\x1dsubmissions/submissions.proto\x12\x0esubmissions.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x18submissions/domain.proto2\xb6\x03\n" +
 	"\x12SubmissionsService\x12[\n" +
-	"\x04List\x12\x16.google.protobuf.Empty\x1a\x1c.submissions.v1.ListResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/submissions/list\x12q\n" +
+	"\x04List\x12\x16.google.protobuf.Empty\x1a\x1c.submissions.v1.ListResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/submissions/list\x12]\n" +
+	"\x03Get\x12\x1a.submissions.v1.GetRequest\x1a\x1b.submissions.v1.GetResponse\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/submissions/{id}\x12q\n" +
 	"\aApprove\x12\x1e.submissions.v1.ApproveRequest\x1a\x1c.submissions.v1.DataResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/submissions/{id}/approve\x12q\n" +
 	"\aDecline\x12\x1e.submissions.v1.DeclineRequest\x1a\x1c.submissions.v1.DataResponse\"(\x82\xd3\xe4\x93\x02\":\x01*\"\x1d/api/submissions/{id}/declineB;Z9Aesterial/backend/internal/gen/submissions/v1;submissionsb\x06proto3"
 
 var file_submissions_submissions_proto_goTypes = []any{
 	(*emptypb.Empty)(nil),  // 0: google.protobuf.Empty
-	(*ApproveRequest)(nil), // 1: submissions.v1.ApproveRequest
-	(*DeclineRequest)(nil), // 2: submissions.v1.DeclineRequest
-	(*ListResponse)(nil),   // 3: submissions.v1.ListResponse
-	(*DataResponse)(nil),   // 4: submissions.v1.DataResponse
+	(*GetRequest)(nil),     // 1: submissions.v1.GetRequest
+	(*ApproveRequest)(nil), // 2: submissions.v1.ApproveRequest
+	(*DeclineRequest)(nil), // 3: submissions.v1.DeclineRequest
+	(*ListResponse)(nil),   // 4: submissions.v1.ListResponse
+	(*GetResponse)(nil),    // 5: submissions.v1.GetResponse
+	(*DataResponse)(nil),   // 6: submissions.v1.DataResponse
 }
 var file_submissions_submissions_proto_depIdxs = []int32{
 	0, // 0: submissions.v1.SubmissionsService.List:input_type -> google.protobuf.Empty
-	1, // 1: submissions.v1.SubmissionsService.Approve:input_type -> submissions.v1.ApproveRequest
-	2, // 2: submissions.v1.SubmissionsService.Decline:input_type -> submissions.v1.DeclineRequest
-	3, // 3: submissions.v1.SubmissionsService.List:output_type -> submissions.v1.ListResponse
-	4, // 4: submissions.v1.SubmissionsService.Approve:output_type -> submissions.v1.DataResponse
-	4, // 5: submissions.v1.SubmissionsService.Decline:output_type -> submissions.v1.DataResponse
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
+	1, // 1: submissions.v1.SubmissionsService.Get:input_type -> submissions.v1.GetRequest
+	2, // 2: submissions.v1.SubmissionsService.Approve:input_type -> submissions.v1.ApproveRequest
+	3, // 3: submissions.v1.SubmissionsService.Decline:input_type -> submissions.v1.DeclineRequest
+	4, // 4: submissions.v1.SubmissionsService.List:output_type -> submissions.v1.ListResponse
+	5, // 5: submissions.v1.SubmissionsService.Get:output_type -> submissions.v1.GetResponse
+	6, // 6: submissions.v1.SubmissionsService.Approve:output_type -> submissions.v1.DataResponse
+	6, // 7: submissions.v1.SubmissionsService.Decline:output_type -> submissions.v1.DataResponse
+	4, // [4:8] is the sub-list for method output_type
+	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
