@@ -44,10 +44,18 @@ func (s *submissionsRepoStub) Decline(context.Context, int32, string) error {
 }
 
 type submissionsProjectsRepoStub struct {
-	project *projects.Project
+	project  *projects.Project
+	projects map[uuid.UUID]*projects.Project
+	err      error
 }
 
-func (p *submissionsProjectsRepoStub) GetProject(context.Context, uuid.UUID) (*projects.Project, error) {
+func (p *submissionsProjectsRepoStub) GetProject(ctx context.Context, id uuid.UUID) (*projects.Project, error) {
+	if p.err != nil {
+		return nil, p.err
+	}
+	if p.projects != nil {
+		return p.projects[id], nil
+	}
 	return p.project, nil
 }
 
@@ -114,4 +122,46 @@ func TestSubmissionsServiceApproveError(t *testing.T) {
 
 	_, err := svc.Approve(ctx, &submpb.ApproveRequest{Id: 1})
 	assertAppError(t, err, apperrors.ServerError)
+}
+
+func TestSubmissionsServiceListSkipsBrokenEntries(t *testing.T) {
+	ctx, sessionsSvc, userSvc, _, _ := newAuthDeps(t, 10)
+
+	validProject := &projects.Project{
+		ID:     uuid.New(),
+		Author: &user.User{UID: 10, Username: "tester", Rank: testUser(10).Rank, Joined: time.Now()},
+		At:     time.Now(),
+	}
+	validProject.Author.Settings = &user.Settings{}
+
+	missingProjectID := uuid.New()
+
+	subRepo := &submissionsRepoStub{
+		list: []*subdomain.Submission{
+			{ID: 1, ProjectID: validProject.ID, State: "active"},
+			{ID: 2, ProjectID: missingProjectID, State: "active"},
+		},
+	}
+	projRepo := &submissionsProjectsRepoStub{
+		projects: map[uuid.UUID]*projects.Project{
+			validProject.ID: validProject,
+		},
+	}
+	usrRepo := &authUserRepoStub{
+		getUserByUIDFn: func(context.Context, uint) (*user.User, error) {
+			return validProject.Author, nil
+		},
+	}
+
+	svc := grpcserver.NewSubmissionsService(submissionsapp.New(subRepo, projRepo, usrRepo), sessionsSvc, userSvc, nil)
+	resp, err := svc.List(ctx, &emptypb.Empty{})
+	if err != nil {
+		t.Fatalf("List() error: %v", err)
+	}
+	if resp == nil || len(resp.Data) != 1 {
+		t.Fatalf("unexpected response: %+v", resp)
+	}
+	if resp.Data[0].Id != 1 {
+		t.Fatalf("expected submission id 1, got %d", resp.Data[0].Id)
+	}
 }

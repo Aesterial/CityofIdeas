@@ -48,23 +48,7 @@ func (s *Service) GetList(ctx context.Context) ([]*submpb.Target, error) {
 
 	response := make([]*submpb.Target, len(data))
 	sem := make(chan struct{}, workers)
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
 	var wg sync.WaitGroup
-	var once sync.Once
-	var firstErr error
-
-	setErr := func(err error, logTag string) {
-		if err == nil {
-			return
-		}
-		once.Do(func() {
-			logger.Debug("error appeared: "+err.Error(), logTag)
-			firstErr = apperrors.Wrap(err)
-			cancel()
-		})
-	}
 
 	for i, v := range data {
 		i, v := i, v
@@ -109,7 +93,8 @@ func (s *Service) GetList(ctx context.Context) ([]*submpb.Target, error) {
 				}, nil
 			})
 			if err != nil {
-				setErr(err, "submissions.get_list.hydrate")
+				// Keep the list resilient: skip broken entries instead of failing the whole response.
+				logger.Debug("error appeared: "+err.Error(), "submissions.get_list.hydrate")
 				return
 			}
 			response[i] = target
@@ -117,9 +102,6 @@ func (s *Service) GetList(ctx context.Context) ([]*submpb.Target, error) {
 	}
 
 	wg.Wait()
-	if firstErr != nil {
-		return nil, firstErr
-	}
 
 	filtered := response[:0]
 	for _, item := range response {
