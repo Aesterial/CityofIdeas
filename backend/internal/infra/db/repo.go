@@ -4,6 +4,7 @@ import (
 	appconfig "Aesterial/backend/internal/app/config"
 	"Aesterial/backend/internal/domain/login"
 	"Aesterial/backend/internal/domain/maintenance"
+	"Aesterial/backend/internal/domain/notifications"
 	"Aesterial/backend/internal/domain/permissions"
 	projectdomain "Aesterial/backend/internal/domain/projects"
 	"Aesterial/backend/internal/domain/rank"
@@ -80,6 +81,10 @@ type TicketsRepository struct {
 	DB *sql.DB
 }
 
+type NotificationsRepository struct {
+	DB *sql.DB
+}
+
 var _ user.Repository = (*UserRepository)(nil)
 
 func NewUserRepository(db *sql.DB) *UserRepository {
@@ -112,6 +117,9 @@ func NewMaintenanceRepository(db *sql.DB) *MaintenanceRepository {
 }
 func NewTicketsRepository(db *sql.DB) *TicketsRepository {
 	return &TicketsRepository{DB: db}
+}
+func NewNotificationsRepository(db *sql.DB) *NotificationsRepository {
+	return &NotificationsRepository{DB: db}
 }
 
 type compositeField struct {
@@ -3202,4 +3210,57 @@ func (r *RanksRepository) CreateActivations(ctx context.Context, list []rank.Act
 		}
 	}
 	return nil
+}
+
+/*
+ *
+ type Repository interface {
+	GetAll(ctx context.Context) (Notifications, error)
+	ForUser(ctx context.Context, id uint) (*Notification, error)
+	Create(ctx context.Context, scope string, body string, receiver *string, expires *time.Time) error
+	Mark(ctx context.Context, id uuid.UUID) error
+ }
+
+*/
+
+func (n *NotificationsRepository) GetAll(ctx context.Context) (notifications.Notifications, error) {
+	rows, err := n.DB.QueryContext(ctx, "SELECT id, type, body, createdAt, scope, expires FROM notifications")
+	if err != nil {
+		return nil, err
+	}
+	var list notifications.Notifications
+	defer rows.Close()
+	for rows.Next() {
+		var notify notifications.Notification
+		if err := rows.Scan(&notify.ID, &notify.Type, &notify.Body, &notify.Created, &notify.Created, &notify.Scope, &notify.Expires); err != nil {
+			return nil, err
+		}
+		switch notify.Scope {
+		case notifications.User:
+			var id sql.NullInt64
+			var readAt sql.NullTime
+			if err := n.DB.QueryRowContext(ctx, "SELECT userID, readAt FROM notification_receipts WHERE notify_id = $1", notify.ID).Scan(&id, &readAt); err != nil {
+				return nil, err
+			}
+			var readed *time.Time
+			var ID uint
+			if readAt.Valid {
+				readed = &readAt.Time
+			}
+			if id.Valid {
+				ID = uint(id.Int64)
+			}
+			notify.Readed = readed
+			notify.Target.User = &ID
+		case notifications.Segment:
+			var rank sql.NullString
+			var readAt sql.NullTime
+			if err := n.DB.QueryRowContext(ctx, "SELECT rank, readAt FROM notification_receipts WHERE notify_id = $1", notify.ID).Scan(&rank, &readAt); err != nil {
+				return nil, err
+			}
+
+		}
+		list = append(list, &notify)
+	}
+	return list, nil
 }
