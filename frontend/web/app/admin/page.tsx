@@ -148,13 +148,49 @@ const readAdminCache = <T,>(key: string): T | null => {
 };
 
 const writeAdminCache = (key: string, value: unknown) => {
-  if (typeof window === "undefined") {
-    return;
-  }
+  if (typeof window === "undefined") return;
+
+  const payload = JSON.stringify(value);
+
   try {
-    window.sessionStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    // Ignore cache writes if storage is unavailable.
+    window.sessionStorage.setItem(key, payload);
+    return;
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+
+    if (process.env.NODE_ENV !== "production") {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[writeAdminCache] [-] failed to write sessionStorage for key "${key}"`,
+        error,
+      );
+    }
+
+    if (err instanceof DOMException && err.name === "SecurityError") return;
+
+    try {
+      window.localStorage.setItem(key, payload);
+
+      if (process.env.NODE_ENV !== "production") {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[writeAdminCache] [+] fallback to localStorage succeeded for key "${key}"`,
+        );
+      }
+    } catch (fallbackErr: unknown) {
+      if (process.env.NODE_ENV !== "production") {
+        const fe =
+          fallbackErr instanceof Error
+            ? fallbackErr
+            : new Error(String(fallbackErr));
+
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[writeAdminCache] [-] fallback to localStorage failed for key "${key}"`,
+          fe,
+        );
+      }
+    }
   }
 };
 
@@ -181,7 +217,7 @@ const adminTutorialSteps: TutorialStep[] = [
   },
   {
     selector: '[data-tutorial="admin-users-list"]',
-    text: "\u0421\u043f\u0438\u0441\u043e\u043a \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u0439: \u0441\u0442\u0430\u0442\u0443\u0441, \u0430\u043a\u0442\u0438\u0432\u043d\u043e\u0441\u0442\u044c \u0438 \u0431\u044b\u0441\u0442\u0440\u044b\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u044f.",
+    text: "Активность и статистика по пользователям и другим значениям.",
     position: "right",
   },
 ];
