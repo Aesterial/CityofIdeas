@@ -6,11 +6,17 @@ import {
   CheckCircle2,
   Plus,
   Shield,
+  XIcon,
   UserX,
   Users,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -377,7 +383,32 @@ export function AdminUserSettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-10xl overflow-hidden rounded-3xl border-border/70 bg-card/95 p-0 shadow-2xl sm:max-w-7xl">
+      <DialogContent
+        showCloseButton={false}
+        className="max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-[calc(100vw-1rem)] overflow-x-hidden overflow-y-auto rounded-3xl border-border/70 bg-card/95 p-0 shadow-2xl sm:max-h-[85vh] sm:max-w-7xl"
+      >
+        <DialogClose asChild>
+          <button
+            type="button"
+            aria-label="Close"
+            className="ring-offset-background focus:ring-ring absolute top-4 right-4 z-20 hidden rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden sm:inline-flex"
+          >
+            <XIcon className="size-4" />
+            <span className="sr-only">Close</span>
+          </button>
+        </DialogClose>
+        <div className="sticky top-0 z-20 -mb-px flex justify-end border-b border-border/60 bg-card/95 px-3 py-2 backdrop-blur sm:hidden">
+          <DialogClose asChild>
+            <button
+              type="button"
+              aria-label="Close"
+              className="ring-offset-background focus:ring-ring inline-flex rounded-xs opacity-80 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden"
+            >
+              <XIcon className="size-4" />
+              <span className="sr-only">Close</span>
+            </button>
+          </DialogClose>
+        </div>
         <DialogTitle className="sr-only">
           {t("adminUserSettingsTitle")}
         </DialogTitle>

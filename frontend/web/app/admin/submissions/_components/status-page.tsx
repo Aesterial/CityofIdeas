@@ -360,7 +360,7 @@ export default function SubmissionStatusPage({ status }: StatusPageProps) {
                       </p>
                     </div>
                     <div className="grid gap-3 text-sm">
-                      <div className="flex items-center gap-2">
+                      <div className="flex min-w-0 items-center gap-2">
                         <UserCircle2 className="h-4 w-4 text-muted-foreground" />
                         <span className="text-muted-foreground">
                           {t("adminSubmissionsInfoAuthor")}:
@@ -368,12 +368,12 @@ export default function SubmissionStatusPage({ status }: StatusPageProps) {
                         {selected.authorId ? (
                           <Link
                             href={`/users/${selected.authorId}`}
-                            className="font-semibold hover:underline"
+                            className="min-w-0 truncate font-semibold hover:underline"
                           >
                             {selected.authorName}
                           </Link>
                         ) : (
-                          <span className="font-semibold">
+                          <span className="min-w-0 truncate font-semibold">
                             {selected.authorName}
                           </span>
                         )}
@@ -387,16 +387,16 @@ export default function SubmissionStatusPage({ status }: StatusPageProps) {
                           {selected.submittedAt}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex min-w-0 items-center gap-2">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
                         <span className="text-muted-foreground">
                           {t("adminSubmissionsInfoLocation")}:
                         </span>
-                        <span className="font-semibold">
+                        <span className="min-w-0 break-all font-semibold">
                           {selected.location}
                         </span>
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-xs text-muted-foreground break-all">
                         {t("adminSubmissionsInfoSource")}: {selected.source}
                       </div>
                     </div>
@@ -441,7 +441,7 @@ function ProjectCard({
     <button
       type="button"
       onClick={onSelect}
-      className={`flex w-full gap-4 rounded-3xl border border-border/60 bg-background/70 p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/30 ${
+      className={`flex w-full gap-4 overflow-hidden rounded-3xl border border-border/60 bg-background/70 p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/30 ${
         selected ? "ring-2 ring-foreground/15 border-foreground/40" : ""
       }`}
     >
@@ -452,20 +452,20 @@ function ProjectCard({
           className="h-full w-full object-cover"
         />
       </div>
-      <div className="flex-1">
-        <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-          <span>{item.category}</span>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+          <span className="min-w-0 max-w-full break-all">{item.category}</span>
           <span
             className={`rounded-full px-2 py-0.5 font-semibold ${statusBadgeStyles[status]}`}
           >
             {statusText}
           </span>
         </div>
-        <p className="mt-2 text-base font-semibold">{item.title}</p>
+        <p className="mt-2 break-words text-base font-semibold">{item.title}</p>
         <div className="mt-2 grid gap-1 text-xs text-muted-foreground">
-          <span>{item.authorName}</span>
+          <span className="truncate">{item.authorName}</span>
           <span>{item.submittedAt}</span>
-          <span>{item.location}</span>
+          <span className="break-all">{item.location}</span>
         </div>
       </div>
     </button>

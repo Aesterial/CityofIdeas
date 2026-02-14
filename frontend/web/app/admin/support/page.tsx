@@ -148,6 +148,21 @@ const areTicketsEqual = (a: Ticket | null, b: Ticket | null) => {
   );
 };
 
+const areTicketListsEqual = (prev: Ticket[], next: Ticket[]) => {
+  if (prev === next) {
+    return true;
+  }
+  if (prev.length !== next.length) {
+    return false;
+  }
+  for (let index = 0; index < prev.length; index += 1) {
+    if (!areTicketsEqual(prev[index], next[index])) {
+      return false;
+    }
+  }
+  return true;
+};
+
 export default function AdminSupportPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -274,7 +289,7 @@ export default function AdminSupportPage() {
         const mapped = list
           .map((item) => mapTicket(item))
           .filter((item): item is Ticket => Boolean(item));
-        setTickets(mapped);
+        setTickets((prev) => (areTicketListsEqual(prev, mapped) ? prev : mapped));
       } catch (err) {
         if (!signal?.aborted && !silent) {
           setError("Не удалось загрузить обращения.");
@@ -471,10 +486,12 @@ export default function AdminSupportPage() {
       return;
     }
     setNotice(null);
-    const controller = new AbortController();
-    void loadDetails(activeTicket.id, controller.signal);
-    lastSelectedIdRef.current = selectedId;
-    return () => controller.abort();
+    if (selectedId !== lastSelectedIdRef.current) {
+      const controller = new AbortController();
+      void loadDetails(activeTicket.id, controller.signal);
+      lastSelectedIdRef.current = selectedId;
+      return () => controller.abort();
+    }
   }, [tickets, selectedId, firstAvailableId, canOpenTicket, loadDetails]);
 
   const handleSelect = (ticket: Ticket) => {
@@ -625,6 +642,17 @@ export default function AdminSupportPage() {
     window.open(url.toString(), "_blank", "noopener,noreferrer");
   };
 
+  const closeDialogWindow = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    if (window.opener && !window.opener.closed) {
+      window.close();
+      return;
+    }
+    router.replace("/admin/support");
+  };
+
   const renderConversation = ({
     variant,
     onClose,
@@ -640,6 +668,7 @@ export default function AdminSupportPage() {
       variant === "page" ? "max-h-[240px]" : "max-h-[46dvh] sm:max-h-[60vh]";
     const title = selectedTicket?.subject || "Диалог";
     const showSkeleton = loadingDetails && messages.length === 0;
+    const canCloseConversation = Boolean((isModal && onClose) || isWindow);
     const wrapperClass = framed
       ? cn(
           "rounded-3xl border border-border/70 bg-card/90 p-6",
@@ -649,6 +678,18 @@ export default function AdminSupportPage() {
 
     return (
       <section className={wrapperClass}>
+        {canCloseConversation ? (
+          <div className="sticky top-0 z-10 -mx-6 -mt-6 mb-3 flex justify-end border-b border-border/60 bg-card/95 px-4 py-2 backdrop-blur sm:hidden">
+            <button
+              type="button"
+              onClick={isWindow ? closeDialogWindow : onClose}
+              className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/90 px-3 py-1 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+            >
+              <X className="h-3.5 w-3.5" />
+              Закрыть
+            </button>
+          </div>
+        ) : null}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold">{title}</p>
@@ -695,7 +736,17 @@ export default function AdminSupportPage() {
               <button
                 type="button"
                 onClick={onClose}
-                className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-1 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+                className="hidden items-center gap-2 rounded-full border border-border/70 px-3 py-1 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background sm:inline-flex"
+              >
+                <X className="h-3.5 w-3.5" />
+                Закрыть
+              </button>
+            ) : null}
+            {isWindow ? (
+              <button
+                type="button"
+                onClick={closeDialogWindow}
+                className="hidden items-center gap-2 rounded-full border border-border/70 px-3 py-1 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background sm:inline-flex"
               >
                 <X className="h-3.5 w-3.5" />
                 Закрыть
@@ -902,10 +953,11 @@ export default function AdminSupportPage() {
   };
 
   if (isDialogView) {
+    const showDialogSkeleton = loadingList || (loadingDetails && messages.length === 0);
     return (
       <div className="min-h-screen bg-background text-foreground px-4 py-6">
         <div className="mx-auto w-full max-w-4xl">
-          {loadingList || loadingDetails ? (
+          {showDialogSkeleton ? (
             <div className="h-64 rounded-3xl bg-muted/60 animate-pulse" />
           ) : selectedTicket ? (
             renderConversation({ variant: "window" })
@@ -928,24 +980,24 @@ export default function AdminSupportPage() {
         className="sticky top-0 z-20 border-b border-border/60 bg-background/85 backdrop-blur"
         style={{ top: "var(--maintenance-banner-height)" }}
       >
-        <div className="flex flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-4 px-4 py-4 sm:items-center sm:px-6">
+          <div className="flex min-w-0 items-center gap-4">
             <Link href="/" aria-label="Go to main site">
               <Logo className="h-9 w-9 text-foreground" showText={false} />
             </Link>
-            <div>
+            <div className="min-w-0">
               <p className="text-lg font-semibold">Админ-панель</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="truncate text-xs text-muted-foreground">
                 Поддержка и обращения
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:gap-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+                  className="inline-flex shrink-0 items-center gap-2 rounded-full border border-border/70 bg-background px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
                 >
                   <Globe className="h-4 w-4" />
                   {language}
@@ -967,14 +1019,14 @@ export default function AdminSupportPage() {
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="flex items-center gap-3 rounded-full border border-border/60 bg-card/90 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+                  className="flex min-w-0 items-center gap-2 rounded-full border border-border/60 bg-card/90 px-3 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background sm:gap-3 sm:px-4"
                 >
                   <Avatar className="h-9 w-9">
                     <AvatarFallback className="text-xs font-semibold">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm font-semibold">
+                  <span className="hidden max-w-[140px] truncate text-sm font-semibold sm:inline">
                     {displayName || user?.username || "admin"}
                   </span>
                   <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -1001,7 +1053,7 @@ export default function AdminSupportPage() {
             </DropdownMenu>
             <Link
               href="/admin"
-              className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+              className="inline-flex w-full items-center justify-center rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background sm:w-auto"
             >
               Админ-панель
             </Link>

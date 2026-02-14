@@ -9,7 +9,7 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Mail, Shield, User } from "lucide-react";
+import { Mail, Shield, User, XIcon } from "lucide-react";
 import { Header } from "@/components/header";
 import { useLanguage } from "@/components/language-provider";
 import { useAuth } from "@/components/auth-provider";
@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/input-otp";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -836,7 +837,32 @@ export default function AccountPage() {
           }
         }}
       >
-        <DialogContent className="max-w-4xl">
+        <DialogContent
+          showCloseButton={false}
+          className="max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl overflow-x-hidden overflow-y-auto p-3 sm:max-h-[85vh] sm:w-[calc(100vw-1.5rem)] sm:p-6"
+        >
+          <DialogClose asChild>
+            <button
+              type="button"
+              aria-label="Close"
+              className="ring-offset-background focus:ring-ring absolute top-4 right-4 z-20 hidden rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden sm:inline-flex"
+            >
+              <XIcon className="size-4" />
+              <span className="sr-only">Close</span>
+            </button>
+          </DialogClose>
+          <div className="sticky top-0 z-20 -mx-3 -mt-3 mb-2 flex justify-end border-b border-border/60 bg-background/95 px-3 py-2 backdrop-blur sm:hidden">
+            <DialogClose asChild>
+              <button
+                type="button"
+                aria-label="Close"
+                className="ring-offset-background focus:ring-ring inline-flex rounded-xs opacity-80 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden"
+              >
+                <XIcon className="size-4" />
+                <span className="sr-only">Close</span>
+              </button>
+            </DialogClose>
+          </div>
           <DialogHeader>
             <DialogTitle>Редактирование профиля</DialogTitle>
             <DialogDescription>
@@ -846,7 +872,7 @@ export default function AccountPage() {
 
           <form
             onSubmit={handleProfileSave}
-            className="grid gap-6 md:grid-cols-2"
+            className="grid gap-3 sm:gap-6 md:grid-cols-2"
           >
             <div className="space-y-4">
               <div className="space-y-2">
@@ -887,9 +913,9 @@ export default function AccountPage() {
                     )
                   }
                   placeholder={t("profileDescriptionPlaceholder")}
-                  rows={8}
+                  rows={4}
                   maxLength={PROFILE_DESCRIPTION_MAX_LENGTH}
-                  className="w-full resize-none rounded-2xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+                  className="w-full min-h-[110px] resize-none rounded-2xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 sm:min-h-[160px] sm:px-4 sm:py-3"
                 />
                 <p className="text-xs text-muted-foreground text-right">
                   {draftProfileDescription.length}/
@@ -898,13 +924,13 @@ export default function AccountPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-border/60 bg-background/70 p-4">
+            <div className="rounded-2xl border border-border/60 bg-background/70 p-2.5 sm:p-4">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                 Превью профиля
               </p>
-              <div className="mt-4 rounded-2xl border border-border/60 bg-card p-4">
+              <div className="mt-2 rounded-2xl border border-border/60 bg-card p-2.5 sm:mt-4 sm:p-4">
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12">
+                  <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
                     {avatarSrc ? (
                       <AvatarImage src={avatarSrc} alt={previewName} />
                     ) : null}
@@ -913,7 +939,7 @@ export default function AccountPage() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <p className="truncate text-base font-semibold">
+                    <p className="truncate text-sm font-semibold sm:text-base">
                       {previewName}
                     </p>
                     <p className="truncate text-xs text-muted-foreground">
@@ -931,7 +957,7 @@ export default function AccountPage() {
                     </span>
                   </div>
                 ) : null}
-                <p className="mt-4 text-sm text-muted-foreground whitespace-pre-wrap break-words">
+                <p className="mt-3 text-sm text-muted-foreground whitespace-pre-wrap break-all sm:mt-4">
                   {previewDescription || t("profileDescriptionPlaceholder")}
                 </p>
               </div>
@@ -943,18 +969,18 @@ export default function AccountPage() {
               </p>
             ) : null}
 
-            <DialogFooter className="md:col-span-2">
+            <DialogFooter className="md:col-span-2 flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => setProfileEditorOpen(false)}
-                className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background"
+                className="w-full rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background sm:w-auto"
                 disabled={isSaving}
               >
                 Отмена
               </button>
               <GradientButton
                 type="submit"
-                className="px-5 py-2 text-sm"
+                className="w-full px-5 py-2 text-sm sm:w-auto"
                 disabled={isSaving || !hasProfileDraftChanges}
               >
                 {isSaving ? t("saving") : t("saveChanges")}
