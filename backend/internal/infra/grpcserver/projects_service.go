@@ -180,7 +180,9 @@ func (s *ProjectService) GetByID(ctx context.Context, req *projpb.GetProjectRequ
 	if !info.Status.IsPublic() && info.Author.UID != requestor.UID {
 		return nil, apperrors.AccessDenied
 	}
-	return &projpb.GetProjectResponse{Project: info.ToProto(), Tracing: TraceIDOrNew(ctx)}, nil
+	projects := info.ToProto()
+	applyPresignedProjectURLs(ctx, s.storage, projects)
+	return &projpb.GetProjectResponse{Project: projects, Tracing: TraceIDOrNew(ctx)}, nil
 }
 
 func (s *ProjectService) ByUID(ctx context.Context, req *projpb.MadeByRequest) (*projpb.GetResponse, error) {
