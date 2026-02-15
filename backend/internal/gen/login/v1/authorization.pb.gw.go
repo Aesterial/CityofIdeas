@@ -9,6 +9,7 @@ It translates gRPC into RESTful JSON APIs.
 package login
 
 import (
+	"Aesterial/backend/internal/gen/types/v1"
 	"context"
 	"errors"
 	"io"
@@ -173,7 +174,7 @@ func local_request_LoginService_VkCallback_0(ctx context.Context, marshaler runt
 
 func request_LoginService_VerifyEmailStart_0(ctx context.Context, marshaler runtime.Marshaler, client LoginServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
-		protoReq emptypb.Empty
+		protoReq types.Preferences
 		metadata runtime.ServerMetadata
 	)
 	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
@@ -188,7 +189,7 @@ func request_LoginService_VerifyEmailStart_0(ctx context.Context, marshaler runt
 
 func local_request_LoginService_VerifyEmailStart_0(ctx context.Context, marshaler runtime.Marshaler, server LoginServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
-		protoReq emptypb.Empty
+		protoReq types.Preferences
 		metadata runtime.ServerMetadata
 	)
 	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {

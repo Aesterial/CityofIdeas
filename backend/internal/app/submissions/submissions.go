@@ -10,9 +10,14 @@ import (
 	apperrors "Aesterial/backend/internal/shared/errors"
 	"Aesterial/backend/internal/shared/safe"
 	"context"
+	"database/sql"
+	stderrors "errors"
 	"strings"
 	"sync"
 	"time"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -95,6 +100,9 @@ func (s *Service) GetList(ctx context.Context) ([]*submpb.Target, error) {
 				if err != nil {
 					return nil, err
 				}
+				if author == nil {
+					return nil, apperrors.RecordNotFound
+				}
 				p.Author = author
 
 				reason := ""
@@ -109,6 +117,9 @@ func (s *Service) GetList(ctx context.Context) ([]*submpb.Target, error) {
 				}, nil
 			})
 			if err != nil {
+				if shouldSkipHydrationError(err) {
+					return
+				}
 				setErr(err, "submissions.get_list.hydrate")
 				return
 			}
@@ -198,4 +209,21 @@ func submissionsHydrationSettings() (int, time.Duration) {
 	}
 
 	return workers, timeout
+}
+
+func shouldSkipHydrationError(err error) bool {
+	if err == nil {
+		return false
+	}
+	if stderrors.Is(err, sql.ErrNoRows) {
+		return true
+	}
+	if status.Code(err) == codes.NotFound {
+		return true
+	}
+	var appErr apperrors.ErrorST
+	if stderrors.As(err, &appErr) {
+		return appErr.GRPCStatus().Code() == codes.NotFound
+	}
+	return false
 }

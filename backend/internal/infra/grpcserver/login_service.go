@@ -12,6 +12,7 @@ import (
 	"Aesterial/backend/internal/gen/types/v1"
 	"Aesterial/backend/internal/infra/logger"
 	apperrors "Aesterial/backend/internal/shared/errors"
+	"Aesterial/backend/internal/shared/safe"
 	"context"
 	"errors"
 	"strconv"
@@ -102,9 +103,32 @@ func (s *LoginService) Register(ctx context.Context, req *loginpb.RegisterReques
 		return nil, apperrors.ServerError.AddErrDetails("failed to register session: " + err.Error())
 	}
 
+	s.sendWelcomeMessageAsync(require.Email, require.Username)
+
 	traceID := TraceIDOrNew(ctx)
 	logger.Info("Successfully registered", "login.authorization.success", logger.EventActor{Type: logger.User, ID: *uid}, logger.Success, traceID)
 	return &loginpb.RegisterResponse{Data: "success", Tracing: traceID}, nil
+}
+
+func (s *LoginService) sendWelcomeMessageAsync(email string, username string) {
+	if s == nil || s.verification == nil || s.verification.Mailer == nil {
+		return
+	}
+
+	email = strings.TrimSpace(email)
+	username = strings.TrimSpace(username)
+	if email == "" || username == "" {
+		return
+	}
+
+	safe.Go("login.register.message.welcome", func() {
+		mailCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel()
+
+		if _, err := s.verification.Mailer.SendWelcome(mailCtx, email, username, ""); err != nil {
+			logger.Debug("failed to send welcome message: "+err.Error(), "login.register")
+		}
+	})
 }
 
 func (s *LoginService) Logout(ctx context.Context, _ *emptypb.Empty) (*types.WithTracing, error) {
@@ -150,19 +174,14 @@ func (s *LoginService) ResetPasswordStart(ctx context.Context, req *loginpb.With
 	if banned {
 		return nil, apperrors.AccessDenied.AddErrDetails("email is banned")
 	}
-	// ip, exists := clientIP(ctx)
-	// if !exists {
-	// 	logger.Debug("ip not found, returning", "")
-	// 	return nil, apperrors.InvalidArguments.AddErrDetails("ip not found")
-	// }
-	token, err := s.verification.Create(ctx, email, verdomain.PasswordReset, "127.0.0.1", userAgentHash(ctx), 5*time.Minute)
+	token, err := s.verification.Create(ctx, email, verdomain.PasswordReset, clientIP(ctx), userAgentHash(ctx), 5*time.Minute)
 	if err != nil {
 		logger.Debug("failed to create verification record: "+err.Error(), "")
 		return nil, err
 	}
 	mailCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	_, err = s.verification.Mailer.SendPasswordReset(mailCtx, email, token)
+	_, err = s.verification.Mailer.SendPasswordReset(mailCtx, email, token, req.GetLang())
 	if err != nil {
 		logger.Debug("failed to send mail message: "+err.Error(), "")
 		return nil, apperrors.Wrap(err)
@@ -170,7 +189,7 @@ func (s *LoginService) ResetPasswordStart(ctx context.Context, req *loginpb.With
 	return &types.WithTracing{Tracing: TraceIDOrNew(ctx)}, nil
 }
 
-func (s *LoginService) VerifyEmailStart(ctx context.Context, _ *emptypb.Empty) (*types.WithTracing, error) {
+func (s *LoginService) VerifyEmailStart(ctx context.Context, req *types.Preferences) (*types.WithTracing, error) {
 	if s == nil || s.verification == nil {
 		return nil, apperrors.NotConfigured.AddErrDetails("verification service is not configured")
 	}
@@ -212,7 +231,7 @@ func (s *LoginService) VerifyEmailStart(ctx context.Context, _ *emptypb.Empty) (
 	}
 	mailCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	_, err = s.verification.Mailer.SendEmailVerify(mailCtx, email, token)
+	_, err = s.verification.Mailer.SendEmailVerify(mailCtx, email, token, req.GetLang())
 	if err != nil {
 		logger.Debug("error on sending email: "+err.Error(), "")
 		return nil, apperrors.Wrap(err)

@@ -7,3 +7,7 @@ option go_package = "Aesterial/backend/internal/gen/types/v1;types";
 message WithTracing {
   string tracing = 1;
 }
+
+message Preferences {
+  string lang = 1;
+}

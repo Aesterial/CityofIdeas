@@ -404,6 +404,7 @@ func (x *VKCallbackResponse) GetTracing() string {
 type WithEmailRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	Lang          string                 `protobuf:"bytes,2,opt,name=lang,proto3" json:"lang,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -441,6 +442,13 @@ func (*WithEmailRequest) Descriptor() ([]byte, []int) {
 func (x *WithEmailRequest) GetEmail() string {
 	if x != nil {
 		return x.Email
+	}
+	return ""
+}
+
+func (x *WithEmailRequest) GetLang() string {
+	if x != nil {
+		return x.Lang
 	}
 	return ""
 }
@@ -836,9 +844,10 @@ const file_login_domain_proto_rawDesc = "" +
 	"\tdevice_id\x18\x03 \x01(\tR\bdeviceId\"Q\n" +
 	"\x12VKCallbackResponse\x12!\n" +
 	"\fredirect_url\x18\x01 \x01(\tR\vredirectUrl\x12\x18\n" +
-	"\atracing\x18\x02 \x01(\tR\atracing\"(\n" +
+	"\atracing\x18\x02 \x01(\tR\atracing\"<\n" +
 	"\x10WithEmailRequest\x12\x14\n" +
-	"\x05email\x18\x01 \x01(\tR\x05email\"*\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\x12\x12\n" +
+	"\x04lang\x18\x02 \x01(\tR\x04lang\"*\n" +
 	"\x12VerifyEmailRequest\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\"^\n" +
 	"\x14ResetPasswordRequest\x12\x14\n" +

@@ -146,6 +146,11 @@ func (t *TicketsService) Create(ctx context.Context, req *tickpb.CreateRequest) 
 	if err == nil && authUser != nil {
 		requestor.Authorized = true
 		requestor.UID = &authUser.UID
+		email, err := t.us.GetEmail(ctx, *requestor.UID)
+		if err != nil {
+			return nil, apperrors.Wrap(err)
+		}
+		requestor.Email = email.Address
 	}
 	if err != nil && !errors.Is(err, apperrors.AccessDenied) {
 		return nil, apperrors.Wrap(err)
@@ -160,6 +165,9 @@ func (t *TicketsService) Create(ctx context.Context, req *tickpb.CreateRequest) 
 	}
 	if data == nil {
 		return nil, apperrors.ServerError.AddErrDetails("failed to create ticket")
+	}
+	if _, err := t.mailer.SendTicketCreation(ctx, requestor.Email, data.ID.String(), req.GetContent(), ""); err != nil {
+		return nil, apperrors.Wrap(err)
 	}
 	traceID := TraceIDOrNew(ctx)
 	if requestor.UID != nil {
@@ -315,7 +323,36 @@ func (t *TicketsService) CloseTicket(ctx context.Context, req *tickpb.CloseTicke
 	if err != nil {
 		return nil, apperrors.InvalidArguments.AddErrDetails("id is not correct")
 	}
-	if err := t.serv.Close(ctx, id, ticketsdomain.ClosedBySystem, "some reason"); err != nil {
+	ticket, err := t.serv.Info(ctx, id)
+	if err != nil {
+		return nil, apperrors.Wrap(err)
+	}
+	requestor, err := t.auth.RequireUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if ticket.Creator.UID == nil {
+		return nil, apperrors.RecordNotFound
+	}
+	var closedBy ticketsdomain.TicketClosedBy
+	var staff bool
+	if *ticket.Creator.UID != requestor.UID {
+		if err := t.auth.RequirePermissions(ctx, requestor.UID, permsdomain.TicketsCloseAny, permsdomain.TicketsCloseAll); err != nil {
+			return nil, apperrors.Wrap(err)
+		}
+		staff = true
+	}
+	switch staff {
+	case true:
+		closedBy = ticketsdomain.ClosedByStaff
+	case false:
+		closedBy = ticketsdomain.ClosedByUser
+	}
+	var reason string
+	if req.Reason != nil {
+		reason = *req.Reason
+	}
+	if err := t.serv.Close(ctx, id, closedBy, reason); err != nil {
 		return nil, apperrors.Wrap(err)
 	}
 	return &types.WithTracing{Tracing: TraceIDOrNew(ctx)}, nil

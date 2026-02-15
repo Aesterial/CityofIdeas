@@ -78,6 +78,12 @@ type VK struct {
 	StateSecret        string
 }
 
+type URLs struct {
+	Privacy string
+	Support string
+	Main    string
+}
+
 type Environment struct {
 	Startup  Startup
 	TLS      TLS
@@ -89,6 +95,7 @@ type Environment struct {
 	Mailer   Mailer
 	VK       VK
 	Async    Async
+	URLs     URLs
 
 	load bool
 }

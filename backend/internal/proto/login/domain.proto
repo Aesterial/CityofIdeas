@@ -44,6 +44,7 @@ message VKCallbackResponse {
 
 message WithEmailRequest {
   string email = 1;
+  string lang = 2;
 }
 
 message VerifyEmailRequest {

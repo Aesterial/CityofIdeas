@@ -1681,7 +1681,7 @@ func (p *ProjectsRepository) GetTopProjects(ctx context.Context, limit int, city
 		}
 		projects = filtered
 	}
-	
+
 	if limit > 0 && len(projects) > limit {
 		projects = projects[:limit]
 	}

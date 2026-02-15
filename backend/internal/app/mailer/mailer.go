@@ -2,6 +2,7 @@ package mailer
 
 import (
 	"Aesterial/backend/internal/app/config"
+	"Aesterial/backend/internal/domain/mailer"
 	"Aesterial/backend/internal/infra/logger"
 	apperrors "Aesterial/backend/internal/shared/errors"
 	"bytes"
@@ -55,6 +56,14 @@ func New(cfg Config) *Service {
 	}
 }
 
+func (s *Service) SendTicketCreation(ctx context.Context, email string, id string, content string, lang string) (string, error) {
+	ticketID := "#" + id
+	ticketurl := "https://aesterial.xyz/support/" + id
+	subject := "Ticket " + ticketID + "created"
+	textBody := "Ticket " + ticketID + " created by you. " + "Link: " + ticketurl
+	return s.sendMail(ctx, email, subject, mailer.Get(mailer.TickerCreation, lang).SetRedirectUrl(ticketurl).SetCustom(map[string]string{"date": time.Now().String(), "content": content}).String(), textBody)
+}
+
 func (s *Service) SendTicketClose(ctx context.Context, email string, id string, reason string) (string, error) {
 	ticketID := "#" + id
 	subject := "Ticket " + ticketID + "closed"
@@ -76,35 +85,25 @@ func (s *Service) SendTicketMessage(ctx context.Context, email string, id string
 	return s.sendMail(ctx, email, subject, htmlBody, textBody)
 }
 
-func (s *Service) SendEmailVerify(ctx context.Context, email string, token string) (string, error) {
+func (s *Service) SendEmailVerify(ctx context.Context, email string, token string, lang string) (string, error) {
 	cfg := config.Get()
 	verifyURL := fmt.Sprintf(
 		"https://%s/login/email-verify#token=%s",
 		cfg.Mailer.Domain,
 		url.QueryEscape(token),
 	)
-	subject := "Email verification for " + cfg.Mailer.Domain
-	htmlBody := fmt.Sprintf(
-		`<p>Confirm your email via this link:</p><p><a href="%s">Confirm email</a></p>`,
-		verifyURL,
-	)
+	subject := "Email verification for account"
 	textBody := "Confirm your email via this link: " + verifyURL
-
-	return s.sendMail(ctx, email, subject, htmlBody, textBody)
+	return s.sendMail(ctx, email, subject, mailer.Get(mailer.VerifyEmail, lang).SetRedirectUrl(verifyURL).Normalize().String(), textBody)
 }
 
-func (s *Service) SendPasswordReset(ctx context.Context, email string, token string) (string, error) {
+func (s *Service) SendPasswordReset(ctx context.Context, email string, token string, lang string) (string, error) {
 	cfg := config.Get()
 	resetUrl := fmt.Sprintf("https://%s/login/reset-password#token=%s", cfg.Mailer.Domain, url.QueryEscape(token))
 
 	subject := "Password reset for " + cfg.Mailer.Domain
-	htmlBody := fmt.Sprintf(
-		`<p>Reset your password via this link:</p><p><a href="%s">Reset password</a></p>`,
-		resetUrl,
-	)
 	textBody := "Reset your password via this link: " + resetUrl
-
-	return s.sendMail(ctx, email, subject, htmlBody, textBody)
+	return s.sendMail(ctx, email, subject, mailer.Get(mailer.ResetPassword, lang).SetRedirectUrl(resetUrl).Normalize().String(), textBody)
 }
 
 func (s *Service) SendRegistrationPassword(ctx context.Context, email string, password string) (string, error) {
@@ -113,7 +112,7 @@ func (s *Service) SendRegistrationPassword(ctx context.Context, email string, pa
 	}
 	cfg := config.Get()
 	loginUrl := fmt.Sprintf("https://%s/login", cfg.Mailer.Domain)
-	subject := "Welcome to " + cfg.Mailer.Domain
+	subject := "Thanks for registration"
 	htmlBody := fmt.Sprintf(
 		`<p>Your account has been created via VK.</p><p>Password: <strong>%s</strong></p><p>You can log in here: <a href="%s">%s</a></p>`,
 		password,
@@ -123,6 +122,16 @@ func (s *Service) SendRegistrationPassword(ctx context.Context, email string, pa
 	textBody := "Your account has been created via VK.\nPassword: " + password + "\nLogin: " + loginUrl
 
 	return s.sendMail(ctx, email, subject, htmlBody, textBody)
+}
+
+func (s *Service) SendWelcome(ctx context.Context, email string, username string, lang string) (string, error) {
+	if username == "" {
+		return "", apperrors.InvalidArguments
+	}
+	cfg := config.Get()
+	subject := "Thanks for registration"
+	textBody := "Thank you for registration on Aesterial"
+	return s.sendMail(ctx, email, subject, mailer.Get(mailer.Welcome, lang).SetRedirectUrl(cfg.URLs.Main).Normalize().String(), textBody)
 }
 
 func (s *Service) sendMail(ctx context.Context, to string, subject string, htmlBody string, textBody string) (string, error) {

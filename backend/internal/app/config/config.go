@@ -125,6 +125,11 @@ func ensure() {
 			StateTTLSeconds:    parseInt(600, "VK_STATE_TTL_SECONDS"),
 			StateSecret:        envValue("VK_STATE_SECRET"),
 		},
+		URLs: domain.URLs{
+			Privacy: envValue("URL_PRIVACY"),
+			Support: envValue("URL_SUPPORT"),
+			Main:    envValue("URL_MAIN"),
+		},
 		Async: domain.Async{
 			SubmissionsHydrationWorkers:        parseInt(16, "ASYNC_SUBMISSIONS_HYDRATION_WORKERS"),
 			SubmissionsHydrationTimeoutSeconds: parseInt(15, "ASYNC_SUBMISSIONS_HYDRATION_TIMEOUT_SECONDS"),

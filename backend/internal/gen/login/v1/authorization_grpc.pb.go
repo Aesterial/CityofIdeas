@@ -46,7 +46,7 @@ type LoginServiceClient interface {
 	Logout(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*v1.WithTracing, error)
 	VkStart(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*VKStartResponse, error)
 	VkCallback(ctx context.Context, in *VKCallbackRequest, opts ...grpc.CallOption) (*VKCallbackResponse, error)
-	VerifyEmailStart(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*v1.WithTracing, error)
+	VerifyEmailStart(ctx context.Context, in *v1.Preferences, opts ...grpc.CallOption) (*v1.WithTracing, error)
 	ResetPasswordStart(ctx context.Context, in *WithEmailRequest, opts ...grpc.CallOption) (*v1.WithTracing, error)
 	VerifyEmail(ctx context.Context, in *VerifyEmailRequest, opts ...grpc.CallOption) (*v1.WithTracing, error)
 	ResetPassword(ctx context.Context, in *ResetPasswordRequest, opts ...grpc.CallOption) (*v1.WithTracing, error)
@@ -115,7 +115,7 @@ func (c *loginServiceClient) VkCallback(ctx context.Context, in *VKCallbackReque
 	return out, nil
 }
 
-func (c *loginServiceClient) VerifyEmailStart(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*v1.WithTracing, error) {
+func (c *loginServiceClient) VerifyEmailStart(ctx context.Context, in *v1.Preferences, opts ...grpc.CallOption) (*v1.WithTracing, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(v1.WithTracing)
 	err := c.cc.Invoke(ctx, LoginService_VerifyEmailStart_FullMethodName, in, out, cOpts...)
@@ -214,7 +214,7 @@ type LoginServiceServer interface {
 	Logout(context.Context, *emptypb.Empty) (*v1.WithTracing, error)
 	VkStart(context.Context, *emptypb.Empty) (*VKStartResponse, error)
 	VkCallback(context.Context, *VKCallbackRequest) (*VKCallbackResponse, error)
-	VerifyEmailStart(context.Context, *emptypb.Empty) (*v1.WithTracing, error)
+	VerifyEmailStart(context.Context, *v1.Preferences) (*v1.WithTracing, error)
 	ResetPasswordStart(context.Context, *WithEmailRequest) (*v1.WithTracing, error)
 	VerifyEmail(context.Context, *VerifyEmailRequest) (*v1.WithTracing, error)
 	ResetPassword(context.Context, *ResetPasswordRequest) (*v1.WithTracing, error)
@@ -248,7 +248,7 @@ func (UnimplementedLoginServiceServer) VkStart(context.Context, *emptypb.Empty) 
 func (UnimplementedLoginServiceServer) VkCallback(context.Context, *VKCallbackRequest) (*VKCallbackResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method VkCallback not implemented")
 }
-func (UnimplementedLoginServiceServer) VerifyEmailStart(context.Context, *emptypb.Empty) (*v1.WithTracing, error) {
+func (UnimplementedLoginServiceServer) VerifyEmailStart(context.Context, *v1.Preferences) (*v1.WithTracing, error) {
 	return nil, status.Error(codes.Unimplemented, "method VerifyEmailStart not implemented")
 }
 func (UnimplementedLoginServiceServer) ResetPasswordStart(context.Context, *WithEmailRequest) (*v1.WithTracing, error) {
@@ -387,7 +387,7 @@ func _LoginService_VkCallback_Handler(srv interface{}, ctx context.Context, dec 
 }
 
 func _LoginService_VerifyEmailStart_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(v1.Preferences)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -399,7 +399,7 @@ func _LoginService_VerifyEmailStart_Handler(srv interface{}, ctx context.Context
 		FullMethod: LoginService_VerifyEmailStart_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LoginServiceServer).VerifyEmailStart(ctx, req.(*emptypb.Empty))
+		return srv.(LoginServiceServer).VerifyEmailStart(ctx, req.(*v1.Preferences))
 	}
 	return interceptor(ctx, in, info, handler)
 }

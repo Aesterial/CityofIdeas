@@ -40,7 +40,7 @@ service LoginService {
       body: "*"
     };
   }
-  rpc VerifyEmailStart(google.protobuf.Empty) returns (types.WithTracing) {
+  rpc VerifyEmailStart(types.Preferences) returns (types.WithTracing) {
     option (google.api.http) = {
       post: "/api/login/verify-email/start"
       body: "*"
