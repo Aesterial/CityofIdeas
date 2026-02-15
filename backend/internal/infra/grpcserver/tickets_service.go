@@ -150,7 +150,9 @@ func (t *TicketsService) Create(ctx context.Context, req *tickpb.CreateRequest) 
 		if err != nil {
 			return nil, apperrors.Wrap(err)
 		}
-		requestor.Email = email.Address
+		if email != nil {
+			requestor.Email = email.Address
+		}
 	}
 	if err != nil && !errors.Is(err, apperrors.AccessDenied) {
 		return nil, apperrors.Wrap(err)
@@ -166,8 +168,10 @@ func (t *TicketsService) Create(ctx context.Context, req *tickpb.CreateRequest) 
 	if data == nil {
 		return nil, apperrors.ServerError.AddErrDetails("failed to create ticket")
 	}
-	if _, err := t.mailer.SendTicketCreation(ctx, requestor.Email, data.ID.String(), req.GetContent(), ""); err != nil {
-		return nil, apperrors.Wrap(err)
+	if t.mailer != nil && strings.TrimSpace(requestor.Email) != "" {
+		if _, err := t.mailer.SendTicketCreation(ctx, requestor.Email, data.ID.String(), req.GetContent(), ""); err != nil {
+			return nil, apperrors.Wrap(err)
+		}
 	}
 	traceID := TraceIDOrNew(ctx)
 	if requestor.UID != nil {
