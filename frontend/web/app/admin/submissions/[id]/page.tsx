@@ -67,6 +67,10 @@ export default function SubmissionDetailPage({
   params,
 }: SubmissionDetailPageProps) {
   const { id } = use(params);
+  const routeSubmissionId = useMemo(() => {
+    const parsed = Number(id);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }, [id]);
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -144,13 +148,12 @@ export default function SubmissionDetailPage({
   useEffect(() => {
     const controller = new AbortController();
     setIsLoading(true);
-    const submissionId = Number(id);
-    if (!Number.isFinite(submissionId) || submissionId <= 0) {
+    if (routeSubmissionId == null) {
       setSubmission(null);
       setIsLoading(false);
       return () => controller.abort();
     }
-    fetchSubmissionById(submissionId, { signal: controller.signal })
+    fetchSubmissionById(routeSubmissionId, { signal: controller.signal })
       .then((item) => {
         if (controller.signal.aborted) {
           return;
@@ -171,7 +174,7 @@ export default function SubmissionDetailPage({
         }
       });
     return () => controller.abort();
-  }, [id, locale, resolveCategoryLabel]);
+  }, [routeSubmissionId, locale, resolveCategoryLabel]);
 
   useEffect(() => {
     setCurrentStatus(submission?.status ?? null);
@@ -240,13 +243,15 @@ export default function SubmissionDetailPage({
     if (activeStatus === "approved") {
       return;
     }
+    if (routeSubmissionId == null) {
+      toast.error(t("adminSubmissionApproveErrorTitle"), {
+        description: t("adminSubmissionNotFoundSubtitle"),
+      });
+      return;
+    }
     setActionLoading("approve");
     try {
-      const submissionId = Number(submission.id);
-      if (!Number.isFinite(submissionId)) {
-        throw new Error("Invalid submission id.");
-      }
-      await approveSubmission(submissionId);
+      await approveSubmission(routeSubmissionId);
       setCurrentStatus("approved");
       toast.success(t("adminSubmissionApproveSuccessTitle"), {
         description: t("adminSubmissionApproveSuccessDesc"),
@@ -269,14 +274,14 @@ export default function SubmissionDetailPage({
       setDeclineError(t("adminSubmissionDeclineReasonError"));
       return;
     }
+    if (routeSubmissionId == null) {
+      setDeclineError(t("adminSubmissionNotFoundSubtitle"));
+      return;
+    }
     setDeclineError(null);
     setActionLoading("decline");
     try {
-      const submissionId = Number(submission.id);
-      if (!Number.isFinite(submissionId)) {
-        throw new Error("Invalid submission id.");
-      }
-      await declineSubmission(submissionId, reason);
+      await declineSubmission(routeSubmissionId, reason);
       setCurrentStatus("declined");
       setCurrentDeclineReason(reason);
       setDeclineOpen(false);
