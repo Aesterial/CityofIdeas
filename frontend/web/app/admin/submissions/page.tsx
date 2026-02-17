@@ -199,6 +199,12 @@ export default function SubmissionsLandingPage() {
                     {t("adminPanel")}
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/admin/maintenance">
+                    <Clock className="h-4 w-4" />
+                    {t("maintenanceNavLabel")}
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {languageOptions.map((option) => (
                   <DropdownMenuItem
@@ -269,6 +275,12 @@ export default function SubmissionsLandingPage() {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin/maintenance">
+                      <Clock className="h-4 w-4" />
+                      {t("maintenanceNavLabel")}
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/account">
                       <Settings className="h-4 w-4" />

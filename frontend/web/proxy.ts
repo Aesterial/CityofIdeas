@@ -180,6 +180,22 @@ const getMaintenanceActive = async (
   return requestPromise;
 };
 
+const isMaintenanceBypassPath = (pathname: string) => {
+  if (pathname === "/technics" || pathname.startsWith("/technics/")) {
+    return true;
+  }
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    return true;
+  }
+  if (pathname === "/login" || pathname.startsWith("/login/")) {
+    return true;
+  }
+  if (pathname === "/auth" || pathname.startsWith("/auth/")) {
+    return true;
+  }
+  return false;
+};
+
 export async function proxy(request: NextRequest) {
   const authStatus = await fetchAuthStatus(request);
   const requiresMfa = authStatus === "mfa_required";
@@ -192,10 +208,13 @@ export async function proxy(request: NextRequest) {
   }
   const { pathname, searchParams } = request.nextUrl;
   const forceRefresh = searchParams.has(REFRESH_PARAM);
-  if (pathname === "/technics" || pathname.startsWith("/technics/")) {
+  if (isMaintenanceBypassPath(pathname)) {
     if (forceRefresh) {
       const isActive = await getMaintenanceActive(request, true);
-      if (!isActive) {
+      if (
+        (pathname === "/technics" || pathname.startsWith("/technics/")) &&
+        !isActive
+      ) {
         const url = request.nextUrl.clone();
         url.searchParams.delete(REFRESH_PARAM);
         url.pathname = "/";

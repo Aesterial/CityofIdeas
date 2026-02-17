@@ -164,6 +164,14 @@ export type ApiNotification = {
   readAt?: string | null;
 };
 
+export type MaintenanceScope = "all" | "auth" | "projects";
+
+export type ApiMaintenanceData = {
+  id?: string;
+  description?: string;
+  willEnd?: string;
+};
+
 type ApiUser = {
   uid?: number;
   userID?: number;
@@ -473,6 +481,98 @@ const toRankAdded = (value: ApiRankListEntry["added"]): string | undefined => {
     return undefined;
   }
   return new Date(seconds * 1000).toISOString();
+};
+
+const normalizeMaintenanceScope = (
+  value?: string | null,
+): MaintenanceScope | undefined => {
+  const normalized = value?.trim().toLowerCase();
+  if (!normalized) {
+    return undefined;
+  }
+  if (normalized === "all") {
+    return "all";
+  }
+  if (normalized === "auth") {
+    return "auth";
+  }
+  if (normalized === "projects") {
+    return "projects";
+  }
+  return undefined;
+};
+
+const readMaintenanceFlag = (payload: unknown): boolean => {
+  if (typeof payload === "boolean") {
+    return payload;
+  }
+  const record = toRecord(payload);
+  if (!record) {
+    return false;
+  }
+  const direct = pickBoolean(record, [
+    "has",
+    "active",
+    "planned",
+    "enabled",
+    "maintenance",
+    "data",
+  ]);
+  if (typeof direct === "boolean") {
+    return direct;
+  }
+  const nested = toRecord(record.data);
+  const nestedValue = pickBoolean(nested, [
+    "has",
+    "active",
+    "planned",
+    "enabled",
+    "maintenance",
+  ]);
+  if (typeof nestedValue === "boolean") {
+    return nestedValue;
+  }
+  const numeric = pickNumber(record, [
+    "has",
+    "active",
+    "planned",
+    "enabled",
+    "maintenance",
+  ]);
+  return typeof numeric === "number" ? numeric > 0 : false;
+};
+
+const toMaintenanceData = (payload: unknown): ApiMaintenanceData | null => {
+  const root = toRecord(payload);
+  const source = toRecord(root?.data) ?? root;
+  if (!source) {
+    return null;
+  }
+  const id = pickString(source, ["id", "tracing"]);
+  const description = pickString(source, ["description"]);
+  const willEnd = toIsoTimestamp(
+    source.will_end ?? source.willEnd ?? source.willend ?? null,
+  );
+  if (!id && !description && !willEnd) {
+    return null;
+  }
+  return {
+    ...(id ? { id } : {}),
+    ...(description ? { description } : {}),
+    ...(willEnd ? { willEnd } : {}),
+  };
+};
+
+const toIsoInputDateTime = (value: string, fieldName: string): string => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    throw new Error(`${fieldName} is required.`);
+  }
+  const parsed = new Date(trimmed);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error(`${fieldName} is invalid.`);
+  }
+  return parsed.toISOString();
 };
 
 const toIsoTimestamp = (value: unknown): string | undefined => {
@@ -2050,6 +2150,124 @@ export async function fetchSubmissionById(
     return (payload as ApiSubmissionResponse).data ?? null;
   }
   return payload as ApiSubmissionTarget;
+}
+
+export async function fetchMaintenanceActive(options?: {
+  signal?: AbortSignal;
+}): Promise<boolean> {
+  const payload = await apiRequest<unknown>("/api/maintenance/active", {
+    method: "GET",
+    signal: options?.signal,
+  });
+  return readMaintenanceFlag(payload);
+}
+
+export async function fetchMaintenancePlanned(options?: {
+  signal?: AbortSignal;
+}): Promise<boolean> {
+  const payload = await apiRequest<unknown>("/api/maintenance/planned", {
+    method: "GET",
+    signal: options?.signal,
+  });
+  return readMaintenanceFlag(payload);
+}
+
+export async function fetchMaintenanceData(options?: {
+  signal?: AbortSignal;
+}): Promise<ApiMaintenanceData | null> {
+  const payload = await apiRequest<unknown>("/api/maintenance/data", {
+    method: "GET",
+    signal: options?.signal,
+  });
+  return toMaintenanceData(payload);
+}
+
+export type StartMaintenancePayload = {
+  description: string;
+  willEnd: string;
+  scope?: MaintenanceScope | null;
+};
+
+export async function startMaintenance(
+  payload: StartMaintenancePayload,
+): Promise<void> {
+  const description = payload.description.trim();
+  if (!description) {
+    throw new Error("Maintenance description is required.");
+  }
+  const willEnd = toIsoInputDateTime(payload.willEnd, "Maintenance end date");
+  const scope = normalizeMaintenanceScope(payload.scope);
+  await apiRequest("/api/maintenance/create", {
+    method: "POST",
+    body: JSON.stringify({
+      description,
+      ...(scope ? { scope } : {}),
+      willEnd,
+    }),
+  });
+}
+
+export type ScheduleMaintenancePayload = {
+  description: string;
+  willStart: string;
+  willEnd: string;
+  scope?: MaintenanceScope | null;
+};
+
+export async function scheduleMaintenance(
+  payload: ScheduleMaintenancePayload,
+): Promise<void> {
+  const description = payload.description.trim();
+  if (!description) {
+    throw new Error("Maintenance description is required.");
+  }
+  const willStart = toIsoInputDateTime(
+    payload.willStart,
+    "Maintenance start date",
+  );
+  const willEnd = toIsoInputDateTime(payload.willEnd, "Maintenance end date");
+  if (new Date(willStart).getTime() >= new Date(willEnd).getTime()) {
+    throw new Error("Maintenance end date must be after start date.");
+  }
+  const scope = normalizeMaintenanceScope(payload.scope);
+  await apiRequest(`/api/maintenance/create/${encodeURIComponent(willStart)}`, {
+    method: "POST",
+    body: JSON.stringify({
+      description,
+      ...(scope ? { scope } : {}),
+      willStart,
+      willEnd,
+    }),
+  });
+}
+
+export type EditMaintenancePayload = {
+  description?: string | null;
+  scope?: MaintenanceScope | null;
+};
+
+export async function editMaintenance(
+  payload: EditMaintenancePayload,
+): Promise<void> {
+  const description = payload.description?.trim();
+  const scope = normalizeMaintenanceScope(payload.scope);
+  if (!description && !scope) {
+    throw new Error("At least one field is required.");
+  }
+  await apiRequest("/api/maintenance/edit", {
+    method: "POST",
+    body: JSON.stringify({
+      ...(description ? { description } : {}),
+      ...(scope ? { scope } : {}),
+    }),
+  });
+}
+
+export async function completeMaintenance(): Promise<void> {
+  await apiRequest("/api/maintenance/complete", {
+    method: "POST",
+    body: JSON.stringify({}),
+  });
 }
 
 export async function fetchUserNotifications(options?: {

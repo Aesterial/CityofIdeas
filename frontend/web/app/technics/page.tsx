@@ -1,31 +1,30 @@
-"use client";
+﻿"use client";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { API_BASE_URL } from "@/lib/api-base";
-import { emitMfaRequired, isMfaRequiredMessage } from "@/lib/mfa-required";
+import {
+  ApiError,
+  fetchMaintenanceData,
+  type ApiMaintenanceData,
+} from "@/lib/api";
+import { useAuth } from "@/components/auth-provider";
 
 export const dynamic = "force-static";
 
-type MaintenanceData = {
-  id?: string;
-  description?: string;
-  will_end?: string;
-};
-
 const DEFAULT_DESCRIPTION =
-  "Мы обновляем сайт, чтобы он работал быстрее и стабильнее. Попробуй зайти чуть позже — всё вернём как можно скорее.";
+  "РњС‹ РѕР±РЅРѕРІР»СЏРµРј СЃР°Р№С‚, С‡С‚РѕР±С‹ РѕРЅ СЂР°Р±РѕС‚Р°Р» Р±С‹СЃС‚СЂРµРµ Рё СЃС‚Р°Р±РёР»СЊРЅРµРµ. РџРѕРїСЂРѕР±СѓР№ Р·Р°Р№С‚Рё С‡СѓС‚СЊ РїРѕР·Р¶Рµ вЂ” РІСЃС‘ РІРµСЂРЅС‘Рј РєР°Рє РјРѕР¶РЅРѕ СЃРєРѕСЂРµРµ.";
 const DEFAULT_REQUEST_ID = "MAINTENANCE_MODE_0";
 
 const pluralRules = new Intl.PluralRules("ru");
 type PluralForm = "one" | "few" | "many" | "other";
 const unitLabels = {
-  second: { one: "секунду", few: "секунды", many: "секунд", other: "секунды" },
-  minute: { one: "минуту", few: "минуты", many: "минут", other: "минуты" },
-  hour: { one: "час", few: "часа", many: "часов", other: "часа" },
-  day: { one: "день", few: "дня", many: "дней", other: "дня" },
-  month: { one: "месяц", few: "месяца", many: "месяцев", other: "месяца" },
-  year: { one: "год", few: "года", many: "лет", other: "года" },
+  second: { one: "СЃРµРєСѓРЅРґСѓ", few: "СЃРµРєСѓРЅРґС‹", many: "СЃРµРєСѓРЅРґ", other: "СЃРµРєСѓРЅРґС‹" },
+  minute: { one: "РјРёРЅСѓС‚Сѓ", few: "РјРёРЅСѓС‚С‹", many: "РјРёРЅСѓС‚", other: "РјРёРЅСѓС‚С‹" },
+  hour: { one: "С‡Р°СЃ", few: "С‡Р°СЃР°", many: "С‡Р°СЃРѕРІ", other: "С‡Р°СЃР°" },
+  day: { one: "РґРµРЅСЊ", few: "РґРЅСЏ", many: "РґРЅРµР№", other: "РґРЅСЏ" },
+  month: { one: "РјРµСЃСЏС†", few: "РјРµСЃСЏС†Р°", many: "РјРµСЃСЏС†РµРІ", other: "РјРµСЃСЏС†Р°" },
+  year: { one: "РіРѕРґ", few: "РіРѕРґР°", many: "Р»РµС‚", other: "РіРѕРґР°" },
 };
 
 const formatUnit = (value: number, unit: keyof typeof unitLabels) => {
@@ -41,15 +40,15 @@ const formatUnit = (value: number, unit: keyof typeof unitLabels) => {
 const formatTimeLeft = (value?: string) => {
   const trimmed = value?.trim();
   if (!trimmed) {
-    return "скоро";
+    return "СЃРєРѕСЂРѕ";
   }
   const end = new Date(trimmed);
   if (Number.isNaN(end.getTime())) {
-    return "скоро";
+    return "СЃРєРѕСЂРѕ";
   }
   const diffMs = end.getTime() - Date.now();
   if (diffMs <= 0) {
-    return "скоро";
+    return "СЃРєРѕСЂРѕ";
   }
   const seconds = Math.ceil(diffMs / 1000);
   if (seconds < 60) {
@@ -75,42 +74,15 @@ const formatTimeLeft = (value?: string) => {
   return formatUnit(years, "year");
 };
 
-const normalizeMaintenance = (payload: unknown): MaintenanceData | null => {
-  if (!payload || typeof payload !== "object") {
-    return null;
-  }
-  const record = payload as Record<string, unknown>;
-  const nested =
-    record.data && typeof record.data === "object"
-      ? (record.data as Record<string, unknown>)
-      : null;
-  const source = nested ?? record;
-  const id =
-    typeof source.id === "string"
-      ? source.id
-      : typeof source.tracing === "string"
-        ? source.tracing
-        : undefined;
-  const description =
-    typeof source.description === "string" ? source.description : undefined;
-  const willEnd =
-    typeof source.will_end === "string"
-      ? source.will_end
-      : typeof source.willEnd === "string"
-        ? source.willEnd
-        : undefined;
-  if (!id && !description && !willEnd) {
-    return null;
-  }
-  return { id, description, will_end: willEnd };
-};
-
 const DISABLE_MAINTENANCE_CHECKS = false;
 
 export default function MaintenancePage() {
-  const [maintenance, setMaintenance] = useState<MaintenanceData | null>(null);
+  const [maintenance, setMaintenance] = useState<ApiMaintenanceData | null>(
+    null,
+  );
   const [hasMaintenance, setHasMaintenance] = useState<boolean | null>(null);
   const router = useRouter();
+  const { hasAdminAccess } = useAuth();
 
   useEffect(() => {
     if (DISABLE_MAINTENANCE_CHECKS) {
@@ -121,58 +93,23 @@ export default function MaintenancePage() {
     const controller = new AbortController();
     const load = async () => {
       try {
-        const baseUrl = API_BASE_URL;
-        const response = await fetch(`${baseUrl}/api/maintenance/data`, {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-          },
-          signal: controller.signal,
-        });
-        if (response.status === 503) {
-          setMaintenance(null);
-          setHasMaintenance(false);
-          return;
-        }
-        if (!response.ok) {
-          if (response.status === 403) {
-            const payload = (await response.json().catch(() => null)) as {
-              message?: unknown;
-            } | null;
-            const message =
-              payload && typeof payload === "object" ? payload.message : null;
-            if (
-              isMfaRequiredMessage(message) ||
-              isMfaRequiredMessage(payload)
-            ) {
-              emitMfaRequired({
-                reason: typeof message === "string" ? message : undefined,
-              });
-            }
-          }
-          return;
-        }
-        const contentType = response.headers.get("content-type") || "";
-        if (!contentType.includes("application/json")) {
-          setMaintenance(null);
-          setHasMaintenance(false);
-          return;
-        }
-        let payload: unknown;
-        try {
-          payload = (await response.json()) as unknown;
-        } catch {
-          setMaintenance(null);
-          setHasMaintenance(false);
-          return;
-        }
-        const normalized = normalizeMaintenance(payload);
-        if (normalized) {
-          setMaintenance(normalized);
-        }
+        const data = await fetchMaintenanceData({ signal: controller.signal });
+        setMaintenance(data);
         setHasMaintenance(true);
-      } catch {
-        return;
+      } catch (error) {
+        if (controller.signal.aborted) {
+          return;
+        }
+        if (
+          error instanceof ApiError &&
+          (error.status === 503 || error.status === 409 || error.status === 404)
+        ) {
+          setMaintenance(null);
+          setHasMaintenance(false);
+          return;
+        }
+        setMaintenance(null);
+        setHasMaintenance(false);
       }
     };
     void load();
@@ -189,9 +126,8 @@ export default function MaintenancePage() {
   const description = maintenance?.description?.trim() || DEFAULT_DESCRIPTION;
   const requestId = maintenance?.id?.trim() || DEFAULT_REQUEST_ID;
   const timeLeft = useMemo(
-    () =>
-      formatTimeLeft(hasMaintenanceData ? maintenance?.will_end : undefined),
-    [hasMaintenanceData, maintenance?.will_end],
+    () => formatTimeLeft(hasMaintenanceData ? maintenance?.willEnd : undefined),
+    [hasMaintenanceData, maintenance?.willEnd],
   );
 
   return (
@@ -210,7 +146,7 @@ export default function MaintenancePage() {
             </div>
 
             <h1 className="mt-4 text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl">
-              Технические работы
+              РўРµС…РЅРёС‡РµСЃРєРёРµ СЂР°Р±РѕС‚С‹
             </h1>
 
             <p className="mt-4 max-w-xl text-base text-foreground/70 sm:text-lg">
@@ -230,12 +166,20 @@ export default function MaintenancePage() {
                 }}
                 className="inline-flex items-center justify-center rounded-full border border-foreground bg-foreground px-5 py-3 text-sm font-semibold text-background transition hover:opacity-90"
               >
-                Обновить страницу
+                РћР±РЅРѕРІРёС‚СЊ СЃС‚СЂР°РЅРёС†Сѓ
               </button>
+              {hasAdminAccess ? (
+                <Link
+                  href="/admin"
+                  className="inline-flex items-center justify-center rounded-full border border-foreground px-5 py-3 text-sm font-semibold text-foreground transition hover:bg-foreground hover:text-background"
+                >
+                  В админ-панель
+                </Link>
+              ) : null}
             </div>
 
             <p className="mt-6 text-xs text-foreground/55">
-              ID запроса:{" "}
+              ID Р·Р°РїСЂРѕСЃР°:{" "}
               <span className="font-mono text-foreground/70">{requestId}</span>
             </p>
           </section>
@@ -247,7 +191,7 @@ export default function MaintenancePage() {
               <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.6rem] border border-border bg-background">
                 <Image
                   src="/animated.gif"
-                  alt="Технические работы"
+                  alt="РўРµС…РЅРёС‡РµСЃРєРёРµ СЂР°Р±РѕС‚С‹"
                   fill
                   unoptimized
                   priority
@@ -258,12 +202,12 @@ export default function MaintenancePage() {
               <div className="relative mt-4 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold truncate">
-                    Мы скоро вернёмся 👋
+                    РњС‹ СЃРєРѕСЂРѕ РІРµСЂРЅС‘РјСЃСЏ рџ‘‹
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Идёт обновление. Спасибо за терпение.
+                    РРґС‘С‚ РѕР±РЅРѕРІР»РµРЅРёРµ. РЎРїР°СЃРёР±Рѕ Р·Р° С‚РµСЂРїРµРЅРёРµ.
                     <br />
-                    Закончим примерно через: {timeLeft}
+                    Р—Р°РєРѕРЅС‡РёРј РїСЂРёРјРµСЂРЅРѕ С‡РµСЂРµР·: {timeLeft}
                   </p>
                 </div>
               </div>
@@ -274,3 +218,5 @@ export default function MaintenancePage() {
     </main>
   );
 }
+
+

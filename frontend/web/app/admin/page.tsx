@@ -689,6 +689,12 @@ export default function AdminPage() {
             icon: CheckCircle2,
           },
           {
+            id: "maintenance",
+            href: "/admin/maintenance",
+            label: t("maintenanceNavLabel"),
+            icon: CalendarDays,
+          },
+          {
             id: "submissions-pending",
             href: "/admin/submissions/pending",
             label: t("statusPending"),
@@ -1878,6 +1884,13 @@ export default function AdminPage() {
                     </DropdownMenuTrigger>
 
                     <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/maintenance">
+                          <CalendarDays className="h-4 w-4" />
+                          {t("maintenanceNavLabel")}
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={() => {
                           setRanksDialogOpen(true);
@@ -1948,6 +1961,12 @@ export default function AdminPage() {
                     className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
                   >
                     {t("adminSubmissionsTitle")}
+                  </Link>
+                  <Link
+                    href="/admin/maintenance"
+                    className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+                  >
+                    {t("maintenanceNavLabel")}
                   </Link>
                 </div>
               </div>
