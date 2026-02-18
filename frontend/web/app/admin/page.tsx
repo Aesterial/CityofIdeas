@@ -1962,12 +1962,7 @@ export default function AdminPage() {
                   >
                     {t("adminSubmissionsTitle")}
                   </Link>
-                  <Link
-                    href="/admin/maintenance"
-                    className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
-                  >
-                    {t("maintenanceNavLabel")}
-                  </Link>
+                  
                 </div>
               </div>
 

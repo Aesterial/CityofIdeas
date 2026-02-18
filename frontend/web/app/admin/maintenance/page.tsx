@@ -535,17 +535,17 @@ export default function AdminMaintenancePage() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-        <div className="mb-5 flex flex-wrap items-center gap-3">
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <Link
             href="/admin"
-            className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/80 px-4 py-2 text-sm font-semibold transition hover:bg-foreground hover:text-background"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border/70 bg-card/80 px-4 py-2 text-sm font-semibold transition hover:bg-foreground hover:text-background sm:w-auto"
           >
             <Settings className="h-4 w-4" />
             {t("adminMaintenanceBack")}
           </Link>
           <Link
             href="/technics"
-            className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/80 px-4 py-2 text-sm font-semibold transition hover:bg-foreground hover:text-background"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border/70 bg-card/80 px-4 py-2 text-sm font-semibold transition hover:bg-foreground hover:text-background sm:w-auto"
           >
             <Clock className="h-4 w-4" />
             {t("adminMaintenanceOpenPage")}
@@ -554,7 +554,7 @@ export default function AdminMaintenancePage() {
             type="button"
             onClick={() => void loadState({ silent: true })}
             disabled={refreshing}
-            className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/80 px-4 py-2 text-sm font-semibold transition hover:bg-foreground hover:text-background disabled:cursor-not-allowed disabled:opacity-70"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-border/70 bg-card/80 px-4 py-2 text-sm font-semibold transition hover:bg-foreground hover:text-background disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
           >
             <RefreshCw
               className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
