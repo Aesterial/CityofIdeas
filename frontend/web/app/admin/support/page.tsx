@@ -671,7 +671,6 @@ export default function AdminSupportPage() {
       variant === "page" ? "max-h-[240px]" : "max-h-[46dvh] sm:max-h-[60vh]";
     const title = selectedTicket?.subject || "Диалог";
     const showSkeleton = loadingDetails && messages.length === 0;
-    const canCloseConversation = Boolean((isModal && onClose) || isWindow);
     const wrapperClass = framed
       ? cn(
           "rounded-3xl border border-border/70 bg-card/90 p-6",
@@ -681,11 +680,11 @@ export default function AdminSupportPage() {
 
     return (
       <section className={wrapperClass}>
-        {canCloseConversation ? (
+        {isWindow ? (
           <div className="sticky top-0 z-10 -mx-6 -mt-6 mb-3 flex justify-end border-b border-border/60 bg-card/95 px-4 py-2 backdrop-blur sm:hidden">
             <button
               type="button"
-              onClick={isWindow ? closeDialogWindow : onClose}
+              onClick={closeDialogWindow}
               className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/90 px-3 py-1 text-xs font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
             >
               <X className="h-3.5 w-3.5" />
