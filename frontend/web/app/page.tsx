@@ -685,10 +685,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-16 px-4 bg-background sm:py-20 sm:px-6">
-        <div className="container mx-auto">
+      <section className="relative overflow-hidden bg-background px-4 py-16 sm:px-6 sm:py-20">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-48 " />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 " />
+        <div className="container relative mx-auto">
           <motion.div
-            className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 sm:gap-8"
+            className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3"
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
@@ -711,30 +713,75 @@ export default function HomePage() {
                 titleKey: "ideas",
                 description: "Указывайте конкретные места для реализации идей",
               },
-            ].map((feature) => (
-              <motion.div
-                key={feature.titleKey}
-                variants={itemVariants}
-                whileHover={{ y: -8 }}
-                onMouseMove={updateCardGlow}
-                onMouseLeave={resetCardGlow}
-                style={cardGlowStyle}
-                className="group relative overflow-hidden rounded-[2rem] border border-border/60 bg-card/80 p-6 shadow-[0_24px_55px_-40px_rgba(0,0,0,0.45)] transition-all duration-500 hover:shadow-[0_35px_70px_-45px_rgba(0,0,0,0.6)] dark:border-white/10 dark:shadow-[0_30px_70px_-50px_rgba(0,0,0,0.9)] before:content-[''] before:absolute before:inset-0 before:pointer-events-none before:opacity-0 before:transition-opacity before:duration-300 before:bg-[radial-gradient(520px_circle_at_var(--x)_var(--y),_rgba(0,0,0,0.16),_transparent_45%)] dark:before:bg-[radial-gradient(520px_circle_at_var(--x)_var(--y),_rgba(255,255,255,0.2),_transparent_45%)] group-hover:before:opacity-100 after:content-[''] after:absolute after:inset-0 after:pointer-events-none after:opacity-60 after:bg-[linear-gradient(130deg,_rgba(255,255,255,0.28),_rgba(255,255,255,0)_55%)] dark:after:bg-[linear-gradient(130deg,_rgba(255,255,255,0.12),_rgba(255,255,255,0)_55%)] sm:p-8"
-              >
-                <div className="relative z-10">
-                  <div className="relative mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-foreground text-background shadow-[0_12px_28px_-12px_rgba(0,0,0,0.45)] transition-transform duration-300 group-hover:scale-105 sm:h-14 sm:w-14">
-                    <span className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_30%_20%,_rgba(255,255,255,0.55),_transparent_60%)] opacity-70" />
-                    <feature.icon className="relative h-6 w-6 sm:h-7 sm:w-7" />
+            ].map((feature, index) => {
+              const dropLabels = [
+                ["draft", "new", "idea", "send", "up"],
+                ["vote", "hot", "+1", "rise", "top"],
+                ["pin", "geo", "map", "spot", "city"],
+              ][index] ?? ["idea", "vote", "map"];
+              // const chips = [
+              //   [t("suggestIdea"), "24/7", "flow"],
+              //   [t("vote"), "live", "boost"],
+              //   [t("ideas"), "geo", "focus"],
+              // ][index] ?? [t("start"), "live"];
+
+              return (
+                <motion.div
+                  key={feature.titleKey}
+                  variants={itemVariants}
+                  whileHover={{
+                    y: -10,
+                    rotateX: 2,
+                    rotateY: index === 1 ? 0 : index % 2 === 0 ? -2.4 : 2.4,
+                  }}
+                  whileTap={{ y: -4 }}
+                  onMouseMove={updateCardGlow}
+                  onMouseLeave={resetCardGlow}
+                  style={cardGlowStyle}
+                  className="group relative overflow-hidden rounded-[2rem] border border-border/60 bg-card/80 p-6 shadow-[0_24px_55px_-40px_rgba(0,0,0,0.45)] transition-all duration-500 hover:shadow-[0_35px_70px_-45px_rgba(0,0,0,0.6)] dark:border-white/10 dark:shadow-[0_30px_70px_-50px_rgba(0,0,0,0.9)] before:content-[''] before:absolute before:inset-0 before:pointer-events-none before:opacity-0 before:transition-opacity before:duration-300 before:bg-[radial-gradient(520px_circle_at_var(--x)_var(--y),_rgba(0,0,0,0.16),_transparent_45%)] dark:before:bg-[radial-gradient(520px_circle_at_var(--x)_var(--y),_rgba(255,255,255,0.2),_transparent_45%)] group-hover:before:opacity-100 after:content-[''] after:absolute after:inset-0 after:pointer-events-none after:opacity-60 after:bg-[linear-gradient(130deg,_rgba(255,255,255,0.28),_rgba(255,255,255,0)_55%)] dark:after:bg-[linear-gradient(130deg,_rgba(255,255,255,0.12),_rgba(255,255,255,0)_55%)] sm:p-8"
+                >
+                  <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,_rgba(0,0,0,0.08),_transparent_55%)] dark:bg-[radial-gradient(circle_at_10%_0%,_rgba(255,255,255,0.14),_transparent_55%)]" />
+                    {dropLabels.map((label, dropIndex) => (
+                      <motion.span
+                        key={`${feature.titleKey}-drop-${label}-${dropIndex}`}
+                        initial={{ opacity: 0, y: "-130%" }}
+                        animate={{
+                          opacity: [0, 0.95, 0.95, 0],
+                          y: ["-130%", "240%"],
+                          x: [0, dropIndex % 2 ? -8 : 8, 0],
+                          rotate: [0, dropIndex % 2 ? -10 : 10, 0],
+                        }}
+                        transition={{
+                          duration: 4 + dropIndex * 0.5 + index * 0.25,
+                          delay: dropIndex * 0.58 + index * 0.35,
+                          ease: "linear",
+                          repeat: Infinity,
+                        }}
+                        className="absolute rounded-full border border-foreground/20 bg-card/90 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/75 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.55)] dark:border-white/25 dark:bg-background/70 dark:text-white/80"
+                        style={{ left: `${10 + dropIndex * 18}%` }}
+                      >
+                        {label}
+                      </motion.span>
+                    ))}
                   </div>
-                  <h3 className="text-lg font-bold mb-3 sm:text-xl">
-                    {t(feature.titleKey)}
-                  </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed sm:text-base">
-                    {feature.description}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
+
+                  <div className="relative z-10">
+                    <div className="relative mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-foreground text-background shadow-[0_12px_28px_-12px_rgba(0,0,0,0.45)] transition-transform duration-300 group-hover:scale-105 sm:h-14 sm:w-14">
+                      <span className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_30%_20%,_rgba(255,255,255,0.55),_transparent_60%)] opacity-70" />
+                      <feature.icon className="relative h-6 w-6 sm:h-7 sm:w-7" />
+                    </div>
+                    <h3 className="mb-3 text-lg font-bold sm:text-xl">
+                      {t(feature.titleKey)}
+                    </h3>
+                    <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
+                      {feature.description}
+                    </p>
+                    
+                  </div>
+                </motion.div>
+              );
+            })}
           </motion.div>
         </div>
       </section>
