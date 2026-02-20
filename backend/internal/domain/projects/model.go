@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode"
 
 	"Aesterial/backend/internal/domain/user"
 
@@ -16,6 +17,7 @@ type projectLocation struct {
 	City      string
 	Latitude  float64
 	Longitude float64
+	Address   string
 }
 
 func (p *projectLocation) Normalize() {
@@ -64,6 +66,15 @@ type projectInfo struct {
 	Location    projectLocation
 }
 
+func (p projectInfo) firstUpper(s string) string {
+	if s == "" {
+		return s
+	}
+	r := []rune(s)
+	r[0] = unicode.ToUpper(r[0])
+	return string(r)
+}
+
 func (p projectInfo) ToProto() *projpb.ProjectInfo {
 	return &projpb.ProjectInfo{
 		Title:       p.Title,
@@ -71,9 +82,10 @@ func (p projectInfo) ToProto() *projpb.ProjectInfo {
 		Photos:      p.Photos.ToProto(),
 		Category:    p.Category.ToProto(),
 		Location: &projpb.ProjectLocation{
-			City:      p.Location.City,
+			City:      p.firstUpper(p.Location.City),
 			Latitude:  p.Location.Latitude,
 			Longitude: p.Location.Longitude,
+			Address:   p.Location.Address,
 		},
 	}
 }

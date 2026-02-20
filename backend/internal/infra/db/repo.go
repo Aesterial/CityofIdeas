@@ -1561,8 +1561,8 @@ func getProject(ctx context.Context, id uuid.UUID, db *sql.DB) (*projectdomain.P
 	var project projectdomain.Project
 	var err error
 	var authorID uint
-	if err = db.QueryRowContext(ctx, "SELECT p.id, p.author_uid, (p.info).title, (p.info).description, (p.info).category, ((p.info).location).city, ((p.info).location).latitude, ((p.info).location).longitude, p.likes_count, p.created_at, p.status FROM projects p WHERE p.id = $1", id).Scan(
-		&project.ID, &authorID, &project.Info.Title, &project.Info.Description, &project.Info.Category, &project.Info.Location.City, &project.Info.Location.Latitude, &project.Info.Location.Longitude, &project.Likes, &project.At, &project.Status); err != nil {
+	if err = db.QueryRowContext(ctx, "SELECT p.id, p.author_uid, (p.info).title, (p.info).description, (p.info).category, ((p.info).location).city, ((p.info).location).latitude, ((p.info).location).longitude, ((p.info).location).address, p.likes_count, p.created_at, p.status FROM projects p WHERE p.id = $1", id).Scan(
+		&project.ID, &authorID, &project.Info.Title, &project.Info.Description, &project.Info.Category, &project.Info.Location.City, &project.Info.Location.Latitude, &project.Info.Location.Longitude, &project.Info.Location.Address, &project.Likes, &project.At, &project.Status); err != nil {
 		return nil, err
 	}
 	project.Author, err = getAuthor(ctx, authorID, db)
@@ -1713,7 +1713,7 @@ func (p *ProjectsRepository) GetProjectsByUID(ctx context.Context, uid int) (pro
 func (p *ProjectsRepository) CreateProject(ctx context.Context, info projectdomain.Project) (*uuid.UUID, error) {
 	var projectId uuid.UUID
 	logger.Debug(fmt.Sprintf("latitude: %f, longitude: %f", info.Info.Location.Latitude, info.Info.Location.Longitude), "")
-	if err := p.DB.QueryRowContext(ctx, "INSERT INTO projects (author_uid, info) VALUES ($1, ROW($2, $3, $4::project_categories, ROW($5, $6, $7)::project_location_t)::project_info_t) RETURNING id", info.Author.UID, info.Info.Title, info.Info.Description, info.Info.Category, strings.ToLower(info.Info.Location.City), info.Info.Location.Latitude, info.Info.Location.Longitude).Scan(&projectId); err != nil {
+	if err := p.DB.QueryRowContext(ctx, "INSERT INTO projects (author_uid, info) VALUES ($1, ROW($2, $3, $4::project_categories, ROW($5, $6, $7, $8)::project_location_t)::project_info_t) RETURNING id", info.Author.UID, info.Info.Title, info.Info.Description, info.Info.Category, strings.ToLower(info.Info.Location.City), info.Info.Location.Latitude, info.Info.Location.Longitude, info.Info.Location.Address).Scan(&projectId); err != nil {
 		return nil, err
 	}
 	if len(info.Info.Photos) > 0 {
@@ -1830,6 +1830,7 @@ func (p *ProjectsRepository) GetProjects(ctx context.Context, offset int, limit 
 		if err = rows.Scan(&id); err != nil {
 			return nil, err
 		}
+		logger.Debug("received id: "+id.String(), "")
 		ids = append(ids, id)
 	}
 
@@ -3635,7 +3636,6 @@ func (n *NotificationsRepository) ForUser(ctx context.Context, id uint, rank str
 			t := expiresAt.Time
 			notify.Expires = &t
 		}
-		fmt.Println(notify)
 		list = append(list, &notify)
 	}
 	if err := rows.Err(); err != nil {

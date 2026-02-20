@@ -20,9 +20,10 @@ create type picture_t as (
 );
 
 create type project_location_t as (
-    city varchar(64),
+    city      varchar(64),
     latitude  double precision,
-    longitude double precision
+    longitude double precision,
+    address   text
 );
 
 create type project_info_t as (

@@ -1,6 +1,7 @@
 package projects
 
 import (
+	"Aesterial/backend/internal/app/geocode"
 	"Aesterial/backend/internal/domain/projects"
 	"Aesterial/backend/internal/infra/logger"
 	apperrors "Aesterial/backend/internal/shared/errors"
@@ -12,10 +13,11 @@ import (
 
 type Service struct {
 	repo projects.Repository
+	geo  *geocode.Service
 }
 
-func New(repo projects.Repository) *Service {
-	return &Service{repo: repo}
+func New(repo projects.Repository, g *geocode.Service) *Service {
+	return &Service{repo: repo, geo: g}
 }
 
 func (s *Service) CreateProject(ctx context.Context, project projects.Project) (*uuid.UUID, error) {
@@ -39,6 +41,12 @@ func (s *Service) CreateProject(ctx context.Context, project projects.Project) (
 	}
 
 	project.Info.Location.City = strings.TrimSpace(project.Info.Location.City)
+	loc, err := s.geo.Reverse(ctx, project.Info.Location.Latitude, project.Info.Location.Longitude)
+	if err != nil {
+		logger.Debug("failed to parse geocode: "+err.Error(), "")
+		return nil, apperrors.Wrap(err)
+	}
+	project.Info.Location.Address = loc.DisplayName
 
 	id, err := s.repo.CreateProject(ctx, project)
 	if err != nil {

@@ -145,6 +145,12 @@ func ensure() {
 			ProjectsHydrationTimeoutSeconds:    parseInt(20, "ASYNC_PROJECTS_HYDRATION_TIMEOUT_SECONDS"),
 			MediaPresignWorkers:                parseInt(16, "ASYNC_MEDIA_PRESIGN_WORKERS"),
 		},
+		Geocode: domain.Geocode{
+			Provider:  envValue("GEOCODE_PROVIDER"),
+			UA:        envValue("GEOCODE_USER_AGENT"),
+			Email:     envValue("GEOCODE_CONTACT_EMAIL"),
+			RateLimit: parseInt(1100, "GEOCODE_RATE_LIMIT_MS"),
+		},
 	}
 
 	if strings.TrimSpace(env.Mailer.ProxyAddr) == "" {

@@ -63,6 +63,7 @@ message ProjectLocation {
   string city = 1;
   double latitude = 2;
   double longitude = 3;
+  string address = 4;
 }
 
 message ProjectInfo {
@@ -104,7 +105,6 @@ message ChangeRequest {
   string id = 1;
   string to = 2;
 }
-
 
 message CategoriesResponse {
   repeated string categories = 1;

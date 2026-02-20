@@ -3,6 +3,7 @@ package main
 import (
 	loginapp "Aesterial/backend/internal/app/auth"
 	"Aesterial/backend/internal/app/config"
+	"Aesterial/backend/internal/app/geocode"
 	sessionsinfo "Aesterial/backend/internal/app/info/sessions"
 	userinfo "Aesterial/backend/internal/app/info/user"
 	loggerservice "Aesterial/backend/internal/app/logger"
@@ -140,12 +141,13 @@ func main() {
 		RequestTimeout:             time.Duration(env.Mailer.ProxyRequestTimeoutSeconds) * time.Second,
 		AuthToken:                  env.Mailer.ProxyAuthToken,
 	})
+	geocodeService := geocode.New(env.Geocode.Provider, env.Geocode.UA, env.Geocode.Email, env.Geocode.RateLimit)
 	sessionsService := sessionsinfo.New(sessionsRepo)
 	userInfoService := userinfo.New(userRepo, sessionsRepo)
 	userModifierService := usermodifier.New(userRepo)
 	loginService := loginapp.New(loginRepo, sessionsService, userInfoService)
 	statService := appstatistics.New(statisticsRepo)
-	projectsService := projectsapp.New(projectsRepo)
+	projectsService := projectsapp.New(projectsRepo, geocodeService)
 	maintenanceService := maintenanceapp.New(maintenanceRepo)
 	submissionService := submissions.New(submissionsRepo, projectsService, userInfoService)
 	ticketsService := tickets.New(ticketsRepo, userRepo, mailerService)

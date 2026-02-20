@@ -490,6 +490,7 @@ type ProjectLocation struct {
 	City          string                 `protobuf:"bytes,1,opt,name=city,proto3" json:"city,omitempty"`
 	Latitude      float64                `protobuf:"fixed64,2,opt,name=latitude,proto3" json:"latitude,omitempty"`
 	Longitude     float64                `protobuf:"fixed64,3,opt,name=longitude,proto3" json:"longitude,omitempty"`
+	Address       string                 `protobuf:"bytes,4,opt,name=address,proto3" json:"address,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -543,6 +544,13 @@ func (x *ProjectLocation) GetLongitude() float64 {
 		return x.Longitude
 	}
 	return 0
+}
+
+func (x *ProjectLocation) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
 }
 
 type ProjectInfo struct {
@@ -1012,11 +1020,12 @@ const file_projects_domain_proto_rawDesc = "" +
 	"\aproject\x18\x01 \x01(\v2\x14.projects.v1.ProjectR\aproject\x12\x18\n" +
 	"\atracing\x18\x02 \x01(\tR\atracing\"\x1d\n" +
 	"\vLikeRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"_\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"y\n" +
 	"\x0fProjectLocation\x12\x12\n" +
 	"\x04city\x18\x01 \x01(\tR\x04city\x12\x1a\n" +
 	"\blatitude\x18\x02 \x01(\x01R\blatitude\x12\x1c\n" +
-	"\tlongitude\x18\x03 \x01(\x01R\tlongitude\"\xe2\x01\n" +
+	"\tlongitude\x18\x03 \x01(\x01R\tlongitude\x12\x18\n" +
+	"\aaddress\x18\x04 \x01(\tR\aaddress\"\xe2\x01\n" +
 	"\vProjectInfo\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12'\n" +

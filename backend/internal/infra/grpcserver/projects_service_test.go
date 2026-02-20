@@ -61,7 +61,7 @@ func (p *projectsRepoStub) ToggleLike(context.Context, uuid.UUID, uint) error {
 func TestProjectServiceCreateMissingTitle(t *testing.T) {
 	ctx, sessionsSvc, userSvc, _, _ := newAuthDeps(t, 10)
 	repo := &projectsRepoStub{}
-	projectsSvc := projectsapp.New(repo)
+	projectsSvc := projectsapp.New(repo, nil)
 	svc := grpcserver.NewProjectService(projectsSvc, sessionsSvc, userSvc, nil)
 
 	_, err := svc.Create(ctx, &projpb.CreateRequest{Title: ""})
@@ -71,7 +71,7 @@ func TestProjectServiceCreateMissingTitle(t *testing.T) {
 func TestProjectServiceCategoriesSuccess(t *testing.T) {
 	ctx, sessionsSvc, userSvc, _, _ := newAuthDeps(t, 10)
 	repo := &projectsRepoStub{categories: []string{"roads"}}
-	projectsSvc := projectsapp.New(repo)
+	projectsSvc := projectsapp.New(repo, nil)
 	svc := grpcserver.NewProjectService(projectsSvc, sessionsSvc, userSvc, nil)
 
 	resp, err := svc.Categories(ctx, &emptypb.Empty{})

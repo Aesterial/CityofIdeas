@@ -92,6 +92,13 @@ type URLs struct {
 	Main    string
 }
 
+type Geocode struct {
+	Provider  string
+	UA        string
+	Email     string
+	RateLimit int
+}
+
 type Environment struct {
 	Startup  Startup
 	TLS      TLS
@@ -104,6 +111,7 @@ type Environment struct {
 	VK       VK
 	Async    Async
 	URLs     URLs
+	Geocode  Geocode
 
 	load bool
 }
