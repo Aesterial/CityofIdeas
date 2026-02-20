@@ -2,20 +2,32 @@
 
 import { use, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, Heart, MapPin, UserCircle2 } from "lucide-react";
+import {
+  CalendarDays,
+  Heart,
+  MapPin,
+  MessageSquareText,
+  Send,
+  UserCircle2,
+} from "lucide-react";
+import { useAuth } from "@/components/auth-provider";
 import { Header } from "@/components/header";
 import { useLanguage } from "@/components/language-provider";
 import {
+  createProjectDiscussionMessage,
   fetchProjectById,
+  fetchProjectDiscussionMessages,
   fetchStoragePresignGet,
   type ApiProject,
   type ApiAvatar,
+  type ApiTicketMessage,
 } from "@/lib/api";
 import {
   build2GisLink,
   formatCoordinates,
   resolveCoordinates,
 } from "@/lib/location";
+import { mapTicketMessages, type TicketMessage } from "@/lib/tickets";
 
 type ProjectPageProps = {
   params: Promise<{
@@ -127,8 +139,86 @@ const resolveCategoryKey = (value: unknown) => {
   return undefined;
 };
 
+const toRecord = (value: unknown): Record<string, unknown> | null =>
+  value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+
+const resolveEmbeddedDiscussionList = (
+  value: unknown,
+): ApiTicketMessage[] | null => {
+  if (Array.isArray(value)) {
+    return value as ApiTicketMessage[];
+  }
+  const record = toRecord(value);
+  if (!record) {
+    return null;
+  }
+  const candidate =
+    record.list ??
+    record.messages ??
+    record.comments ??
+    record.discussion ??
+    record.message_list ??
+    record.comment_list ??
+    record.items ??
+    record.data;
+  return Array.isArray(candidate) ? (candidate as ApiTicketMessage[]) : null;
+};
+
+const extractProjectDiscussionMessages = (
+  project?: ApiProject | null,
+): ApiTicketMessage[] => {
+  const projectRecord = toRecord(project);
+  const infoRecord = toRecord(getProjectInfo(project));
+  const detailsRecord = toRecord(project?.details);
+
+  const sources = [
+    projectRecord?.comments,
+    projectRecord?.comment_list,
+    projectRecord?.messages,
+    projectRecord?.message_list,
+    projectRecord?.discussion,
+    projectRecord?.discussions,
+    detailsRecord?.comments,
+    detailsRecord?.comment_list,
+    detailsRecord?.messages,
+    detailsRecord?.message_list,
+    detailsRecord?.discussion,
+    infoRecord?.comments,
+    infoRecord?.comment_list,
+    infoRecord?.messages,
+    infoRecord?.message_list,
+    infoRecord?.discussion,
+  ];
+
+  for (const source of sources) {
+    const list = resolveEmbeddedDiscussionList(source);
+    if (list?.length) {
+      return list;
+    }
+  }
+
+  return [];
+};
+
+const formatDateTime = (
+  value: string | undefined,
+  formatter: Intl.DateTimeFormat,
+) => {
+  if (!value) {
+    return UNKNOWN_LABEL;
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return UNKNOWN_LABEL;
+  }
+  return formatter.format(date);
+};
+
 export default function ProjectPage({ params }: ProjectPageProps) {
   const { id } = use(params);
+  const { user } = useAuth();
   const { language, t } = useLanguage();
   const [project, setProject] = useState<ApiProject | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -136,6 +226,14 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   const [imageReloadTick, setImageReloadTick] = useState(0);
   const [didRetryImageLoad, setDidRetryImageLoad] = useState(false);
   const [resolvedImages, setResolvedImages] = useState<string[]>([]);
+  const [discussionMessages, setDiscussionMessages] = useState<TicketMessage[]>(
+    [],
+  );
+  const [isDiscussionLoading, setIsDiscussionLoading] = useState(true);
+  const [discussionError, setDiscussionError] = useState<string | null>(null);
+  const [discussionDraft, setDiscussionDraft] = useState("");
+  const [isSendingDiscussion, setIsSendingDiscussion] = useState(false);
+  const [discussionReloadTick, setDiscussionReloadTick] = useState(0);
 
   const locale = useMemo(
     () => (language === "KZ" ? "kk-KZ" : language === "RU" ? "ru-RU" : "en-US"),
@@ -147,6 +245,17 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         day: "2-digit",
         month: "long",
         year: "numeric",
+      }),
+    [locale],
+  );
+  const dateTimeFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(locale, {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       }),
     [locale],
   );
@@ -200,6 +309,11 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     setDidRetryImageLoad(false);
   }, [id]);
 
+  const embeddedDiscussion = useMemo(
+    () => mapTicketMessages(extractProjectDiscussionMessages(project)),
+    [project],
+  );
+
   useEffect(() => {
     if (!project) {
       setResolvedImages([]);
@@ -240,6 +354,57 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 
     return () => controller.abort();
   }, [project, imageReloadTick]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setIsDiscussionLoading(true);
+    setDiscussionError(null);
+
+    fetchProjectDiscussionMessages(id, { signal: controller.signal })
+      .then((messages) => {
+        if (controller.signal.aborted) {
+          return;
+        }
+        const mapped = mapTicketMessages(messages);
+        setDiscussionMessages(mapped.length ? mapped : embeddedDiscussion);
+      })
+      .catch((err) => {
+        if (!controller.signal.aborted) {
+          setDiscussionMessages(embeddedDiscussion);
+          setDiscussionError(
+            err instanceof Error ? err.message : "Failed to load discussion.",
+          );
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsDiscussionLoading(false);
+        }
+      });
+
+    return () => controller.abort();
+  }, [id, discussionReloadTick, embeddedDiscussion]);
+
+  const handleSendDiscussion = useCallback(async () => {
+    const trimmed = discussionDraft.trim();
+    if (!trimmed || isSendingDiscussion) {
+      return;
+    }
+
+    setIsSendingDiscussion(true);
+    setDiscussionError(null);
+    try {
+      await createProjectDiscussionMessage(id, trimmed);
+      setDiscussionDraft("");
+      setDiscussionReloadTick((prev) => prev + 1);
+    } catch (err) {
+      setDiscussionError(
+        err instanceof Error ? err.message : "Failed to post comment.",
+      );
+    } finally {
+      setIsSendingDiscussion(false);
+    }
+  }, [discussionDraft, id, isSendingDiscussion]);
 
   if (isLoading) {
     return (
@@ -301,6 +466,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     parseTimestamp(project.createdAt ?? project.created_at),
     dateFormatter,
   );
+  const currentUserId = user?.uid;
   const votes = Number(project.likesCount ?? project.likes_count ?? 0);
   const author = project.author ?? null;
   const authorId = author?.userID ?? author?.uid;
@@ -425,6 +591,109 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                   </a>
                 ) : null}
               </div>
+            </div>
+          </section>
+
+          <section className="rounded-3xl border border-border/70 bg-card/90 p-6 sm:p-8">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                  Discussion
+                </p>
+                <h2 className="mt-2 flex items-center gap-2 text-xl font-bold">
+                  <MessageSquareText className="h-5 w-5 text-muted-foreground" />
+                  Comments ({discussionMessages.length})
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDiscussionReloadTick((prev) => prev + 1)}
+                disabled={isDiscussionLoading || isSendingDiscussion}
+                className="rounded-full border border-border/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition-all duration-300 hover:bg-foreground hover:text-background disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Refresh
+              </button>
+            </div>
+
+            {discussionError ? (
+              <p className="mt-4 rounded-2xl border border-foreground/10 bg-foreground/5 px-4 py-3 text-sm">
+                {discussionError}
+              </p>
+            ) : null}
+
+            <div className="mt-4 max-h-[24rem] space-y-3 overflow-y-auto pr-1">
+              {isDiscussionLoading ? (
+                Array.from({ length: 4 }).map((_, index) => (
+                  <div
+                    key={`discussion-skeleton-${index}`}
+                    className="h-20 rounded-2xl bg-muted/60 animate-pulse"
+                  />
+                ))
+              ) : discussionMessages.length ? (
+                discussionMessages.map((message) => {
+                  const isMine =
+                    currentUserId != null && message.authorId != null
+                      ? String(currentUserId) === String(message.authorId)
+                      : false;
+                  const messageText = message.isDeleted
+                    ? "Message deleted"
+                    : message.message;
+                  return (
+                    <div
+                      key={message.id}
+                      className={`max-w-[95%] rounded-2xl border px-4 py-3 text-sm ${
+                        isMine
+                          ? "ml-auto border-foreground/20 bg-foreground text-background"
+                          : "border-border/60 bg-background/70"
+                      }`}
+                    >
+                      <div
+                        className={`flex flex-wrap items-center justify-between gap-2 text-xs ${
+                          isMine
+                            ? "text-background/75"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        <span className="font-semibold">
+                          {message.authorName?.trim() || "User"}
+                        </span>
+                        <span>
+                          {formatDateTime(message.createdAt, dateTimeFormatter)}
+                        </span>
+                      </div>
+                      <p className="mt-2 whitespace-pre-wrap break-words">
+                        {messageText}
+                      </p>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3 text-sm text-muted-foreground">
+                  No comments yet.
+                </p>
+              )}
+            </div>
+
+            <div className="mt-5 space-y-2">
+              <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                New comment
+              </label>
+              <textarea
+                rows={3}
+                value={discussionDraft}
+                onChange={(event) => setDiscussionDraft(event.target.value)}
+                placeholder="Write your comment"
+                className="w-full resize-none rounded-2xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
+              />
+              <button
+                type="button"
+                onClick={() => void handleSendDiscussion()}
+                disabled={isSendingDiscussion || !discussionDraft.trim()}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/30 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Send className="h-4 w-4" />
+                {isSendingDiscussion ? "Sending..." : "Post comment"}
+              </button>
             </div>
           </section>
         </div>
