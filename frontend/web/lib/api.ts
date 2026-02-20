@@ -2659,57 +2659,6 @@ const resolveDiscussionList = (value: unknown): ApiTicketMessage[] | null => {
   return Array.isArray(candidate) ? (candidate as ApiTicketMessage[]) : null;
 };
 
-const discussionEndpointMissingStatuses = new Set([
-  StatusCodes.NOT_FOUND,
-  StatusCodes.METHOD_NOT_ALLOWED,
-  StatusCodes.NOT_IMPLEMENTED,
-]);
-
-const isMissingDiscussionEndpointError = (error: unknown) =>
-  error instanceof ApiError &&
-  discussionEndpointMissingStatuses.has(error.status);
-
-const buildProjectDiscussionListPaths = (
-  encodedProjectID: string,
-  includeDeleted: boolean,
-) => {
-  const suffix = includeDeleted ? "/all" : "";
-  return Array.from(
-    new Set([
-      `/api/projects/${encodedProjectID}/comments/list${suffix}`,
-      `/api/projects/${encodedProjectID}/comments`,
-      `/api/projects/${encodedProjectID}/discussion/list${suffix}`,
-      `/api/projects/${encodedProjectID}/discussion`,
-      `/api/projects/${encodedProjectID}/messages/list${suffix}`,
-      `/api/projects/${encodedProjectID}/messages`,
-      `/api/project/${encodedProjectID}/comments/list${suffix}`,
-      `/api/project/${encodedProjectID}/comments`,
-      `/api/project/${encodedProjectID}/discussion/list${suffix}`,
-      `/api/project/${encodedProjectID}/discussion`,
-      `/api/project/${encodedProjectID}/messages/list${suffix}`,
-      `/api/project/${encodedProjectID}/messages`,
-    ]),
-  );
-};
-
-const buildProjectDiscussionCreatePaths = (encodedProjectID: string) =>
-  Array.from(
-    new Set([
-      `/api/projects/${encodedProjectID}/comments/create`,
-      `/api/projects/${encodedProjectID}/comments`,
-      `/api/projects/${encodedProjectID}/discussion/create`,
-      `/api/projects/${encodedProjectID}/discussion`,
-      `/api/projects/${encodedProjectID}/messages/create`,
-      `/api/projects/${encodedProjectID}/messages`,
-      `/api/project/${encodedProjectID}/comments/create`,
-      `/api/project/${encodedProjectID}/comments`,
-      `/api/project/${encodedProjectID}/discussion/create`,
-      `/api/project/${encodedProjectID}/discussion`,
-      `/api/project/${encodedProjectID}/messages/create`,
-      `/api/project/${encodedProjectID}/messages`,
-    ]),
-  );
-
 export async function fetchProjectDiscussionMessages(
   projectID: string,
   options?: {
@@ -2723,39 +2672,27 @@ export async function fetchProjectDiscussionMessages(
   }
 
   const encodedProjectID = encodeURIComponent(trimmedID);
-  const listPaths = buildProjectDiscussionListPaths(
-    encodedProjectID,
-    Boolean(options?.includeDeleted),
+  const payload = await apiRequest<unknown>(
+    `/api/projects/${encodedProjectID}/discussion/list`,
+    {
+      method: "GET",
+      signal: options?.signal,
+    },
   );
-
-  for (const path of listPaths) {
-    try {
-      const payload = await apiRequest<unknown>(path, {
-        method: "GET",
-        signal: options?.signal,
-      });
-      const record = toTicketRecord(payload);
-      return (
-        resolveDiscussionList(payload) ??
-        resolveDiscussionList(record?.data) ??
-        resolveDiscussionList(record?.discussion) ??
-        resolveDiscussionList(record) ??
-        []
-      );
-    } catch (error) {
-      if (isMissingDiscussionEndpointError(error)) {
-        continue;
-      }
-      throw error;
-    }
-  }
-
-  return [];
+  const record = toTicketRecord(payload);
+  return (
+    resolveDiscussionList(payload) ??
+    resolveDiscussionList(record?.data) ??
+    resolveDiscussionList(record?.discussion) ??
+    resolveDiscussionList(record) ??
+    []
+  );
 }
 
 export async function createProjectDiscussionMessage(
   projectID: string,
   message: string,
+  options?: { replyToId?: string | number | null },
 ): Promise<void> {
   const trimmedProjectID = projectID.trim();
   if (!trimmedProjectID) {
@@ -2768,30 +2705,31 @@ export async function createProjectDiscussionMessage(
   }
 
   const encodedProjectID = encodeURIComponent(trimmedProjectID);
-  const createPaths = buildProjectDiscussionCreatePaths(encodedProjectID);
+  const replyRaw = options?.replyToId;
+  const replyToId =
+    typeof replyRaw === "number" && Number.isFinite(replyRaw)
+      ? Math.trunc(replyRaw)
+      : typeof replyRaw === "string" && replyRaw.trim()
+        ? Number.parseInt(replyRaw.trim(), 10)
+        : undefined;
+  if (
+    typeof replyToId === "number" &&
+    (!Number.isFinite(replyToId) || replyToId <= 0)
+  ) {
+    throw new Error("Reply message id is invalid.");
+  }
+
   const body = JSON.stringify({
     content: trimmedMessage,
     comment: trimmedMessage,
     message: trimmedMessage,
     text: trimmedMessage,
+    ...(typeof replyToId === "number" ? { replyToId } : {}),
   });
-
-  for (const path of createPaths) {
-    try {
-      await apiRequest(path, {
-        method: "POST",
-        body,
-      });
-      return;
-    } catch (error) {
-      if (isMissingDiscussionEndpointError(error)) {
-        continue;
-      }
-      throw error;
-    }
-  }
-
-  throw new Error("Project discussion endpoint is not available.");
+  await apiRequest(`/api/projects/${encodedProjectID}/discussion/create`, {
+    method: "POST",
+    body,
+  });
 }
 
 export async function updateTicketMessage(

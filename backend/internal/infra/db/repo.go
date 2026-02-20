@@ -1851,6 +1851,111 @@ func (p *ProjectsRepository) ToggleLike(ctx context.Context, id uuid.UUID, userI
 	return nil
 }
 
+func (p *ProjectsRepository) Messages(ctx context.Context, id uuid.UUID) (projectdomain.ProjectMessages, error) {
+	var exists bool
+	if err := p.DB.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM projects WHERE id = $1)", id).Scan(&exists); err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, apperrors.RecordNotFound
+	}
+
+	rows, err := p.DB.QueryContext(ctx, `
+		SELECT
+			id,
+			project_id,
+			author_uid,
+			content,
+			reply_to_id,
+			at
+		FROM project_messages
+		WHERE project_id = $1
+		ORDER BY at ASC, id ASC
+	`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_ = rows.Close()
+	}()
+
+	var messages projectdomain.ProjectMessages
+	for rows.Next() {
+		var message projectdomain.ProjectMessage
+		var authorUID uint64
+		var replyToID sql.NullInt64
+		if err := rows.Scan(
+			&message.ID,
+			&message.ProjectID,
+			&authorUID,
+			&message.Content,
+			&replyToID,
+			&message.At,
+		); err != nil {
+			return nil, err
+		}
+		message.AuthorUID = uint(authorUID)
+		if replyToID.Valid {
+			id := replyToID.Int64
+			message.ReplyToID = &id
+		}
+		messages = append(messages, &message)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return messages, nil
+}
+
+func (p *ProjectsRepository) CreateMessage(ctx context.Context, id uuid.UUID, authorUID uint, content string, replyToID *int64) error {
+	if authorUID == 0 {
+		return apperrors.RequiredDataMissing.AddErrDetails("author is empty")
+	}
+	trimmed := strings.TrimSpace(content)
+	if trimmed == "" {
+		return apperrors.RequiredDataMissing.AddErrDetails("content is empty")
+	}
+
+	var exists bool
+	if err := p.DB.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM projects WHERE id = $1)", id).Scan(&exists); err != nil {
+		return err
+	}
+	if !exists {
+		return apperrors.RecordNotFound
+	}
+
+	var replyTo any
+	if replyToID != nil {
+		if *replyToID <= 0 {
+			return apperrors.InvalidArguments.AddErrDetails("reply message id is incorrect")
+		}
+		var replyExists bool
+		if err := p.DB.QueryRowContext(
+			ctx,
+			"SELECT EXISTS(SELECT 1 FROM project_messages WHERE project_id = $1 AND id = $2)",
+			id,
+			*replyToID,
+		).Scan(&replyExists); err != nil {
+			return err
+		}
+		if !replyExists {
+			return apperrors.RecordNotFound.AddErrDetails("reply message not found")
+		}
+		replyTo = *replyToID
+	}
+
+	_, err := p.DB.ExecContext(
+		ctx,
+		"INSERT INTO project_messages (project_id, author_uid, content, reply_to_id) VALUES ($1, $2, $3, $4)",
+		id,
+		authorUID,
+		trimmed,
+		replyTo,
+	)
+	return err
+}
+
 var _ statistics.Repository = (*StatisticsRepository)(nil)
 
 func (s *StatisticsRepository) VoteCount(ctx context.Context, since time.Time) (uint32, error) {

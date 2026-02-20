@@ -505,6 +505,20 @@ create index project_likes_user_uid_idx on project_likes (user_uid);
 create index project_likes_project_id_idx on project_likes (project_id);
 create index project_likes_created_at_idx on project_likes (created_at);
 
+create table project_messages (
+    id bigint generated always as identity primary key,
+    project_id uuid not null references projects(id) on delete cascade,
+    author_uid bigint not null references users(uid) on delete restrict,
+    content text not null,
+    reply_to_id bigint references project_messages(id) on delete set null,
+    at timestamptz not null default now()
+);
+
+create index project_messages_project_at_idx on project_messages (project_id, at);
+create index project_messages_project_id_idx on project_messages (project_id, id);
+create index project_messages_author_uid_idx on project_messages (author_uid);
+create index project_messages_reply_to_idx on project_messages (reply_to_id);
+
 create or replace function toggle_project_like(p_project_id uuid, p_user_uid bigint)
     returns boolean
     language plpgsql
@@ -740,7 +754,7 @@ create table notifications (
     id uuid primary key default pg_catalog.gen_random_uuid(),
     body text not null default '',
     createdAt timestamptz not null default now(),
-    scope notification_scope not null, 
+    scope notification_scope not null,
     targetUserID bigint references users(uid) on delete cascade,
     targetSegment varchar(64) references ranks(name) on delete cascade,
     expiresAt timestamptz

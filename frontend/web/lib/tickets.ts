@@ -26,6 +26,7 @@ export type Ticket = {
 export type TicketMessage = {
   id: string;
   message: string;
+  replyToId?: string;
   createdAt?: string;
   editedAt?: string;
   deletedAt?: string;
@@ -402,6 +403,29 @@ const mapTicketMessage = (
   const id =
     pickId(record, ["id", "messageId", "message_id", "uid", "uuid"]) ||
     options.fallbackId;
+  const replyToRaw =
+    record.replyToId ??
+    record.reply_to_id ??
+    record.replyTo ??
+    record.reply_to ??
+    record.parentId ??
+    record.parent_id;
+  const replyToRecord = toRecord(replyToRaw);
+  const replyToId =
+    (typeof replyToRaw === "string" ? replyToRaw.trim() : "") ||
+    (typeof replyToRaw === "number" && Number.isFinite(replyToRaw)
+      ? String(replyToRaw)
+      : "") ||
+    pickId(replyToRecord, [
+      "id",
+      "messageId",
+      "message_id",
+      "replyToId",
+      "reply_to_id",
+      "parentId",
+      "parent_id",
+    ]) ||
+    undefined;
   const message = pickString(record, ["message", "text", "content", "body"]);
   if (!message && !id) {
     return null;
@@ -483,6 +507,7 @@ const mapTicketMessage = (
   return {
     id,
     message,
+    replyToId,
     createdAt: createdAt || undefined,
     editedAt: editedAt || undefined,
     deletedAt: deletedAt || undefined,

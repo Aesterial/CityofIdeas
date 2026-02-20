@@ -152,3 +152,29 @@ func (s *Service) ToggleLike(ctx context.Context, id uuid.UUID, userID uint) err
 	}
 	return nil
 }
+
+func (s *Service) Messages(ctx context.Context, id uuid.UUID) (projects.ProjectMessages, error) {
+	if s == nil || s.repo == nil {
+		return nil, apperrors.NotConfigured
+	}
+	list, err := s.repo.Messages(ctx, id)
+	if err != nil {
+		logger.Debug("error appeared: "+err.Error(), "projects.messages")
+		return nil, apperrors.Wrap(err)
+	}
+	return list, nil
+}
+
+func (s *Service) CreateMessage(ctx context.Context, id uuid.UUID, authorUID uint, content string, replyToID *int64) error {
+	if s == nil || s.repo == nil {
+		return apperrors.NotConfigured
+	}
+	if authorUID == 0 {
+		return apperrors.RequiredDataMissing.AddErrDetails("author is empty")
+	}
+	if err := s.repo.CreateMessage(ctx, id, authorUID, content, replyToID); err != nil {
+		logger.Debug("error appeared: "+err.Error(), "projects.create_message")
+		return apperrors.Wrap(err)
+	}
+	return nil
+}

@@ -249,7 +249,7 @@ func main() {
 	notifypb.RegisterNotificationServiceServer(grpcServer, notifyServer)
 
 	cors := newCORS(env.Cors.AllowedOrigins)
-	handler := buildHTTPHandler(grpcServer, gateway, cors, ticketsServer)
+	handler := buildHTTPHandler(grpcServer, gateway, cors, ticketsServer, projectServer)
 	httpAddr := "0.0.0.0:" + httpPort
 	grpcAddr := "0.0.0.0:" + grpcPort
 

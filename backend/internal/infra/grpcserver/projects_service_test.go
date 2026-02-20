@@ -34,6 +34,14 @@ func (p *projectsRepoStub) GetProjects(context.Context, int, int, ...projects.Pr
 	return nil, nil
 }
 
+func (p *projectsRepoStub) Messages(context.Context, uuid.UUID) (projects.ProjectMessages, error) {
+	return nil, nil
+}
+
+func (p *projectsRepoStub) CreateMessage(context.Context, uuid.UUID, uint, string, *int64) error {
+	return nil
+}
+
 func (p *projectsRepoStub) GetCategories(context.Context) ([]string, error) {
 	return p.categories, nil
 }

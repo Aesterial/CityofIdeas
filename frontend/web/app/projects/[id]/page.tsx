@@ -7,11 +7,13 @@ import {
   Heart,
   MapPin,
   MessageSquareText,
+  Reply,
   Send,
   UserCircle2,
 } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { Header } from "@/components/header";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useLanguage } from "@/components/language-provider";
 import {
   createProjectDiscussionMessage,
@@ -216,6 +218,83 @@ const formatDateTime = (
   return formatter.format(date);
 };
 
+const discussionCopyByLanguage = {
+  RU: {
+    sectionLabel: "Обсуждение",
+    title: "Комментарии",
+    refresh: "Обновить",
+    loadError: "Не удалось загрузить обсуждение.",
+    postError: "Не удалось отправить комментарий.",
+    deletedMessage: "Комментарий удален",
+    noComments: "Комментариев пока нет.",
+    replyAction: "Ответить",
+    replyToLabel: "Ответ на",
+    newComment: "Новый комментарий",
+    placeholder: "Напишите комментарий",
+    sending: "Отправляем...",
+    send: "Отправить",
+    cancelReply: "Отменить ответ",
+    unknownUser: "Пользователь",
+  },
+  EN: {
+    sectionLabel: "Discussion",
+    title: "Comments",
+    refresh: "Refresh",
+    loadError: "Failed to load discussion.",
+    postError: "Failed to post comment.",
+    deletedMessage: "Comment deleted",
+    noComments: "No comments yet.",
+    replyAction: "Reply",
+    replyToLabel: "Reply to",
+    newComment: "New comment",
+    placeholder: "Write your comment",
+    sending: "Sending...",
+    send: "Post comment",
+    cancelReply: "Cancel reply",
+    unknownUser: "User",
+  },
+  KZ: {
+    sectionLabel: "Талқылау",
+    title: "Пікірлер",
+    refresh: "Жаңарту",
+    loadError: "Талқылауды жүктеу мүмкін болмады.",
+    postError: "Пікірді жіберу мүмкін болмады.",
+    deletedMessage: "Пікір жойылды",
+    noComments: "Пікірлер әлі жоқ.",
+    replyAction: "Жауап беру",
+    replyToLabel: "Жауап",
+    newComment: "Жаңа пікір",
+    placeholder: "Пікіріңізді жазыңыз",
+    sending: "Жіберілуде...",
+    send: "Пікір жіберу",
+    cancelReply: "Жауапты болдырмау",
+    unknownUser: "Пайдаланушы",
+  },
+} as const;
+
+const resolveAvatarSrc = (
+  avatar?: { url?: string; contentType?: string; data?: string } | null,
+) => {
+  if (!avatar) {
+    return "";
+  }
+  if (avatar.url) {
+    return avatar.url;
+  }
+  if (avatar.contentType && avatar.data) {
+    return `data:${avatar.contentType};base64,${avatar.data}`;
+  }
+  return "";
+};
+
+const getInitials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("") || "U";
+
 export default function ProjectPage({ params }: ProjectPageProps) {
   const { id } = use(params);
   const { user } = useAuth();
@@ -234,6 +313,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   const [discussionDraft, setDiscussionDraft] = useState("");
   const [isSendingDiscussion, setIsSendingDiscussion] = useState(false);
   const [discussionReloadTick, setDiscussionReloadTick] = useState(0);
+  const [replyToMessageId, setReplyToMessageId] = useState<string | null>(null);
 
   const locale = useMemo(
     () => (language === "KZ" ? "kk-KZ" : language === "RU" ? "ru-RU" : "en-US"),
@@ -258,6 +338,10 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         minute: "2-digit",
       }),
     [locale],
+  );
+  const discussionCopy = useMemo(
+    () => discussionCopyByLanguage[language] ?? discussionCopyByLanguage.RU,
+    [language],
   );
   const categoryLabels = useMemo<Record<string, string>>(
     () => ({
@@ -372,7 +456,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         if (!controller.signal.aborted) {
           setDiscussionMessages(embeddedDiscussion);
           setDiscussionError(
-            err instanceof Error ? err.message : "Failed to load discussion.",
+            err instanceof Error ? err.message : discussionCopy.loadError,
           );
         }
       })
@@ -383,7 +467,19 @@ export default function ProjectPage({ params }: ProjectPageProps) {
       });
 
     return () => controller.abort();
-  }, [id, discussionReloadTick, embeddedDiscussion]);
+  }, [id, discussionReloadTick, embeddedDiscussion, discussionCopy.loadError]);
+
+  useEffect(() => {
+    if (!replyToMessageId) {
+      return;
+    }
+    const exists = discussionMessages.some(
+      (message) => message.id === replyToMessageId,
+    );
+    if (!exists) {
+      setReplyToMessageId(null);
+    }
+  }, [discussionMessages, replyToMessageId]);
 
   const handleSendDiscussion = useCallback(async () => {
     const trimmed = discussionDraft.trim();
@@ -394,17 +490,26 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     setIsSendingDiscussion(true);
     setDiscussionError(null);
     try {
-      await createProjectDiscussionMessage(id, trimmed);
+      await createProjectDiscussionMessage(id, trimmed, {
+        replyToId: replyToMessageId,
+      });
       setDiscussionDraft("");
+      setReplyToMessageId(null);
       setDiscussionReloadTick((prev) => prev + 1);
     } catch (err) {
       setDiscussionError(
-        err instanceof Error ? err.message : "Failed to post comment.",
+        err instanceof Error ? err.message : discussionCopy.postError,
       );
     } finally {
       setIsSendingDiscussion(false);
     }
-  }, [discussionDraft, id, isSendingDiscussion]);
+  }, [
+    discussionCopy.postError,
+    discussionDraft,
+    id,
+    isSendingDiscussion,
+    replyToMessageId,
+  ]);
 
   if (isLoading) {
     return (
@@ -476,6 +581,12 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     author?.username ??
     UNKNOWN_LABEL;
   const coverImage = resolvedImages[0] ?? "/placeholder.svg";
+  const discussionById = new Map(
+    discussionMessages.map((message) => [message.id, message]),
+  );
+  const replyTarget = replyToMessageId
+    ? (discussionById.get(replyToMessageId) ?? null)
+    : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -598,11 +709,11 @@ export default function ProjectPage({ params }: ProjectPageProps) {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                  Discussion
+                  {discussionCopy.sectionLabel}
                 </p>
                 <h2 className="mt-2 flex items-center gap-2 text-xl font-bold">
                   <MessageSquareText className="h-5 w-5 text-muted-foreground" />
-                  Comments ({discussionMessages.length})
+                  {discussionCopy.title} ({discussionMessages.length})
                 </h2>
               </div>
               <button
@@ -611,7 +722,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                 disabled={isDiscussionLoading || isSendingDiscussion}
                 className="rounded-full border border-border/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition-all duration-300 hover:bg-foreground hover:text-background disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Refresh
+                {discussionCopy.refresh}
               </button>
             </div>
 
@@ -635,8 +746,18 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                     currentUserId != null && message.authorId != null
                       ? String(currentUserId) === String(message.authorId)
                       : false;
+                  const authorLabel =
+                    message.authorName?.trim() || discussionCopy.unknownUser;
+                  const avatarSrc = resolveAvatarSrc(message.avatar);
+                  const initials = getInitials(authorLabel);
+                  const canLinkAuthor =
+                    message.authorId != null &&
+                    Number.isFinite(Number(message.authorId));
+                  const replyToMessage = message.replyToId
+                    ? (discussionById.get(message.replyToId) ?? null)
+                    : null;
                   const messageText = message.isDeleted
-                    ? "Message deleted"
+                    ? discussionCopy.deletedMessage
                     : message.message;
                   return (
                     <div
@@ -647,19 +768,97 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                           : "border-border/60 bg-background/70"
                       }`}
                     >
+                      <div className="mb-2 flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          {avatarSrc ? (
+                            <AvatarImage src={avatarSrc} alt={authorLabel} />
+                          ) : null}
+                          <AvatarFallback
+                            className={
+                              isMine
+                                ? "bg-background/20 text-background text-[10px] font-semibold"
+                                : "text-[10px] font-semibold"
+                            }
+                          >
+                            {initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          {canLinkAuthor ? (
+                            <Link
+                              href={`/users/${message.authorId}`}
+                              className={`font-semibold hover:underline ${
+                                isMine ? "text-background" : "text-foreground"
+                              }`}
+                            >
+                              {authorLabel}
+                            </Link>
+                          ) : (
+                            <p
+                              className={`font-semibold ${
+                                isMine ? "text-background" : "text-foreground"
+                              }`}
+                            >
+                              {authorLabel}
+                            </p>
+                          )}
+                          <p
+                            className={`text-[11px] ${
+                              isMine
+                                ? "text-background/75"
+                                : "text-muted-foreground"
+                            }`}
+                          >
+                            {formatDateTime(
+                              message.createdAt,
+                              dateTimeFormatter,
+                            )}
+                          </p>
+                        </div>
+                      </div>
+
+                      {replyToMessage ? (
+                        <div
+                          className={`rounded-xl border px-3 py-2 text-xs ${
+                            isMine
+                              ? "border-background/30 bg-background/10 text-background/90"
+                              : "border-border/70 bg-muted/40 text-muted-foreground"
+                          }`}
+                        >
+                          <p className="font-semibold">
+                            {discussionCopy.replyToLabel}:{" "}
+                            {replyToMessage.authorName ||
+                              discussionCopy.unknownUser}
+                          </p>
+                          <p className="truncate">
+                            {replyToMessage.message ||
+                              discussionCopy.deletedMessage}
+                          </p>
+                        </div>
+                      ) : null}
+
                       <div
-                        className={`flex flex-wrap items-center justify-between gap-2 text-xs ${
+                        className={`mt-2 flex flex-wrap items-center justify-between gap-2 text-xs ${
                           isMine
                             ? "text-background/75"
                             : "text-muted-foreground"
                         }`}
                       >
-                        <span className="font-semibold">
-                          {message.authorName?.trim() || "User"}
-                        </span>
-                        <span>
-                          {formatDateTime(message.createdAt, dateTimeFormatter)}
-                        </span>
+                        <span />
+                        {!message.isDeleted ? (
+                          <button
+                            type="button"
+                            onClick={() => setReplyToMessageId(message.id)}
+                            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-semibold uppercase tracking-[0.12em] ${
+                              isMine
+                                ? "border-background/30 hover:bg-background/10"
+                                : "border-border/60 hover:bg-muted"
+                            }`}
+                          >
+                            <Reply className="h-3 w-3" />
+                            {discussionCopy.replyAction}
+                          </button>
+                        ) : null}
                       </div>
                       <p className="mt-2 whitespace-pre-wrap break-words">
                         {messageText}
@@ -669,20 +868,38 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                 })
               ) : (
                 <p className="rounded-2xl border border-border/60 bg-background/70 px-4 py-3 text-sm text-muted-foreground">
-                  No comments yet.
+                  {discussionCopy.noComments}
                 </p>
               )}
             </div>
 
             <div className="mt-5 space-y-2">
+              {replyTarget ? (
+                <div className="rounded-2xl border border-border/70 bg-muted/40 px-4 py-3 text-xs">
+                  <p className="font-semibold">
+                    {discussionCopy.replyToLabel}:{" "}
+                    {replyTarget.authorName || discussionCopy.unknownUser}
+                  </p>
+                  <p className="mt-1 truncate text-muted-foreground">
+                    {replyTarget.message || discussionCopy.deletedMessage}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setReplyToMessageId(null)}
+                    className="mt-2 rounded-full border border-border/70 px-3 py-1 font-semibold uppercase tracking-[0.12em] hover:bg-background"
+                  >
+                    {discussionCopy.cancelReply}
+                  </button>
+                </div>
+              ) : null}
               <label className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                New comment
+                {discussionCopy.newComment}
               </label>
               <textarea
                 rows={3}
                 value={discussionDraft}
                 onChange={(event) => setDiscussionDraft(event.target.value)}
-                placeholder="Write your comment"
+                placeholder={discussionCopy.placeholder}
                 className="w-full resize-none rounded-2xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
               />
               <button
@@ -692,7 +909,9 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-foreground/30 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Send className="h-4 w-4" />
-                {isSendingDiscussion ? "Sending..." : "Post comment"}
+                {isSendingDiscussion
+                  ? discussionCopy.sending
+                  : discussionCopy.send}
               </button>
             </div>
           </section>

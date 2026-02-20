@@ -129,6 +129,17 @@ type Project struct {
 	At     time.Time
 }
 
+type ProjectMessage struct {
+	ID        int64
+	ProjectID uuid.UUID
+	AuthorUID uint
+	Content   string
+	ReplyToID *int64
+	At        time.Time
+}
+
+type ProjectMessages []*ProjectMessage
+
 func (p *Project) ToProto() *projpb.Project {
 	var proj projpb.Project
 	proj.Id = p.ID.String()
