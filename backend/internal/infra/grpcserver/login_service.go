@@ -81,7 +81,6 @@ func (s *LoginService) Register(ctx context.Context, req *loginpb.RegisterReques
 	if req == nil {
 		return nil, apperrors.RequiredDataMissing.AddErrDetails("request is empty")
 	}
- return nil, apperrors.Unavailable
 
 	require := logindomain.RegisterRequire{
 		Username: strings.TrimSpace(req.Username),
