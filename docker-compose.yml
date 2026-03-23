@@ -1,6 +1,6 @@
 services:
   aesterial_backend:
-    image: ivanskem/aesterial-jcup:backend-latest
+    image: aesterial/aesterial-jcup:backend-latest
     volumes:
       - ./db.ca.crt:/certs/ca.crt:ro
     restart: unless-stopped
@@ -58,7 +58,7 @@ services:
       GEOCODE_RATE_LIMIT_MS: ${GEOCODE_RATE_LIMIT_MS}
 
   aesterial_frontend:
-    image: ivanskem/aesterial-jcup:frontend-latest
+    image: aesterial/aesterial-jcup:frontend-latest
     restart: unless-stopped
     environment:
       NODE_ENV: production

@@ -104,7 +104,7 @@ jobs:
           push: true
           platforms: linux/amd64
           tags: |
-            ivanskem/aesterial-jcup:backend-latest
+            aesterial/aesterial-jcup:backend-latest
 
       - name: Tag backend by digest prefix + date (no rebuild)
         if: ${{ steps.targets.outputs.backend == 'true' }}
@@ -115,8 +115,8 @@ jobs:
           SHORT="$(echo "$DIGEST" | sed 's/^sha256://' | cut -c1-12)"
           TAG="backend-sha256${SHORT}-${DATE}"
           docker buildx imagetools create \
-            -t "ivanskem/aesterial-jcup:${TAG}" \
-            "ivanskem/aesterial-jcup@${DIGEST}"
+            -t "aesterial/aesterial-jcup:${TAG}" \
+            "aesterial/aesterial-jcup@${DIGEST}"
 
       - name: Build & push backend mail (latest)
         id: backend_mail_build
@@ -128,7 +128,7 @@ jobs:
           push: true
           platforms: linux/amd64
           tags: |
-            ivanskem/aesterial-jcup:backend-mail-latest
+            aesterial/aesterial-jcup:backend-mail-latest
 
       - name: Tag backend mail by digest prefix + date (no rebuild)
         if: ${{ steps.targets.outputs.backend_mail == 'true' }}
@@ -139,8 +139,8 @@ jobs:
           SHORT="$(echo "$DIGEST" | sed 's/^sha256://' | cut -c1-12)"
           TAG="backend-mail-sha256${SHORT}-${DATE}"
           docker buildx imagetools create \
-            -t "ivanskem/aesterial-jcup:${TAG}" \
-            "ivanskem/aesterial-jcup@${DIGEST}"
+            -t "aesterial/aesterial-jcup:${TAG}" \
+            "aesterial/aesterial-jcup@${DIGEST}"
 
       - name: Build & push frontend (latest)
         id: frontend_build
@@ -152,7 +152,7 @@ jobs:
           push: true
           platforms: linux/amd64
           tags: |
-            ivanskem/aesterial-jcup:frontend-latest
+            aesterial/aesterial-jcup:frontend-latest
 
       - name: Tag frontend by digest prefix + date (no rebuild)
         if: ${{ steps.targets.outputs.frontend == 'true' }}
@@ -163,5 +163,5 @@ jobs:
           SHORT="$(echo "$DIGEST" | sed 's/^sha256://' | cut -c1-12)"
           TAG="frontend-sha256${SHORT}-${DATE}"
           docker buildx imagetools create \
-            -t "ivanskem/aesterial-jcup:${TAG}" \
-            "ivanskem/aesterial-jcup@${DIGEST}"
+            -t "aesterial/aesterial-jcup:${TAG}" \
+            "aesterial/aesterial-jcup@${DIGEST}"

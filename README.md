@@ -21,7 +21,7 @@
 
 <p align="center">
   <a href="LICENSE">
-    <img alt="License" src="https://img.shields.io/badge/License-MIT-2ea44f">
+    <img alt="License" src="https://img.shields.io/badge/license-AGPL--3.0-2ea44f">
   </a>
   <a href="https://github.com/Aesterial/Website/actions">
     <img alt="CI" src="https://img.shields.io/badge/CI-GitHub_Actions-2088FF?logo=githubactions&logoColor=white">

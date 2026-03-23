@@ -1,8 +1,8 @@
 {
-  email aesterialproject@gmail.com
+  email admin@example.com
 }
 
-aesterial.xyz, www.aesterial.xyz {
+example.com, www.example.com {
   tls {
     issuer acme {
       dir https://acme-v02.api.letsencrypt.org/directory

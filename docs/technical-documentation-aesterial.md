@@ -1,7 +1,7 @@
 # Техническая документация проекта Aesterial
 
 Дата подготовки: 22 февраля 2026  
-Репозиторий: `E:\Development\Aesterial-Website`
+Репозиторий: https://github.com/aesterial/cityofideas
 
 ## 1. Назначение документа
 
