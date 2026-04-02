@@ -69,7 +69,7 @@ func parseInt(def int, keys ...string) int {
 func ensure() {
 	_ = godotenv.Load(".env")
 
-	startPort := envValue("START_PORT", "BOOT_PORT")
+	startPort := envValue("START_PORT", "BOOT_PORT", "PORT")
 	grpcPort := envValue("START_GRPC_PORT", "GRPC_PORT")
 	if grpcPort == "" {
 		grpcPort = startPort
