@@ -231,10 +231,7 @@ func (s *LoginService) VkCallback(ctx context.Context, req *loginpb.VKCallbackRe
 		return nil, apperrors.ServerError.AddErrDetails("uid is empty")
 	}
 
-	if isNewUser && generatedPassword != "" {
-		if s.verification == nil || s.verification.Mailer == nil {
-			return nil, apperrors.NotConfigured.AddErrDetails("mailer service is not configured")
-		}
+	if isNewUser && generatedPassword != "" && s.verification != nil && s.verification.Mailer != nil {
 		mailCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 		if _, err := s.verification.Mailer.SendRegistrationPassword(mailCtx, email, generatedPassword); err != nil {

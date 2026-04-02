@@ -125,15 +125,18 @@ func main() {
 
 	loggerServ.Start(ctx, 2*time.Second)
 
-	mailerService := mailer.New(mailer.Config{
-		ProxyAddr:                  env.Mailer.ProxyAddr,
-		ProxyTLSEnabled:            env.Mailer.ProxyTLSEnabled,
-		ProxyTLSServerName:         env.Mailer.ProxyTLSServerName,
-		ProxyTLSInsecureSkipVerify: env.Mailer.ProxyTLSInsecureSkipVerify,
-		DialTimeout:                time.Duration(env.Mailer.ProxyDialTimeoutSeconds) * time.Second,
-		RequestTimeout:             time.Duration(env.Mailer.ProxyRequestTimeoutSeconds) * time.Second,
-		AuthToken:                  env.Mailer.ProxyAuthToken,
-	})
+	var mailerService *mailer.Service
+	if env.Mailer.UseMailer {
+		mailerService = mailer.New(mailer.Config{
+			ProxyAddr:                  env.Mailer.ProxyAddr,
+			ProxyTLSEnabled:            env.Mailer.ProxyTLSEnabled,
+			ProxyTLSServerName:         env.Mailer.ProxyTLSServerName,
+			ProxyTLSInsecureSkipVerify: env.Mailer.ProxyTLSInsecureSkipVerify,
+			DialTimeout:                time.Duration(env.Mailer.ProxyDialTimeoutSeconds) * time.Second,
+			RequestTimeout:             time.Duration(env.Mailer.ProxyRequestTimeoutSeconds) * time.Second,
+			AuthToken:                  env.Mailer.ProxyAuthToken,
+		})
+	}
 	geocodeService := geocode.New(env.Geocode.Provider, env.Geocode.UA, env.Geocode.Email, env.Geocode.RateLimit)
 	sessionsService := sessionsinfo.New(sessionsRepo)
 	userInfoService := userinfo.New(userRepo, sessionsRepo)
@@ -147,17 +150,23 @@ func main() {
 	ranksService := rankapp.New(ranksRepo)
 	notifyService := notifications.New(notifyRepo)
 	verificationService := verification.New(verificationRepo, mailerService)
-	storageService, err := storageapp.New()
-	if err != nil {
-		logger.Error("Failed to init storage: "+err.Error(), "service.storage.init", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
-		return
+	var storageService *storageapp.Service
+	if env.Storage.UseStorage {
+		storageService, err = storageapp.New()
+		if err != nil {
+			logger.Error("Failed to init storage: "+err.Error(), "service.storage.init", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
+			return
+		}
 	}
 
 	loginServer := grpcserver.NewLoginService(loginService, sessionsService, userInfoService, verificationService, storageService)
 	userServer := grpcserver.NewUserService(userInfoService, userModifierService, sessionsService, storageService)
 	statServer := grpcserver.NewStatService(statService, sessionsService, userInfoService)
 	projectServer := grpcserver.NewProjectService(projectsService, sessionsService, userInfoService, storageService)
-	storageServer := grpcserver.NewStorageService(storageService, projectsService)
+	var storageServer *grpcserver.StorageService
+	if storageService != nil {
+		storageServer = grpcserver.NewStorageService(storageService, projectsService)
+	}
 	submissionServer := grpcserver.NewSubmissionsService(submissionService, sessionsService, userInfoService, storageService)
 	maintenanceServer := grpcserver.NewMaintenanceService(maintenanceService, sessionsService, userInfoService)
 	ticketsServer := grpcserver.NewTicketsService(ticketsService, sessionsService, userInfoService, mailerService, storageService)
@@ -185,9 +194,11 @@ func main() {
 		logger.Error("Failed to register projects gateway: "+err.Error(), "service.gateway.register", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
 		return
 	}
-	if err := storagepb.RegisterStorageServiceHandlerServer(ctx, gateway, storageServer); err != nil {
-		logger.Error("Failed to register storage gateway: "+err.Error(), "service.gateway.register", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
-		return
+	if storageServer != nil {
+		if err := storagepb.RegisterStorageServiceHandlerServer(ctx, gateway, storageServer); err != nil {
+			logger.Error("Failed to register storage gateway: "+err.Error(), "service.gateway.register", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
+			return
+		}
 	}
 	if err := rankpb.RegisterRanksServiceHandlerServer(ctx, gateway, ranksServer); err != nil {
 		logger.Error("Failed to register ranks gateway: "+err.Error(), "service.gateway.register", logger.EventActor{Type: logger.System, ID: 0}, logger.Failure)
@@ -235,7 +246,9 @@ func main() {
 	userpb.RegisterUserServiceServer(grpcServer, userServer)
 	statpb.RegisterStatisticsServiceServer(grpcServer, statServer)
 	projpb.RegisterProjectServiceServer(grpcServer, projectServer)
-	storagepb.RegisterStorageServiceServer(grpcServer, storageServer)
+	if storageServer != nil {
+		storagepb.RegisterStorageServiceServer(grpcServer, storageServer)
+	}
 	rankpb.RegisterRanksServiceServer(grpcServer, ranksServer)
 	submpb.RegisterSubmissionsServiceServer(grpcServer, submissionServer)
 	maintenancepb.RegisterMaintenanceServiceServer(grpcServer, maintenanceServer)

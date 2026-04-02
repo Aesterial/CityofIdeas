@@ -309,8 +309,10 @@ func (t *TicketsService) MessageCreate(ctx context.Context, req *tickpb.TicketMe
 		}
 		mailCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
-		if _, err := t.mailer.SendTicketMessage(mailCtx, email, id.String(), sender, req.Content); err != nil {
-			logger.Debug("failed to send ticket message: "+err.Error(), "")
+		if t.mailer != nil && strings.TrimSpace(email) != "" {
+			if _, err := t.mailer.SendTicketMessage(mailCtx, email, id.String(), sender, req.Content); err != nil {
+				logger.Debug("failed to send ticket message: "+err.Error(), "")
+			}
 		}
 	}
 	return &types.WithTracing{Tracing: TraceIDOrNew(ctx)}, nil

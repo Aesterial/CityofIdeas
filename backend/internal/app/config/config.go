@@ -36,6 +36,24 @@ func parseBool(key string, def bool) bool {
 	return b
 }
 
+func parseBoolAny(def bool, keys ...string) bool {
+	for _, key := range keys {
+		if strings.TrimSpace(key) == "" {
+			continue
+		}
+		raw := strings.TrimSpace(os.Getenv(key))
+		if raw == "" {
+			continue
+		}
+		b, err := strconv.ParseBool(raw)
+		if err != nil {
+			return def
+		}
+		return b
+	}
+	return def
+}
+
 func parseInt(def int, keys ...string) int {
 	raw := envValue(keys...)
 	if raw == "" {
@@ -96,6 +114,7 @@ func ensure() {
 			IPService: envValue("SERVICES_IP", "BOOT_IPSERVICE"),
 		},
 		Storage: domain.Storage{
+			UseStorage:        parseBoolAny(true, "USE_STORAGE", "STORAGE_USE"),
 			Endpoint:          envValue("STORAGE_ENDPOINT"),
 			Region:            envValue("STORAGE_REGION"),
 			Bucket:            envValue("STORAGE_BUCKET"),
@@ -106,14 +125,15 @@ func ensure() {
 			PresignTTLSeconds: parseInt(900, "STORAGE_PRESIGN_TTL_SECONDS"),
 		},
 		Mailer: domain.Mailer{
-			Host:     envValue("SMTP_HOST"),
-			Port:     parseInt(0, "SMTP_PORT"),
-			User:     envValue("SMTP_USER"),
-			Pass:     envValue("SMTP_PASS"),
-			FromName: envValue("SMTP_FROM_NAME"),
-			Secure:   parseBool("SMTP_SECURE", false),
-			StartTLS: parseBool("SMTP_STARTTLS", false),
-			Domain:   envValue("MAILER_DOMAIN"),
+			UseMailer: parseBoolAny(true, "USE_MAILER", "MAILER_USE"),
+			Host:      envValue("SMTP_HOST"),
+			Port:      parseInt(0, "SMTP_PORT"),
+			User:      envValue("SMTP_USER"),
+			Pass:      envValue("SMTP_PASS"),
+			FromName:  envValue("SMTP_FROM_NAME"),
+			Secure:    parseBool("SMTP_SECURE", false),
+			StartTLS:  parseBool("SMTP_STARTTLS", false),
+			Domain:    envValue("MAILER_DOMAIN"),
 
 			ProxyAddr:                  envValue("MAIL_PROXY_ADDR", "MAILER_PROXY_ADDR"),
 			ProxyTLSEnabled:            parseBool("MAIL_PROXY_TLS", true),

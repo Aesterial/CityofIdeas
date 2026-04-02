@@ -28,6 +28,7 @@ type CORS struct {
 }
 
 type Storage struct {
+	UseStorage        bool
 	Endpoint          string
 	Region            string
 	Bucket            string
@@ -57,14 +58,15 @@ type Async struct {
 }
 
 type Mailer struct {
-	Host     string
-	Port     int
-	User     string
-	Pass     string
-	FromName string
-	Secure   bool
-	StartTLS bool
-	Domain   string
+	UseMailer bool
+	Host      string
+	Port      int
+	User      string
+	Pass      string
+	FromName  string
+	Secure    bool
+	StartTLS  bool
+	Domain    string
 
 	ProxyAddr                  string
 	ProxyTLSEnabled            bool

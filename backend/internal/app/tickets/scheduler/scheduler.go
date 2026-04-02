@@ -86,15 +86,17 @@ func Run(repo tickets.Repository, usrepo user.Repository, loc *time.Location, s 
 						} else {
 							email = t.Creator.Email
 						}
-						_, err = s.SendTicketClose(ctx, email, t.Id.String(), "ticket expired")
-						if err != nil {
-							logger.Error(
-								"Failed to close ticket: "+err.Error(),
-								"system.tickets.scheduler",
-								logger.EventActor{Type: logger.System, ID: 0},
-								logger.Failure,
-							)
-							continue
+						if s != nil && email != "" {
+							_, err = s.SendTicketClose(ctx, email, t.Id.String(), "ticket expired")
+							if err != nil {
+								logger.Error(
+									"Failed to close ticket: "+err.Error(),
+									"system.tickets.scheduler",
+									logger.EventActor{Type: logger.System, ID: 0},
+									logger.Failure,
+								)
+								continue
+							}
 						}
 					}
 				}
