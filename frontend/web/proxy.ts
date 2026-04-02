@@ -1,43 +1,13 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { buildApiUrl, getApiBaseUrl } from "@/lib/api-base";
 
-const DEV_API_BASE_URL = "http://127.0.0.1:8080";
 const REQUEST_TIMEOUT_MS = 1500;
 const REFRESH_PARAM = "maintenanceRefresh";
 const LOGIN_CHECK_PATH = "/api/login/check";
 const ALLOW_SERVER_ACTIONS = process.env.NEXT_ALLOW_SERVER_ACTIONS === "1";
 
 const DISABLE_MAINTENANCE_CHECKS = false;
-
-const stripTrailingSlash = (value: string) => value.replace(/\/$/, "");
-
-const ensureHttps = (value: string) => {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return trimmed;
-  }
-  if (trimmed.startsWith("https://") || trimmed.startsWith("/")) {
-    return trimmed;
-  }
-  if (trimmed.startsWith("http://")) {
-    return `https://${trimmed.slice("http://".length)}`;
-  }
-  if (trimmed.startsWith("//")) {
-    return `https:${trimmed}`;
-  }
-  return `https://${trimmed}`;
-};
-
-const resolveApiBaseUrl = (request: NextRequest) => {
-  const envBase = (process.env.NEXT_PUBLIC_API_BASE_URL || "").trim();
-  if (envBase) {
-    return envBase;
-  }
-  if (process.env.NODE_ENV === "development") {
-    return DEV_API_BASE_URL;
-  }
-  return request.nextUrl.origin;
-};
 
 const readActiveFlag = (payload: unknown): boolean | null => {
   if (typeof payload === "boolean") {
@@ -69,10 +39,8 @@ type AuthCheckStatus =
 const fetchAuthStatus = async (
   request: NextRequest,
 ): Promise<AuthCheckStatus> => {
-  const base = resolveApiBaseUrl(request);
-  const normalizedBase =
-    process.env.NODE_ENV === "production" ? ensureHttps(base) : base;
-  const url = `${stripTrailingSlash(normalizedBase)}${LOGIN_CHECK_PATH}`;
+  const apiBaseUrl = getApiBaseUrl(request.nextUrl.origin);
+  const url = buildApiUrl(LOGIN_CHECK_PATH, apiBaseUrl);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
@@ -103,10 +71,8 @@ const fetchAuthStatus = async (
 };
 
 const fetchMaintenanceActive = async (request: NextRequest) => {
-  const base = resolveApiBaseUrl(request);
-  const normalizedBase =
-    process.env.NODE_ENV === "production" ? ensureHttps(base) : base;
-  const url = `${stripTrailingSlash(normalizedBase)}/api/maintenance/active`;
+  const apiBaseUrl = getApiBaseUrl(request.nextUrl.origin);
+  const url = buildApiUrl("/api/maintenance/active", apiBaseUrl);
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {

@@ -54,7 +54,7 @@ import {
   type BanInfo,
   type ApiAvatar,
 } from "@/lib/api";
-import { API_BASE_URL } from "@/lib/api-base";
+import { buildApiUrl } from "@/lib/api-base";
 import { emitMfaRequired, isMfaRequiredMessage } from "@/lib/mfa-required";
 import {
   ChartContainer,
@@ -392,7 +392,7 @@ const isMfaRequiredResponse = (
   );
 };
 async function requestJson<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(buildApiUrl(path), {
     credentials: "include",
     headers: {
       Accept: "application/json",

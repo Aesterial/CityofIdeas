@@ -1,8 +1,8 @@
 const DEV_API_BASE_URL = "http://127.0.0.1:8080";
 
-const stripTrailingSlash = (value: string) => value.replace(/\/$/, "");
+export const stripTrailingSlash = (value: string) => value.replace(/\/$/, "");
 
-const ensureHttps = (value: string) => {
+export const ensureHttps = (value: string) => {
   const trimmed = value.trim();
   if (!trimmed) {
     return trimmed;
@@ -19,7 +19,41 @@ const ensureHttps = (value: string) => {
   return `https://${trimmed}`;
 };
 
-const resolveApiBaseUrl = () => {
+const getBackendLocation = () =>
+  (
+    process.env.NEXT_PUBLIC_BACKEND_LOCATION ||
+    process.env.BACKEND_LOCATION ||
+    ""
+  )
+    .trim()
+    .toLowerCase();
+
+const applyBackendLocation = (origin: string) => {
+  const normalizedOrigin = stripTrailingSlash(origin.trim());
+  if (!normalizedOrigin) {
+    return normalizedOrigin;
+  }
+
+  const backendLocation = getBackendLocation();
+  if (backendLocation === "path") {
+    return `${normalizedOrigin}/api`;
+  }
+  if (backendLocation !== "domain") {
+    return normalizedOrigin;
+  }
+
+  try {
+    const url = new URL(ensureHttps(normalizedOrigin));
+    if (!url.hostname.startsWith("api.")) {
+      url.hostname = `api.${url.hostname}`;
+    }
+    return stripTrailingSlash(url.toString());
+  } catch {
+    return normalizedOrigin;
+  }
+};
+
+export const resolveApiBaseUrl = (origin?: string) => {
   const envBase = (process.env.NEXT_PUBLIC_API_BASE_URL || "").trim();
   if (envBase) {
     return envBase;
@@ -27,14 +61,35 @@ const resolveApiBaseUrl = () => {
   if (process.env.NODE_ENV === "development") {
     return DEV_API_BASE_URL;
   }
+  if (origin) {
+    return applyBackendLocation(origin);
+  }
   if (typeof window !== "undefined" && window.location?.host) {
-    return `https://${window.location.host}`;
+    return applyBackendLocation(window.location.origin);
   }
   return "";
 };
 
-const rawBaseUrl = resolveApiBaseUrl();
-const normalizedBaseUrl =
-  process.env.NODE_ENV === "production" ? ensureHttps(rawBaseUrl) : rawBaseUrl;
+export const getApiBaseUrl = (origin?: string) => {
+  const rawBaseUrl = resolveApiBaseUrl(origin);
+  const normalizedBaseUrl =
+    process.env.NODE_ENV === "production"
+      ? ensureHttps(rawBaseUrl)
+      : rawBaseUrl;
+  return stripTrailingSlash(normalizedBaseUrl);
+};
 
-export const API_BASE_URL = stripTrailingSlash(normalizedBaseUrl);
+export const API_BASE_URL = getApiBaseUrl();
+
+export const buildApiUrl = (path: string, baseUrl = API_BASE_URL) => {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  if (
+    baseUrl.endsWith("/api") &&
+    (normalizedPath === "/api" || normalizedPath.startsWith("/api/"))
+  ) {
+    return `${baseUrl}${normalizedPath.slice("/api".length)}`;
+  }
+
+  return `${baseUrl}${normalizedPath}`;
+};

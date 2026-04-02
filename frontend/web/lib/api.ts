@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "@/lib/api-base";
+import { buildApiUrl } from "@/lib/api-base";
 import { emitMfaRequired, isMfaRequiredMessage } from "@/lib/mfa-required";
 import { StatusCodes } from "http-status-codes";
 
@@ -1202,7 +1202,7 @@ const normalizeAuthResult = (payload: unknown): AuthResult => {
 };
 
 async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(buildApiUrl(path), {
     ...init,
     credentials: "include",
     headers: {
@@ -1262,7 +1262,7 @@ export async function handleBannedUser(options?: {
     return;
   }
   try {
-    const response = await fetch(`${API_BASE_URL}/api/user/ban/info`, {
+    const response = await fetch(buildApiUrl("/api/user/ban/info"), {
       method: "GET",
       credentials: "include",
       headers: {
