@@ -1,9 +1,0 @@
-go 1.26
-
-use (
-	./internal
-	./mail-proxy
-	./starter
-)
-
-replace google.golang.org/genproto => google.golang.org/genproto v0.0.0-20251222181119-0a764e51fe1b

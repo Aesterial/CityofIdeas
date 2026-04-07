@@ -1,0 +1,17 @@
+version: v2
+
+inputs:
+  - directory: .
+    paths:
+      - xyz/cityideas/v1
+
+plugins:
+  - local: protoc-gen-go
+    out: ../backend/internal
+    opt:
+      - module=github.com/aesterial/cityideas/internal
+  - local: protoc-gen-go-grpc
+    out: ../backend/internal
+    opt:
+      - module=github.com/aesterial/cityideas/internal
+      - require_unimplemented_servers=false

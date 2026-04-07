@@ -1,178 +1,193 @@
-﻿<h1 align="center">Aesterial</h1>
+# CityofIdeas-RSV
 
-<p align="center">
-  <img src="./.github/assets/logo.svg" width="120" alt="Aesterial">
-</p>
+![Aesterial logo](.github/assets/logo.svg)
 
-<h3 align="center">Aesterial · Город идей</h3>
+Aesterial civic engagement platform with a Next.js web client, a Go backend, and deployment scaffolding for map-driven idea collection, moderation, voting, and support workflows.
 
-<p align="center">
-  🏙️ «ГОРОД ИДЕЙ» — современный цифровой инструмент, который помогает жителям <b>предлагать идеи</b>, <b>оценивать проекты</b> и <b>формировать совместное видение</b> будущего города
-</p>
+[![License](https://img.shields.io/badge/license-AGPL--3.0-2ea44f)](LICENSE)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
+![Go](https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white)
+![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+[![Tests](https://github.com/Aesterial/CityofIdeas-RSV/actions/workflows/auto-test.yml/badge.svg)](https://github.com/Aesterial/CityofIdeas-RSV/actions/workflows/auto-test.yml)
+[![Lint](https://github.com/Aesterial/CityofIdeas-RSV/actions/workflows/auto-lint.yml/badge.svg)](https://github.com/Aesterial/CityofIdeas-RSV/actions/workflows/auto-lint.yml)
 
-<p align="center">
-  <a href="#-о-проекте">О проекте</a> ·
-  <a href="#-возможности">Возможности</a> ·
-  <a href="#-архитектура">Архитектура</a> ·
-  <a href="#-быстрый-старт">Быстрый старт</a> ·
-  <a href="#-команды">Команды</a> ·
-  <a href="#-окружение--конфиг">Окружение</a> ·
-</p>
+## Overview
 
-<p align="center">
-  <a href="LICENSE">
-    <img alt="License" src="https://img.shields.io/badge/license-AGPL--3.0-2ea44f">
-  </a>
-  <a href="https://github.com/Aesterial/Website/actions">
-    <img alt="CI" src="https://img.shields.io/badge/CI-GitHub_Actions-2088FF?logo=githubactions&logoColor=white">
-  </a>
-  <a href="https://go.dev/">
-    <img alt="Go" src="https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white">
-  </a>
-  <a href="https://nextjs.org/">
-    <img alt="Next.js" src="https://img.shields.io/badge/Next.js-React-000000?logo=next.js&logoColor=white">
-  </a>
-</p>
+`CityofIdeas-RSV` is a monorepo for a city participation platform with five main parts:
 
----
+- `frontend/web/`: Next.js web application for citizens, moderators, and administrators
+- `backend/internal/`: core Go packages organized into `domain/app/infra/shared`
+- `backend/starter/`: HTTP, gRPC, and gRPC-Web bootstrap for the main backend service
+- `backend/mail-proxy/`: optional Go mail proxy service used for outbound delivery flows
+- `backend/gen/openapi/`: generated OpenAPI output for API consumers and tooling
 
-## 📚 О проекте
+## Documentation
 
-**Aesterial** — проект для участия в **J-cup.fm** по задаче:
+- [backend/starter/.env.example](backend/starter/.env.example) - local backend environment template
+- [backend/gen/openapi/openapi.yaml](backend/gen/openapi/openapi.yaml) - generated OpenAPI description
+- [backend/setup/instructions.txt](backend/setup/instructions.txt) - setup notes and helper scripts
 
-> **«ГОРОД ИДЕЙ: ИНТЕРАКТИВНАЯ КАРТА ПРЕДЛОЖЕНИЙ ЖИТЕЛЕЙ»**  
-> Решения в области развития городской среды и цифрового взаимодействия с жителями.  
-> Цель: создать современный цифровой инструмент, который позволит жителям участвовать в развитии городской среды, предлагать идеи, оценивать проекты и формировать совместное видение будущего города.
+## Current State
 
----
+### Web application
 
-## 📢 Почему опубликован
+- Public landing page with map-driven idea and project discovery
+- Suggestion submission flow with location selection and media support
+- Project pages with discussion threads, likes, and archive views
+- User account area, authentication, and support request flows
+- Admin panels for statistics, users, submissions, maintenance, support, and moderation
+- Multilingual interface with Russian, English, and Kazakh content paths in the UI
+- Built with `Next.js 16`, `React 19`, `TypeScript`, and Tailwind-based styling
 
-Проект изначально создавался для конкурса **FM:JC** (трек «Город идей»).
-Мы не прошли в финал, поэтому решили открыть исходный код публично:
+### Backend and integrations
 
-- чтобы зафиксировать и показать проделанную работу команды;
-- чтобы решения из проекта можно было изучать, переиспользовать и развивать;
-- чтобы сохранить прозрачность разработки и получить обратную связь от сообщества.
+- Layered Go backend with `domain/app/infra` separation
+- HTTP, gRPC, and gRPC-Web entrypoints exposed from `backend/starter`
+- Registered service surface for:
+  - `LoginService`
+  - `UserService`
+  - `StatisticsService`
+  - `ProjectService`
+  - `StorageService`
+  - `RanksService`
+  - `SubmissionsService`
+  - `MaintenanceService`
+  - `TicketsService`
+  - `NotificationService`
+  - `CheckerService`
+- PostgreSQL-backed persistence and checked-in SQL migration files
+- Object storage, SMTP, mail proxy, VK auth, and geocoding integration points
+- Generated protobuf and OpenAPI artifacts committed in the repository
 
----
+### Infrastructure
 
-## ✨ Возможности
+- Root `docker-compose.yml` for frontend, backend, reverse proxy, and mail-proxy build profile
+- `Caddyfile` template for TLS termination and `/api/*` reverse proxying
+- `run.bat` helper for Windows-based dependency installation and local dev startup
 
-- 🗺️ **Интерактивная карта идей**: публикация предложений с геопривязкой
-- 🧩 **Карточка предложения**: описание, фото, категории, статус, обсуждение
-- ⭐ **Оценка и поддержка**: лайки/рейтинги/голосование (в зависимости от правил)
-- 🧭 **Фильтры и поиск**: район, категории, популярность, актуальность, статус
-- 🧑‍🤝‍🧑 **Цифровое взаимодействие**: комментарии, модерация
-- 📊 **Аналитика** (по мере развития): срезы по районам/категориям, тренды, топ-идеи
-
----
-
-## 🧱 Архитектура
-
-Монорепозиторий для веба и бэкенда.
-
-- 🌐 **Web**: Next.js + React, TypeScript, SSR-ready
-  `frontend/web`
-- ⚙️ **Backend**: Go workspace (`backend/go.work`)
-  `backend/internal` (domain/app/infra/shared) + `backend/starter`
-
----
-
-## 🗂️ Структура проекта
+## Repository Layout
 
 ```text
-backend/            Go workspace (internal packages + starter entry)
-frontend/web/       Next.js app (app/, components/, public/)
-.github/            CI configuration + assets
+CityofIdeas-RSV/
+|-- frontend/
+|   |-- web/                  # Next.js app
+|   `-- reference/            # design/reference assets
+|-- backend/
+|   |-- internal/             # core Go packages, generated stubs, protobuf inputs
+|   |-- starter/              # main backend bootstrap
+|   |-- mail-proxy/           # mail proxy service
+|   |-- migrations/           # SQL schema files
+|   |-- gen/openapi/          # generated OpenAPI output
+|   `-- setup/                # environment bootstrap helpers
+|-- .github/                  # workflows and repository assets
+|-- docker-compose.yml        # deployment-oriented service stack
+|-- Caddyfile                 # reverse proxy template
+`-- run.bat                   # Windows helper for install and dev runs
 ```
 
----
+## Prerequisites
 
-## ✅ Требования
+- `Node.js` with `npm`
+- `Go 1.26`
+- `Git` with submodule support
+- `PostgreSQL` for local backend development
+- Optional S3-compatible storage and SMTP credentials for media and mail flows
+- `Docker` if you want to use the root Compose stack
 
-- **Node 20+** и **npm** (веб)
-- **Go 1.26** (бэкенд, как в `go.work`)
+## Quick Start
 
----
+1. Clone the repository:
 
-## 🚀 Быстрый старт
+   ```sh
+   git clone https://github.com/Aesterial/CityofIdeas-RSV.git
+   cd CityofIdeas-RSV
+   ```
 
-Клонирование:
+2. Initialize the protobuf dependencies:
+
+   ```sh
+   git submodule update --init --recursive backend/internal/proto/third_party/googleapis backend/internal/proto/third_party/grpc-web
+   ```
+
+3. Install web dependencies:
+
+   ```sh
+   cd frontend/web
+   npm install
+   cd ../..
+   ```
+
+4. Prepare the Go workspace and backend environment:
+
+   ```powershell
+   cd backend
+   go work sync
+   Copy-Item starter/.env.example starter/.env
+   ```
+
+   Update `backend/starter/.env` with local database credentials and any storage, SMTP, or proxy settings needed for the flows you want to exercise.
+
+5. Start the application in development mode:
+
+   Web:
+
+   ```sh
+   cd frontend/web
+   npm run dev
+   ```
+
+   Backend:
+
+   ```sh
+   cd backend/starter
+   go run .
+   ```
+
+6. Optional Windows shortcut:
+
+   ```bat
+   run.bat
+   ```
+
+   The helper script can open separate terminals for `npm install`, `go get .`, `npm run dev`, and `go run .`.
+
+## Docker Compose
+
+For the deployment-oriented stack, use the root Compose file:
+
 ```sh
-git clone https://github.com/Aesterial/Website.git
-cd Website
+docker compose up --build
 ```
+
+This stack starts:
+
+- `aesterial_frontend`: production Next.js container
+- `aesterial_backend`: backend service container
+- `caddy`: TLS termination and reverse proxy
+- `aesterial_backend_mail`: optional mail-proxy build profile
+
+Notes:
+
+- The Compose file expects external infrastructure through environment variables, including PostgreSQL and storage settings.
+- The backend container mounts `db.ca.crt` for TLS database connectivity.
+- The checked-in `Caddyfile` uses `example.com`, `www.example.com`, and `admin@example.com` placeholders and must be updated before deployment.
+
+## Development Commands
 
 ### Web
-```sh
-cd frontend/web
-npm install
-npm run dev
-```
+
+- `npm run dev` - start the Next.js dev server
+- `npm run build` - build the production bundle
+- `npm run start` - run the production server locally
+- `npm run lint` - run ESLint
+- `npm run typecheck` - run TypeScript checks
 
 ### Backend
-```sh
-cd backend
-go work sync
-```
 
----
+- `go work sync` - sync workspace modules
+- `go run .` from `backend/starter` - run the main backend service
+- `go test ./...` from `backend/internal`, `backend/starter`, or `backend/mail-proxy` - run Go tests
 
-## 🧰 Команды
+## License
 
-### Web
-- `npm run dev` — dev-сервер
-- `npm run build` — сборка
-- `npm run start` — предпросмотр сборки
-- `npm run lint` — ESLint проверки
-
-### Backend
-- `go test ./...` (внутри `backend/internal` или `backend/starter`, когда появятся тесты)
-
----
-
-## 🧪 Тестирование
-
-- Web: `npm run lint`, далее `*.spec.tsx` (Vitest/Playwright) по мере расширения покрытия
-- Backend: табличные Go-тесты рядом с пакетами (пример: `internal/app/auth/auth_test.go`)
-
----
-
-## 🔐 Окружение & конфиг
-
-- Web: `.env.local` (или `.env`) в `frontend/web` по соглашениям Next.js
-- Backend: конфигурация — в `backend/internal/infra` по мере добавления компонентов
-
----
-
-## 🧾 Git и стиль коммитов
-
-Шаблон:
-```text
-<type>(<scope>): <summary>
-```
-
-- Types: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `style`, `build`, `ci`, `perf`, `revert`
-- Scopes: `web`, `backend-<pkg>` (например `backend-app`) или `repo`
-
-Примеры:
-- `feat(web): add idea map filters`
-- `chore(backend-domain): add user repo interface`
-
-
-## 📄 Лицензия
-
-AGPL-3.0 — подробности в `LICENSE`.
-
-## 🧩 Итог
-
-Этот проект был сделан с большим количеством вложенных усилий:
-проектирование архитектуры, разработка интерфейсов, продумывание пользовательского опыта, настройка инфраструктуры и сборка монорепозитория. За время работы было написано много кода, проведено множество итераций и исправлений, чтобы система выглядела цельной и технологически аккуратной.
-
-Однако итог конкурса показал другую тенденцию: побеждают проекты, созданные в формате vibe coding — быстрые, прототипные решения, где приоритетом становится скорость идеи и демонстрация концепции, а не глубина инженерной реализации.
-
-Тем не менее, Aesterial остаётся полноценной архитектурной заготовкой для реального продукта:
-структурированный backend на Go, современный web-стек на Next.js и продуманная модель развития платформы для взаимодействия жителей и города.
-
-Работа над проектом показала, что даже если результат конкурса определяется другими критериями, вложенные инженерные усилия формируют фундамент, на котором можно строить гораздо более серьёзные системы.
+AGPL-3.0. See [LICENSE](LICENSE) for details.
