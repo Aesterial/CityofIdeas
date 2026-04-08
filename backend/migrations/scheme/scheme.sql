@@ -117,16 +117,15 @@ create index if not exists users_bans_idx on users_bans (id);
 create index if not exists users_bans_executor_idx on users_bans (executor);
 create index if not exists users_bans_target_idx on users_bans (target);
 
-create type projects_category as enum ('благоустройство', 'дороги и тротуары', 'освещение', 'детские площадки', 'парки и скверы', 'другое');
-create type projects_status as enum ('');
+create type projects_status as enum ('cancelled', 'listing', 'reviewing', 'implementing');
 
 create table if not exists projects (
     id pg_catalog.uuid primary key default pg_catalog.gen_random_uuid(),
     author pg_catalog.uuid not null references users (uid),
     title varchar(64) not null,
     description text not null,
-    category projects_category not null default 'другое',
-    status projects_status not null default 'ожидает верификации',
+    category varchar(64) not null default 'other',
+    status projects_status not null default 'reviewing',
     likes int not null default 0,
     at pg_catalog.timestamptz not null default now()
 );
@@ -145,3 +144,62 @@ create table if not exists submissions (
 
 create unique index if not exists submissions_idx on submissions (id);
 create unique index if not exists submissions_project_idx on submissions (project);
+
+create type maintenances_status as enum ('expected', 'running', 'completed');
+create type maintenances_type as enum ('emergency', 'planned');
+
+create table if not exists maintenances (
+    id pg_catalog.uuid primary key default pg_catalog.gen_random_uuid(),
+    description text not null,
+    status maintenances_status not null default 'expected',
+    type maintenances_type not null default 'planned',
+    planned_start pg_catalog.timestamptz not null,
+    planned_end pg_catalog.timestamptz,
+    actual_start pg_catalog.timestamptz,
+    actual_end pg_catalog.timestamptz,
+    created pg_catalog.timestamptz not null default now(),
+    caller pg_catalog.uuid not null references users (uid),
+
+    check (planned_end is null or planned_end > planned_start),
+    check (actual_end is null or actual_end >= actual_start)
+);
+
+create unique index maintenances_idx on maintenances (id);
+create index maintenances_caller_idx on maintenances (caller);
+
+create type tickets_status as enum ('closed', 'waiting', 'in work');
+create type tickets_caller as enum ('user', 'staff', 'system');
+
+create table if not exists tickets (
+    id pg_catalog.uuid primary key default pg_catalog.gen_random_uuid(),
+    author pg_catalog.uuid not null references users (uid) on delete cascade,
+    acceptor pg_catalog.uuid,
+    status tickets_status not null default 'waiting',
+    topic varchar(32) not null default 'other',
+    title varchar(128) not null,
+    created pg_catalog.timestamptz not null default now(),
+    accepted pg_catalog.timestamptz,
+    closed pg_catalog.timestamptz,
+    closer tickets_caller,
+    reason text,
+    check (author <> acceptor),
+    check (closer is null or closer = 'user' or reason is not null)
+);
+
+create unique index tickets_idx on tickets (id);
+create index tickets_author on tickets (author);
+create index tickets_acceptor on tickets (acceptor);
+
+create table if not exists tickets_messages (
+    id pg_catalog.uuid primary key default pg_catalog.gen_random_uuid(),
+    ticket pg_catalog.uuid not null references tickets (id) on delete cascade,
+    author pg_catalog.uuid not null references users (uid),
+    content text not null,
+    created pg_catalog.timestamptz not null default now()
+);
+
+create unique index tickets_idx on tickets_messages (id);
+create index tickets_ticket_idx on tickets_messages (ticket);
+create index tickets_author_idx on tickets_messages (author);
+
+insert into users (uid, username, email) VALUES ('00000000-0000-0000-0000-000000000001', 'system', 'system@aesterial.xyz');
