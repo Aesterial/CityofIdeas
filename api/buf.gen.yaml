@@ -3,7 +3,7 @@ version: v2
 inputs:
   - directory: .
     paths:
-      - xyz/cityideas/v1
+      - xyz/city_ideas/v1
 
 plugins:
   - local: protoc-gen-go

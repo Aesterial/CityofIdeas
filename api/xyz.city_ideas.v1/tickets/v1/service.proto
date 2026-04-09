@@ -1,0 +1,13 @@
+edition="2024";
+
+package xyz.city_ideas.v1.tickets.v1;
+
+option go_package = "github.com/aesterial/cityofideas/backend/internal/api/v1/tickets/v1;v1";
+
+import "google/protobuf/empty.proto";
+import "xyz.city_ideas.v1/types.proto";
+import "xyz.city_ideas.v1/tickets/v1/domain.proto";
+
+service TicketService {
+  rpc Create(CreateTicketRequest) returns (Ticket);
+}

@@ -41,7 +41,7 @@ func (e ErrorST) Is(err error) bool {
 }
 
 func (e ErrorST) IsErr(err error) bool {
-	return e == err
+	return stderrors.Is(err, e)
 }
 
 func (e ErrorST) WithDetails(details ...proto.Message) ErrorST {
@@ -63,28 +63,24 @@ func Wrap(err error) error {
 	if err == nil {
 		return nil
 	}
-	var appErr ErrorST
-	if stderrors.As(err, &appErr) {
+	if _, ok := stderrors.AsType[ErrorST](err); ok {
 		return err
 	}
 	return ServerError.AddErrDetails(err.Error())
 }
 
 var (
-	RecordNotFound      = ErrorST{st: status.New(codes.NotFound, "record not found"), content: "requested record not found"}
-	ParamsNotMatch      = ErrorST{st: status.New(codes.InvalidArgument, "arguments not equals with ")}
-	InvalidArguments    = ErrorST{st: status.New(codes.InvalidArgument, "invalid arguments"), content: "some argument missing"}
-	RequiredDataMissing = ErrorST{st: status.New(codes.InvalidArgument, "required data missing"), content: "some of transferred data is missing"}
-	Conflict            = ErrorST{st: status.New(codes.AlreadyExists, "data collides with exists one"), content: "conflict error"}
-	ServerError         = ErrorST{st: status.New(codes.Internal, "server error while progress"), content: "server error appeared"}
-	NotConfigured       = ErrorST{st: status.New(codes.Internal, "server error while progress"), content: "service not configured"}
-	AccessDenied        = ErrorST{st: status.New(codes.PermissionDenied, "denied"), content: "permissions denied"}
-	Unauthenticated     = ErrorST{st: status.New(codes.Unauthenticated, "failed to authorize"), content: "user unauthenticated"}
-	AlreadyUsed         = ErrorST{st: status.New(codes.AlreadyExists, "already used"), content: "data is already used"}
-	DataExpired         = ErrorST{st: status.New(codes.InvalidArgument, "passed data expired"), content: "accepted data expired"}
-	AlreadyExists       = ErrorST{st: status.New(codes.AlreadyExists, "data already exists"), content: "already exists"}
-	NotImplemented      = ErrorST{st: status.New(codes.Unimplemented, "not implemented"), content: "not implemented"}
-	Unavailable         = ErrorST{st: status.New(codes.Unavailable, "unavailable"), content: "service unavailable"}
-	Banned              = ErrorST{st: status.New(codes.PermissionDenied, "user is banned"), content: "user is banned"}
-	NeedVerify          = ErrorST{st: status.New(codes.PermissionDenied, "mfa required"), content: "mfa required"}
+	NotFound         = ErrorST{st: status.New(codes.NotFound, "record not found"), content: "requested record not found"}
+	NotMatch         = ErrorST{st: status.New(codes.InvalidArgument, "arguments not equals with ")}
+	InvalidArguments = ErrorST{st: status.New(codes.InvalidArgument, "invalid arguments"), content: "some argument missing"}
+	Conflict         = ErrorST{st: status.New(codes.AlreadyExists, "data collides with exists one"), content: "conflict error"}
+	ServerError      = ErrorST{st: status.New(codes.Internal, "server error while progress"), content: "server error appeared"}
+	NotConfigured    = ErrorST{st: status.New(codes.Unimplemented, "server error while progress"), content: "service not configured"}
+	AccessDenied     = ErrorST{st: status.New(codes.PermissionDenied, "denied"), content: "permissions denied"}
+	Unauthenticated  = ErrorST{st: status.New(codes.Unauthenticated, "failed to authorize"), content: "user unauthenticated"}
+	DataExpired      = ErrorST{st: status.New(codes.DeadlineExceeded, "passed data expired"), content: "accepted data expired"}
+	NotImplemented   = ErrorST{st: status.New(codes.Unimplemented, "not implemented"), content: "not implemented"}
+	Unavailable      = ErrorST{st: status.New(codes.Unavailable, "unavailable"), content: "service unavailable"}
+	Banned           = ErrorST{st: status.New(codes.PermissionDenied, "user is banned"), content: "user is banned"}
+	NeedVerify       = ErrorST{st: status.New(codes.PermissionDenied, "mfa required"), content: "mfa required"}
 )

@@ -4,6 +4,7 @@ create table if not exists users (
     uid pg_catalog.uuid primary key default pg_catalog.gen_random_uuid(),
     username varchar(16) not null,
     email citext not null,
+    password text not null,
     joined pg_catalog.timestamptz not null default now()
 );
 
@@ -133,6 +134,16 @@ create table if not exists projects (
 create unique index if not exists projects_idx on projects (id);
 create index if not exists projects_author_idx on projects (author);
 
+create table if not exists project_messages (
+    id pg_catalog.uuid primary key default pg_catalog.gen_random_uuid(),
+    project pg_catalog.uuid not null references projects (id) on delete cascade,
+    author pg_catalog.uuid not null references users (uid),
+    parent pg_catalog.uuid not null references project_messages (id),
+    content text not null,
+    at pg_catalog.timestamptz not null default now(),
+    deleted pg_catalog.timestamptz
+);
+
 create table if not exists submissions (
     id pg_catalog.uuid primary key default pg_catalog.gen_random_uuid(),
     project pg_catalog.uuid not null references projects (id) on delete cascade,
@@ -195,11 +206,9 @@ create table if not exists tickets_messages (
     ticket pg_catalog.uuid not null references tickets (id) on delete cascade,
     author pg_catalog.uuid not null references users (uid),
     content text not null,
-    created pg_catalog.timestamptz not null default now()
+    created pg_catalog.timestamptz not null default now(),
 );
 
 create unique index tickets_idx on tickets_messages (id);
 create index tickets_ticket_idx on tickets_messages (ticket);
 create index tickets_author_idx on tickets_messages (author);
-
-insert into users (uid, username, email) VALUES ('00000000-0000-0000-0000-000000000001', 'system', 'system@aesterial.xyz');

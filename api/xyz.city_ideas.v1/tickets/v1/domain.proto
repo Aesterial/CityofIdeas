@@ -1,0 +1,47 @@
+edition="2024";
+
+package xyz.city_ideas.v1.tickets.v1;
+
+option go_package = "github.com/aesterial/cityofideas/backend/internal/api/v1/tickets/v1;v1";
+
+import "google/protobuf/timestamp.proto";
+
+enum Status {
+  Waiting = 0;
+  Closed = 1;
+  InWork = 2;
+}
+
+enum Closer {
+  System = 0;
+  User = 1;
+  Staff = 2;
+}
+
+message Ticket {
+  string id = 1;
+  string author_id = 2;
+  string acceptor = 3;
+  Status status = 4;
+  string topic = 5;
+  string title = 6;
+  google.protobuf.Timestamp created = 7;
+  google.protobuf.Timestamp accepted = 8;
+  google.protobuf.Timestamp closed = 9;
+  Closer closer = 10;
+  string reason = 11;
+}
+
+message Message {
+  string id = 1;
+  string ticket = 2;
+  string author = 3;
+  string content = 4;
+  google.protobuf.Timestamp created = 5;
+}
+
+message CreateTicketRequest {
+  string topic = 1;
+  string title = 2;
+  string message = 3;
+}

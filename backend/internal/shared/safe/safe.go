@@ -1,7 +1,6 @@
 package safe
 
 import (
-	"Aesterial/backend/internal/infra/logger"
 	"context"
 	"errors"
 	"fmt"

@@ -1,0 +1,25 @@
+edition="2024";
+
+package xyz.city_ideas.v1.user.v1;
+
+option go_package = "github.com/aesterial/cityofideas/backend/internal/api/v1/user/v1;v1";
+
+import "google/protobuf/timestamp.proto";
+
+message UserPreferences {
+  string description = 1;
+  string display_name = 2;
+  string avatar = 3;
+}
+
+message PublicUser {
+  string id = 1;
+  string username = 2;
+  google.protobuf.Timestamp joined = 3;
+  UserPreferences prefs = 4;
+}
+
+message PrivateUser {
+  PublicUser info = 1;
+  int32 session_live = 2;
+}

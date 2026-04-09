@@ -1,0 +1,15 @@
+edition="2024";
+
+package xyz.city_ideas.v1.user.v1;
+
+option go_package = "github.com/aesterial/cityofideas/backend/internal/api/v1/user/v1;v1";
+
+import "google/protobuf/empty.proto";
+
+import "xyz.city_ideas.v1/types.proto";
+import "xyz.city_ideas.v1/user/v1/domain.proto";
+
+service UserService {
+  rpc Info(xyz.city_ideas.v1.RequestWithValue) returns (xyz.city_ideas.v1.user.v1.PublicUser);
+  rpc Self(google.protobuf.Empty) returns (xyz.city_ideas.v1.user.v1.PrivateUser);
+}
