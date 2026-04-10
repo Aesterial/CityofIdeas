@@ -14,7 +14,7 @@ create table if not exists users_preferences (
     owner pg_catalog.uuid not null references users (uid) on delete cascade,
     display_name varchar(32) not null default '',
     description varchar(256) not null default '',
-    avatar_hash text not null,
+    avatar_hash text,
     session_live int not null default 7,
     unique (owner)
 );
@@ -45,7 +45,7 @@ create table if not exists users_security_codes (
 
 create index if not exists users_security_codes_owner_idx on users_security_codes (owner);
 
-create type oauth_service as enum ('vk');
+create type oauth_service as enum ('vk', 'tg');
 
 create table if not exists users_oauth (
     owner pg_catalog.uuid not null references users (uid) on delete cascade,
