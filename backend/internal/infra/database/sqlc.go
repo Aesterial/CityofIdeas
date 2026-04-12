@@ -1,3 +1,3 @@
 package database
 
-//go:generate sqlc ../../../sqlc.yaml
+//go:generate sqlc generate -f ../../../sqlc.yaml

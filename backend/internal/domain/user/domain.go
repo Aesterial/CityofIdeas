@@ -61,7 +61,7 @@ type SecurityTotp struct {
 	TotpConfirmed *time.Time
 	TotpPending   *string
 	TotpPendingCR *time.Time
-	TotpLastStep  int64
+	TotpLastStep  *int64
 }
 
 type Security struct {
