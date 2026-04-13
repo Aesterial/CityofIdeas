@@ -53,7 +53,7 @@ type Preferences struct {
 	DisplayName     string
 	Description     string
 	Avatar          *string
-	SessionLiveTime int
+	SessionLiveTime int32
 }
 
 type SecurityTotp struct {

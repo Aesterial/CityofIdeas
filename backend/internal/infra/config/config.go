@@ -49,6 +49,7 @@ func Ensure() error {
 		Database: configdomain.Database{
 			Host:     parseType("POSTGRES_HOST", "127.0.0.1"),
 			Port:     parseType("POSTGRES_PORT", "5432"),
+			Name:     parseType("POSTGRES_NAME", "postgres"),
 			TlsMode:  configdomain.ParseTls(parseType("POSTGRES_TLS", "require")),
 			User:     parseType("POSTGRES_USER", "postgres"),
 			Password: parseType("POSTGRES_PASSWORD", "postgres"),

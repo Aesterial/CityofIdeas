@@ -10,7 +10,7 @@ type Repository interface {
 	Create(ctx context.Context, username string, email string, passHash string) (*User, error)
 	User(ctx context.Context, user domain.UUID) (*User, error)
 	UserPassword(ctx context.Context, email string) (string, error)
-	List(ctx context.Context, limit int, offset int) (Users, error)
+	List(ctx context.Context, limit int32, offset int32) (Users, error)
 	Preferences(ctx context.Context, user domain.UUID) (*Preferences, error)
 	UpdatePreferences(ctx context.Context, user domain.UUID, prefs Preferences) (*Preferences, error)
 	UpdatePassword(ctx context.Context, user domain.UUID, passHash string) error

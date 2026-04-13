@@ -43,6 +43,7 @@ func (t TlsMode) IsValid() bool {
 type Database struct {
 	Host     string
 	Port     string
+	Name     string
 	TlsMode  TlsMode
 	User     string
 	Password string
