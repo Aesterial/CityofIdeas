@@ -7,13 +7,20 @@ import { PageLoader } from "@/components/page-loader";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import type { Metadata } from "next";
-import { Days_One } from "next/font/google";
+import { Days_One, Geist_Mono } from "next/font/google";
 import type React from "react";
 import "./globals.css";
 
 const daysOne = Days_One({
-  weight: "400",
   subsets: ["latin"],
+  variable: "--font-geist-sans",
+  display: "swap",
+  weight: "400",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-geist-mono",
   display: "swap",
 });
 
@@ -29,7 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru" suppressHydrationWarning>
-      <body className={`${daysOne.className} antialiased`}>
+      <body className={`${daysOne.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

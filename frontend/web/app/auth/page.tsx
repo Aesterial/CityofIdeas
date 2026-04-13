@@ -270,12 +270,12 @@ export default function AuthPage() {
           transition={{ duration: 0.6 }}
         >
           <motion.div
-            className="mb-8 sm:mb-12"
+            className="mb-8 flex justify-center sm:mb-12"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <Link href="/">
+            <Link href="/" className="inline-flex justify-center">
               <Logo className="h-12 w-12 sm:h-16 sm:w-16" showText={false} />
             </Link>
           </motion.div>
@@ -651,50 +651,6 @@ export default function AuthPage() {
           </motion.div>
         </motion.div>
       </div>
-
-      <motion.div
-        className="hidden lg:flex flex-1 bg-foreground items-center justify-center relative overflow-hidden"
-        initial={{ opacity: 0, x: 100 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.8, delay: 0.2 }}
-      >
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-64 h-64 border border-background rounded-full" />
-          <div className="absolute bottom-20 right-20 w-96 h-96 border border-background rounded-full" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-background rounded-full" />
-        </div>
-
-        <div className="relative z-10 text-center text-background px-12">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-          >
-            <Logo
-              className="h-24 w-24 mx-auto mb-8 text-background"
-              showText={false}
-            />
-          </motion.div>
-
-          <motion.h2
-            className="text-3xl font-bold mb-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
-          >
-            {t("cityOfIdeas")}
-          </motion.h2>
-
-          <motion.p
-            className="text-lg opacity-80 max-w-md"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.7 }}
-          >
-            {t("heroSubtitle")}
-          </motion.p>
-        </div>
-      </motion.div>
       <AnimatePresence>
         {showWelcome ? (
           <motion.div

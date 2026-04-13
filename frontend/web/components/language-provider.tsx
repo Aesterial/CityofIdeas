@@ -57,9 +57,9 @@ export const translations: Translations = {
     KZ: "Бастау",
   },
   mostPopularIdeas: {
-    RU: "самые популярные идеи",
-    EN: "most popular ideas",
-    KZ: "ең танымал идеялар",
+    RU: "Самые популярные идеи",
+    EN: "Most popular ideas",
+    KZ: "Ең танымал идеялар",
   },
   vote: {
     RU: "Голосовать",
