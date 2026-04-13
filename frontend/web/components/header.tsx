@@ -437,22 +437,21 @@ export function Header() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
-                    align="end"
-                    className="w-[120px] rounded-2xl border-border/70 p-1"
+                    align="center"
+                    sideOffset={10}
+                    className="min-w-[88px] rounded-2xl border-border/70 p-1"
                   >
-                    {languages.map((item) => (
+                    {languages
+                      .filter((item) => item.code !== language)
+                      .map((item) => (
                       <DropdownMenuItem
                         key={item.code}
                         onSelect={() => setLanguage(item.code)}
-                        className={cn(
-                          "rounded-xl",
-                          language === item.code &&
-                            "bg-foreground text-background focus:bg-foreground focus:text-background",
-                        )}
+                        className="justify-center rounded-xl"
                       >
                         {item.label}
                       </DropdownMenuItem>
-                    ))}
+                      ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
