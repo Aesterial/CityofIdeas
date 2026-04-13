@@ -58,6 +58,36 @@ const heroWords = {
   KZ: ["шешімдер", "жобалар", "өзгерістер"],
 } as const;
 
+const featureDescriptions = {
+  RU: {
+    vote:
+      "\u0412\u044B\u0431\u0438\u0440\u0430\u0439\u0442\u0435 \u0438\u0434\u0435\u0438, \u043A\u043E\u0442\u043E\u0440\u044B\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0442\u0435\u043B\u044C\u043D\u043E \u0432\u0430\u0436\u043D\u044B \u0434\u043B\u044F \u0433\u043E\u0440\u043E\u0434\u0430",
+    map:
+      "\u041E\u0442\u043A\u0440\u044B\u0432\u0430\u0439\u0442\u0435 \u0438\u043D\u0438\u0446\u0438\u0430\u0442\u0438\u0432\u044B \u043F\u0440\u044F\u043C\u043E \u0432 \u043A\u043E\u043D\u0442\u0435\u043A\u0441\u0442\u0435 \u0440\u0430\u0439\u043E\u043D\u0430",
+    suggest:
+      "\u0417\u0430\u043F\u0443\u0441\u043A\u0430\u0439\u0442\u0435 \u043D\u043E\u0432\u044B\u0435 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0434\u043B\u044F \u0433\u043E\u0440\u043E\u0434\u0441\u043A\u043E\u0439 \u0441\u0440\u0435\u0434\u044B",
+  },
+  EN: {
+    vote: "Back the ideas that matter most for the city",
+    map: "Explore initiatives directly in their neighborhood context",
+    suggest: "Launch new improvements for the urban environment",
+  },
+  KZ: {
+    vote:
+      "\u049A\u0430\u043B\u0430 \u04AF\u0448\u0456\u043D \u0435\u04A3 \u043C\u0430\u04A3\u044B\u0437\u0434\u044B \u0438\u0434\u0435\u044F\u043B\u0430\u0440\u0434\u044B \u049B\u043E\u043B\u0434\u0430\u04A3\u044B\u0437",
+    map:
+      "\u0411\u0430\u0441\u0442\u0430\u043C\u0430\u043B\u0430\u0440\u0434\u044B \u0430\u0443\u0434\u0430\u043D \u043A\u043E\u043D\u0442\u0435\u043A\u0441\u0456\u043D\u0434\u0435 \u0442\u0456\u043A\u0435\u043B\u0435\u0439 \u043A\u04E9\u0440\u0456\u04A3\u0456\u0437",
+    suggest:
+      "\u049A\u0430\u043B\u0430\u043B\u044B\u049B \u043E\u0440\u0442\u0430 \u04AF\u0448\u0456\u043D \u0436\u0430\u04A3\u0430 \u04E9\u0437\u0433\u0435\u0440\u0456\u0441\u0442\u0435\u0440\u0434\u0456 \u04B1\u0441\u044B\u043D\u044B\u04A3\u044B\u0437",
+  },
+} as const;
+
+const mapOverlayPrompt = {
+  RU: "\u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u0442\u043E\u0447\u043A\u0443 \u043D\u0430 \u043A\u0430\u0440\u0442\u0435",
+  EN: "Select a point on the map",
+  KZ: "\u041A\u0430\u0440\u0442\u0430\u0434\u0430\u043D \u043D\u04AF\u043A\u0442\u0435 \u0442\u0430\u04A3\u0434\u0430\u04A3\u044B\u0437",
+} as const;
+
 const glowStyle = {
   "--glow-x": "50%",
   "--glow-y": "50%",
@@ -250,6 +280,7 @@ export default function HomePage() {
   }, [resolvedLocation, selectedCoordinates, selectedProject, t]);
 
   const startHref = status === "authenticated" ? "/suggest" : "/auth";
+  const hasSelectedProject = Boolean(selectedSummary);
 
   const metricItems = [
     { label: t("ideas"), value: mapMarkers.length || MAP_LIMIT },
@@ -261,17 +292,17 @@ export default function HomePage() {
     {
       icon: Users,
       title: t("vote"),
-      description: t("mostPopularIdeas"),
+      description: featureDescriptions[language].vote,
     },
     {
       icon: MapPin,
       title: t("markOnMap"),
-      description: t("clickMapToMark"),
+      description: featureDescriptions[language].map,
     },
     {
       icon: CheckCircle2,
       title: t("suggestIdea"),
-      description: t("describeIssue"),
+      description: featureDescriptions[language].suggest,
     },
   ];
 
@@ -293,13 +324,6 @@ export default function HomePage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.45 }}
               >
-                <Badge
-                  variant="outline"
-                  className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.24em]"
-                >
-                  <Sparkles className="h-3.5 w-3.5" />
-                  {selectedCity}
-                </Badge>
 
                 <h1 className="mt-6 text-5xl leading-[0.94] tracking-[-0.06em] sm:text-6xl lg:text-7xl">
                   <span className="block font-semibold">{heroLead[language]}</span>
@@ -363,7 +387,7 @@ export default function HomePage() {
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.08 }}
-                className="space-y-5"
+                className="relative"
               >
                 <MapLibreMap
                   center={mapCenter}
@@ -374,67 +398,72 @@ export default function HomePage() {
                   }}
                 />
 
-                <motion.div
-                  style={glowStyle}
-                  onMouseMove={updateGlow}
-                  onMouseLeave={resetGlow}
-                  whileHover={{ y: -4 }}
-                  className={`${surfaceClass} group rounded-[2.2rem] before:pointer-events-none before:absolute before:inset-0 before:rounded-[2.2rem] before:bg-[radial-gradient(420px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.16),transparent_44%)] before:opacity-0 before:transition-opacity before:duration-300 group-hover:before:opacity-100 dark:before:bg-[radial-gradient(420px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.09),transparent_44%)]`}
-                >
-                  <div className="relative grid gap-6 p-6 lg:grid-cols-[0.9fr_1.1fr]">
-                    <div className="space-y-3">
-                      <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
-                        {t("mapProjectDetailsTitle")}
-                      </p>
-                      <h2 className="text-2xl font-semibold tracking-[-0.04em] sm:text-3xl">
-                        {selectedSummary?.title || t("mapProjectSelectPrompt")}
-                      </h2>
-                      <p className="text-sm leading-6 text-muted-foreground">
-                        {selectedSummary?.description || t("mapProjectNoDescription")}
-                      </p>
-                    </div>
-
-                    <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
-                      <div>
+                <div className="pointer-events-none absolute inset-x-4 bottom-4 z-30 sm:left-5 sm:right-auto sm:bottom-5">
+                  <motion.div
+                    key={selectedSummary?.href ?? selectedSummary?.title ?? "map-overlay"}
+                    initial={{ opacity: 0, y: 22 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+                    style={glowStyle}
+                    onMouseMove={updateGlow}
+                    onMouseLeave={resetGlow}
+                    className={`${surfaceClass} group pointer-events-auto w-full max-w-[18rem] rounded-[1.35rem] bg-background/78 before:pointer-events-none before:absolute before:inset-0 before:rounded-[1.35rem] before:bg-[radial-gradient(220px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.14),transparent_44%)] before:opacity-0 before:transition-opacity before:duration-300 group-hover:before:opacity-100 sm:w-[17.5rem] dark:bg-background/68 dark:before:bg-[radial-gradient(220px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.08),transparent_44%)]`}
+                  >
+                    <div className="relative space-y-2.5 p-3.5 sm:p-4">
+                      <div className="flex items-center justify-between gap-3">
                         <p className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
-                          {resolvedLocationLoading
-                            ? t("locationResolving")
-                            : t("projectCityLabel")}
+                          {t("mapProjectDetailsTitle")}
                         </p>
-                        <p className="mt-2 text-base font-semibold leading-6">
-                          {selectedSummary?.address || t("mapProjectSelectPrompt")}
-                        </p>
+                        <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/70 px-2 py-1 text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
+                          <TrendingUp className="h-3.5 w-3.5" />
+                          {mapLoading ? t("mapProjectsLoading") : `${mapMarkers.length || MAP_LIMIT}`}
+                        </span>
                       </div>
-                      <div className="flex flex-wrap gap-2 sm:justify-end">
+
+                      <div className="space-y-1.5">
+                        <h2 className="line-clamp-2 text-base font-semibold leading-5 tracking-[-0.04em] sm:text-[1.05rem]">
+                          {selectedSummary?.title || mapOverlayPrompt[language]}
+                        </h2>
+                        {selectedSummary?.description ? (
+                          <p className="line-clamp-1 text-xs leading-4 text-muted-foreground">
+                            {selectedSummary.description}
+                          </p>
+                        ) : null}
+                      </div>
+
+                      {hasSelectedProject ? (
+                        <div className="space-y-1">
+                          <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
+                            {resolvedLocationLoading
+                              ? t("locationResolving")
+                              : t("projectCityLabel")}
+                          </p>
+                          <p className="line-clamp-1 text-xs font-semibold leading-4">
+                            {selectedSummary?.address}
+                          </p>
+                        </div>
+                      ) : null}
+
+                      <div className="flex flex-wrap gap-1.5">
+                        {selectedSummary?.href ? (
+                          <Button asChild className="h-8 rounded-full px-3 text-xs">
+                            <Link href={selectedSummary.href}>Open project</Link>
+                          </Button>
+                        ) : null}
                         {selectedCoordinates ? (
                           <a
                             href={build2GisLink(selectedCoordinates)}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-2 rounded-full border border-border/70 px-4 py-2 text-sm text-foreground transition hover:bg-muted"
+                            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border/70 bg-background/72 px-3 text-xs text-foreground transition hover:bg-muted"
                           >
                             {t("openIn2Gis")}
                           </a>
                         ) : null}
-                        {selectedSummary?.href ? (
-                          <Button asChild variant="outline" className="rounded-full">
-                            <Link href={selectedSummary.href}>Open project</Link>
-                          </Button>
-                        ) : null}
                       </div>
                     </div>
-
-                    <div className="lg:col-span-2 flex items-center justify-between border-t border-border/70 pt-4 text-sm text-muted-foreground">
-                      <span>
-                        {mapLoading ? t("mapProjectsLoading") : t("mostPopularIdeas")}
-                      </span>
-                      <span className="inline-flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4" />
-                        {mapMarkers.length || MAP_LIMIT}
-                      </span>
-                    </div>
-                  </div>
-                </motion.div>
+                  </motion.div>
+                </div>
               </motion.div>
             </div>
           </div>
