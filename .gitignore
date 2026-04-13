@@ -49,3 +49,5 @@ generated/
 *.crt
 /certs
 .zed/
+.agents/
+.codex/

@@ -8,12 +8,25 @@ import {
   type CSSProperties,
   type MouseEvent,
 } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  MapPin,
+  Sparkles,
+  TrendingUp,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { Header } from "@/components/header";
-import { GradientButton } from "@/components/gradient-button";
+import { Logo } from "@/components/logo";
+import { TextMorph } from "@/components/forgeui/text-morph";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { MapLibreMap, type MapMarker } from "@/components/maplibre-map";
+import { useAuth } from "@/components/auth-provider";
 import { useLanguage } from "@/components/language-provider";
+import { useReverseGeocode } from "@/hooks/use-reverse-geocode";
 import { fetchTopProjects, type ApiProject } from "@/lib/api";
 import {
   CITY_CHANGE_EVENT,
@@ -28,216 +41,116 @@ import {
   formatCoordinates,
   resolveCoordinates,
 } from "@/lib/location";
-import {
-  ArrowRight,
-  Bell,
-  CheckCircle2,
-  Lightbulb,
-  MapPin,
-  TrendingUp,
-  Users,
-} from "lucide-react";
-import type { Variants } from "framer-motion";
-import { Logo } from "@/components/logo";
-import { useAuth } from "@/components/auth-provider";
-import { useReverseGeocode } from "@/hooks/use-reverse-geocode";
 
-const art = String.raw`⠀⠀⠀⠀⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣶⣤⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⣿⠛⠻⢷⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡇⠀⠈⠛⠷⣤⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⣿⡄⠀⠀⠈⠻⣦⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠘⣧⠀⢀⣄⡀⠈⠻⢦⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠘⣧⠀⢀⡀⠀⠈⠙⢷⣄⠀⠀⠀⠀⠀⠀⠀⢸⡿⢿⡀⠘⡏⠛⢦⠀⠀⠙⢷⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⢹⣇⢸⡏⠳⣄⠀⢺⡿⣦⡀⣀⣤⡶⠾⠛⠛⠻⡄⠙⠀⣸⡄⠈⠳⡄⠀⠈⠻⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⢻⡄⢳⡀⢈⣷⠀⠻⠀⠉⠁⠀⠀⠀⠀⠀⠀⠀⡄⠀⠀⠉⠳⢤⣻⡀⠀⠀⠹⣧⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠈⣧⠀⣷⠟⠁⠀⠚⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⢷⡄⠀⠀⠘⣧⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⢺⣯⣾⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⣧⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⣸⡏⠙⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣆⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⢠⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⣾⠁⢀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⡇⠀⠀⠀⠀
-⠀⠀⠀⣸⡇⠀⢺⣆⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠀⠀⠀⠀⠀⢸⡇⠀⠀⠀⠀
-⢀⣠⣿⢿⡁⠀⠀⢻⣶⣤⣄⣀⣤⣴⡿⠂⠀⠀⠀⠀⠀⠀⢴⣦⣀⠀⠀⠀⢀⣠⣴⡛⠁⠀⠀⠀⠀⢸⡇⠀⠀⠀⠀
-⢸⣍⠙⠓⠉⠀⠀⣸⡆⠈⠉⠉⣻⡄⠀⠀⠀⣶⠦⣤⣄⠀⠀⠉⠙⣿⠛⠛⠉⠁⣠⡇⠀⠀⠀⠀⣤⣿⣧⠀⠀⠀⠀
-⠀⠙⢷⣦⡀⠀⢹⡇⠀⠀⠀⣰⠿⠁⠀⠀⠀⠛⢶⠛⠁⠀⠀⠀⠰⣟⡀⠀⠀⠰⣇⠀⠀⠀⠀⠀⢀⣴⡏⠀⠀⠀⠀
-⠀⠀⠀⠘⢧⣀⡞⠋⠀⠀⠰⡇⠀⠀⠀⠀⠀⣴⠿⠦⠀⠀⠀⠀⠀⣸⠇⠀⠀⢀⡿⠃⠀⠀⢀⣀⣀⣼⠇⠀⠀⠀⠀
-⠀⠀⠀⠀⠈⠻⢧⣀⠠⢤⡾⠛⠀⠀⠀⠀⠀⠀⠀⠀⡞⠛⠳⢦⡈⣧⠀⠀⠀⠘⢦⡀⠀⣠⡾⠛⠋⠁⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠙⠻⢾⣆⡀⠀⠀⠀⠀⠀⠀⠀⠀⣇⠀⠀⠀⠹⣎⣆⠀⢀⣢⣼⡷⠞⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢙⡿⠶⠦⣤⡀⠀⠀⠀⢹⣄⠀⠀⠀⠈⢻⡿⣿⡉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⠏⠀⠀⢀⡆⠀⠀⠀⠀⠀⠹⣆⠀⠀⠀⠀⠹⣮⠻⣦⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⣠⡾⠁⠀⠀⠀⣾⠁⠀⠀⠀⠀⠀⠀⠘⢧⡀⠀⠀⠀⠀⠀⣿⠀⠀⠀⠀⠀⠀⠀⣀⣶⠿⢷⣤
-⠀⠀⠀⠀⠀⠀⠀⠀⡟⠀⠀⣀⣤⢾⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠲⢤⣤⣤⡾⠋⠀⠀⠀⠀⠀⢀⣾⠏⠀⠀⢀⣿
-⠀⠀⠀⠀⠀⠀⠀⠀⠻⠖⠛⠋⠀⣼⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣧⠀⠀⠀⠀⠀⠀⣴⠟⠁⠀⠀⣠⡾⠃
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⠀⠀⠀⢀⣰⠾⠁⠀⣀⣤⠾⠋⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⡦⠶⠾⣛⣁⣤⠶⠟⠋⠁⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⠀⠀⣀⣤⣤⣤⡤⠤⠤⠤⣤⣤⣄⣀⠀⢾⡶⠶⠛⠛⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⡏⠀⠀⣸⡏⠀⠀⠀⠀⠀⠀⠀⠀⢷⡀⠀⢸⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣷⠀⢠⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠸⣧⠀⣸⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⠻⠛⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⠿⠟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀`;
-
-const lines = art.split("\n");
-const n = Math.max(lines.length - 1, 1);
-
-for (let i = 0; i < lines.length; i++) {
-  const hue = Math.round((i / n) * 360);
-  const style = [
-    `color: hsl(${hue} 95% 70%)`,
-    `background: #05060a`,
-    `font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace`,
-    `font-size: 12px`,
-    `line-height: 12px`,
-    `white-space: pre`,
-    `text-shadow: 0 0 10px hsla(${hue}, 95%, 70%, .55), 0 0 2px hsla(${hue}, 95%, 70%, .9)`,
-    `padding: 0 6px`,
-  ].join("; ");
-  console.log(`%c${lines[i]}`, style);
-}
-
-const easeOut: [number, number, number, number] = [0.16, 1, 0.3, 1];
-
-export const containerVariants: Variants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.45,
-      ease: easeOut,
-      when: "beforeChildren",
-      staggerChildren: 0.08,
-    },
-  },
-};
-
-export const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.1,
-      ease: easeOut,
-    },
-  },
-};
-
-type PopularIdea = {
-  rank: number;
-  address: string;
-};
-
-const POPULAR_IDEAS_LIMIT = 3;
-const FALLBACK_ADDRESS = "/";
-
-const getPopularAddress = (project?: ApiProject | null) => {
-  if (!project) {
-    return FALLBACK_ADDRESS;
-  }
-  const info = project.details ?? project.info ?? null;
-  const location = info?.location ?? null;
-  const addressParts = [
-    location?.street?.trim(),
-    location?.house?.trim(),
-  ].filter((part): part is string => Boolean(part));
-  if (addressParts.length) {
-    return addressParts.join(" ");
-  }
-  const title = info?.title?.trim();
-  return title || FALLBACK_ADDRESS;
-};
-
-const MAP_PROJECTS_LIMIT = 12;
+const POPULAR_LIMIT = 3;
+const MAP_LIMIT = 12;
 const COORDINATE_JITTER_RANGE = 0.04;
 
-const hashSeed = (value: string) => {
-  let hash = 0;
-  for (let i = 0; i < value.length; i += 1) {
-    hash = (hash * 31 + value.charCodeAt(i)) >>> 0;
-  }
-  return hash;
+const heroLead = {
+  RU: "Предлагайте",
+  EN: "Shape",
+  KZ: "Ұсыныңыз",
+} as const;
+
+const heroWords = {
+  RU: ["решения", "проекты", "изменения"],
+  EN: ["solutions", "projects", "changes"],
+  KZ: ["шешімдер", "жобалар", "өзгерістер"],
+} as const;
+
+const glowStyle = {
+  "--glow-x": "50%",
+  "--glow-y": "50%",
+} as CSSProperties;
+
+const updateGlow = (event: MouseEvent<HTMLDivElement>) => {
+  const rect = event.currentTarget.getBoundingClientRect();
+  event.currentTarget.style.setProperty(
+    "--glow-x",
+    `${event.clientX - rect.left}px`,
+  );
+  event.currentTarget.style.setProperty(
+    "--glow-y",
+    `${event.clientY - rect.top}px`,
+  );
 };
 
-const applyCoordinateJitter = (
-  center: [number, number],
-  seed: string,
-): [number, number] => {
-  if (!seed) {
-    return center;
-  }
-  const hash = hashSeed(seed);
-  const offsetLng = ((hash % 1000) / 1000 - 0.5) * COORDINATE_JITTER_RANGE;
-  const offsetLat =
-    (((hash >> 10) % 1000) / 1000 - 0.5) * COORDINATE_JITTER_RANGE;
-  return [center[0] + offsetLng, center[1] + offsetLat];
+const resetGlow = (event: MouseEvent<HTMLDivElement>) => {
+  event.currentTarget.style.setProperty("--glow-x", "50%");
+  event.currentTarget.style.setProperty("--glow-y", "50%");
 };
 
 const getProjectInfo = (project?: ApiProject | null) =>
   project?.details ?? project?.info ?? null;
 
-const cardGlowStyle = {
-  "--x": "50%",
-  "--y": "50%",
-} as CSSProperties;
-
-const updateCardGlow = (event: MouseEvent<HTMLDivElement>) => {
-  const rect = event.currentTarget.getBoundingClientRect();
-  const x = event.clientX - rect.left;
-  const y = event.clientY - rect.top;
-  event.currentTarget.style.setProperty("--x", `${x}px`);
-  event.currentTarget.style.setProperty("--y", `${y}px`);
+const getProjectAddress = (project?: ApiProject | null) => {
+  if (!project) return "/";
+  const info = getProjectInfo(project);
+  const location = info?.location ?? null;
+  const addressParts = [location?.street?.trim(), location?.house?.trim()].filter(
+    (part): part is string => Boolean(part),
+  );
+  if (addressParts.length) return addressParts.join(" ");
+  return info?.title?.trim() || "/";
 };
 
-const resetCardGlow = (event: MouseEvent<HTMLDivElement>) => {
-  event.currentTarget.style.setProperty("--x", "50%");
-  event.currentTarget.style.setProperty("--y", "50%");
+const hashSeed = (value: string) => {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+  return hash;
 };
+
+const applyCoordinateJitter = (center: [number, number], seed: string) => {
+  const hash = hashSeed(seed);
+  const offsetLng = ((hash % 1000) / 1000 - 0.5) * COORDINATE_JITTER_RANGE;
+  const offsetLat =
+    (((hash >> 10) % 1000) / 1000 - 0.5) * COORDINATE_JITTER_RANGE;
+  return [center[0] + offsetLng, center[1] + offsetLat] as [number, number];
+};
+
+const surfaceClass =
+  "relative overflow-hidden border border-border/70 bg-card/82 shadow-[0_30px_80px_-48px_rgba(0,0,0,0.48)] backdrop-blur-xl";
 
 export default function HomePage() {
-  const [popularIdeas, setPopularIdeas] = useState<PopularIdea[]>([]);
-  const [popularLoading, setPopularLoading] = useState(true);
+  const [popularProjects, setPopularProjects] = useState<ApiProject[]>([]);
   const [mapMarkers, setMapMarkers] = useState<MapMarker[]>([]);
+  const [popularLoading, setPopularLoading] = useState(true);
   const [mapLoading, setMapLoading] = useState(true);
-  const [selectedProject, setSelectedProject] = useState<ApiProject | null>(
-    null,
-  );
+  const [selectedProject, setSelectedProject] = useState<ApiProject | null>(null);
   const [selectedCoordinates, setSelectedCoordinates] = useState<
     [number, number] | null
   >(null);
   const [selectedCity, setSelectedCity] = useState<City>(getStoredCity());
-  const projectDetailsCacheRef = useRef(new Map<string, ApiProject>());
+  const cacheRef = useRef(new Map<string, ApiProject>());
+  const { language, t } = useLanguage();
+  const { status } = useAuth();
   const { label: resolvedLocation, loading: resolvedLocationLoading } =
     useReverseGeocode(selectedCoordinates);
-  const { t } = useLanguage();
-  const { status } = useAuth();
-  const currentYear = new Date().getFullYear();
+
   const mapCenter = useMemo(
     () => resolveCityCenter(selectedCity),
     [selectedCity],
   );
-  const startHref = status === "authenticated" ? "/voting" : "/auth";
 
   useEffect(() => {
     setSelectedCity(getStoredCity());
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return () => {};
-    }
+    if (typeof window === "undefined") return;
 
     const handleCityChange = (event: Event) => {
       const payload = event as CustomEvent<{ city?: string }>;
       const nextCity = resolveCity(payload.detail?.city);
-      if (nextCity) {
-        setSelectedCity(nextCity);
-      }
+      if (nextCity) setSelectedCity(nextCity);
     };
 
     const handleStorage = (event: StorageEvent) => {
-      if (event.key !== CITY_STORAGE_KEY) {
-        return;
-      }
+      if (event.key !== CITY_STORAGE_KEY) return;
       const nextCity = resolveCity(event.newValue);
-      if (nextCity) {
-        setSelectedCity(nextCity);
-      }
+      if (nextCity) setSelectedCity(nextCity);
     };
 
     window.addEventListener(
@@ -256,74 +169,50 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    if (!selectedCity) {
-      return;
-    }
     const controller = new AbortController();
     setPopularLoading(true);
     setMapLoading(true);
     setSelectedProject(null);
     setSelectedCoordinates(null);
-    projectDetailsCacheRef.current.clear();
+    cacheRef.current.clear();
 
-    const loadTopProjects = async () => {
+    const loadProjects = async () => {
       try {
         const projects = await fetchTopProjects({
-          limit: MAP_PROJECTS_LIMIT,
+          limit: MAP_LIMIT,
           city: selectedCity,
           signal: controller.signal,
         });
-        if (controller.signal.aborted) {
-          return;
-        }
-        const mapped = projects
-          .slice(0, POPULAR_IDEAS_LIMIT)
-          .map((project, index) => ({
-            rank: index + 1,
-            address: getPopularAddress(project),
-          }));
-        setPopularIdeas(mapped);
+        if (controller.signal.aborted) return;
 
-        const markers: MapMarker[] = projects.flatMap((project) => {
+        setPopularProjects(projects.slice(0, POPULAR_LIMIT));
+        setSelectedProject(projects[0] ?? null);
+
+        const markers = projects.flatMap((project) => {
           const info = getProjectInfo(project);
           const id = project.id?.toString();
-
           if (!id) return [];
 
-          const center = resolveCityCenter(selectedCity);
-          const location = info?.location as
-            | Record<string, unknown>
-            | undefined;
-
           const coordinates =
-            resolveCoordinates(location ?? null) ??
-            applyCoordinateJitter(center, id);
+            resolveCoordinates(info?.location ?? null) ??
+            applyCoordinateJitter(resolveCityCenter(selectedCity), id);
 
-          const marker: MapMarker = {
-            id,
-            coordinates,
-            title: info?.title?.trim() || getPopularAddress(project),
-          };
+          cacheRef.current.set(id, project);
 
-          const trimmedDescription = info?.description?.trim();
-          if (trimmedDescription) {
-            marker.description = trimmedDescription;
-          }
-
-          return [marker];
+          return [
+            {
+              id,
+              coordinates,
+              title: info?.title?.trim() || getProjectAddress(project),
+              description: info?.description?.trim(),
+            },
+          ];
         });
 
         setMapMarkers(markers);
-        projects.forEach((project) => {
-          const id = project.id?.toString();
-          if (id) {
-            projectDetailsCacheRef.current.set(id, project);
-          }
-        });
-        setSelectedProject(projects[0] ?? null);
       } catch {
         if (!controller.signal.aborted) {
-          setPopularIdeas([]);
+          setPopularProjects([]);
           setMapMarkers([]);
           setSelectedProject(null);
         }
@@ -335,539 +224,349 @@ export default function HomePage() {
       }
     };
 
-    void loadTopProjects();
-
+    void loadProjects();
     return () => controller.abort();
   }, [selectedCity]);
 
-  const handleMarkerClick = (marker: MapMarker) => {
-    const cached = projectDetailsCacheRef.current.get(marker.id) ?? null;
-    setSelectedProject(cached);
-  };
-
-  const selectedProjectSummary = useMemo(() => {
-    if (!selectedProject) {
-      return null;
-    }
+  useEffect(() => {
     const info = getProjectInfo(selectedProject);
-    const coordsLabel = selectedCoordinates
-      ? formatCoordinates(selectedCoordinates)
-      : "";
+    setSelectedCoordinates(resolveCoordinates(info?.location ?? null));
+  }, [selectedProject]);
+
+  const selectedSummary = useMemo(() => {
+    if (!selectedProject) return null;
+    const info = getProjectInfo(selectedProject);
     return {
-      title: info?.title?.trim() || getPopularAddress(selectedProject),
+      title: info?.title?.trim() || getProjectAddress(selectedProject),
       description: info?.description?.trim() || t("mapProjectNoDescription"),
       address:
-        resolvedLocation || coordsLabel || getPopularAddress(selectedProject),
+        resolvedLocation ||
+        (selectedCoordinates ? formatCoordinates(selectedCoordinates) : "") ||
+        getProjectAddress(selectedProject),
+      href: selectedProject.id
+        ? `/projects/${encodeURIComponent(String(selectedProject.id))}`
+        : null,
     };
   }, [resolvedLocation, selectedCoordinates, selectedProject, t]);
 
-  useEffect(() => {
-    const info = getProjectInfo(selectedProject);
-    const coords = resolveCoordinates(info?.location ?? null);
-    setSelectedCoordinates(coords);
-  }, [selectedProject]);
+  const startHref = status === "authenticated" ? "/suggest" : "/auth";
 
-  const hasMapMarkers = mapMarkers.length > 0;
-  const phonePreviewIdeas = useMemo(() => {
-    const fallback = [82, 64, 48];
-    if (popularIdeas.length) {
-      return popularIdeas.slice(0, 3).map((idea, index) => ({
-        id: `${idea.rank}-${idea.address}`,
-        title: idea.address,
-        progress: fallback[index] ?? 40,
-      }));
-    }
-    return fallback.map((progress, index) => ({
-      id: `preview-${index + 1}`,
-      title: `${t("ideas")} ${index + 1}`,
-      progress,
-    }));
-  }, [popularIdeas, t]);
+  const metricItems = [
+    { label: t("ideas"), value: mapMarkers.length || MAP_LIMIT },
+    { label: t("vote"), value: "2.1k" },
+    { label: t("mapProjectDetailsTitle"), value: selectedCity },
+  ];
+
+  const featureItems = [
+    {
+      icon: Users,
+      title: t("vote"),
+      description: t("mostPopularIdeas"),
+    },
+    {
+      icon: MapPin,
+      title: t("markOnMap"),
+      description: t("clickMapToMark"),
+    },
+    {
+      icon: CheckCircle2,
+      title: t("suggestIdea"),
+      description: t("describeIssue"),
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
-      <section className="pt-24 pb-16 px-4 sm:pt-28 sm:pb-20 sm:px-6 lg:pt-32">
-        <div className="container mx-auto">
-          <div className="grid lg:grid-cols-2 gap-10 items-start lg:gap-16">
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              <motion.h1
-                variants={itemVariants}
-                className="text-3xl sm:text-4xl lg:text-6xl font-bold leading-tight mb-6 text-balance"
-              >
-                {t("heroTitle")}
-              </motion.h1>
+      <main className="overflow-hidden pb-20">
+        <section className="relative px-4 pb-18 pt-32 sm:px-6 sm:pb-20 sm:pt-36">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute left-[8%] top-20 h-52 w-52 rounded-full bg-foreground/6 blur-3xl" />
+            <div className="absolute right-[8%] top-24 h-64 w-64 rounded-full bg-foreground/8 blur-3xl" />
+          </div>
 
-              <motion.p
-                variants={itemVariants}
-                className="text-base text-muted-foreground mb-8 leading-relaxed sm:text-lg lg:text-xl max-w-xl"
+          <div className="container relative mx-auto">
+            <div className="grid items-start gap-8 xl:grid-cols-[0.88fr_1.12fr]">
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45 }}
               >
-                {t("heroSubtitle")}
-              </motion.p>
+                <Badge
+                  variant="outline"
+                  className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.24em]"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  {selectedCity}
+                </Badge>
 
-              <motion.div variants={itemVariants}>
-                <Link href="/voting">
-                  <GradientButton className="w-full justify-center sm:w-auto">
-                    {t("start")}
-                  </GradientButton>
-                </Link>
+                <h1 className="mt-6 text-5xl leading-[0.94] tracking-[-0.06em] sm:text-6xl lg:text-7xl">
+                  <span className="block font-semibold">{heroLead[language]}</span>
+                  <span className="mt-2 block font-semibold">
+                    <TextMorph
+                      words={heroWords[language]}
+                      className="inline-flex text-foreground"
+                      charClassName="tracking-[-0.06em]"
+                    />
+                  </span>
+                </h1>
+
+                <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
+                  {t("heroSubtitle")}. {t("describeIssue")}
+                </p>
+
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <Button
+                    asChild
+                    className="rounded-full px-6 shadow-[0_20px_50px_-30px_rgba(0,0,0,0.55)]"
+                  >
+                    <Link href={startHref}>
+                      {t("suggestIdea")}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="rounded-full px-6">
+                    <Link href="/voting">{t("vote")}</Link>
+                  </Button>
+                </div>
+
+                <motion.div
+                  style={glowStyle}
+                  onMouseMove={updateGlow}
+                  onMouseLeave={resetGlow}
+                  whileHover={{ y: -4 }}
+                  className={`${surfaceClass} group mt-8 rounded-[2rem] before:pointer-events-none before:absolute before:inset-0 before:rounded-[2rem] before:bg-[radial-gradient(340px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.16),transparent_44%)] before:opacity-0 before:transition-opacity before:duration-300 group-hover:before:opacity-100 dark:before:bg-[radial-gradient(340px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.08),transparent_44%)]`}
+                >
+                  <div className="relative grid gap-4 p-5 sm:grid-cols-3 sm:p-6">
+                    {metricItems.map((item, index) => (
+                      <div
+                        key={item.label}
+                        className="relative min-w-0 sm:pl-5"
+                      >
+                        {index > 0 ? (
+                          <div className="absolute left-0 top-1 hidden h-[calc(100%-8px)] w-px bg-border/80 sm:block" />
+                        ) : null}
+                        <p className="text-[10px] uppercase tracking-[0.26em] text-muted-foreground">
+                          {item.label}
+                        </p>
+                        <p className="mt-2 truncate text-3xl font-semibold tracking-[-0.05em]">
+                          {item.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
               </motion.div>
-            </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-            >
-              <div className="space-y-4">
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.08 }}
+                className="space-y-5"
+              >
                 <MapLibreMap
                   center={mapCenter}
                   zoom={12}
                   markers={mapMarkers}
-                  onMarkerClick={handleMarkerClick}
+                  onMarkerClick={(marker) => {
+                    setSelectedProject(cacheRef.current.get(marker.id) ?? null);
+                  }}
                 />
-                <div className="rounded-2xl border border-border/70 bg-card/90 p-4">
-                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                    {t("mapProjectDetailsTitle")}
-                  </p>
-                  {mapLoading ? (
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      {t("mapProjectsLoading")}
-                    </p>
-                  ) : selectedProjectSummary ? (
-                    <div className="mt-3 space-y-2">
-                      <p className="text-sm font-semibold">
-                        {selectedProjectSummary.title}
+
+                <motion.div
+                  style={glowStyle}
+                  onMouseMove={updateGlow}
+                  onMouseLeave={resetGlow}
+                  whileHover={{ y: -4 }}
+                  className={`${surfaceClass} group rounded-[2.2rem] before:pointer-events-none before:absolute before:inset-0 before:rounded-[2.2rem] before:bg-[radial-gradient(420px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.16),transparent_44%)] before:opacity-0 before:transition-opacity before:duration-300 group-hover:before:opacity-100 dark:before:bg-[radial-gradient(420px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.09),transparent_44%)]`}
+                >
+                  <div className="relative grid gap-6 p-6 lg:grid-cols-[0.9fr_1.1fr]">
+                    <div className="space-y-3">
+                      <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+                        {t("mapProjectDetailsTitle")}
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        {selectedProjectSummary.address}
+                      <h2 className="text-2xl font-semibold tracking-[-0.04em] sm:text-3xl">
+                        {selectedSummary?.title || t("mapProjectSelectPrompt")}
+                      </h2>
+                      <p className="text-sm leading-6 text-muted-foreground">
+                        {selectedSummary?.description || t("mapProjectNoDescription")}
                       </p>
-                      {resolvedLocationLoading && selectedCoordinates ? (
-                        <p className="text-xs text-muted-foreground">
-                          {t("locationResolving")}
-                        </p>
-                      ) : null}
-                      <p className="text-sm text-muted-foreground">
-                        {selectedProjectSummary.description}
-                      </p>
-                      {selectedCoordinates ? (
-                        <a
-                          href={build2GisLink(selectedCoordinates)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center justify-center rounded-full border border-border/70 px-3 py-1.5 text-xs font-semibold text-foreground transition-colors duration-300 hover:bg-foreground hover:text-background"
-                        >
-                          {t("openIn2Gis")}
-                        </a>
-                      ) : null}
                     </div>
-                  ) : (
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      {hasMapMarkers
-                        ? t("mapProjectSelectPrompt")
-                        : t("mapProjectsEmpty")}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </motion.div>
+
+                    <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+                          {resolvedLocationLoading
+                            ? t("locationResolving")
+                            : t("projectCityLabel")}
+                        </p>
+                        <p className="mt-2 text-base font-semibold leading-6">
+                          {selectedSummary?.address || t("mapProjectSelectPrompt")}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2 sm:justify-end">
+                        {selectedCoordinates ? (
+                          <a
+                            href={build2GisLink(selectedCoordinates)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-2 rounded-full border border-border/70 px-4 py-2 text-sm text-foreground transition hover:bg-muted"
+                          >
+                            {t("openIn2Gis")}
+                          </a>
+                        ) : null}
+                        {selectedSummary?.href ? (
+                          <Button asChild variant="outline" className="rounded-full">
+                            <Link href={selectedSummary.href}>Open project</Link>
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="lg:col-span-2 flex items-center justify-between border-t border-border/70 pt-4 text-sm text-muted-foreground">
+                      <span>
+                        {mapLoading ? t("mapProjectsLoading") : t("mostPopularIdeas")}
+                      </span>
+                      <span className="inline-flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4" />
+                        {mapMarkers.length || MAP_LIMIT}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="py-16 px-4 bg-background sm:py-20 sm:px-6">
-        <div className="container mx-auto">
-          <div className="grid lg:grid-cols-2 gap-10 items-center lg:gap-16">
+        <section className="px-4 pb-4 sm:px-6">
+          <div className="container mx-auto grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
             <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
+              style={glowStyle}
+              onMouseMove={updateGlow}
+              onMouseLeave={resetGlow}
+              whileHover={{ y: -4 }}
+              className={`${surfaceClass} group rounded-[2.2rem] before:pointer-events-none before:absolute before:inset-0 before:rounded-[2.2rem] before:bg-[radial-gradient(420px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.14),transparent_44%)] before:opacity-0 before:transition-opacity before:duration-300 group-hover:before:opacity-100 dark:before:bg-[radial-gradient(420px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.08),transparent_44%)]`}
             >
-              <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold mb-8 sm:mb-12">
-                {t("voting")}
-              </h2>
-
-              <p className="text-muted-foreground italic mb-6 text-sm sm:text-base">
-                {t("mostPopularIdeas")}
-              </p>
-
-              <motion.div
-                className="bg-card rounded-3xl p-4 mb-8 shadow-sm border border-border sm:p-6"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2 }}
-              >
-                <div className="space-y-5">
-                  {popularLoading ? (
-                    <p className="text-sm text-muted-foreground">
-                      Загружаем идеи...
+              <div className="relative p-6 sm:p-7">
+                <div className="flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+                      {selectedCity}
                     </p>
-                  ) : popularIdeas.length ? (
-                    popularIdeas.map((idea, index) => (
-                      <motion.div
-                        key={idea.rank}
-                        className="flex flex-col items-start gap-2 cursor-pointer hover:bg-muted/50 rounded-xl p-3 -mx-3 transition-colors duration-300 sm:flex-row sm:items-center sm:gap-4"
-                        initial={{ opacity: 0, x: -20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.3 + index * 0.1 }}
-                        whileHover={{ x: 8 }}
+                    <h3 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">
+                      {t("mostPopularIdeas")}
+                    </h3>
+                  </div>
+                  <span className="text-sm text-muted-foreground">Top {POPULAR_LIMIT}</span>
+                </div>
+
+                <div className="mt-8 space-y-3">
+                  {popularLoading ? (
+                    <p className="text-sm text-muted-foreground">{t("mapProjectsLoading")}</p>
+                  ) : popularProjects.length ? (
+                    popularProjects.map((project, index) => (
+                      <Link
+                        key={project.id ?? index}
+                        href={
+                          project.id
+                            ? `/projects/${encodeURIComponent(String(project.id))}`
+                            : "/voting"
+                        }
+                        className="group/item flex items-start gap-4 rounded-[1.6rem] border border-border/70 bg-background/60 px-4 py-4 transition hover:bg-muted/80"
                       >
-                        <span className="text-lg font-bold sm:text-2xl">
-                          {idea.rank}.
+                        <span className="min-w-9 text-2xl font-semibold tracking-[-0.05em] text-muted-foreground">
+                          0{index + 1}
                         </span>
-                        <span className="text-sm font-semibold break-words sm:text-lg">
-                          {idea.address}
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-base font-semibold">
+                            {getProjectAddress(project)}
+                          </span>
+                          <span className="mt-1 block text-sm leading-6 text-muted-foreground">
+                            {getProjectInfo(project)?.description?.trim() ||
+                              t("mapProjectNoDescription")}
+                          </span>
                         </span>
-                      </motion.div>
+                        <ArrowRight className="mt-1 h-4 w-4 shrink-0 transition-transform group-hover/item:translate-x-1" />
+                      </Link>
                     ))
                   ) : (
-                    <p className="text-sm text-muted-foreground">
-                      нет информации
-                    </p>
+                    <p className="text-sm text-muted-foreground">{t("mapProjectsEmpty")}</p>
                   )}
                 </div>
-              </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.5 }}
-              >
-                <Link href="/voting">
-                  <GradientButton className="w-full justify-center sm:w-auto">
-                    {t("vote")}
-                  </GradientButton>
-                </Link>
-              </motion.div>
+              </div>
             </motion.div>
 
-            <motion.div
-              className="flex justify-center"
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-            >
-              <div className="relative px-2 sm:px-0">
-                <div className="pointer-events-none absolute inset-0 -z-10">
-                  <motion.div
-                    className="absolute left-1/2 top-8 h-52 w-52 -translate-x-1/2 rounded-full bg-foreground/12 blur-3xl sm:h-72 sm:w-72"
-                    animate={{ opacity: [0.35, 0.6, 0.35] }}
-                    transition={{
-                      duration: 3.4,
-                      repeat: Number.POSITIVE_INFINITY,
-                    }}
-                  />
-                  <div className="absolute bottom-4 right-0 h-28 w-28 rounded-full bg-foreground/10 blur-2xl sm:h-36 sm:w-36" />
-                </div>
-
+            <div className="grid gap-4">
+              {featureItems.map((item, index) => (
                 <motion.div
-                  className="relative h-[500px] w-[78vw] max-w-[320px] rounded-[3.4rem] bg-foreground p-3 shadow-[0_26px_70px_-38px_rgba(0,0,0,0.75)] sm:h-[600px] sm:w-[300px] lg:h-[620px] lg:w-[320px]"
-                  whileHover={{ y: -6, rotate: -1 }}
-                  transition={{ duration: 0.35 }}
+                  key={item.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.35, delay: index * 0.08 }}
+                  style={glowStyle}
+                  onMouseMove={updateGlow}
+                  onMouseLeave={resetGlow}
+                  whileHover={{ x: 8 }}
+                  className={`${surfaceClass} group rounded-[2rem] before:pointer-events-none before:absolute before:inset-0 before:rounded-[2rem] before:bg-[radial-gradient(340px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.16),transparent_44%)] before:opacity-0 before:transition-opacity before:duration-300 group-hover:before:opacity-100 dark:before:bg-[radial-gradient(340px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.08),transparent_44%)]`}
                 >
-                  <div className="absolute -right-1 top-28 h-12 w-1 rounded-l-sm bg-foreground" />
-                  <div className="absolute -left-1 top-24 h-8 w-1 rounded-r-sm bg-foreground" />
-                  <div className="absolute -left-1 top-36 h-16 w-1 rounded-r-sm bg-foreground" />
-
-                  <div className="relative h-full overflow-hidden rounded-[2.9rem] border border-border/20 bg-background">
-                    <div className="absolute left-1/2 top-3 h-7 w-28 -translate-x-1/2 rounded-full bg-foreground" />
-                    <div className="absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.14),transparent_68%)]" />
-
-                    <div className="relative z-10 flex h-full flex-col px-3 pb-4 pt-14 sm:px-4 sm:pt-16">
-                      <div className="rounded-2xl border border-border/70 bg-card/90 p-3 shadow-[0_16px_30px_-24px_rgba(0,0,0,0.55)]">
-                        <div className="flex items-center justify-between">
-                          <span className="inline-flex items-center gap-1 rounded-full border border-foreground/30 bg-foreground/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.15em]">
-                            <Bell className="h-3 w-3" />
-                            Live
-                          </span>
-                          <span className="inline-flex items-center gap-1 text-xs font-semibold">
-                            <TrendingUp className="h-3.5 w-3.5" />
-                            +24%
-                          </span>
-                        </div>
-                        <p className="mt-3 text-sm font-semibold">
-                          {t("voting")}
-                        </p>
-                        <p className="mt-1 text-[11px] text-muted-foreground">
-                          {t("mostPopularIdeas")}
-                        </p>
-                        <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                          <motion.div
-                            className="h-full rounded-full bg-foreground"
-                            initial={{ width: "20%" }}
-                            animate={{ width: "78%" }}
-                            transition={{ duration: 1, delay: 0.2 }}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="mt-3 space-y-2.5">
-                        {phonePreviewIdeas.map((idea, index) => (
-                          <motion.div
-                            key={idea.id}
-                            className="rounded-2xl border border-border/60 bg-card/80 p-2.5"
-                            initial={{ opacity: 0, y: 10 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.15 + index * 0.08 }}
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border/70 text-xs font-semibold">
-                                {index + 1}
-                              </span>
-                              <p className="line-clamp-1 text-xs font-medium">
-                                {idea.title}
-                              </p>
-                              <span className="ml-auto text-[10px] font-semibold text-muted-foreground">
-                                {idea.progress}%
-                              </span>
-                            </div>
-                            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                              <motion.div
-                                className="h-full rounded-full bg-foreground"
-                                initial={{ width: 0 }}
-                                whileInView={{ width: `${idea.progress}%` }}
-                                viewport={{ once: true }}
-                                transition={{
-                                  duration: 0.45,
-                                  delay: index * 0.1,
-                                }}
-                              />
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-
-                      <div className="mt-auto grid grid-cols-2 gap-2.5">
-                        <div className="rounded-2xl border border-border/60 bg-card/85 p-2.5">
-                          <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                            {t("ideas")}
-                          </p>
-                          <p className="mt-1 text-lg font-semibold">
-                            {popularIdeas.length || MAP_PROJECTS_LIMIT}
-                          </p>
-                        </div>
-                        <div className="rounded-2xl border border-border/60 bg-card/85 p-2.5">
-                          <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                            {t("vote")}
-                          </p>
-                          <p className="mt-1 inline-flex items-center gap-1 text-lg font-semibold">
-                            <CheckCircle2 className="h-4 w-4" />
-                            2.1k
-                          </p>
-                        </div>
-                      </div>
-
-                      <motion.div
-                        className="mt-3 flex items-center justify-between rounded-2xl border border-border/70 bg-foreground px-3 py-2 text-xs font-semibold text-background"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.99 }}
-                      >
-                        <span>{t("start")}</span>
-                        <ArrowRight className="h-4 w-4" />
-                      </motion.div>
+                  <div className="relative grid gap-4 p-5 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:p-6">
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-foreground text-background shadow-[0_20px_30px_-20px_rgba(0,0,0,0.55)]">
+                      <item.icon className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <h3 className="text-xl font-semibold tracking-[-0.03em]">
+                        {item.title}
+                      </h3>
+                      <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                        {item.description}
+                      </p>
                     </div>
+                    <span className="hidden text-xs uppercase tracking-[0.24em] text-muted-foreground sm:block">
+                      0{index + 1}
+                    </span>
                   </div>
                 </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="px-4 pt-14 sm:px-6 sm:pt-18">
+          <div className="container mx-auto">
+            <motion.div
+              style={glowStyle}
+              onMouseMove={updateGlow}
+              onMouseLeave={resetGlow}
+              whileHover={{ y: -4 }}
+              className={`${surfaceClass} group rounded-[2.6rem] before:pointer-events-none before:absolute before:inset-0 before:rounded-[2.6rem] before:bg-[radial-gradient(460px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.16),transparent_42%)] before:opacity-0 before:transition-opacity before:duration-300 group-hover:before:opacity-100 dark:before:bg-[radial-gradient(460px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.08),transparent_44%)]`}
+            >
+              <div className="relative grid gap-8 px-6 py-8 sm:px-8 sm:py-10 lg:grid-cols-[1fr_auto] lg:items-end">
+                <div className="min-w-0">
+                  <Logo className="h-10 w-10" />
+                  <p className="mt-5 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+                    {t("heroSubtitle")}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-3 lg:justify-end">
+                  <Button asChild className="rounded-full px-6">
+                    <Link href={startHref}>
+                      {t("start")}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="rounded-full px-6">
+                    <Link href="/support">Support</Link>
+                  </Button>
+                </div>
               </div>
             </motion.div>
           </div>
-        </div>
-      </section>
-
-      <section className="relative overflow-hidden bg-background px-4 py-16 sm:px-6 sm:py-20">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-48 " />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 " />
-        <div className="container relative mx-auto">
-          <motion.div
-            className="grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3"
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            {[
-              {
-                icon: Lightbulb,
-                titleKey: "suggestIdea",
-                description:
-                  "Делитесь своими предложениями по улучшению города",
-              },
-              {
-                icon: Users,
-                titleKey: "vote",
-                description: "Поддерживайте лучшие инициативы других жителей",
-              },
-              {
-                icon: MapPin,
-                titleKey: "ideas",
-                description: "Указывайте конкретные места для реализации идей",
-              },
-            ].map((feature, index) => {
-              const dropLabels = [
-                ["draft", "new", "idea", "send", "up"],
-                ["vote", "hot", "+1", "rise", "top"],
-                ["pin", "geo", "map", "spot", "city"],
-              ][index] ?? ["idea", "vote", "map"];
-              // const chips = [
-              //   [t("suggestIdea"), "24/7", "flow"],
-              //   [t("vote"), "live", "boost"],
-              //   [t("ideas"), "geo", "focus"],
-              // ][index] ?? [t("start"), "live"];
-
-              return (
-                <motion.div
-                  key={feature.titleKey}
-                  variants={itemVariants}
-                  whileHover={{
-                    y: -10,
-                    rotateX: 2,
-                    rotateY: index === 1 ? 0 : index % 2 === 0 ? -2.4 : 2.4,
-                  }}
-                  whileTap={{ y: -4 }}
-                  onMouseMove={updateCardGlow}
-                  onMouseLeave={resetCardGlow}
-                  style={cardGlowStyle}
-                  className="group relative overflow-hidden rounded-[2rem] border border-border/60 bg-card/80 p-6 shadow-[0_24px_55px_-40px_rgba(0,0,0,0.45)] transition-all duration-500 hover:shadow-[0_35px_70px_-45px_rgba(0,0,0,0.6)] dark:border-white/10 dark:shadow-[0_30px_70px_-50px_rgba(0,0,0,0.9)] before:content-[''] before:absolute before:inset-0 before:pointer-events-none before:opacity-0 before:transition-opacity before:duration-300 before:bg-[radial-gradient(520px_circle_at_var(--x)_var(--y),_rgba(0,0,0,0.16),_transparent_45%)] dark:before:bg-[radial-gradient(520px_circle_at_var(--x)_var(--y),_rgba(255,255,255,0.2),_transparent_45%)] group-hover:before:opacity-100 after:content-[''] after:absolute after:inset-0 after:pointer-events-none after:opacity-60 after:bg-[linear-gradient(130deg,_rgba(255,255,255,0.28),_rgba(255,255,255,0)_55%)] dark:after:bg-[linear-gradient(130deg,_rgba(255,255,255,0.12),_rgba(255,255,255,0)_55%)] sm:p-8"
-                >
-                  <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,_rgba(0,0,0,0.08),_transparent_55%)] dark:bg-[radial-gradient(circle_at_10%_0%,_rgba(255,255,255,0.14),_transparent_55%)]" />
-                    {dropLabels.map((label, dropIndex) => (
-                      <motion.span
-                        key={`${feature.titleKey}-drop-${label}-${dropIndex}`}
-                        initial={{ opacity: 0, y: "-130%" }}
-                        animate={{
-                          opacity: [0, 0.95, 0.95, 0],
-                          y: ["-130%", "240%"],
-                          x: [0, dropIndex % 2 ? -8 : 8, 0],
-                          rotate: [0, dropIndex % 2 ? -10 : 10, 0],
-                        }}
-                        transition={{
-                          duration: 4 + dropIndex * 0.5 + index * 0.25,
-                          delay: dropIndex * 0.58 + index * 0.35,
-                          ease: "linear",
-                          repeat: Infinity,
-                        }}
-                        className="absolute rounded-full border border-foreground/20 bg-card/90 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/75 shadow-[0_10px_24px_-16px_rgba(0,0,0,0.55)] dark:border-white/25 dark:bg-background/70 dark:text-white/80"
-                        style={{ left: `${10 + dropIndex * 18}%` }}
-                      >
-                        {label}
-                      </motion.span>
-                    ))}
-                  </div>
-
-                  <div className="relative z-10">
-                    <div className="relative mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-foreground text-background shadow-[0_12px_28px_-12px_rgba(0,0,0,0.45)] transition-transform duration-300 group-hover:scale-105 sm:h-14 sm:w-14">
-                      <span className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_30%_20%,_rgba(255,255,255,0.55),_transparent_60%)] opacity-70" />
-                      <feature.icon className="relative h-6 w-6 sm:h-7 sm:w-7" />
-                    </div>
-                    <h3 className="mb-3 text-lg font-bold sm:text-xl">
-                      {t(feature.titleKey)}
-                    </h3>
-                    <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
-                      {feature.description}
-                    </p>
-                    
-                  </div>
-                </motion.div>
-              );
-            })}
-          </motion.div>
-        </div>
-      </section>
-
-      <section className="py-16 px-4 sm:py-24 sm:px-6">
-        <div className="container mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="text-3xl font-bold mb-6 sm:text-4xl">
-              {t("cityOfIdeas")}
-            </h2>
-            <p className="text-base text-muted-foreground mb-8 max-w-2xl mx-auto sm:text-lg lg:text-xl sm:mb-10">
-              {t("heroSubtitle")}
-            </p>
-            <Link href={startHref}>
-              <GradientButton className="w-full justify-center sm:w-auto">
-                {t("start")}
-                <ArrowRight className="w-5 h-5" />
-              </GradientButton>
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
-      <motion.footer
-        className="relative border-t border-border bg-background"
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-      >
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -top-24 left-1/2 h-48 w-[520px] -translate-x-1/2 rounded-full bg-foreground/5 blur-3xl dark:bg-foreground/10" />
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/15 to-transparent" />
-        </div>
-
-        <div className="container mx-auto px-4 py-8 sm:px-6">
-          <motion.div
-            variants={itemVariants}
-            className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <Logo className="h-8 w-8 shrink-0" showText={false} />
-              <div className="min-w-0">
-                <p className="text-sm font-semibold truncate">
-                  {t("cityOfIdeas")}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {t("heroSubtitle")}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <Link
-                href="/suggest"
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-xs font-semibold text-foreground transition hover:bg-muted/60"
-              >
-                {t("suggestIdea")}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </motion.div>
-
-          <motion.div
-            variants={itemVariants}
-            className="mt-5 flex flex-col gap-2 border-t border-border/60 pt-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between"
-          >
-            <span>
-              © {currentYear} {t("cityOfIdeas")}
-            </span>
-
-            <Link
-              href="/support"
-              className="inline-flex items-center gap-2 hover:text-foreground transition"
-            >
-              {t("askQuestion")}
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </motion.div>
-        </div>
-      </motion.footer>
+        </section>
+      </main>
     </div>
   );
 }

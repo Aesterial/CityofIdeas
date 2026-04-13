@@ -1,15 +1,21 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useScroll,
+  useTransform,
+} from "motion/react";
 import type OlMap from "ol/Map";
 import type VectorSource from "ol/source/Vector";
 import type { Style as OlStyle } from "ol/style";
 import "ol/ol.css";
+import { useTheme } from "./theme-provider";
 
 export type MapMarker = {
   id: string;
-  coordinates: [number, number]; // [lng, lat]
+  coordinates: [number, number];
   title: string;
   description?: string;
 };
@@ -21,6 +27,7 @@ type MapLibreMapProps = {
   markers?: MapMarker[];
   onMarkerClick?: (marker: MapMarker) => void;
   onMapClick?: (coordinates: [number, number]) => void;
+  parallax?: boolean;
 };
 
 const DEFAULT_CENTER: [number, number] = [86.0877, 55.3541];
@@ -32,6 +39,7 @@ type OlModules = {
   VectorLayer: typeof import("ol/layer/Vector").default;
   VectorSource: typeof import("ol/source/Vector").default;
   OSM: typeof import("ol/source/OSM").default;
+  XYZ: typeof import("ol/source/XYZ").default;
   Feature: typeof import("ol/Feature").default;
   Point: typeof import("ol/geom/Point").default;
   fromLonLat: typeof import("ol/proj").fromLonLat;
@@ -54,6 +62,7 @@ const loadOlModules = async (): Promise<OlModules> => {
     vectorLayerModule,
     vectorSourceModule,
     osmModule,
+    xyzModule,
     featureModule,
     pointModule,
     projModule,
@@ -66,6 +75,7 @@ const loadOlModules = async (): Promise<OlModules> => {
     import("ol/layer/Vector"),
     import("ol/source/Vector"),
     import("ol/source/OSM"),
+    import("ol/source/XYZ"),
     import("ol/Feature"),
     import("ol/geom/Point"),
     import("ol/proj"),
@@ -80,6 +90,7 @@ const loadOlModules = async (): Promise<OlModules> => {
     VectorLayer: vectorLayerModule.default,
     VectorSource: vectorSourceModule.default,
     OSM: osmModule.default,
+    XYZ: xyzModule.default,
     Feature: featureModule.default,
     Point: pointModule.default,
     fromLonLat: projModule.fromLonLat,
@@ -101,39 +112,60 @@ const formatMarkerTitle = (value: string) => {
   if (trimmed.length <= 28) {
     return trimmed;
   }
-  return `${trimmed.slice(0, 26).trimEnd()}…`;
+  return `${trimmed.slice(0, 26).trimEnd()}...`;
 };
 
-const getMarkerStyle = (ol: OlModules, title: string) => {
+const getMarkerStyle = (ol: OlModules, title: string, isDark: boolean) => {
   const label = formatMarkerTitle(title);
-  const cacheKey = label || "__default";
+  const cacheKey = `${isDark ? "dark" : "light"}:${label || "__default"}`;
   const cached = markerStyleCache.get(cacheKey);
   if (cached) {
     return cached;
   }
+
+  const markerFill = isDark ? "#fafafa" : "#111827";
+  const markerStroke = isDark ? "#0f1115" : "#ffffff";
+  const textColor = isDark ? "#f3f4f6" : "#111827";
+  const bgColor = isDark ? "rgba(15, 17, 21, 0.84)" : "rgba(255, 255, 255, 0.92)";
+
   const style = new ol.Style({
     image: new ol.RegularShape({
       points: 3,
       radius: 10,
       rotation: Math.PI / 2,
-      fill: new ol.Fill({ color: "#111827" }),
-      stroke: new ol.Stroke({ color: "#ffffff", width: 2 }),
+      fill: new ol.Fill({ color: markerFill }),
+      stroke: new ol.Stroke({ color: markerStroke, width: 2 }),
     }),
     text: label
       ? new ol.Text({
           text: label,
-          font: "600 12px system-ui, -apple-system, 'Segoe UI', sans-serif",
+          font: "600 12px var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif",
           offsetY: -18,
           textAlign: "center",
           textBaseline: "bottom",
-          fill: new ol.Fill({ color: "#111827" }),
-          backgroundFill: new ol.Fill({ color: "rgba(255, 255, 255, 0.92)" }),
+          fill: new ol.Fill({ color: textColor }),
+          backgroundFill: new ol.Fill({ color: bgColor }),
           padding: [2, 6, 2, 6],
         })
       : undefined,
   });
+
   markerStyleCache.set(cacheKey, style);
   return style;
+};
+
+const createTileSource = (ol: OlModules, isDark: boolean) => {
+  if (isDark) {
+    return new ol.XYZ({
+      url: "https://{a-d}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+      crossOrigin: "anonymous",
+      maxZoom: 20,
+    });
+  }
+
+  return new ol.OSM({
+    crossOrigin: "anonymous",
+  });
 };
 
 export function MapLibreMap({
@@ -143,17 +175,27 @@ export function MapLibreMap({
   markers = [],
   onMarkerClick,
   onMapClick,
+  parallax = true,
 }: MapLibreMapProps) {
+  const { theme } = useTheme();
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<OlMap | null>(null);
   const markerSourceRef = useRef<VectorSource | null>(null);
+  const tileLayerRef = useRef<any>(null);
   const [ol, setOl] = useState<OlModules | null>(null);
-
   const onMarkerClickRef = useRef(onMarkerClick);
   const onMapClickRef = useRef(onMapClick);
-
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const isDark = theme === "dark";
+
+  const { scrollYProgress } = useScroll({
+    target: wrapperRef,
+    offset: ["start end", "end start"],
+  });
+  const parallaxY = useTransform(scrollYProgress, [0, 1], [46, -46]);
+  const parallaxScale = useTransform(scrollYProgress, [0, 0.5, 1], [1.14, 1.06, 1.14]);
 
   useEffect(() => {
     let active = true;
@@ -187,21 +229,22 @@ export function MapLibreMap({
   }, [onMarkerClick, onMapClick]);
 
   useEffect(() => {
-    if (!mapContainerRef.current || mapRef.current || !ol) return;
+    if (!mapContainerRef.current || mapRef.current || !ol) {
+      return;
+    }
 
-    const tileSource = new ol.OSM();
+    const tileSource = createTileSource(ol, isDark);
     tileSource.on("tileloaderror", () => {
       setLoadError("Map tiles failed to load. Check your connection.");
     });
 
     const markerSource = new ol.VectorSource();
-    const markerLayer = new ol.VectorLayer({
-      source: markerSource,
-    });
+    const tileLayer = new ol.TileLayer({ source: tileSource });
+    const markerLayer = new ol.VectorLayer({ source: markerSource });
 
     const map = new ol.Map({
       target: mapContainerRef.current,
-      layers: [new ol.TileLayer({ source: tileSource }), markerLayer],
+      layers: [tileLayer, markerLayer],
       view: new ol.View({
         center: ol.fromLonLat(center),
         zoom,
@@ -220,9 +263,10 @@ export function MapLibreMap({
 
     map.on("pointermove", (event) => {
       const element = map.getTargetElement();
-      if (!element) return;
-      const hit = map.hasFeatureAtPixel(event.pixel);
-      element.style.cursor = hit ? "pointer" : "";
+      if (!element) {
+        return;
+      }
+      element.style.cursor = map.hasFeatureAtPixel(event.pixel) ? "pointer" : "";
     });
 
     map.on("singleclick", (event) => {
@@ -249,6 +293,7 @@ export function MapLibreMap({
 
     mapRef.current = map;
     markerSourceRef.current = markerSource;
+    tileLayerRef.current = tileLayer;
 
     const resizeObserver = new ResizeObserver(() => {
       map.updateSize();
@@ -260,25 +305,41 @@ export function MapLibreMap({
       map.setTarget(undefined);
       mapRef.current = null;
       markerSourceRef.current = null;
+      tileLayerRef.current = null;
       setIsLoaded(false);
     };
-  }, [center, zoom, ol]);
+  }, [center, isDark, ol, zoom]);
+
+  useEffect(() => {
+    if (!ol || !tileLayerRef.current) {
+      return;
+    }
+
+    const nextSource = createTileSource(ol, isDark);
+    nextSource.on("tileloaderror", () => {
+      setLoadError("Map tiles failed to load. Check your connection.");
+    });
+    tileLayerRef.current.setSource(nextSource);
+  }, [isDark, ol]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !ol) return;
+    if (!map || !ol) {
+      return;
+    }
 
-    const view = map.getView();
-    view.animate({
+    map.getView().animate({
       center: ol.fromLonLat(center),
       zoom,
-      duration: 800,
+      duration: 900,
     });
   }, [center, zoom, ol]);
 
   useEffect(() => {
     const source = markerSourceRef.current;
-    if (!source || !ol) return;
+    if (!source || !ol) {
+      return;
+    }
 
     source.clear(true);
 
@@ -287,33 +348,33 @@ export function MapLibreMap({
         geometry: new ol.Point(ol.fromLonLat(markerData.coordinates)),
       });
       feature.set("marker", markerData);
-      feature.setStyle(getMarkerStyle(ol, markerData.title));
+      feature.setStyle(getMarkerStyle(ol, markerData.title, isDark));
       source.addFeature(feature);
     });
-  }, [markers, ol]);
+  }, [isDark, markers, ol]);
 
   return (
     <motion.div
-      className={`relative flex flex-col overflow-hidden rounded-[2rem] border border-border bg-card shadow-xl ${className}`}
+      ref={wrapperRef}
+      className={`group relative flex flex-col overflow-hidden rounded-[2rem] border border-border/70 bg-card/90 shadow-[0_30px_70px_-40px_rgba(0,0,0,0.58)] backdrop-blur ${className}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.45, ease: "easeOut" }}
+      whileHover={{ y: -4 }}
     >
-      <div className="flex items-center gap-1.5 border-b border-border bg-muted/50 px-4 py-3">
-        <div className="h-2.5 w-2.5 rounded-full bg-red-400/80" />
-        <div className="h-2.5 w-2.5 rounded-full bg-yellow-400/80" />
-        <div className="h-2.5 w-2.5 rounded-full bg-green-400/80" />
-        <span className="ml-2 text-[10px] font-medium uppercase tracking-widest text-muted-foreground/70">
-          Interactive Map
-        </span>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.18),transparent_36%)] opacity-70 dark:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.08),transparent_36%)]" />
+      <div className="relative flex items-center gap-2 border-b border-border/70 bg-muted/40 px-4 py-3">
+        <div className="h-2.5 w-2.5 rounded-full bg-foreground/20" />
+        <div className="h-2.5 w-2.5 rounded-full bg-foreground/35" />
+        <div className="h-2.5 w-2.5 rounded-full bg-foreground/55" />
       </div>
 
-      <div className="relative flex-1 min-h-[300px] sm:min-h-[400px]">
+      <div className="relative min-h-[300px] flex-1 overflow-hidden sm:min-h-[400px]">
         <AnimatePresence>
           {!isLoaded && (
             <motion.div
               key="loader"
-              className="absolute inset-0 z-10 flex items-center justify-center bg-muted"
+              className="absolute inset-0 z-10 flex items-center justify-center bg-muted/85 backdrop-blur-sm"
               exit={{ opacity: 0 }}
             >
               <div className="flex flex-col items-center gap-3">
@@ -334,7 +395,16 @@ export function MapLibreMap({
           </div>
         ) : null}
 
-        <div ref={mapContainerRef} className="absolute inset-0 h-full w-full" />
+        <motion.div
+          className="absolute inset-[-8%]"
+          style={
+            parallax
+              ? { y: parallaxY, scale: parallaxScale }
+              : undefined
+          }
+        >
+          <div ref={mapContainerRef} className="h-full w-full" />
+        </motion.div>
       </div>
     </motion.div>
   );

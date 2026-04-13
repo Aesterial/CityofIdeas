@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  AnimatePresence,
-  motion,
-  useMotionValueEvent,
-  useScroll,
-} from "framer-motion";
+import { motion, useMotionValueEvent, useScroll } from "motion/react";
 import {
   Bell,
   ChevronDown,
@@ -26,20 +21,20 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+} from "react";
 import { useAuth } from "./auth-provider";
 import { useLanguage } from "./language-provider";
-import { useNotifications } from "./notifications-provider";
 import { Logo } from "./logo";
+import { useNotifications } from "./notifications-provider";
 import { useTheme } from "./theme-provider";
-import {
-  CITY_STORAGE_KEY,
-  cities,
-  emitCityChange,
-  getStoredCity,
-  type City,
-} from "@/lib/cities";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Button } from "./ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,13 +47,23 @@ import {
   Sheet,
   SheetClose,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
 } from "./ui/sheet";
+import { cn } from "@/lib/utils";
+import {
+  CITY_STORAGE_KEY,
+  cities,
+  emitCityChange,
+  getStoredCity,
+  type City,
+} from "@/lib/cities";
 
 export { cities, type City } from "@/lib/cities";
+
+const shellClass =
+  "rounded-full border border-border/70 bg-background/72 shadow-[0_14px_40px_-28px_rgba(0,0,0,0.45)] backdrop-blur-md";
 
 const getInitials = (value: string) => {
   const parts = value.trim().split(/\s+/).filter(Boolean);
@@ -82,13 +87,9 @@ const formatNotificationDate = (
   value: string | undefined,
   language: string,
 ) => {
-  if (!value) {
-    return "";
-  }
+  if (!value) return "";
   const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return "";
-  }
+  if (Number.isNaN(parsed.getTime())) return "";
   const locale =
     language === "KZ" ? "kk-KZ" : language === "RU" ? "ru-RU" : "en-US";
   return parsed.toLocaleString(locale, {
@@ -104,17 +105,22 @@ const resolveNotificationText = (
   body: string | undefined,
   t: (key: string) => string,
 ) => {
-  if (body) {
-    return body;
-  }
+  if (body) return body;
   const normalized = type?.trim().toLowerCase() ?? "";
-  if (normalized === "message") {
-    return t("notificationsTypeMessage");
-  }
-  if (normalized === "notify") {
-    return t("notificationsTypeNotify");
-  }
+  if (normalized === "message") return t("notificationsTypeMessage");
+  if (normalized === "notify") return t("notificationsTypeNotify");
   return t("notificationsTypeDefault");
+};
+
+const updateGlow = (event: MouseEvent<HTMLDivElement>) => {
+  const rect = event.currentTarget.getBoundingClientRect();
+  event.currentTarget.style.setProperty("--glow-x", `${event.clientX - rect.left}px`);
+  event.currentTarget.style.setProperty("--glow-y", `${event.clientY - rect.top}px`);
+};
+
+const resetGlow = (event: MouseEvent<HTMLDivElement>) => {
+  event.currentTarget.style.setProperty("--glow-x", "50%");
+  event.currentTarget.style.setProperty("--glow-y", "50%");
 };
 
 export function Header() {
@@ -129,31 +135,14 @@ export function Header() {
     markAsRead,
     markAllAsRead,
   } = useNotifications();
+  const { scrollY } = useScroll();
+  const lastScrollY = useRef(0);
 
-  const [langOpen, setLangOpen] = useState(false);
-  const [cityOpen, setCityOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [compact, setCompact] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileCityOpen, setMobileCityOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const [city, setCity] = useState<City>(cities[0]);
-
-  const [headerHidden, setHeaderHidden] = useState(false);
-  const [headerCompact, setHeaderCompact] = useState(false);
-  const lastScrollY = useRef(0);
-  const { scrollY } = useScroll();
-
-  const cityRef = useRef<HTMLDivElement>(null);
-
-  const displayName = user?.displayName || user?.username || "";
-  const avatarLabel = getInitials(displayName || user?.username || "User");
-  const avatarSrc = resolveAvatarSrc(user?.avatar);
-  const visibleNotifications = notifications.slice(0, 8);
-  const mobileNotifications = notifications.slice(0, 3);
-  const unreadBadge = unreadCount > 99 ? "99+" : String(unreadCount);
-
-  const handleLogout = async () => {
-    await logout();
-  };
 
   const languages = [
     { code: "RU" as const, label: "RU" },
@@ -161,10 +150,14 @@ export function Header() {
     { code: "KZ" as const, label: "KZ" },
   ];
 
-  const mobileNavItems = [
+  const navItems = [
     { href: "/voting", label: t("voting"), icon: Users },
     { href: "/suggest", label: t("suggestIdea"), icon: Lightbulb },
     { href: "/support", label: t("askQuestion"), icon: MessageSquare },
+  ];
+
+  const mobileNavItems = [
+    ...navItems,
     ...(status === "authenticated"
       ? [
           { href: "/support/history", label: t("supportHistory"), icon: Clock },
@@ -182,735 +175,485 @@ export function Header() {
   }, []);
 
   useEffect(() => {
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
     localStorage.setItem(CITY_STORAGE_KEY, city);
     emitCityChange(city);
   }, [city, mounted]);
 
-  useEffect(() => {
-    if (mobileMenuOpen) {
-      setLangOpen(false);
-      setCityOpen(false);
-    } else {
-      setMobileCityOpen(false);
-    }
-  }, [mobileMenuOpen]);
+  useMotionValueEvent(scrollY, "change", (value) => {
+    const previous = lastScrollY.current;
+    const goingDown = value > previous;
 
-  useEffect(() => {
-    if (!cityOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (cityRef.current && !cityRef.current.contains(event.target as Node))
-        setCityOpen(false);
-    };
-
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setCityOpen(false);
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleEscape);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [cityOpen]);
-
-  useMotionValueEvent(scrollY, "change", (y) => {
-    const prev = lastScrollY.current;
-    const goingDown = y > prev;
-
-    const nextCompact = y > 12;
-    if (nextCompact !== headerCompact) setHeaderCompact(nextCompact);
-
-    if (y < 10) {
-      if (headerHidden) setHeaderHidden(false);
-      lastScrollY.current = y;
-      return;
-    }
-
-    if (goingDown && y > 96) {
-      if (!headerHidden) setHeaderHidden(true);
+    if (value < 12) {
+      setCompact(false);
+    } else if (goingDown && value > 72) {
+      setCompact(true);
     } else if (!goingDown) {
-      if (headerHidden) setHeaderHidden(false);
+      setCompact(false);
     }
 
-    lastScrollY.current = y;
+    lastScrollY.current = value;
   });
 
+  const displayName = user?.displayName || user?.username || "";
+  const avatarLabel = getInitials(displayName || user?.username || "User");
+  const avatarSrc = resolveAvatarSrc(user?.avatar);
+  const unreadBadge = unreadCount > 99 ? "99+" : String(unreadCount);
+  const visibleNotifications = notifications.slice(0, 8);
+
   return (
-    <motion.header
-      className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border"
+    <header
+      className="fixed inset-x-0 z-50 flex justify-center px-2 pt-3 sm:px-5 sm:pt-4"
       style={{ top: "var(--maintenance-banner-height)" }}
-      initial={{ y: -100 }}
-      animate={{ y: headerHidden ? -96 : 0 }}
-      transition={{ duration: 0.25, ease: "easeOut" }}
     >
-      <div
-        className={`container mx-auto px-4 sm:px-6 flex items-center justify-between ${
-          headerCompact ? "py-2 sm:py-2.5" : "py-2.5 sm:py-3"
-        }`}
+      <motion.div
+        className="w-full"
+        animate={{
+          maxWidth: compact ? 1120 : 1380,
+          y: compact ? -4 : 0,
+        }}
+        transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
       >
-        <div className="flex items-center gap-3">
-          <div className="xl:hidden">
-            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <motion.button
-                  className="group relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-foreground"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.96 }}
-                  aria-label="Открыть меню"
-                >
-                  <span className="absolute inset-0 rounded-full bg-gradient-to-br from-foreground/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                  <PanelLeft className="relative h-5 w-5" />
-                </motion.button>
-              </SheetTrigger>
+        <motion.div
+          onMouseMove={updateGlow}
+          onMouseLeave={resetGlow}
+          className="relative overflow-hidden border border-border/70 bg-background/70 backdrop-blur-2xl"
+          style={
+            {
+              "--glow-x": "50%",
+              "--glow-y": "50%",
+            } as CSSProperties
+          }
+          animate={{
+            borderRadius: compact ? 28 : 38,
+            paddingTop: compact ? 8 : 14,
+            paddingBottom: compact ? 8 : 14,
+            paddingLeft: compact ? 12 : 18,
+            paddingRight: compact ? 12 : 18,
+            boxShadow: compact
+              ? "0 22px 56px -34px rgba(0,0,0,0.55)"
+              : "0 36px 90px -42px rgba(0,0,0,0.58)",
+          }}
+          transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <div className="absolute inset-0 bg-[radial-gradient(420px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.24),transparent_42%)] opacity-70 dark:bg-[radial-gradient(420px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.12),transparent_44%)]" />
+            <div className="absolute inset-x-[16%] top-0 h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent" />
+            <div className="absolute -left-20 top-0 h-28 w-40 rounded-full bg-foreground/6 blur-3xl" />
+            <div className="absolute -right-12 bottom-0 h-20 w-32 rounded-full bg-foreground/6 blur-3xl" />
+          </div>
 
-              <SheetContent
-                side="left"
-                className="shadow-none w-[88vw] max-w-[420px] border-r border-border bg-background/95 p-0 backdrop-blur-xl sm:max-w-[420px] [&>button]:hidden"
-              >
-                <SheetHeader className="sr-only">
-                  <SheetTitle>Меню</SheetTitle>
-                  <SheetDescription>Навигация по разделам</SheetDescription>
-                </SheetHeader>
-
-                <div className="relative flex h-full flex-col overflow-hidden">
-                  <div className="pointer-events-none absolute -left-24 -top-24 h-48 w-48 rounded-full bg-foreground/5 blur-3xl" />
-                  <div className="pointer-events-none absolute bottom-0 right-0 h-44 w-44 translate-x-1/3 translate-y-1/3 rounded-full bg-foreground/5 blur-3xl" />
-
-                  <div className="relative z-10 flex items-center justify-between px-5 pt-5">
-                    <div className="flex items-center gap-3">
-                      <Logo className="h-9 w-9" showText={false} />
-                      <div>
-                        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-                          Меню
-                        </p>
-                        <p className="text-sm font-semibold">
-                          {t("cityOfIdeas")}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <motion.button
-                        onClick={toggleTheme}
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-foreground hover:bg-muted/60 transition"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        aria-label="Toggle theme"
-                      >
-                        {mounted ? (
-                          theme === "light" ? (
-                            <Moon className="h-4 w-4" />
-                          ) : (
-                            <Sun className="h-4 w-4" />
-                          )
-                        ) : (
-                          <span className="block h-4 w-4" aria-hidden="true" />
-                        )}
-                      </motion.button>
-
-                      <SheetClose asChild>
-                        <motion.button
-                          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-foreground hover:bg-muted/60 transition"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          aria-label="Закрыть меню"
-                        >
-                          <X className="h-4 w-4" />
-                        </motion.button>
-                      </SheetClose>
-                    </div>
-                  </div>
-
-                  <motion.div
-                    className="mt-5 flex-1 overflow-y-auto px-5 pb-7"
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, ease: "easeOut" }}
+          <div className="relative flex items-center gap-3">
+            <div className="xl:hidden">
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className={cn(shellClass, "h-11 w-11 rounded-full")}
+                    aria-label={t("menuLabel")}
                   >
-                    <div className="flex flex-col gap-5">
-                      <div className="rounded-2xl border border-border bg-card/60 p-4">
-                        <button
-                          type="button"
-                          onClick={() => setMobileCityOpen((open) => !open)}
-                          className="flex w-full items-center justify-between gap-3"
-                          aria-expanded={mobileCityOpen}
+                    <PanelLeft className="h-4 w-4" />
+                  </Button>
+                </SheetTrigger>
+
+                <SheetContent
+                  side="left"
+                  className="w-[90vw] max-w-[420px] border-r border-border/70 bg-background/92 p-0 backdrop-blur-2xl [&>button]:hidden"
+                >
+                  <SheetHeader className="sr-only">
+                    <SheetTitle>{t("menuLabel")}</SheetTitle>
+                  </SheetHeader>
+                  <div className="flex h-full flex-col overflow-y-auto px-5 py-5">
+                    <div className="mb-6 flex items-center justify-between">
+                      <Logo className="h-9 w-9" />
+                      <div className="flex gap-2">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className={cn(shellClass, "h-10 w-10 rounded-full")}
+                          onClick={toggleTheme}
                         >
-                          <span className="flex items-center gap-3 min-w-0">
-                            <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-foreground text-background">
-                              <MapPin className="h-5 w-5" />
-                            </span>
-                            <span className="flex flex-col text-left leading-tight min-w-0">
-                              <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-                                Город
-                              </span>
-                              <span className="text-sm font-semibold truncate">
-                                {city}
-                              </span>
-                            </span>
-                          </span>
-                          <ChevronDown
-                            className={`h-4 w-4 transition-transform duration-200 ${
-                              mobileCityOpen ? "rotate-180" : ""
-                            }`}
-                          />
-                        </button>
-
-                        <AnimatePresence>
-                          {mobileCityOpen && (
-                            <motion.div
-                              initial={{ opacity: 0, y: -6 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -6 }}
-                              transition={{ duration: 0.2 }}
-                            >
-                              <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                                {cities.map((cityName) => {
-                                  const isActive = cityName === city;
-                                  return (
-                                    <button
-                                      key={cityName}
-                                      onClick={() => {
-                                        setCity(cityName);
-                                        setMobileCityOpen(false);
-                                      }}
-                                      className={`min-w-0 break-words whitespace-normal rounded-xl px-3 py-2 text-xs font-medium transition ${
-                                        isActive
-                                          ? "bg-foreground text-background"
-                                          : "bg-muted/60 text-foreground/80 hover:bg-foreground hover:text-background"
-                                      }`}
-                                    >
-                                      {cityName}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-
-                      <div className="grid gap-3">
-                        {mobileNavItems.map((item) => (
-                          <SheetClose asChild key={item.href}>
-                            <Link
-                              href={item.href}
-                              className="group relative overflow-hidden rounded-2xl border border-border bg-card/70 px-4 py-3 transition hover:bg-muted/60"
-                            >
-                              <span className="relative flex items-center gap-4">
-                                <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-foreground text-background">
-                                  <item.icon className="h-5 w-5" />
-                                </span>
-                                <span className="text-base font-semibold">
-                                  {item.label}
-                                </span>
-                              </span>
-                            </Link>
-                          </SheetClose>
-                        ))}
-                      </div>
-                      {status === "authenticated" ? (
-                        <div className="rounded-2xl border border-border bg-card/60 p-4">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-                              {t("notificationsTitle")}
-                            </p>
-                            {unreadCount > 0 ? (
-                              <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-foreground px-1.5 py-0.5 text-[10px] font-semibold text-background">
-                                {unreadBadge}
-                              </span>
-                            ) : null}
-                          </div>
-                          <div className="mt-3 space-y-2">
-                            {notificationsLoading ? (
-                              <p className="text-xs text-muted-foreground">
-                                {t("notificationsLoading")}
-                              </p>
-                            ) : mobileNotifications.length === 0 ? (
-                              <p className="text-xs text-muted-foreground">
-                                {t("notificationsEmpty")}
-                              </p>
+                          {mounted ? (
+                            theme === "light" ? (
+                              <Moon className="h-4 w-4" />
                             ) : (
-                              mobileNotifications.map((notification) => {
-                                const isUnread = !notification.readAt;
-                                return (
-                                  <button
-                                    key={notification.id}
-                                    type="button"
-                                    onClick={() => {
-                                      if (isUnread) {
-                                        void markAsRead(notification.id);
-                                      }
-                                    }}
-                                    className="flex w-full items-start gap-2 rounded-xl border border-border/50 bg-background/70 px-3 py-2 text-left transition hover:bg-muted/60"
-                                  >
-                                    <span
-                                      className={`mt-1 h-2 w-2 shrink-0 rounded-full ${
-                                        isUnread
-                                          ? "bg-foreground"
-                                          : "bg-muted-foreground/40"
-                                      }`}
-                                    />
-                                    <span className="min-w-0 flex-1">
-                                      <span className="block break-words text-xs font-medium">
-                                        {resolveNotificationText(
-                                          notification.type,
-                                          notification.body,
-                                          t,
-                                        )}
-                                      </span>
-                                      {notification.createdAt ? (
-                                        <span className="mt-0.5 block text-[10px] text-muted-foreground">
-                                          {formatNotificationDate(
-                                            notification.createdAt,
-                                            language,
-                                          )}
-                                        </span>
-                                      ) : null}
-                                    </span>
-                                  </button>
-                                );
-                              })
-                            )}
-                          </div>
-                          {unreadCount > 0 ? (
-                            <button
-                              type="button"
-                              onClick={() => void markAllAsRead()}
-                              className="mt-3 inline-flex rounded-full border border-border/70 px-3 py-1.5 text-xs font-semibold transition hover:bg-foreground hover:text-background"
-                            >
-                              {t("notificationsMarkAllRead")}
-                            </button>
+                              <Sun className="h-4 w-4" />
+                            )
                           ) : null}
-                        </div>
-                      ) : null}
-                      {status === "authenticated" ? (
+                        </Button>
                         <SheetClose asChild>
-                          <button
-                            type="button"
-                            onClick={() => void handleLogout()}
-                            className="group relative overflow-hidden rounded-2xl border border-border bg-card/70 px-4 py-3 text-left transition hover:border-destructive/30 hover:bg-destructive/5"
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className={cn(shellClass, "h-10 w-10 rounded-full")}
                           >
-                            <span className="relative flex items-center gap-4">
-                              <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-destructive/30 bg-destructive/10 text-destructive">
-                                <LogOut className="h-5 w-5" />
-                              </span>
-                              <span className="text-base font-semibold">
-                                {t("logout")}
-                              </span>
-                            </span>
-                          </button>
+                            <X className="h-4 w-4" />
+                          </Button>
                         </SheetClose>
-                      ) : null}
-
-                      <div className="rounded-2xl border border-border bg-card/60 p-4">
-                        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-                          Язык
-                        </p>
-                        <div className="mt-3 grid grid-cols-3 gap-2">
-                          {languages.map((lang) => {
-                            const isActive = language === lang.code;
-                            return (
-                              <button
-                                key={lang.code}
-                                onClick={() => setLanguage(lang.code)}
-                                className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${
-                                  isActive
-                                    ? "bg-foreground text-background"
-                                    : "bg-muted/60 text-foreground/70 hover:bg-foreground hover:text-background"
-                                }`}
-                              >
-                                {lang.label}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-
-          <Link href="/" className="shrink-0">
-            <Logo
-              className={headerCompact ? "h-7 w-7" : "h-8 w-8"}
-              showText={true}
-            />
-          </Link>
-        </div>
-
-        <nav className="hidden xl:flex flex-1 items-center justify-between gap-4 ml-6 min-w-0">
-          <div className="flex items-center gap-1 2xl:gap-2 min-w-0">
-            <Link
-              href="/voting"
-              className="whitespace-nowrap rounded-full px-3 py-2 text-sm text-foreground/70 hover:text-foreground hover:bg-muted/60 transition"
-            >
-              {t("voting")}
-            </Link>
-            <Link
-              href="/suggest"
-              className="whitespace-nowrap rounded-full px-3 py-2 text-sm text-foreground/70 hover:text-foreground hover:bg-muted/60 transition"
-            >
-              {t("suggestIdea")}
-            </Link>
-            <Link
-              href="/support"
-              className="whitespace-nowrap rounded-full px-3 py-2 text-sm text-foreground/70 hover:text-foreground hover:bg-muted/60 transition"
-            >
-              {t("askQuestion")}
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="relative" ref={cityRef}>
-              <motion.button
-                onClick={() =>
-                  setCityOpen((open) => {
-                    const next = !open;
-                    if (next) setLangOpen(false);
-                    return next;
-                  })
-                }
-                className="group inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-muted/60 transition"
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
-                aria-expanded={cityOpen}
-                aria-haspopup="listbox"
-              >
-                <MapPin className="h-4 w-4" />
-                <span className="max-w-[140px] truncate">{city}</span>
-                <ChevronDown
-                  className={`h-3.5 w-3.5 transition-transform ${cityOpen ? "rotate-180" : ""}`}
-                />
-              </motion.button>
-
-              <AnimatePresence>
-                {cityOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                    transition={{ duration: 0.18, ease: "easeOut" }}
-                    role="listbox"
-                    aria-label="Выбор города"
-                    className="absolute top-full right-0 mt-3 w-[560px] max-w-[92vw] overflow-hidden rounded-2xl border border-border bg-background/95 p-4 backdrop-blur-xl"
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-[11px] uppercase tracking-[0.3em] text-muted-foreground">
-                          Выбор города
-                        </p>
-                        <p className="text-sm font-semibold">
-                          Где вы хотите участвовать?
-                        </p>
                       </div>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 2xl:grid-cols-5 gap-2">
-                      {cities.map((cityName) => {
-                        const isActive = cityName === city;
-                        return (
-                          <motion.button
-                            key={cityName}
-                            whileHover={{ y: -1 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => {
-                              setCity(cityName);
-                              setCityOpen(false);
-                            }}
-                            className={`min-w-0 rounded-xl px-2 py-2 text-xs font-medium leading-tight transition ${
-                              isActive
-                                ? "bg-foreground text-background"
-                                : "bg-muted/60 text-foreground/80 hover:bg-foreground hover:text-background"
-                            }`}
-                            role="option"
-                            aria-selected={isActive}
-                          >
-                            <span className="block break-words">
-                              {cityName}
-                            </span>
-                          </motion.button>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <div className="relative">
-              <motion.button
-                onClick={() =>
-                  setLangOpen((open) => {
-                    const next = !open;
-                    if (next) setCityOpen(false);
-                    return next;
-                  })
-                }
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-sm font-medium hover:bg-muted/60 transition"
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
-                aria-expanded={langOpen}
-              >
-                <Globe className="h-4 w-4" />
-                <span>{language}</span>
-                <ChevronDown
-                  className={`h-3.5 w-3.5 transition-transform ${langOpen ? "rotate-180" : ""}`}
-                />
-              </motion.button>
-
-              <AnimatePresence>
-                {langOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.18 }}
-                    className="absolute top-full right-0 mt-2 overflow-hidden rounded-xl border border-border bg-background min-w-[92px]"
-                  >
-                    {languages.map((lang) => (
-                      <button
-                        key={lang.code}
-                        onClick={() => {
-                          setLanguage(lang.code);
-                          setLangOpen(false);
-                        }}
-                        className={`w-full px-4 py-2.5 text-left text-sm font-medium transition ${
-                          language === lang.code
-                            ? "bg-foreground text-background"
-                            : "hover:bg-muted/60"
-                        }`}
-                      >
-                        {lang.label}
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <motion.button
-              onClick={toggleTheme}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-foreground hover:bg-muted/60 transition"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              aria-label="Toggle theme"
-            >
-              {mounted ? (
-                theme === "light" ? (
-                  <Moon className="h-4 w-4" />
-                ) : (
-                  <Sun className="h-4 w-4" />
-                )
-              ) : (
-                <span className="block h-4 w-4" aria-hidden="true" />
-              )}
-            </motion.button>
-
-            {status === "authenticated" ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <motion.button
-                    className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-foreground hover:bg-muted/60 transition"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    aria-label={t("notificationsTitle")}
-                  >
-                    <Bell className="h-4 w-4" />
-                    {unreadCount > 0 ? (
-                      <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-foreground px-1.5 py-0.5 text-[10px] font-semibold text-background">
-                        {unreadBadge}
-                      </span>
-                    ) : null}
-                  </motion.button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-80 shadow-none p-0 overflow-hidden"
-                >
-                  <div className="flex items-center justify-between px-3 py-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                      {t("notificationsTitle")}
-                    </p>
-                    {unreadCount > 0 ? (
+                    <div className="rounded-[2rem] border border-border/70 bg-card/80 p-4">
                       <button
                         type="button"
-                        onClick={() => void markAllAsRead()}
-                        className="text-xs font-semibold text-foreground/80 hover:text-foreground transition"
+                        onClick={() => setMobileCityOpen((open) => !open)}
+                        className="flex w-full items-center justify-between gap-3"
                       >
-                        {t("notificationsMarkAllRead")}
+                        <div className="flex items-center gap-3">
+                          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-foreground text-background">
+                            <MapPin className="h-5 w-5" />
+                          </span>
+                          <div className="text-left">
+                            <p className="text-[10px] uppercase tracking-[0.26em] text-muted-foreground">
+                              Город
+                            </p>
+                            <p className="text-sm font-semibold">{city}</p>
+                          </div>
+                        </div>
+                        <ChevronDown
+                          className={cn(
+                            "h-4 w-4 transition-transform",
+                            mobileCityOpen && "rotate-180",
+                          )}
+                        />
                       </button>
-                    ) : null}
-                  </div>
-                  <DropdownMenuSeparator />
-                  {notificationsLoading ? (
-                    <div className="px-3 py-4 text-sm text-muted-foreground">
-                      {t("notificationsLoading")}
+                      {mobileCityOpen ? (
+                        <div className="mt-4 grid grid-cols-2 gap-2">
+                          {cities.map((cityName) => (
+                            <button
+                              key={cityName}
+                              type="button"
+                              onClick={() => setCity(cityName)}
+                              className={cn(
+                                "rounded-xl px-3 py-2 text-left text-xs font-semibold transition",
+                                cityName === city
+                                  ? "bg-foreground text-background"
+                                  : "bg-muted/70 text-foreground/75 hover:bg-foreground hover:text-background",
+                              )}
+                            >
+                              {cityName}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
-                  ) : visibleNotifications.length === 0 ? (
-                    <div className="px-3 py-4 text-sm text-muted-foreground">
-                      {t("notificationsEmpty")}
-                    </div>
-                  ) : (
-                    <div className="max-h-72 overflow-y-auto">
-                      {visibleNotifications.map((notification) => {
-                        const isUnread = !notification.readAt;
-                        return (
-                          <DropdownMenuItem
-                            key={notification.id}
-                            className="flex items-start gap-2 py-3"
-                            onSelect={(event) => {
-                              event.preventDefault();
-                              if (isUnread) {
-                                void markAsRead(notification.id);
-                              }
-                            }}
+
+                    <div className="mt-5 grid gap-3">
+                      {mobileNavItems.map((item) => (
+                        <SheetClose asChild key={item.href}>
+                          <Link
+                            href={item.href}
+                            className="flex items-center gap-4 rounded-[2rem] border border-border/70 bg-card/80 px-4 py-3 transition hover:bg-muted/70"
                           >
-                            <span
-                              className={`mt-1 h-2 w-2 shrink-0 rounded-full ${
-                                isUnread
-                                  ? "bg-foreground"
-                                  : "bg-muted-foreground/40"
-                              }`}
-                            />
-                            <span className="min-w-0 flex-1">
-                              <span className="block break-words text-sm font-medium leading-snug">
-                                {resolveNotificationText(
-                                  notification.type,
-                                  notification.body,
-                                  t,
+                            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-foreground text-background">
+                              <item.icon className="h-5 w-5" />
+                            </span>
+                            <span className="text-sm font-semibold">{item.label}</span>
+                          </Link>
+                        </SheetClose>
+                      ))}
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+
+            <Link href="/" className="shrink-0">
+              <Logo className={compact ? "h-8 w-8" : "h-9 w-9"} showText />
+            </Link>
+
+            <div className="hidden xl:flex flex-1 justify-center">
+              <motion.nav
+                className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-card/75 p-1 shadow-[0_18px_46px_-30px_rgba(0,0,0,0.42)] backdrop-blur-md"
+                animate={{
+                  scale: compact ? 0.92 : 1,
+                  y: compact ? -1 : 0,
+                }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              >
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="rounded-full px-4 py-2 text-sm font-medium text-foreground/72 transition hover:bg-foreground hover:text-background"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </motion.nav>
+            </div>
+
+            <div className="ml-auto flex items-center gap-2">
+              <div className="hidden lg:flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(shellClass, "hidden h-11 rounded-full px-4 lg:inline-flex")}
+                    >
+                      <MapPin className="h-4 w-4" />
+                      <span className="max-w-[140px] truncate">{city}</span>
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-[540px] rounded-[2rem] border-border/70 p-4"
+                  >
+                    <DropdownMenuLabel className="px-0 text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                      Город
+                    </DropdownMenuLabel>
+                    <div className="grid grid-cols-2 gap-2 pt-2 sm:grid-cols-3">
+                      {cities.map((cityName) => (
+                        <button
+                          key={cityName}
+                          type="button"
+                          onClick={() => setCity(cityName)}
+                          className={cn(
+                            "rounded-2xl px-3 py-2 text-left text-xs font-semibold transition sm:text-sm",
+                            cityName === city
+                              ? "bg-foreground text-background"
+                              : "bg-muted/70 text-foreground/75 hover:bg-foreground hover:text-background",
+                          )}
+                        >
+                          {cityName}
+                        </button>
+                      ))}
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(shellClass, "h-11 rounded-full px-4")}
+                    >
+                      <Globe className="h-4 w-4" />
+                      {language}
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-[120px] rounded-2xl border-border/70 p-1"
+                  >
+                    {languages.map((item) => (
+                      <DropdownMenuItem
+                        key={item.code}
+                        onSelect={() => setLanguage(item.code)}
+                        className={cn(
+                          "rounded-xl",
+                          language === item.code &&
+                            "bg-foreground text-background focus:bg-foreground focus:text-background",
+                        )}
+                      >
+                        {item.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              <Button
+                size="icon"
+                variant="outline"
+                className={cn(shellClass, "h-11 w-11 rounded-full")}
+                onClick={toggleTheme}
+                aria-label="Toggle theme"
+              >
+                {mounted ? (
+                  theme === "light" ? (
+                    <Moon className="h-4 w-4" />
+                  ) : (
+                    <Sun className="h-4 w-4" />
+                  )
+                ) : null}
+              </Button>
+
+              {status === "authenticated" ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className={cn(shellClass, "relative h-11 w-11 rounded-full")}
+                    >
+                      <Bell className="h-4 w-4" />
+                      {unreadCount > 0 ? (
+                        <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-foreground px-1.5 py-0.5 text-[10px] font-semibold text-background">
+                          {unreadBadge}
+                        </span>
+                      ) : null}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-[360px] rounded-[2rem] border-border/70 p-0"
+                  >
+                    <div className="flex items-center justify-between px-4 py-3">
+                      <p className="text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                        {t("notificationsTitle")}
+                      </p>
+                      {unreadCount > 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => void markAllAsRead()}
+                          className="text-xs font-semibold text-foreground/75 transition hover:text-foreground"
+                        >
+                          {t("notificationsMarkAllRead")}
+                        </button>
+                      ) : null}
+                    </div>
+                    <DropdownMenuSeparator />
+                    {notificationsLoading ? (
+                      <div className="px-4 py-4 text-sm text-muted-foreground">
+                        {t("notificationsLoading")}
+                      </div>
+                    ) : visibleNotifications.length === 0 ? (
+                      <div className="px-4 py-4 text-sm text-muted-foreground">
+                        {t("notificationsEmpty")}
+                      </div>
+                    ) : (
+                      <div className="max-h-80 overflow-y-auto p-2">
+                        {visibleNotifications.map((notification) => {
+                          const isUnread = !notification.readAt;
+                          return (
+                            <DropdownMenuItem
+                              key={notification.id}
+                              onSelect={(event) => {
+                                event.preventDefault();
+                                if (isUnread) void markAsRead(notification.id);
+                              }}
+                              className="mb-1 items-start gap-3 rounded-2xl px-3 py-3"
+                            >
+                              <span
+                                className={cn(
+                                  "mt-1 h-2 w-2 rounded-full",
+                                  isUnread ? "bg-foreground" : "bg-muted-foreground/40",
                                 )}
-                              </span>
-                              {notification.createdAt ? (
-                                <span className="mt-1 block text-[11px] text-muted-foreground">
-                                  {formatNotificationDate(
-                                    notification.createdAt,
-                                    language,
+                              />
+                              <span className="min-w-0 flex-1">
+                                <span className="block text-sm font-medium leading-snug">
+                                  {resolveNotificationText(
+                                    notification.type,
+                                    notification.body,
+                                    t,
                                   )}
                                 </span>
-                              ) : null}
-                            </span>
-                          </DropdownMenuItem>
-                        );
-                      })}
-                    </div>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onSelect={(event) => {
-                      event.preventDefault();
-                      void refreshNotifications({ silent: true });
-                    }}
-                  >
-                    {t("notificationsRefresh")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : null}
-
-            {status === "authenticated" && user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <motion.button
-                    className="flex items-center gap-3 rounded-full border border-border bg-background px-3 py-2 hover:bg-muted/60 transition min-w-0"
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.98 }}
-                    aria-label="Account menu"
-                  >
-                    <Avatar className="h-8 w-8 shrink-0">
-                      {avatarSrc ? (
-                        <AvatarImage
-                          src={avatarSrc}
-                          alt={displayName || user.username}
-                        />
-                      ) : null}
-                      <AvatarFallback className="text-xs font-semibold">
-                        {avatarLabel}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    <span className="text-sm font-semibold max-w-[180px] truncate">
-                      {displayName || user.username}
-                    </span>
-
-                    <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
-                  </motion.button>
-                </DropdownMenuTrigger>
-
-                <DropdownMenuContent align="end" className="w-56 shadow-none">
-                  <DropdownMenuLabel className="space-y-1">
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                      {t("account")}
-                    </p>
-                    <p className="text-sm font-semibold">
-                      {displayName || user.username}
-                    </p>
-                  </DropdownMenuLabel>
-
-                  <DropdownMenuSeparator />
-
-                  <DropdownMenuItem asChild>
-                    <Link href="/account" className="flex items-center gap-2">
-                      <Settings className="h-4 w-4" />
-                      {t("accountSettings")}
-                    </Link>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem asChild>
-                    <Link
-                      href="/support/history"
-                      className="flex items-center gap-2"
+                                {notification.createdAt ? (
+                                  <span className="mt-1 block text-[11px] text-muted-foreground">
+                                    {formatNotificationDate(
+                                      notification.createdAt,
+                                      language,
+                                    )}
+                                  </span>
+                                ) : null}
+                              </span>
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </div>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        void refreshNotifications({ silent: true });
+                      }}
                     >
-                      <Clock className="h-4 w-4" />
-                      {t("supportHistory")}
-                    </Link>
-                  </DropdownMenuItem>
+                      {t("notificationsRefresh")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : null}
 
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onSelect={(event) => {
-                      event.preventDefault();
-                      void handleLogout();
-                    }}
-                    className="flex items-center gap-2"
+              {status === "authenticated" && user ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      className={cn(
+                        shellClass,
+                        "flex min-w-0 items-center gap-3 rounded-full border px-2.5 py-2.5 pr-3",
+                      )}
+                    >
+                      <Avatar className="h-8 w-8 shrink-0">
+                        {avatarSrc ? (
+                          <AvatarImage src={avatarSrc} alt={displayName || user.username} />
+                        ) : null}
+                        <AvatarFallback className="text-xs font-semibold">
+                          {avatarLabel}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="hidden max-w-[180px] truncate text-sm font-semibold xl:inline">
+                        {displayName || user.username}
+                      </span>
+                      <ChevronDown className="hidden h-4 w-4 text-muted-foreground xl:inline" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-60 rounded-[2rem] border-border/70"
                   >
-                    <LogOut className="h-4 w-4" />
-                    {t("logout")}
-                  </DropdownMenuItem>
-
-                  {hasAdminAccess ? (
+                    <DropdownMenuLabel className="space-y-1">
+                      <p className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+                        {t("account")}
+                      </p>
+                      <p className="text-sm font-semibold">
+                        {displayName || user.username}
+                      </p>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link href="/admin" className="flex items-center gap-2">
-                        <Shield className="h-4 w-4" />
-                        {t("adminPanel")}
+                      <Link href="/account" className="flex items-center gap-2">
+                        <Settings className="h-4 w-4" />
+                        {t("accountSettings")}
                       </Link>
                     </DropdownMenuItem>
-                  ) : null}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : status === "loading" ? (
-              <div className="h-10 w-24 rounded-full bg-muted/80 animate-pulse" />
-            ) : (
-              <Link href="/auth">
-                <motion.button
-                  className="rounded-full border border-border bg-foreground px-5 py-2 text-sm font-semibold text-background hover:opacity-90 transition"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                    <DropdownMenuItem asChild>
+                      <Link href="/support/history" className="flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        {t("supportHistory")}
+                      </Link>
+                    </DropdownMenuItem>
+                    {hasAdminAccess ? (
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin" className="flex items-center gap-2">
+                          <Shield className="h-4 w-4" />
+                          {t("adminPanel")}
+                        </Link>
+                      </DropdownMenuItem>
+                    ) : null}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        void logout();
+                      }}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      {t("logout")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : status === "loading" ? (
+                <div className="h-11 w-24 rounded-full bg-muted/80 animate-pulse" />
+              ) : (
+                <Button
+                  asChild
+                  className="h-11 rounded-full px-5 shadow-[0_16px_40px_-24px_rgba(0,0,0,0.55)]"
                 >
-                  {t("login")}
-                </motion.button>
-              </Link>
-            )}
+                  <Link href="/auth">{t("login")}</Link>
+                </Button>
+              )}
+            </div>
           </div>
-        </nav>
-      </div>
-    </motion.header>
+        </motion.div>
+      </motion.div>
+    </header>
   );
 }
