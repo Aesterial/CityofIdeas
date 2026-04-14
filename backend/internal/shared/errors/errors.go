@@ -9,6 +9,14 @@ import (
 	"google.golang.org/protobuf/protoadapt"
 )
 
+var Is = stderrors.Is
+var New = stderrors.New
+var As = stderrors.As
+var AsType = stderrors.AsType
+var Join = stderrors.Join
+var ErrUnsupported = stderrors.ErrUnsupported
+var Unwrap = stderrors.Unwrap
+
 type T struct {
 	st      *status.Status
 	content string

@@ -62,7 +62,7 @@ create table if not exists users_oauth
 
 create index if not exists users_oauth_owner_idx on users_oauth (owner);
 
-create type device_t as enum ('desktop', 'mobile');
+create type device_t as enum ('desktop', 'mobile', 'tablet');
 
 create table if not exists sessions
 (

@@ -11,6 +11,38 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const CreateSession = `-- name: CreateSession :one
+insert into sessions (owner, expires, device, hash) VALUES ($1, $2, $3, $4) returning id, owner, at, seen_at, expires, mfa, device, hash
+`
+
+type CreateSessionParams struct {
+	Owner   pgtype.UUID        `json:"owner"`
+	Expires pgtype.Timestamptz `json:"expires"`
+	Device  DeviceT            `json:"device"`
+	Hash    string             `json:"hash"`
+}
+
+func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error) {
+	row := q.db.QueryRow(ctx, CreateSession,
+		arg.Owner,
+		arg.Expires,
+		arg.Device,
+		arg.Hash,
+	)
+	var i Session
+	err := row.Scan(
+		&i.ID,
+		&i.Owner,
+		&i.At,
+		&i.SeenAt,
+		&i.Expires,
+		&i.Mfa,
+		&i.Device,
+		&i.Hash,
+	)
+	return i, err
+}
+
 const CreateUser = `-- name: CreateUser :one
 insert into users (username, email) VALUES ($1, $2) returning uid, username, email, joined
 `
@@ -75,6 +107,29 @@ func (q *Queries) CreateUserSecurity(ctx context.Context, arg CreateUserSecurity
 	return i, err
 }
 
+const EndUserSecurityTotp = `-- name: EndUserSecurityTotp :exec
+update users_security set totp_enabled = true, totp_secret = totp_pending, totp_confirmed = now(), totp_pending = null, totp_pending_created = null where owner = $1
+`
+
+func (q *Queries) EndUserSecurityTotp(ctx context.Context, owner pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, EndUserSecurityTotp, owner)
+	return err
+}
+
+const ExtendSession = `-- name: ExtendSession :exec
+update sessions set expires = expires + $1 where id = $2
+`
+
+type ExtendSessionParams struct {
+	Expires pgtype.Timestamptz `json:"expires"`
+	ID      pgtype.UUID        `json:"id"`
+}
+
+func (q *Queries) ExtendSession(ctx context.Context, arg ExtendSessionParams) error {
+	_, err := q.db.Exec(ctx, ExtendSession, arg.Expires, arg.ID)
+	return err
+}
+
 const GetUser = `-- name: GetUser :one
 select uid, username, email, joined from users where uid = $1 limit 1
 `
@@ -130,6 +185,35 @@ func (q *Queries) GetUserPreferences(ctx context.Context, owner pgtype.UUID) (Us
 	return i, err
 }
 
+const GetUserRecoveryCodes = `-- name: GetUserRecoveryCodes :many
+select owner, hash, used, created from users_security_codes where owner = $1
+`
+
+func (q *Queries) GetUserRecoveryCodes(ctx context.Context, owner pgtype.UUID) ([]UsersSecurityCode, error) {
+	rows, err := q.db.Query(ctx, GetUserRecoveryCodes, owner)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UsersSecurityCode
+	for rows.Next() {
+		var i UsersSecurityCode
+		if err := rows.Scan(
+			&i.Owner,
+			&i.Hash,
+			&i.Used,
+			&i.Created,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const GetUserSecurity = `-- name: GetUserSecurity :one
 select owner, password, email_verified, totp_enabled, totp_secret, totp_confirmed, totp_pending, totp_pending_created, totp_last_step from users_security where owner = $1 limit 1
 `
@@ -183,4 +267,200 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 		return nil, err
 	}
 	return items, nil
+}
+
+type InsertRecoveryCodesParams struct {
+	Owner pgtype.UUID `json:"owner"`
+	Hash  string      `json:"hash"`
+}
+
+const IsSessionValid = `-- name: IsSessionValid :one
+select expires > now() from sessions where owner = $1
+`
+
+func (q *Queries) IsSessionValid(ctx context.Context, owner pgtype.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, IsSessionValid, owner)
+	var column_1 bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const IsUserExists = `-- name: IsUserExists :one
+select exists (select 1 from users where username = $1 OR email = $2)
+`
+
+type IsUserExistsParams struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
+
+func (q *Queries) IsUserExists(ctx context.Context, arg IsUserExistsParams) (bool, error) {
+	row := q.db.QueryRow(ctx, IsUserExists, arg.Username, arg.Email)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const RevokeSession = `-- name: RevokeSession :exec
+update sessions set expires = now() where id = $1
+`
+
+func (q *Queries) RevokeSession(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, RevokeSession, id)
+	return err
+}
+
+const SessionInfo = `-- name: SessionInfo :one
+select id, owner, at, seen_at, expires, mfa, device, hash from sessions where id = $1
+`
+
+func (q *Queries) SessionInfo(ctx context.Context, id pgtype.UUID) (Session, error) {
+	row := q.db.QueryRow(ctx, SessionInfo, id)
+	var i Session
+	err := row.Scan(
+		&i.ID,
+		&i.Owner,
+		&i.At,
+		&i.SeenAt,
+		&i.Expires,
+		&i.Mfa,
+		&i.Device,
+		&i.Hash,
+	)
+	return i, err
+}
+
+const SessionsByOwner = `-- name: SessionsByOwner :many
+select id, owner, at, seen_at, expires, mfa, device, hash from sessions where owner = $1
+`
+
+func (q *Queries) SessionsByOwner(ctx context.Context, owner pgtype.UUID) ([]Session, error) {
+	rows, err := q.db.Query(ctx, SessionsByOwner, owner)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Session
+	for rows.Next() {
+		var i Session
+		if err := rows.Scan(
+			&i.ID,
+			&i.Owner,
+			&i.At,
+			&i.SeenAt,
+			&i.Expires,
+			&i.Mfa,
+			&i.Device,
+			&i.Hash,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const SetUserSecurityEmailVerified = `-- name: SetUserSecurityEmailVerified :exec
+update users_security set email_verified = true where owner = $1
+`
+
+func (q *Queries) SetUserSecurityEmailVerified(ctx context.Context, owner pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, SetUserSecurityEmailVerified, owner)
+	return err
+}
+
+const StartUserSecurityTotp = `-- name: StartUserSecurityTotp :exec
+update users_security set owner = $1, totp_pending = $2, totp_pending_created = now() where owner = $1
+`
+
+type StartUserSecurityTotpParams struct {
+	Owner       pgtype.UUID `json:"owner"`
+	TotpPending pgtype.Text `json:"totp_pending"`
+}
+
+func (q *Queries) StartUserSecurityTotp(ctx context.Context, arg StartUserSecurityTotpParams) error {
+	_, err := q.db.Exec(ctx, StartUserSecurityTotp, arg.Owner, arg.TotpPending)
+	return err
+}
+
+const UpdateUserAvatar = `-- name: UpdateUserAvatar :exec
+update users_preferences set avatar_hash = $1 where owner = $2
+`
+
+type UpdateUserAvatarParams struct {
+	AvatarHash pgtype.Text `json:"avatar_hash"`
+	Owner      pgtype.UUID `json:"owner"`
+}
+
+func (q *Queries) UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error {
+	_, err := q.db.Exec(ctx, UpdateUserAvatar, arg.AvatarHash, arg.Owner)
+	return err
+}
+
+const UpdateUserDescription = `-- name: UpdateUserDescription :exec
+update users_preferences set description = $1 where owner = $2
+`
+
+type UpdateUserDescriptionParams struct {
+	Description string      `json:"description"`
+	Owner       pgtype.UUID `json:"owner"`
+}
+
+func (q *Queries) UpdateUserDescription(ctx context.Context, arg UpdateUserDescriptionParams) error {
+	_, err := q.db.Exec(ctx, UpdateUserDescription, arg.Description, arg.Owner)
+	return err
+}
+
+const UpdateUserDisplayName = `-- name: UpdateUserDisplayName :exec
+update users_preferences set display_name = $1 where owner = $2
+`
+
+type UpdateUserDisplayNameParams struct {
+	DisplayName string      `json:"display_name"`
+	Owner       pgtype.UUID `json:"owner"`
+}
+
+func (q *Queries) UpdateUserDisplayName(ctx context.Context, arg UpdateUserDisplayNameParams) error {
+	_, err := q.db.Exec(ctx, UpdateUserDisplayName, arg.DisplayName, arg.Owner)
+	return err
+}
+
+const UpdateUserPassword = `-- name: UpdateUserPassword :exec
+update users_security set password = $1 where owner = $2
+`
+
+type UpdateUserPasswordParams struct {
+	Password string      `json:"password"`
+	Owner    pgtype.UUID `json:"owner"`
+}
+
+func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
+	_, err := q.db.Exec(ctx, UpdateUserPassword, arg.Password, arg.Owner)
+	return err
+}
+
+const UpdateUserSessionLive = `-- name: UpdateUserSessionLive :exec
+update users_preferences set session_live = $1 where owner = $2
+`
+
+type UpdateUserSessionLiveParams struct {
+	SessionLive int32       `json:"session_live"`
+	Owner       pgtype.UUID `json:"owner"`
+}
+
+func (q *Queries) UpdateUserSessionLive(ctx context.Context, arg UpdateUserSessionLiveParams) error {
+	_, err := q.db.Exec(ctx, UpdateUserSessionLive, arg.SessionLive, arg.Owner)
+	return err
+}
+
+const UseRecoveryCode = `-- name: UseRecoveryCode :exec
+update users_security_codes set used = now() where hash = $1
+`
+
+func (q *Queries) UseRecoveryCode(ctx context.Context, hash string) error {
+	_, err := q.db.Exec(ctx, UseRecoveryCode, hash)
+	return err
 }

@@ -2,11 +2,14 @@ package repositories
 
 import (
 	"context"
+	"time"
 
 	"github.com/aesterial/cityideas/backend/internal/domain"
 	userdomain "github.com/aesterial/cityideas/backend/internal/domain/user"
 	"github.com/aesterial/cityideas/backend/internal/infra/database/sqlc"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type UserRepository struct {
@@ -19,7 +22,7 @@ func NewUserRepository(conn sqlc.Querier) *UserRepository {
 
 var _ userdomain.Repository = (*UserRepository)(nil)
 
-func (u *UserRepository) parseUser(usr sqlc.User) *userdomain.User {
+func (*UserRepository) parseUser(usr sqlc.User) *userdomain.User {
 	return &userdomain.User{
 		UID:      domain.UUID{UUID: usr.Uid.Bytes},
 		Username: usr.Username,
@@ -30,13 +33,13 @@ func (u *UserRepository) parseUser(usr sqlc.User) *userdomain.User {
 
 func (u *UserRepository) parseUsers(users []sqlc.User) userdomain.Users {
 	var out = make(userdomain.Users, len(users))
-	for _, usr := range users {
-		out = append(out, u.parseUser(usr))
+	for i, usr := range users {
+		out[i] = u.parseUser(usr)
 	}
 	return out
 }
 
-func (u *UserRepository) parseSecurity(sec sqlc.UsersSecurity) *userdomain.Security {
+func (*UserRepository) parseSecurity(sec sqlc.UsersSecurity) *userdomain.Security {
 	return &userdomain.Security{
 		EmailVerified: sec.EmailVerified,
 		TotpEnabled:   sec.TotpEnabled,
@@ -50,7 +53,7 @@ func (u *UserRepository) parseSecurity(sec sqlc.UsersSecurity) *userdomain.Secur
 	}
 }
 
-func (u *UserRepository) parsePreferences(prefs sqlc.UsersPreference) *userdomain.Preferences {
+func (*UserRepository) parsePreferences(prefs sqlc.UsersPreference) *userdomain.Preferences {
 	return &userdomain.Preferences{
 		DisplayName:     prefs.DisplayName,
 		Description:     prefs.Description,
@@ -129,38 +132,171 @@ func (u *UserRepository) Preferences(ctx context.Context, user domain.UUID) (*us
 	return u.parsePreferences(prefs), nil
 }
 
+func isPointerChanged[T comparable](v, e *T) bool {
+	if v == nil {
+		return false
+	}
+	if e == nil {
+		return false
+	}
+	return *v != *e
+}
+
+func isChanged[T comparable](v, e T) bool {
+	if v == nil {
+		return false
+	}
+	if e == nil {
+		return false
+	}
+	return v != e
+}
+
 func (u *UserRepository) UpdatePreferences(ctx context.Context, user domain.UUID, prefs userdomain.Preferences) (*userdomain.Preferences, error) {
-	return nil, nil
+	ps, err := u.Preferences(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	if isPointerChanged(ps.Avatar, prefs.Avatar) {
+		err = u.conn.UpdateUserAvatar(ctx, sqlc.UpdateUserAvatarParams{
+			AvatarHash: pgtype.Text{
+				String: *prefs.Avatar,
+				Valid:  true,
+			},
+			Owner: user.ToPG(),
+		})
+		if err != nil {
+			return nil, err
+		}
+		ps.Avatar = prefs.Avatar
+	}
+	if isChanged(ps.DisplayName, prefs.DisplayName) {
+		err = u.conn.UpdateUserDisplayName(ctx, sqlc.UpdateUserDisplayNameParams{
+			DisplayName: prefs.DisplayName,
+			Owner:       user.ToPG(),
+		})
+		if err != nil {
+			return nil, err
+		}
+		ps.DisplayName = prefs.DisplayName
+	}
+	if isChanged(ps.Description, prefs.Description) {
+		err = u.conn.UpdateUserDescription(ctx, sqlc.UpdateUserDescriptionParams{
+			Description: prefs.Description,
+			Owner:       user.ToPG(),
+		})
+		if err != nil {
+			return nil, err
+		}
+		ps.Description = prefs.Description
+	}
+	if isChanged(ps.SessionLiveTime, prefs.SessionLiveTime) {
+		err = u.conn.UpdateUserSessionLive(ctx, sqlc.UpdateUserSessionLiveParams{
+			SessionLive: prefs.SessionLiveTime,
+			Owner:       user.ToPG(),
+		})
+		ps.SessionLiveTime = prefs.SessionLiveTime
+	}
+	return ps, nil
+
 }
 
 func (u *UserRepository) UpdatePassword(ctx context.Context, user domain.UUID, passHash string) error {
-	return nil
+	if len(passHash) <= 59 {
+		return errors.InvalidArguments
+	}
+	return u.conn.UpdateUserPassword(ctx, sqlc.UpdateUserPasswordParams{
+		Password: passHash,
+		Owner:    user.ToPG(),
+	})
 }
 
 func (u *UserRepository) VerifyEmail(ctx context.Context, user domain.UUID) error {
-	return nil
+	return u.conn.SetUserSecurityEmailVerified(ctx, user.ToPG())
 }
 
 func (u *UserRepository) StartTotp(ctx context.Context, user domain.UUID, secret string) error {
-	return nil
+	return u.conn.StartUserSecurityTotp(ctx, sqlc.StartUserSecurityTotpParams{
+		Owner:       user.ToPG(),
+		TotpPending: pgtype.Text{String: secret, Valid: true},
+	})
 }
 
 func (u *UserRepository) ConfirmTotp(ctx context.Context, user domain.UUID) error {
-	return nil
+	return u.conn.EndUserSecurityTotp(ctx, user.ToPG())
 }
 
 func (u *UserRepository) Security(ctx context.Context, user domain.UUID) (*userdomain.Security, error) {
-	return nil, nil
+	security, err := u.conn.GetUserSecurity(ctx, user.ToPG())
+	if err != nil {
+		return nil, err
+	}
+	return u.parseSecurity(security), nil
+}
+
+func (*UserRepository) parseSecurityCode(row sqlc.UsersSecurityCode) *userdomain.RecoveryCode {
+	var used *time.Time = nil
+	if row.Used.Valid {
+		used = &row.Used.Time
+	}
+	return &userdomain.RecoveryCode{
+		Hash:    row.Hash,
+		Used:    used,
+		Created: row.Created.Time,
+	}
+}
+
+func (u *UserRepository) parseSecurityCodes(rows []sqlc.UsersSecurityCode) []*userdomain.RecoveryCode {
+	var list = make([]*userdomain.RecoveryCode, len(rows))
+	for i, row := range rows {
+		list[i] = u.parseSecurityCode(row)
+	}
+	return list
 }
 
 func (u *UserRepository) RecoveryCodes(ctx context.Context, user domain.UUID) ([]*userdomain.RecoveryCode, error) {
-	return nil, nil
+	codes, err := u.conn.GetUserRecoveryCodes(ctx, user.ToPG())
+	if err != nil {
+		return nil, err
+	}
+	return u.parseSecurityCodes(codes), nil
 }
 
 func (u *UserRepository) UseRecovery(ctx context.Context, hash string) error {
-	return nil
+	return u.conn.UseRecoveryCode(ctx, hash)
 }
 
 func (u *UserRepository) InsertRecovery(ctx context.Context, user domain.UUID, hashes []string) error {
+	var req = make([]sqlc.InsertRecoveryCodesParams, len(hashes))
+	for i, hash := range hashes {
+		req[i] = sqlc.InsertRecoveryCodesParams{
+			Owner: user.ToPG(),
+			Hash:  hash,
+		}
+	}
+	count, err := u.conn.InsertRecoveryCodes(ctx, req)
+	if err != nil {
+		return err
+	}
+	if count != int64(len(hashes)) {
+		return errors.NotMatch
+	}
 	return nil
+}
+
+func (u *UserRepository) IsUserExists(ctx context.Context, username string, email string) (bool, error) {
+	if username == "" || email == "" {
+		return false, errors.InvalidArguments
+	}
+	exists, err := u.conn.IsUserExists(ctx, sqlc.IsUserExistsParams{
+		Username: username,
+		Email:    email,
+	})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return false, errors.NotFound
+		}
+		return false, err
+	}
+	return exists, nil
 }

@@ -15,6 +15,7 @@ type Session struct {
 	At      time.Time
 	Seen    time.Time
 	Expires time.Time
+	Expired bool
 }
 
 type Sessions []*Session

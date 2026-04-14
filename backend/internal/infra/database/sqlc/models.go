@@ -16,6 +16,7 @@ type DeviceT string
 const (
 	DeviceTDesktop DeviceT = "desktop"
 	DeviceTMobile  DeviceT = "mobile"
+	DeviceTTablet  DeviceT = "tablet"
 )
 
 func (e *DeviceT) Scan(src interface{}) error {
@@ -56,7 +57,8 @@ func (ns NullDeviceT) Value() (driver.Value, error) {
 func (e DeviceT) Valid() bool {
 	switch e {
 	case DeviceTDesktop,
-		DeviceTMobile:
+		DeviceTMobile,
+		DeviceTTablet:
 		return true
 	}
 	return false
@@ -66,6 +68,7 @@ func AllDeviceTValues() []DeviceT {
 	return []DeviceT{
 		DeviceTDesktop,
 		DeviceTMobile,
+		DeviceTTablet,
 	}
 }
 

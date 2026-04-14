@@ -11,15 +11,33 @@ import (
 )
 
 type Querier interface {
+	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateUserPreferences(ctx context.Context, owner pgtype.UUID) (UsersPreference, error)
 	CreateUserSecurity(ctx context.Context, arg CreateUserSecurityParams) (UsersSecurity, error)
+	EndUserSecurityTotp(ctx context.Context, owner pgtype.UUID) error
+	ExtendSession(ctx context.Context, arg ExtendSessionParams) error
 	GetUser(ctx context.Context, uid pgtype.UUID) (User, error)
 	GetUserId(ctx context.Context, email string) (pgtype.UUID, error)
 	GetUserPassword(ctx context.Context, owner pgtype.UUID) (string, error)
 	GetUserPreferences(ctx context.Context, owner pgtype.UUID) (UsersPreference, error)
+	GetUserRecoveryCodes(ctx context.Context, owner pgtype.UUID) ([]UsersSecurityCode, error)
 	GetUserSecurity(ctx context.Context, owner pgtype.UUID) (UsersSecurity, error)
 	GetUsers(ctx context.Context, arg GetUsersParams) ([]User, error)
+	InsertRecoveryCodes(ctx context.Context, arg []InsertRecoveryCodesParams) (int64, error)
+	IsSessionValid(ctx context.Context, owner pgtype.UUID) (bool, error)
+	IsUserExists(ctx context.Context, arg IsUserExistsParams) (bool, error)
+	RevokeSession(ctx context.Context, id pgtype.UUID) error
+	SessionInfo(ctx context.Context, id pgtype.UUID) (Session, error)
+	SessionsByOwner(ctx context.Context, owner pgtype.UUID) ([]Session, error)
+	SetUserSecurityEmailVerified(ctx context.Context, owner pgtype.UUID) error
+	StartUserSecurityTotp(ctx context.Context, arg StartUserSecurityTotpParams) error
+	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error
+	UpdateUserDescription(ctx context.Context, arg UpdateUserDescriptionParams) error
+	UpdateUserDisplayName(ctx context.Context, arg UpdateUserDisplayNameParams) error
+	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
+	UpdateUserSessionLive(ctx context.Context, arg UpdateUserSessionLiveParams) error
+	UseRecoveryCode(ctx context.Context, hash string) error
 }
 
 var _ Querier = (*Queries)(nil)

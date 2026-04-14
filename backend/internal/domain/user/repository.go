@@ -8,6 +8,7 @@ import (
 
 type Repository interface {
 	Create(ctx context.Context, username string, email string, passHash string) (*User, error)
+	IsUserExists(ctx context.Context, username string, email string) (bool, error)
 	User(ctx context.Context, user domain.UUID) (*User, error)
 	UserPassword(ctx context.Context, email string) (string, error)
 	List(ctx context.Context, limit int32, offset int32) (Users, error)
