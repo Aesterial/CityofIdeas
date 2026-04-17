@@ -3,8 +3,11 @@ package domain
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/aesterial/cityideas/backend/internal/infra/database/sqlc"
+	"github.com/aesterial/cityideas/backend/internal/shared/errors"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -87,4 +90,57 @@ func UaFromContext(ctx context.Context) (Device, string) {
 		return DeviceUnknown, ""
 	}
 	return dev, hash
+}
+
+type Metadata struct {
+	UserID    *UUID
+	SessionID *UUID
+}
+
+func (m *Metadata) IsEmpty() bool {
+	if m == nil {
+		return true
+	}
+	return m.UserID == nil && m.SessionID == nil
+}
+
+type Claims struct {
+	jwt.RegisteredClaims
+}
+
+func NewClaims(id string, issuer string, subject string, audience string, duration time.Duration) *Claims {
+	now := time.Now()
+	return &Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    issuer,
+			Subject:   subject,
+			Audience:  jwt.ClaimStrings{audience},
+			ExpiresAt: jwt.NewNumericDate(now.Add(duration)),
+			NotBefore: jwt.NewNumericDate(now),
+			IssuedAt:  jwt.NewNumericDate(now),
+			ID:        id,
+		},
+	}
+}
+
+func ParseClaims(token string, secret string) (*Claims, error) {
+	var claims = &Claims{}
+	tk, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (any, error) {
+		if t.Method != jwt.SigningMethodEdDSA {
+			return nil, errors.InvalidArguments
+		}
+		return []byte(secret), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if !tk.Valid {
+		return nil, errors.InvalidArguments
+	}
+	return claims, nil
+}
+
+func (c *Claims) Issue(secret string) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, c)
+	return token.SignedString([]byte(secret))
 }

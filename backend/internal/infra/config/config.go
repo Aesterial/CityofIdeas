@@ -54,9 +54,17 @@ func Ensure() error {
 			User:     parseType("POSTGRES_USER", "postgres"),
 			Password: parseType("POSTGRES_PASSWORD", "postgres"),
 		},
+		Cookie: configdomain.Cookie{
+			Name:   parseType("COOKIE_NAME", "session"),
+			Secret: parseType("COOKIE_SECRET", ""),
+			Issuer: parseType("COOKIE_ISSUER", "https://aesterial.xyz"),
+		},
 		Debug: false,
 	}
 	if !cfg.Database.TlsMode.IsValid() || ((cfg.Database.TlsMode == configdomain.TlsDisable) && cfg.IsProduction()) {
+		return errors.InvalidArguments
+	}
+	if cfg.Cookie.Secret == "" {
 		return errors.InvalidArguments
 	}
 	return nil

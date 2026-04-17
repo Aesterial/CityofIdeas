@@ -12,6 +12,6 @@ type Repository interface {
 	ByOwner(ctx context.Context, user domain.UUID) (Sessions, error)
 	Revoke(ctx context.Context, session domain.UUID) error
 	Extend(ctx context.Context, session domain.UUID, duration time.Duration) error
-	IsValid(ctx context.Context, session domain.UUID) (bool, error)
+	IsValid(ctx context.Context, session domain.UUID, device domain.Device, hash string) (bool, error)
 	Info(ctx context.Context, session domain.UUID) (*Session, error)
 }

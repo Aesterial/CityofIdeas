@@ -128,7 +128,7 @@ create index if not exists users_bans_idx on users_bans (id);
 create index if not exists users_bans_executor_idx on users_bans (executor);
 create index if not exists users_bans_target_idx on users_bans (target);
 
-create type projects_status as enum ('cancelled', 'listing', 'reviewing', 'implementing');
+create type projects_status as enum ('cancelled', 'listing', 'reviewing', 'implementing', 'implemented');
 
 create table if not exists projects
 (

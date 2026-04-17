@@ -7,9 +7,12 @@ import (
 	"github.com/aesterial/cityideas/backend/internal/domain"
 	sessionsdomain "github.com/aesterial/cityideas/backend/internal/domain/sessions"
 	userdomain "github.com/aesterial/cityideas/backend/internal/domain/user"
+	"github.com/aesterial/cityideas/backend/internal/infra/config"
 	"github.com/aesterial/cityideas/backend/internal/infra/logger"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 type Service struct {
@@ -24,6 +27,20 @@ func NewService(usr userdomain.Repository, ses sessionsdomain.Repository) *Servi
 	}
 }
 
+func (s *Service) addCookie(ctx context.Context, username string, session domain.UUID, sessionLiveTime int) error {
+	cfg := config.Get()
+	claims := domain.NewClaims(session.String(), cfg.Cookie.Issuer, username, "login", time.Duration(sessionLiveTime)*24)
+	token, err := claims.Issue(cfg.Cookie.Secret)
+	if err != nil {
+		return err
+	}
+	return s.addHeader(ctx, "set-cookie", token)
+}
+
+func (*Service) addHeader(ctx context.Context, headerName string, value string) error {
+	return grpc.SendHeader(ctx, metadata.Pairs(headerName, value))
+}
+
 func (s *Service) Register(ctx context.Context, username string, email string, password string) (*userdomain.User, *sessionsdomain.Session, error) {
 	if username == "" || email == "" || password == "" {
 		return nil, nil, errors.InvalidArguments
@@ -32,7 +49,11 @@ func (s *Service) Register(ctx context.Context, username string, email string, p
 	if !device.IsValid() || hash == "" {
 		return nil, nil, errors.InvalidArguments
 	}
-	exists, err := s.usr.IsUserExists(ctx, username, email)
+	exists, err := s.usr.IsUserExists(ctx, username)
+	if err != nil {
+		return nil, nil, errors.Wrap(err)
+	}
+	exists, err = s.usr.IsUserExists(ctx, email)
 	if err != nil {
 		return nil, nil, errors.Wrap(err)
 	}
@@ -52,5 +73,55 @@ func (s *Service) Register(ctx context.Context, username string, email string, p
 	if err != nil {
 		return nil, nil, errors.Wrap(err)
 	}
+	if err = s.addCookie(ctx, user.Username, session.ID, int(user.Prefs.SessionLiveTime)); err != nil {
+		logger.Error("login", "failed to add cookie to context", logger.F("error", err))
+		return nil, nil, errors.Wrap(err)
+	}
 	return user, session, nil
+}
+
+func (s *Service) Authorize(ctx context.Context, userMail string, password string) (*userdomain.User, *sessionsdomain.Session, error) {
+	if userMail == "" || password == "" {
+		return nil, nil, errors.InvalidArguments
+	}
+	device, hash := domain.UaFromContext(ctx)
+	if !device.IsValid() || hash == "" {
+		return nil, nil, errors.InvalidArguments
+	}
+	exists, err := s.usr.IsUserExists(ctx, userMail)
+	if err != nil {
+		return nil, nil, errors.Wrap(err)
+	}
+	if !exists {
+		return nil, nil, errors.NotFound
+	}
+	user, err := s.usr.UserByUsername(ctx, userMail)
+	if err != nil {
+		logger.Error("login", "failed to get user by username or email", logger.F("error", err))
+		return nil, nil, errors.Wrap(err)
+	}
+	passHash, err := s.usr.UserPassword(ctx, user.UID)
+	if err != nil {
+		logger.Error("login", "failed to get user password", logger.F("error", err))
+		return nil, nil, errors.Wrap(err)
+	}
+	if err = bcrypt.CompareHashAndPassword([]byte(passHash), []byte(password)); err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			return nil, nil, errors.NotMatch
+		}
+		return nil, nil, errors.Wrap(err)
+	}
+	session, err := s.ses.Create(ctx, user.UID, time.Now().Add(7*24*time.Hour), device, hash)
+	if err != nil {
+		return nil, nil, errors.Wrap(err)
+	}
+	if err = s.addCookie(ctx, user.Username, session.ID, int(user.Prefs.SessionLiveTime)); err != nil {
+		logger.Error("login", "failed to add cookie to context", logger.F("error", err))
+		return nil, nil, errors.Wrap(err)
+	}
+	return user, session, nil
+}
+
+func (s *Service) Logout(ctx context.Context, session domain.UUID) error {
+	return s.ses.Revoke(ctx, session)
 }

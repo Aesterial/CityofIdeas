@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aesterial/cityideas/backend/internal/domain"
+	"github.com/aesterial/cityideas/backend/internal/infra/database/sqlc"
 )
 
 type Status int
@@ -17,7 +18,8 @@ const (
 )
 
 const (
-	CallerUser Caller = iota
+	_ Caller = iota
+	CallerUser
 	CallerStaff
 	CallerSystem
 )
@@ -74,6 +76,19 @@ func (c Caller) String() string {
 	}
 }
 
+func (c Caller) SQLC() sqlc.TicketsCaller {
+	switch c {
+	case CallerUser:
+		return sqlc.TicketsCallerUser
+	case CallerStaff:
+		return sqlc.TicketsCallerStaff
+	case CallerSystem:
+		return sqlc.TicketsCallerSystem
+	default:
+		return sqlc.TicketsCallerSystem
+	}
+}
+
 type Ticket struct {
 	ID       domain.UUID
 	Author   domain.UUID
@@ -96,7 +111,6 @@ type Message struct {
 	Author  domain.UUID
 	Content string
 	Created time.Time
-	Deleted *time.Time
 }
 
 type Messages []*Message

@@ -49,8 +49,15 @@ type Database struct {
 	Password string
 }
 
+type Cookie struct {
+	Name   string
+	Secret string
+	Issuer string
+}
+
 type Config struct {
 	Database Database
+	Cookie   Cookie
 	Debug    bool
 	Loaded   bool
 }

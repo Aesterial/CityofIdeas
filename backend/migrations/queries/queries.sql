@@ -8,13 +8,19 @@ insert into users_security (owner, password) VALUES ($1, $2) returning owner, pa
 insert into users_preferences (owner) VALUES ($1) returning owner, display_name, description, avatar_hash, session_live;
 
 -- name: IsUserExists :one
-select exists (select 1 from users where username = $1 OR email = $2);
+select exists (select 1 from users where username = $1 or email = $1);
+
+-- name: IsUserBanned :one
+select exists (select 1 from users_bans where target = $1 and (expires is null or expires > now()));
 
 -- name: GetUser :one
 select uid, username, email, joined from users where uid = $1 limit 1;
 
+-- name: GetUserByUserMail :one
+select uid, username, email, joined from users where username = $1 or email = $1 limit 1;
+
 -- name: GetUserId :one
-select uid from users where email = $1 limit 1;
+select uid from users where email = $1 OR username = $1 limit 1;
 
 -- name: GetUserPassword :one
 select password from users_security where owner = $1 limit 1;
@@ -68,7 +74,7 @@ insert into sessions (owner, expires, device, hash) VALUES ($1, $2, $3, $4) retu
 update sessions set expires = now() where id = $1;
 
 -- name: IsSessionValid :one
-select expires > now() from sessions where owner = $1;
+select expires > now() and device = $1 and hash = $2 from sessions where owner = $3;
 
 -- name: ExtendSession :exec
 update sessions set expires = expires + $1 where id = $2;
@@ -78,3 +84,36 @@ select id, owner, at, seen_at, expires, mfa, device, hash from sessions where ow
 
 -- name: SessionInfo :one
 select id, owner, at, seen_at, expires, mfa, device, hash from sessions where id = $1;
+
+-- name: TicketsByAuthor :many
+select id, author, acceptor, status, topic, title, created, accepted, closed, closer, reason from tickets where author = $1 limit $2 offset $3;
+
+-- name: OpenedTickets :many
+select id, author, acceptor, status, topic, title, created, accepted, closed, closer, reason from tickets where closed is not null and acceptor is null limit $1 offset $2;
+
+-- name: TicketInfo :one
+select id, author, acceptor, status, topic, title, created, accepted, closed, closer, reason from tickets where id = $1 limit 1;
+
+-- name: IsTicketClosed :one
+select (closed is not null)::boolean as is_closed from tickets where id = $1;
+
+-- name: IsTicketAccepted :one
+select (acceptor is not null)::boolean as is_accepted from tickets where id = $1;
+
+-- name: CreateTicket :one
+insert into tickets (author, title, topic) VALUES ($1, $2, $3) returning id, author, acceptor, status, topic, title, created, accepted, closed, closer, reason;
+
+-- name: AcceptTicket :exec
+update tickets set acceptor = $1, accepted = now(), status = 'in work' where id = $2;
+
+-- name: CloseTicket :exec
+update tickets set status = 'closed', closed = now(), closer = $1, reason = $2 where id = $1;
+
+-- name: ExpiredTickets :many
+select ticket from tickets_messages group by ticket having max(created) < now() - $1::interval;
+
+-- name: CreateTicketMessage :one
+insert into tickets_messages (ticket, author, content) VALUES ($1, $2, $3) returning id, ticket, author, content, created;
+
+-- name: TicketMessages :many
+select id, ticket, author, content, created from tickets_messages where ticket = $1 limit $2 offset $3;

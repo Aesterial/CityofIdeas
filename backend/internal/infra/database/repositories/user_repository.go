@@ -8,6 +8,7 @@ import (
 	userdomain "github.com/aesterial/cityideas/backend/internal/domain/user"
 	"github.com/aesterial/cityideas/backend/internal/infra/database/sqlc"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
+	"github.com/aesterial/cityideas/backend/internal/shared/safe"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -62,6 +63,18 @@ func (*UserRepository) parsePreferences(prefs sqlc.UsersPreference) *userdomain.
 	}
 }
 
+func (u *UserRepository) getPreferences(ctx context.Context, user *userdomain.User) (*userdomain.User, error) {
+	if user == nil {
+		return nil, errors.InvalidArguments
+	}
+	var err error
+	user.Prefs, err = u.Preferences(ctx, user.UID)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
 func (u *UserRepository) Create(ctx context.Context, username string, email string, passHash string) (*userdomain.User, error) {
 	if username == "" || email == "" || passHash == "" {
 		return nil, errors.InvalidArguments
@@ -95,15 +108,19 @@ func (u *UserRepository) User(ctx context.Context, user domain.UUID) (*userdomai
 	if err != nil {
 		return nil, err
 	}
-	return u.parseUser(usr), nil
+	return u.getPreferences(ctx, u.parseUser(usr))
 }
 
-func (u *UserRepository) UserPassword(ctx context.Context, email string) (string, error) {
-	id, err := u.conn.GetUserId(ctx, email)
+func (u *UserRepository) UserByUsername(ctx context.Context, userMail string) (*userdomain.User, error) {
+	usr, err := u.conn.GetUserByUserMail(ctx, userMail)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	password, err := u.conn.GetUserPassword(ctx, id)
+	return u.getPreferences(ctx, u.parseUser(usr))
+}
+
+func (u *UserRepository) UserPassword(ctx context.Context, user domain.UUID) (string, error) {
+	password, err := u.conn.GetUserPassword(ctx, user.ToPG())
 	if err != nil {
 		return "", err
 	}
@@ -114,14 +131,39 @@ func (u *UserRepository) List(ctx context.Context, limit int32, offset int32) (u
 	if limit <= 0 {
 		limit = 100
 	}
-	list, err := u.conn.GetUsers(ctx, sqlc.GetUsersParams{
-		Limit:  limit,
-		Offset: offset,
-	})
-	if err != nil {
-		return nil, err
+
+	listFn := func(ctx context.Context, args ...any) (userdomain.Users, error) {
+		l, err := u.conn.GetUsers(ctx, sqlc.GetUsersParams{
+			Limit:  limit,
+			Offset: offset,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return u.parseUsers(l), nil
 	}
-	return u.parseUsers(list), nil
+
+	prefsFn := func(ctx context.Context, user *userdomain.User) (*userdomain.User, error) {
+		if user == nil {
+			return nil, errors.InvalidArguments
+		}
+
+		var err error
+		user, err = u.getPreferences(ctx, user)
+		if err != nil {
+			return nil, err
+		}
+		return user, nil
+	}
+
+	return safe.Hydration[userdomain.Users, *userdomain.User](
+		5*time.Second,
+		listFn,
+		[]func(context.Context, *userdomain.User) (*userdomain.User, error){
+			prefsFn,
+		},
+		1,
+	)
 }
 
 func (u *UserRepository) Preferences(ctx context.Context, user domain.UUID) (*userdomain.Preferences, error) {
@@ -284,14 +326,11 @@ func (u *UserRepository) InsertRecovery(ctx context.Context, user domain.UUID, h
 	return nil
 }
 
-func (u *UserRepository) IsUserExists(ctx context.Context, username string, email string) (bool, error) {
-	if username == "" || email == "" {
+func (u *UserRepository) IsUserExists(ctx context.Context, userMail string) (bool, error) {
+	if userMail == "" {
 		return false, errors.InvalidArguments
 	}
-	exists, err := u.conn.IsUserExists(ctx, sqlc.IsUserExistsParams{
-		Username: username,
-		Email:    email,
-	})
+	exists, err := u.conn.IsUserExists(ctx, userMail)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return false, errors.NotFound
@@ -299,4 +338,12 @@ func (u *UserRepository) IsUserExists(ctx context.Context, username string, emai
 		return false, err
 	}
 	return exists, nil
+}
+
+func (u *UserRepository) IsBanned(ctx context.Context, user domain.UUID) (bool, error) {
+	banned, err := u.conn.IsUserBanned(ctx, user.ToPG())
+	if err != nil {
+		return false, err
+	}
+	return banned, nil
 }

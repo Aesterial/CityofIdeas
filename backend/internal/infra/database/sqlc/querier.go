@@ -11,13 +11,19 @@ import (
 )
 
 type Querier interface {
+	AcceptTicket(ctx context.Context, arg AcceptTicketParams) error
+	CloseTicket(ctx context.Context, arg CloseTicketParams) error
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
+	CreateTicket(ctx context.Context, arg CreateTicketParams) (Ticket, error)
+	CreateTicketMessage(ctx context.Context, arg CreateTicketMessageParams) (TicketsMessage, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateUserPreferences(ctx context.Context, owner pgtype.UUID) (UsersPreference, error)
 	CreateUserSecurity(ctx context.Context, arg CreateUserSecurityParams) (UsersSecurity, error)
 	EndUserSecurityTotp(ctx context.Context, owner pgtype.UUID) error
+	ExpiredTickets(ctx context.Context, dollar_1 pgtype.Interval) ([]pgtype.UUID, error)
 	ExtendSession(ctx context.Context, arg ExtendSessionParams) error
 	GetUser(ctx context.Context, uid pgtype.UUID) (User, error)
+	GetUserByUserMail(ctx context.Context, username string) (User, error)
 	GetUserId(ctx context.Context, email string) (pgtype.UUID, error)
 	GetUserPassword(ctx context.Context, owner pgtype.UUID) (string, error)
 	GetUserPreferences(ctx context.Context, owner pgtype.UUID) (UsersPreference, error)
@@ -25,13 +31,20 @@ type Querier interface {
 	GetUserSecurity(ctx context.Context, owner pgtype.UUID) (UsersSecurity, error)
 	GetUsers(ctx context.Context, arg GetUsersParams) ([]User, error)
 	InsertRecoveryCodes(ctx context.Context, arg []InsertRecoveryCodesParams) (int64, error)
-	IsSessionValid(ctx context.Context, owner pgtype.UUID) (bool, error)
-	IsUserExists(ctx context.Context, arg IsUserExistsParams) (bool, error)
+	IsSessionValid(ctx context.Context, arg IsSessionValidParams) (pgtype.Bool, error)
+	IsTicketAccepted(ctx context.Context, id pgtype.UUID) (bool, error)
+	IsTicketClosed(ctx context.Context, id pgtype.UUID) (bool, error)
+	IsUserBanned(ctx context.Context, target pgtype.UUID) (bool, error)
+	IsUserExists(ctx context.Context, username string) (bool, error)
+	OpenedTickets(ctx context.Context, arg OpenedTicketsParams) ([]Ticket, error)
 	RevokeSession(ctx context.Context, id pgtype.UUID) error
 	SessionInfo(ctx context.Context, id pgtype.UUID) (Session, error)
 	SessionsByOwner(ctx context.Context, owner pgtype.UUID) ([]Session, error)
 	SetUserSecurityEmailVerified(ctx context.Context, owner pgtype.UUID) error
 	StartUserSecurityTotp(ctx context.Context, arg StartUserSecurityTotpParams) error
+	TicketInfo(ctx context.Context, id pgtype.UUID) (Ticket, error)
+	TicketMessages(ctx context.Context, arg TicketMessagesParams) ([]TicketsMessage, error)
+	TicketsByAuthor(ctx context.Context, arg TicketsByAuthorParams) ([]Ticket, error)
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error
 	UpdateUserDescription(ctx context.Context, arg UpdateUserDescriptionParams) error
 	UpdateUserDisplayName(ctx context.Context, arg UpdateUserDisplayNameParams) error

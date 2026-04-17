@@ -11,6 +11,34 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const AcceptTicket = `-- name: AcceptTicket :exec
+update tickets set acceptor = $1, accepted = now(), status = 'in work' where id = $2
+`
+
+type AcceptTicketParams struct {
+	Acceptor pgtype.UUID `json:"acceptor"`
+	ID       pgtype.UUID `json:"id"`
+}
+
+func (q *Queries) AcceptTicket(ctx context.Context, arg AcceptTicketParams) error {
+	_, err := q.db.Exec(ctx, AcceptTicket, arg.Acceptor, arg.ID)
+	return err
+}
+
+const CloseTicket = `-- name: CloseTicket :exec
+update tickets set status = 'closed', closed = now(), closer = $1, reason = $2 where id = $1
+`
+
+type CloseTicketParams struct {
+	Closer NullTicketsCaller `json:"closer"`
+	Reason pgtype.Text       `json:"reason"`
+}
+
+func (q *Queries) CloseTicket(ctx context.Context, arg CloseTicketParams) error {
+	_, err := q.db.Exec(ctx, CloseTicket, arg.Closer, arg.Reason)
+	return err
+}
+
 const CreateSession = `-- name: CreateSession :one
 insert into sessions (owner, expires, device, hash) VALUES ($1, $2, $3, $4) returning id, owner, at, seen_at, expires, mfa, device, hash
 `
@@ -39,6 +67,58 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 		&i.Mfa,
 		&i.Device,
 		&i.Hash,
+	)
+	return i, err
+}
+
+const CreateTicket = `-- name: CreateTicket :one
+insert into tickets (author, title, topic) VALUES ($1, $2, $3) returning id, author, acceptor, status, topic, title, created, accepted, closed, closer, reason
+`
+
+type CreateTicketParams struct {
+	Author pgtype.UUID `json:"author"`
+	Title  string      `json:"title"`
+	Topic  string      `json:"topic"`
+}
+
+func (q *Queries) CreateTicket(ctx context.Context, arg CreateTicketParams) (Ticket, error) {
+	row := q.db.QueryRow(ctx, CreateTicket, arg.Author, arg.Title, arg.Topic)
+	var i Ticket
+	err := row.Scan(
+		&i.ID,
+		&i.Author,
+		&i.Acceptor,
+		&i.Status,
+		&i.Topic,
+		&i.Title,
+		&i.Created,
+		&i.Accepted,
+		&i.Closed,
+		&i.Closer,
+		&i.Reason,
+	)
+	return i, err
+}
+
+const CreateTicketMessage = `-- name: CreateTicketMessage :one
+insert into tickets_messages (ticket, author, content) VALUES ($1, $2, $3) returning id, ticket, author, content, created
+`
+
+type CreateTicketMessageParams struct {
+	Ticket  pgtype.UUID `json:"ticket"`
+	Author  pgtype.UUID `json:"author"`
+	Content string      `json:"content"`
+}
+
+func (q *Queries) CreateTicketMessage(ctx context.Context, arg CreateTicketMessageParams) (TicketsMessage, error) {
+	row := q.db.QueryRow(ctx, CreateTicketMessage, arg.Ticket, arg.Author, arg.Content)
+	var i TicketsMessage
+	err := row.Scan(
+		&i.ID,
+		&i.Ticket,
+		&i.Author,
+		&i.Content,
+		&i.Created,
 	)
 	return i, err
 }
@@ -116,6 +196,30 @@ func (q *Queries) EndUserSecurityTotp(ctx context.Context, owner pgtype.UUID) er
 	return err
 }
 
+const ExpiredTickets = `-- name: ExpiredTickets :many
+select ticket from tickets_messages group by ticket having max(created) < now() - $1::interval
+`
+
+func (q *Queries) ExpiredTickets(ctx context.Context, dollar_1 pgtype.Interval) ([]pgtype.UUID, error) {
+	rows, err := q.db.Query(ctx, ExpiredTickets, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []pgtype.UUID
+	for rows.Next() {
+		var ticket pgtype.UUID
+		if err := rows.Scan(&ticket); err != nil {
+			return nil, err
+		}
+		items = append(items, ticket)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const ExtendSession = `-- name: ExtendSession :exec
 update sessions set expires = expires + $1 where id = $2
 `
@@ -146,8 +250,24 @@ func (q *Queries) GetUser(ctx context.Context, uid pgtype.UUID) (User, error) {
 	return i, err
 }
 
+const GetUserByUserMail = `-- name: GetUserByUserMail :one
+select uid, username, email, joined from users where username = $1 or email = $1 limit 1
+`
+
+func (q *Queries) GetUserByUserMail(ctx context.Context, username string) (User, error) {
+	row := q.db.QueryRow(ctx, GetUserByUserMail, username)
+	var i User
+	err := row.Scan(
+		&i.Uid,
+		&i.Username,
+		&i.Email,
+		&i.Joined,
+	)
+	return i, err
+}
+
 const GetUserId = `-- name: GetUserId :one
-select uid from users where email = $1 limit 1
+select uid from users where email = $1 OR username = $1 limit 1
 `
 
 func (q *Queries) GetUserId(ctx context.Context, email string) (pgtype.UUID, error) {
@@ -275,30 +395,105 @@ type InsertRecoveryCodesParams struct {
 }
 
 const IsSessionValid = `-- name: IsSessionValid :one
-select expires > now() from sessions where owner = $1
+select expires > now() and device = $1 and hash = $2 from sessions where owner = $3
 `
 
-func (q *Queries) IsSessionValid(ctx context.Context, owner pgtype.UUID) (bool, error) {
-	row := q.db.QueryRow(ctx, IsSessionValid, owner)
-	var column_1 bool
+type IsSessionValidParams struct {
+	Device DeviceT     `json:"device"`
+	Hash   string      `json:"hash"`
+	Owner  pgtype.UUID `json:"owner"`
+}
+
+func (q *Queries) IsSessionValid(ctx context.Context, arg IsSessionValidParams) (pgtype.Bool, error) {
+	row := q.db.QueryRow(ctx, IsSessionValid, arg.Device, arg.Hash, arg.Owner)
+	var column_1 pgtype.Bool
 	err := row.Scan(&column_1)
 	return column_1, err
 }
 
-const IsUserExists = `-- name: IsUserExists :one
-select exists (select 1 from users where username = $1 OR email = $2)
+const IsTicketAccepted = `-- name: IsTicketAccepted :one
+select (acceptor is not null)::boolean as is_accepted from tickets where id = $1
 `
 
-type IsUserExistsParams struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
+func (q *Queries) IsTicketAccepted(ctx context.Context, id pgtype.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, IsTicketAccepted, id)
+	var is_accepted bool
+	err := row.Scan(&is_accepted)
+	return is_accepted, err
 }
 
-func (q *Queries) IsUserExists(ctx context.Context, arg IsUserExistsParams) (bool, error) {
-	row := q.db.QueryRow(ctx, IsUserExists, arg.Username, arg.Email)
+const IsTicketClosed = `-- name: IsTicketClosed :one
+select (closed is not null)::boolean as is_closed from tickets where id = $1
+`
+
+func (q *Queries) IsTicketClosed(ctx context.Context, id pgtype.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, IsTicketClosed, id)
+	var is_closed bool
+	err := row.Scan(&is_closed)
+	return is_closed, err
+}
+
+const IsUserBanned = `-- name: IsUserBanned :one
+select exists (select 1 from users_bans where target = $1 and (expires is null or expires > now()))
+`
+
+func (q *Queries) IsUserBanned(ctx context.Context, target pgtype.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, IsUserBanned, target)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const IsUserExists = `-- name: IsUserExists :one
+select exists (select 1 from users where username = $1 or email = $1)
+`
+
+func (q *Queries) IsUserExists(ctx context.Context, username string) (bool, error) {
+	row := q.db.QueryRow(ctx, IsUserExists, username)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const OpenedTickets = `-- name: OpenedTickets :many
+select id, author, acceptor, status, topic, title, created, accepted, closed, closer, reason from tickets where closed is not null and acceptor is null limit $1 offset $2
+`
+
+type OpenedTicketsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) OpenedTickets(ctx context.Context, arg OpenedTicketsParams) ([]Ticket, error) {
+	rows, err := q.db.Query(ctx, OpenedTickets, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Ticket
+	for rows.Next() {
+		var i Ticket
+		if err := rows.Scan(
+			&i.ID,
+			&i.Author,
+			&i.Acceptor,
+			&i.Status,
+			&i.Topic,
+			&i.Title,
+			&i.Created,
+			&i.Accepted,
+			&i.Closed,
+			&i.Closer,
+			&i.Reason,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const RevokeSession = `-- name: RevokeSession :exec
@@ -384,6 +579,107 @@ type StartUserSecurityTotpParams struct {
 func (q *Queries) StartUserSecurityTotp(ctx context.Context, arg StartUserSecurityTotpParams) error {
 	_, err := q.db.Exec(ctx, StartUserSecurityTotp, arg.Owner, arg.TotpPending)
 	return err
+}
+
+const TicketInfo = `-- name: TicketInfo :one
+select id, author, acceptor, status, topic, title, created, accepted, closed, closer, reason from tickets where id = $1 limit 1
+`
+
+func (q *Queries) TicketInfo(ctx context.Context, id pgtype.UUID) (Ticket, error) {
+	row := q.db.QueryRow(ctx, TicketInfo, id)
+	var i Ticket
+	err := row.Scan(
+		&i.ID,
+		&i.Author,
+		&i.Acceptor,
+		&i.Status,
+		&i.Topic,
+		&i.Title,
+		&i.Created,
+		&i.Accepted,
+		&i.Closed,
+		&i.Closer,
+		&i.Reason,
+	)
+	return i, err
+}
+
+const TicketMessages = `-- name: TicketMessages :many
+select id, ticket, author, content, created from tickets_messages where ticket = $1 limit $2 offset $3
+`
+
+type TicketMessagesParams struct {
+	Ticket pgtype.UUID `json:"ticket"`
+	Limit  int32       `json:"limit"`
+	Offset int32       `json:"offset"`
+}
+
+func (q *Queries) TicketMessages(ctx context.Context, arg TicketMessagesParams) ([]TicketsMessage, error) {
+	rows, err := q.db.Query(ctx, TicketMessages, arg.Ticket, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TicketsMessage
+	for rows.Next() {
+		var i TicketsMessage
+		if err := rows.Scan(
+			&i.ID,
+			&i.Ticket,
+			&i.Author,
+			&i.Content,
+			&i.Created,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const TicketsByAuthor = `-- name: TicketsByAuthor :many
+select id, author, acceptor, status, topic, title, created, accepted, closed, closer, reason from tickets where author = $1 limit $2 offset $3
+`
+
+type TicketsByAuthorParams struct {
+	Author pgtype.UUID `json:"author"`
+	Limit  int32       `json:"limit"`
+	Offset int32       `json:"offset"`
+}
+
+func (q *Queries) TicketsByAuthor(ctx context.Context, arg TicketsByAuthorParams) ([]Ticket, error) {
+	rows, err := q.db.Query(ctx, TicketsByAuthor, arg.Author, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Ticket
+	for rows.Next() {
+		var i Ticket
+		if err := rows.Scan(
+			&i.ID,
+			&i.Author,
+			&i.Acceptor,
+			&i.Status,
+			&i.Topic,
+			&i.Title,
+			&i.Created,
+			&i.Accepted,
+			&i.Closed,
+			&i.Closer,
+			&i.Reason,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const UpdateUserAvatar = `-- name: UpdateUserAvatar :exec

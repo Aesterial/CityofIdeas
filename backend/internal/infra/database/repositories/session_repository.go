@@ -85,8 +85,19 @@ func (s *SessionsRepository) Extend(ctx context.Context, session domain.UUID, du
 	})
 }
 
-func (s *SessionsRepository) IsValid(ctx context.Context, session domain.UUID) (bool, error) {
-	return s.conn.IsSessionValid(ctx, session.ToPG())
+func (s *SessionsRepository) IsValid(ctx context.Context, session domain.UUID, device domain.Device, hash string) (bool, error) {
+	if !device.IsValid() || hash == "" {
+		return false, errors.InvalidArguments
+	}
+	b, err := s.conn.IsSessionValid(ctx, sqlc.IsSessionValidParams{
+		Device: device.SQLC(),
+		Hash:   hash,
+		Owner:  session.ToPG(),
+	})
+	if err != nil {
+		return false, err
+	}
+	return b.Bool, nil
 }
 
 func (s *SessionsRepository) Info(ctx context.Context, session domain.UUID) (*sessionsdomain.Session, error) {

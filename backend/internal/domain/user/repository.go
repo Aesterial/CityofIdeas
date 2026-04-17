@@ -8,9 +8,11 @@ import (
 
 type Repository interface {
 	Create(ctx context.Context, username string, email string, passHash string) (*User, error)
-	IsUserExists(ctx context.Context, username string, email string) (bool, error)
+	IsUserExists(ctx context.Context, userMail string) (bool, error)
+	IsBanned(ctx context.Context, user domain.UUID) (bool, error)
 	User(ctx context.Context, user domain.UUID) (*User, error)
-	UserPassword(ctx context.Context, email string) (string, error)
+	UserByUsername(ctx context.Context, userMail string) (*User, error)
+	UserPassword(ctx context.Context, user domain.UUID) (string, error)
 	List(ctx context.Context, limit int32, offset int32) (Users, error)
 	Preferences(ctx context.Context, user domain.UUID) (*Preferences, error)
 	UpdatePreferences(ctx context.Context, user domain.UUID, prefs Preferences) (*Preferences, error)
