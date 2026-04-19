@@ -1,8 +1,8 @@
-edition="2024";
+edition = "2023";
 
 package xyz.city_ideas.v1.user.v1;
 
-option go_package = "github.com/aesterial/cityofideas/backend/internal/api/v1/user/v1;v1";
+option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/user/v1;v1";
 
 import "google/protobuf/timestamp.proto";
 
@@ -12,14 +12,21 @@ message UserPreferences {
   string avatar = 3;
 }
 
+message UserRank {
+  string name = 1;
+  int64 color = 2;
+}
+
 message PublicUser {
   string id = 1;
   string username = 2;
   google.protobuf.Timestamp joined = 3;
   UserPreferences prefs = 4;
+  UserRank rank = 5;
 }
 
 message PrivateUser {
   PublicUser info = 1;
   int32 session_live = 2;
+  string email = 3;
 }

@@ -2,16 +2,15 @@ version: v2
 
 inputs:
   - directory: .
-    paths:
-      - xyz/city_ideas/v1
 
 plugins:
   - local: protoc-gen-go
-    out: ../backend/internal
+    out: ../backend
     opt:
-      - module=github.com/aesterial/cityideas/internal
+      - module=github.com/aesterial/cityideas/backend
+      - default_api_level=API_OPAQUE
   - local: protoc-gen-go-grpc
-    out: ../backend/internal
+    out: ../backend
     opt:
-      - module=github.com/aesterial/cityideas/internal
+      - module=github.com/aesterial/cityideas/backend
       - require_unimplemented_servers=false

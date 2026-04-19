@@ -4,7 +4,10 @@ import (
 	"strings"
 	"time"
 
+	userpb "github.com/aesterial/cityideas/backend/internal/api/v1/user/v1"
 	"github.com/aesterial/cityideas/backend/internal/domain"
+	ranksdomain "github.com/aesterial/cityideas/backend/internal/domain/ranks"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type OauthService int
@@ -43,8 +46,33 @@ type User struct {
 	Email    string
 	Joined   time.Time
 	Prefs    *Preferences
+	Ranks    ranksdomain.UserRanks
 	Security *Security
 	OAuth    []*OAuth
+}
+
+func (u *User) PublicProtobuf() *userpb.PublicUser {
+	if u == nil || u.Prefs == nil || u.Ranks == nil {
+		return nil
+	}
+	var usr = userpb.PublicUser{}
+	usr.SetId(u.UID.String())
+	usr.SetUsername(u.Username)
+	usr.SetJoined(timestamppb.New(u.Joined))
+	usr.SetPrefs(u.Prefs.Protobuf())
+	usr.SetRank(u.Ranks.Head().Protobuf())
+	return &usr
+}
+
+func (u *User) PrivateProtobuf() *userpb.PrivateUser {
+	if u == nil || u.Prefs == nil {
+		return nil
+	}
+	var usr = userpb.PrivateUser{}
+	usr.SetSessionLive(u.Prefs.SessionLiveTime)
+	usr.SetEmail(u.Email)
+	usr.SetInfo(u.PublicProtobuf())
+	return &usr
 }
 
 type Users []*User
@@ -54,6 +82,21 @@ type Preferences struct {
 	Description     string
 	Avatar          *string
 	SessionLiveTime int32
+}
+
+func (p *Preferences) Protobuf() *userpb.UserPreferences {
+	if p == nil {
+		return nil
+	}
+	var prefs = userpb.UserPreferences{}
+	var avatar string
+	if p.Avatar != nil {
+		avatar = *p.Avatar
+	}
+	prefs.SetAvatar(avatar)
+	prefs.SetDescription(p.Description)
+	prefs.SetDisplayName(p.DisplayName)
+	return &prefs
 }
 
 type SecurityTotp struct {

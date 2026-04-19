@@ -256,6 +256,7 @@ const (
 	ProjectsStatusListing      ProjectsStatus = "listing"
 	ProjectsStatusReviewing    ProjectsStatus = "reviewing"
 	ProjectsStatusImplementing ProjectsStatus = "implementing"
+	ProjectsStatusImplemented  ProjectsStatus = "implemented"
 )
 
 func (e *ProjectsStatus) Scan(src interface{}) error {
@@ -298,7 +299,8 @@ func (e ProjectsStatus) Valid() bool {
 	case ProjectsStatusCancelled,
 		ProjectsStatusListing,
 		ProjectsStatusReviewing,
-		ProjectsStatusImplementing:
+		ProjectsStatusImplementing,
+		ProjectsStatusImplemented:
 		return true
 	}
 	return false
@@ -310,6 +312,7 @@ func AllProjectsStatusValues() []ProjectsStatus {
 		ProjectsStatusListing,
 		ProjectsStatusReviewing,
 		ProjectsStatusImplementing,
+		ProjectsStatusImplemented,
 	}
 }
 
@@ -480,7 +483,7 @@ type Rank struct {
 	ID          pgtype.UUID        `json:"id"`
 	Name        string             `json:"name"`
 	Description string             `json:"description"`
-	Color       int32              `json:"color"`
+	Color       int64              `json:"color"`
 	Weight      int32              `json:"weight"`
 	Permissions []byte             `json:"permissions"`
 	AddedAt     pgtype.Timestamptz `json:"added_at"`

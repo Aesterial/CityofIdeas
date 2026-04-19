@@ -305,6 +305,42 @@ func (q *Queries) GetUserPreferences(ctx context.Context, owner pgtype.UUID) (Us
 	return i, err
 }
 
+const GetUserRanks = `-- name: GetUserRanks :many
+select ranks.name, ranks.color, ranks.weight, users_ranks.expires from users_ranks join ranks on ranks.id = users_ranks.rank where users_ranks.owner = $1
+`
+
+type GetUserRanksRow struct {
+	Name    string             `json:"name"`
+	Color   int64              `json:"color"`
+	Weight  int32              `json:"weight"`
+	Expires pgtype.Timestamptz `json:"expires"`
+}
+
+func (q *Queries) GetUserRanks(ctx context.Context, owner pgtype.UUID) ([]GetUserRanksRow, error) {
+	rows, err := q.db.Query(ctx, GetUserRanks, owner)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserRanksRow
+	for rows.Next() {
+		var i GetUserRanksRow
+		if err := rows.Scan(
+			&i.Name,
+			&i.Color,
+			&i.Weight,
+			&i.Expires,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const GetUserRecoveryCodes = `-- name: GetUserRecoveryCodes :many
 select owner, hash, used, created from users_security_codes where owner = $1
 `

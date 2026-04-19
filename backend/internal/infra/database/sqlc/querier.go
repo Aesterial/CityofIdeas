@@ -27,6 +27,7 @@ type Querier interface {
 	GetUserId(ctx context.Context, email string) (pgtype.UUID, error)
 	GetUserPassword(ctx context.Context, owner pgtype.UUID) (string, error)
 	GetUserPreferences(ctx context.Context, owner pgtype.UUID) (UsersPreference, error)
+	GetUserRanks(ctx context.Context, owner pgtype.UUID) ([]GetUserRanksRow, error)
 	GetUserRecoveryCodes(ctx context.Context, owner pgtype.UUID) ([]UsersSecurityCode, error)
 	GetUserSecurity(ctx context.Context, owner pgtype.UUID) (UsersSecurity, error)
 	GetUsers(ctx context.Context, arg GetUsersParams) ([]User, error)

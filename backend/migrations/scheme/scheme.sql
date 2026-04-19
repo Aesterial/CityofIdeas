@@ -83,7 +83,7 @@ create table if not exists ranks
     id          uuid        not null default gen_random_uuid(),
     name        text                   not null,
     description text                   not null default '',
-    color       int                    not null default 0,
+    color       bigint                 not null default 0,
     weight      int                    not null default 0,
     permissions jsonb                  not null,
     added_at    timestamptz not null default now()

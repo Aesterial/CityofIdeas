@@ -31,6 +31,9 @@ select uid, username, email, joined from users limit $1 offset $2;
 -- name: GetUserPreferences :one
 select owner, display_name, description, avatar_hash, session_live from users_preferences where owner = $1 limit 1;
 
+-- name: GetUserRanks :many
+select ranks.name, ranks.color, ranks.weight, users_ranks.expires from users_ranks join ranks on ranks.id = users_ranks.rank where users_ranks.owner = $1;
+
 -- name: GetUserSecurity :one
 select owner, password, email_verified, totp_enabled, totp_secret, totp_confirmed, totp_pending, totp_pending_created, totp_last_step from users_security where owner = $1 limit 1;
 

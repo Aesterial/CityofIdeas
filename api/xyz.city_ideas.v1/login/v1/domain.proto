@@ -1,0 +1,22 @@
+edition = "2023";
+
+package xyz.city_ideas.v1.login.v1;
+
+option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/login/v1;v1";
+
+import "xyz.city_ideas.v1/user/v1/domain.proto";
+
+message RegisterRequest {
+  string username = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message AuthorizeRequest {
+  string userMail = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  xyz.city_ideas.v1.user.v1.PrivateUser info = 1;
+}

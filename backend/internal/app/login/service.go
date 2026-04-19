@@ -27,7 +27,7 @@ func NewService(usr userdomain.Repository, ses sessionsdomain.Repository) *Servi
 	}
 }
 
-func (s *Service) addCookie(ctx context.Context, username string, session domain.UUID, sessionLiveTime int) error {
+func (s *Service) addCookie(ctx context.Context, username string, session domain.UUID, sessionLiveTime int32) error {
 	cfg := config.Get()
 	claims := domain.NewClaims(session.String(), cfg.Cookie.Issuer, username, "login", time.Duration(sessionLiveTime)*24)
 	token, err := claims.Issue(cfg.Cookie.Secret)
@@ -41,85 +41,85 @@ func (*Service) addHeader(ctx context.Context, headerName string, value string) 
 	return grpc.SendHeader(ctx, metadata.Pairs(headerName, value))
 }
 
-func (s *Service) Register(ctx context.Context, username string, email string, password string) (*userdomain.User, *sessionsdomain.Session, error) {
+func (s *Service) Register(ctx context.Context, username string, email string, password string) (*userdomain.User, error) {
 	if username == "" || email == "" || password == "" {
-		return nil, nil, errors.InvalidArguments
+		return nil, errors.InvalidArguments
 	}
 	device, hash := domain.UaFromContext(ctx)
 	if !device.IsValid() || hash == "" {
-		return nil, nil, errors.InvalidArguments
+		return nil, errors.InvalidArguments
 	}
 	exists, err := s.usr.IsUserExists(ctx, username)
 	if err != nil {
-		return nil, nil, errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
 	exists, err = s.usr.IsUserExists(ctx, email)
 	if err != nil {
-		return nil, nil, errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
 	if exists {
-		return nil, nil, errors.Conflict
+		return nil, errors.Conflict
 	}
 	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, nil, errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
 	user, err := s.usr.Create(ctx, username, email, string(passHash))
 	if err != nil {
 		logger.Error("login", "failed to create user", logger.F("error", err))
-		return nil, nil, errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
 	session, err := s.ses.Create(ctx, user.UID, time.Now().Add(7*24*time.Hour), device, hash)
 	if err != nil {
-		return nil, nil, errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
-	if err = s.addCookie(ctx, user.Username, session.ID, int(user.Prefs.SessionLiveTime)); err != nil {
+	if err = s.addCookie(ctx, user.Username, session.ID, user.Prefs.SessionLiveTime); err != nil {
 		logger.Error("login", "failed to add cookie to context", logger.F("error", err))
-		return nil, nil, errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
-	return user, session, nil
+	return user, nil
 }
 
-func (s *Service) Authorize(ctx context.Context, userMail string, password string) (*userdomain.User, *sessionsdomain.Session, error) {
+func (s *Service) Authorize(ctx context.Context, userMail string, password string) (*userdomain.User, error) {
 	if userMail == "" || password == "" {
-		return nil, nil, errors.InvalidArguments
+		return nil, errors.InvalidArguments
 	}
 	device, hash := domain.UaFromContext(ctx)
 	if !device.IsValid() || hash == "" {
-		return nil, nil, errors.InvalidArguments
+		return nil, errors.InvalidArguments
 	}
 	exists, err := s.usr.IsUserExists(ctx, userMail)
 	if err != nil {
-		return nil, nil, errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
 	if !exists {
-		return nil, nil, errors.NotFound
+		return nil, errors.NotFound
 	}
 	user, err := s.usr.UserByUsername(ctx, userMail)
 	if err != nil {
 		logger.Error("login", "failed to get user by username or email", logger.F("error", err))
-		return nil, nil, errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
 	passHash, err := s.usr.UserPassword(ctx, user.UID)
 	if err != nil {
 		logger.Error("login", "failed to get user password", logger.F("error", err))
-		return nil, nil, errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
 	if err = bcrypt.CompareHashAndPassword([]byte(passHash), []byte(password)); err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return nil, nil, errors.NotMatch
+			return nil, errors.NotMatch
 		}
-		return nil, nil, errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
 	session, err := s.ses.Create(ctx, user.UID, time.Now().Add(7*24*time.Hour), device, hash)
 	if err != nil {
-		return nil, nil, errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
-	if err = s.addCookie(ctx, user.Username, session.ID, int(user.Prefs.SessionLiveTime)); err != nil {
+	if err = s.addCookie(ctx, user.Username, session.ID, user.Prefs.SessionLiveTime); err != nil {
 		logger.Error("login", "failed to add cookie to context", logger.F("error", err))
-		return nil, nil, errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
-	return user, session, nil
+	return user, nil
 }
 
 func (s *Service) Logout(ctx context.Context, session domain.UUID) error {

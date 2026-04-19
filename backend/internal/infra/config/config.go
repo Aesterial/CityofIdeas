@@ -60,6 +60,7 @@ func Ensure() error {
 			Issuer: parseType("COOKIE_ISSUER", "https://aesterial.xyz"),
 		},
 		Debug: false,
+		Port:  parseType("PORT", "8080"),
 	}
 	if !cfg.Database.TlsMode.IsValid() || ((cfg.Database.TlsMode == configdomain.TlsDisable) && cfg.IsProduction()) {
 		return errors.InvalidArguments

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aesterial/cityideas/backend/internal/domain"
+	ranksdomain "github.com/aesterial/cityideas/backend/internal/domain/ranks"
 	userdomain "github.com/aesterial/cityideas/backend/internal/domain/user"
 	"github.com/aesterial/cityideas/backend/internal/infra/database/sqlc"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
@@ -75,6 +76,47 @@ func (u *UserRepository) getPreferences(ctx context.Context, user *userdomain.Us
 	return user, nil
 }
 
+func (u *UserRepository) getRanks(ctx context.Context, user *userdomain.User) (*userdomain.User, error) {
+	if user == nil {
+		return nil, errors.InvalidArguments
+	}
+	list, err := u.conn.GetUserRanks(ctx, user.UID.ToPG())
+	if err != nil {
+		return nil, err
+	}
+	var out = make(ranksdomain.UserRanks, len(list))
+	for i, e := range list {
+		var expires *time.Time = nil
+		if e.Expires.Valid {
+			expires = &e.Expires.Time
+		}
+		out[i] = &ranksdomain.UserRank{
+			Name:    e.Name,
+			Color:   e.Color,
+			Weight:  e.Weight,
+			Expires: expires,
+		}
+	}
+	user.Ranks = out
+	return user, nil
+}
+
+func (u *UserRepository) completeUser(ctx context.Context, user *userdomain.User) (*userdomain.User, error) {
+	if user == nil {
+		return nil, errors.InvalidArguments
+	}
+	var err error
+	user, err = u.getPreferences(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	user, err = u.getRanks(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
 func (u *UserRepository) Create(ctx context.Context, username string, email string, passHash string) (*userdomain.User, error) {
 	if username == "" || email == "" || passHash == "" {
 		return nil, errors.InvalidArguments
@@ -108,7 +150,7 @@ func (u *UserRepository) User(ctx context.Context, user domain.UUID) (*userdomai
 	if err != nil {
 		return nil, err
 	}
-	return u.getPreferences(ctx, u.parseUser(usr))
+	return u.completeUser(ctx, u.parseUser(usr))
 }
 
 func (u *UserRepository) UserByUsername(ctx context.Context, userMail string) (*userdomain.User, error) {
@@ -116,7 +158,7 @@ func (u *UserRepository) UserByUsername(ctx context.Context, userMail string) (*
 	if err != nil {
 		return nil, err
 	}
-	return u.getPreferences(ctx, u.parseUser(usr))
+	return u.completeUser(ctx, u.parseUser(usr))
 }
 
 func (u *UserRepository) UserPassword(ctx context.Context, user domain.UUID) (string, error) {
@@ -155,14 +197,26 @@ func (u *UserRepository) List(ctx context.Context, limit int32, offset int32) (u
 		}
 		return user, nil
 	}
+	ranksFn := func(ctx context.Context, user *userdomain.User) (*userdomain.User, error) {
+		if user == nil {
+			return nil, errors.InvalidArguments
+		}
+		var err error
+		user, err = u.getRanks(ctx, user)
+		if err != nil {
+			return nil, err
+		}
+		return user, nil
+	}
 
 	return safe.Hydration[userdomain.Users, *userdomain.User](
 		5*time.Second,
 		listFn,
 		[]func(context.Context, *userdomain.User) (*userdomain.User, error){
 			prefsFn,
+			ranksFn,
 		},
-		1,
+		2,
 	)
 }
 

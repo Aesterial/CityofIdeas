@@ -58,6 +58,7 @@ type Cookie struct {
 type Config struct {
 	Database Database
 	Cookie   Cookie
+	Port     string
 	Debug    bool
 	Loaded   bool
 }
