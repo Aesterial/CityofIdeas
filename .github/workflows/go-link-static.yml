@@ -1,0 +1,54 @@
+name: Go Link + Static Analysis
+
+on:
+  pull_request:
+    paths:
+      - "backend/**"
+      - "api/**"
+      - ".github/workflows/go-link-static.yml"
+  push:
+    branches: ["main"]
+    paths:
+      - "backend/**"
+      - "api/**"
+      - ".github/workflows/go-link-static.yml"
+  workflow_dispatch:
+
+jobs:
+  go:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: true
+
+      - name: Download deps
+        run: go mod download
+
+      - name: gofmt check
+        run: |
+          files="$(gofmt -l .)"
+          if [ -n "$files" ]; then
+            echo "Unformatted files:"
+            echo "$files"
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: staticcheck
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          staticcheck ./...
+
+      - name: Link check
+        run: go test ./... -run '^$'

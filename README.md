@@ -1,193 +1,179 @@
-# CityofIdeas-RSV
+<h1 align="center">CityofIdeas-RSV</h1>
 
-![Aesterial logo](.github/assets/logo.svg)
+<p align="center">
+  <img src="./.github/assets/logo.svg" alt="CityofIdeas-RSV logo" width="96" />
+</p>
 
-Aesterial civic engagement platform with a Next.js web client, a Go backend, and deployment scaffolding for map-driven idea collection, moderation, voting, and support workflows.
+<p align="center">
+  <i>Civic participation platform with a Next.js web client, a Go gRPC backend, and Buf-based API contracts.</i>
+</p>
 
-[![License](https://img.shields.io/badge/license-AGPL--3.0-2ea44f)](LICENSE)
-![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
-![Go](https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white)
-![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
-[![Tests](https://github.com/Aesterial/CityofIdeas-RSV/actions/workflows/auto-test.yml/badge.svg)](https://github.com/Aesterial/CityofIdeas-RSV/actions/workflows/auto-test.yml)
-[![Lint](https://github.com/Aesterial/CityofIdeas-RSV/actions/workflows/auto-lint.yml/badge.svg)](https://github.com/Aesterial/CityofIdeas-RSV/actions/workflows/auto-lint.yml)
+<p align="center">
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-3e4c75.svg?style=flat-square" alt="AGPL-3.0 license" /></a>
+  <img src="https://img.shields.io/badge/stack-Next.js%20%2B%20TypeScript%20%2B%20Go%20%2B%20gRPC%20%2B%20PostgreSQL-222?style=flat-square" alt="Tech stack" />
+  <img src="https://img.shields.io/badge/contracts-Buf%20%2B%20Protobuf-0F766E?style=flat-square" alt="Buf and Protobuf" />
+  <br />
+  <a href="https://github.com/Aesterial/CityofIdeas-RSV/actions/workflows/go-link-static.yml"><img src="https://img.shields.io/github/actions/workflow/status/Aesterial/CityofIdeas-RSV/go-link-static.yml?branch=main&style=flat-square&label=Go%20CI" alt="Go CI status" /></a>
+  <a href="https://github.com/Aesterial/CityofIdeas-RSV/actions/workflows/web-link-typecheck.yml"><img src="https://img.shields.io/github/actions/workflow/status/Aesterial/CityofIdeas-RSV/web-link-typecheck.yml?branch=main&style=flat-square&label=Web%20CI" alt="Web CI status" /></a>
+  <a href="https://github.com/Aesterial/CityofIdeas-RSV/actions/workflows/buf-lint.yml"><img src="https://img.shields.io/github/actions/workflow/status/Aesterial/CityofIdeas-RSV/buf-lint.yml?branch=main&style=flat-square&label=Buf%20Lint" alt="Buf Lint status" /></a>
+</p>
 
 ## Overview
 
-`CityofIdeas-RSV` is a monorepo for a city participation platform with five main parts:
+`CityofIdeas-RSV` is a monorepo for a city engagement platform with three main parts:
 
-- `frontend/web/`: Next.js web application for citizens, moderators, and administrators
-- `backend/internal/`: core Go packages organized into `domain/app/infra/shared`
-- `backend/starter/`: HTTP, gRPC, and gRPC-Web bootstrap for the main backend service
-- `backend/mail-proxy/`: optional Go mail proxy service used for outbound delivery flows
-- `backend/gen/openapi/`: generated OpenAPI output for API consumers and tooling
+- `frontend/`: Next.js application for citizens, moderators, support staff, and administrators
+- `backend/`: Go backend with layered `domain/app/infra/shared` structure and a gRPC entrypoint
+- `api/`: protobuf contracts plus Buf configuration for generated backend stubs
 
 ## Documentation
 
-- [backend/starter/.env.example](backend/starter/.env.example) - local backend environment template
-- [backend/gen/openapi/openapi.yaml](backend/gen/openapi/openapi.yaml) - generated OpenAPI description
-- [backend/setup/instructions.txt](backend/setup/instructions.txt) - setup notes and helper scripts
+- [api/buf.yaml](./api/buf.yaml) - Buf module and lint configuration
+- [api/buf.gen.yaml](./api/buf.gen.yaml) - Go generation targets for protobuf and gRPC stubs
+- [backend/migrations/scheme/scheme.sql](./backend/migrations/scheme/scheme.sql) - PostgreSQL schema bootstrap
+- [docker-compose.yml](./docker-compose.yml) - deployment-oriented service wiring for backend, frontend, and proxy
 
 ## Current State
 
 ### Web application
 
-- Public landing page with map-driven idea and project discovery
-- Suggestion submission flow with location selection and media support
-- Project pages with discussion threads, likes, and archive views
-- User account area, authentication, and support request flows
-- Admin panels for statistics, users, submissions, maintenance, support, and moderation
-- Multilingual interface with Russian, English, and Kazakh content paths in the UI
-- Built with `Next.js 16`, `React 19`, `TypeScript`, and Tailwind-based styling
+- Public landing and navigation flow built on the Next.js app router
+- Idea submission, voting, project pages, support flows, authentication, and user pages
+- Admin areas for users, support, submissions, and maintenance
+- Built with `Next.js 16`, `React 19`, `TypeScript`, Tailwind CSS, and Radix UI primitives
 
-### Backend and integrations
+### Backend and API
 
-- Layered Go backend with `domain/app/infra` separation
-- HTTP, gRPC, and gRPC-Web entrypoints exposed from `backend/starter`
-- Registered service surface for:
-  - `LoginService`
-  - `UserService`
-  - `StatisticsService`
-  - `ProjectService`
-  - `StorageService`
-  - `RanksService`
-  - `SubmissionsService`
-  - `MaintenanceService`
-  - `TicketsService`
-  - `NotificationService`
-  - `CheckerService`
-- PostgreSQL-backed persistence and checked-in SQL migration files
-- Object storage, SMTP, mail proxy, VK auth, and geocoding integration points
-- Generated protobuf and OpenAPI artifacts committed in the repository
+- Main backend entrypoint at `backend/cmd/city-ideasd`
+- Layered Go packages under `backend/internal/domain`, `backend/internal/app`, and `backend/internal/infra`
+- gRPC services currently registered for login, user, and session flows
+- PostgreSQL access via `pgx` + `sqlc`, with checked-in schema and query files
+- Generated protobuf stubs committed in `backend/internal/api`
 
-### Infrastructure
+### Delivery scaffolding
 
-- Root `docker-compose.yml` for frontend, backend, reverse proxy, and mail-proxy build profile
-- `Caddyfile` template for TLS termination and `/api/*` reverse proxying
-- `run.bat` helper for Windows-based dependency installation and local dev startup
+- Multi-stage Dockerfiles for `backend/` and `frontend/`
+- Root Docker workflow that publishes backend and frontend images to Docker Hub
+- Root `docker-compose.yml` that wires published images behind Caddy and expects deployment-specific environment variables
 
 ## Repository Layout
 
 ```text
 CityofIdeas-RSV/
 |-- frontend/
-|   |-- web/                  # Next.js app
-|   `-- reference/            # design/reference assets
+|   |-- app/                 # Next.js app router pages
+|   |-- components/          # shared UI and feature components
+|   |-- lib/                 # API helpers and shared frontend utilities
+|   `-- public/              # static assets
 |-- backend/
-|   |-- internal/             # core Go packages, generated stubs, protobuf inputs
-|   |-- starter/              # main backend bootstrap
-|   |-- mail-proxy/           # mail proxy service
-|   |-- migrations/           # SQL schema files
-|   |-- gen/openapi/          # generated OpenAPI output
-|   `-- setup/                # environment bootstrap helpers
-|-- .github/                  # workflows and repository assets
-|-- docker-compose.yml        # deployment-oriented service stack
-|-- Caddyfile                 # reverse proxy template
-`-- run.bat                   # Windows helper for install and dev runs
+|   |-- cmd/city-ideasd/     # main backend entrypoint
+|   |-- internal/            # domain, app, infra, generated API stubs
+|   |-- migrations/          # schema and sqlc query sources
+|   `-- Dockerfile           # backend container build
+|-- api/
+|   |-- xyz.city_ideas.v1/   # protobuf contracts
+|   `-- third_party/         # protobuf dependencies
+|-- .github/                 # workflows and repository assets
+|-- docker-compose.yml       # deployment stack based on published images
+`-- run.bat                  # legacy Windows helper that still needs path refresh
 ```
 
 ## Prerequisites
 
-- `Node.js` with `npm`
+- `Node.js 20+` with `npm`
 - `Go 1.26`
 - `Git` with submodule support
 - `PostgreSQL` for local backend development
-- Optional S3-compatible storage and SMTP credentials for media and mail flows
-- `Docker` if you want to use the root Compose stack
+- `Docker` if you want to build images or use the deployment stack
+- `Buf` if you want to lint or regenerate protobuf artifacts locally
 
 ## Quick Start
 
 1. Clone the repository:
 
-   ```sh
-   git clone https://github.com/Aesterial/CityofIdeas-RSV.git
-   cd CityofIdeas-RSV
-   ```
-
-2. Initialize the protobuf dependencies:
-
-   ```sh
-   git submodule update --init --recursive backend/internal/proto/third_party/googleapis backend/internal/proto/third_party/grpc-web
-   ```
-
-3. Install web dependencies:
-
-   ```sh
-   cd frontend/web
-   npm install
-   cd ../..
-   ```
-
-4. Prepare the Go workspace and backend environment:
-
-   ```powershell
-   cd backend
-   go work sync
-   Copy-Item starter/.env.example starter/.env
-   ```
-
-   Update `backend/starter/.env` with local database credentials and any storage, SMTP, or proxy settings needed for the flows you want to exercise.
-
-5. Start the application in development mode:
-
-   Web:
-
-   ```sh
-   cd frontend/web
-   npm run dev
-   ```
-
-   Backend:
-
-   ```sh
-   cd backend/starter
-   go run .
-   ```
-
-6. Optional Windows shortcut:
-
-   ```bat
-   run.bat
-   ```
-
-   The helper script can open separate terminals for `npm install`, `go get .`, `npm run dev`, and `go run .`.
-
-## Docker Compose
-
-For the deployment-oriented stack, use the root Compose file:
-
-```sh
-docker compose up --build
+```bash
+git clone https://github.com/Aesterial/CityofIdeas-RSV.git
+cd CityofIdeas-RSV
 ```
 
-This stack starts:
+2. Initialize protobuf dependencies:
 
-- `aesterial_frontend`: production Next.js container
-- `aesterial_backend`: backend service container
-- `caddy`: TLS termination and reverse proxy
-- `aesterial_backend_mail`: optional mail-proxy build profile
+```bash
+git submodule update --init --recursive api/third_party/googleapis
+```
 
-Notes:
+3. Install frontend dependencies:
 
-- The Compose file expects external infrastructure through environment variables, including PostgreSQL and storage settings.
-- The backend container mounts `db.ca.crt` for TLS database connectivity.
-- The checked-in `Caddyfile` uses `example.com`, `www.example.com`, and `admin@example.com` placeholders and must be updated before deployment.
+```bash
+cd frontend
+npm ci
+cd ..
+```
 
-## Development Commands
+4. Download backend dependencies:
+
+```bash
+cd backend
+go mod download
+cd ..
+```
+
+5. Export the minimum backend environment. The Go service reads variables directly from the shell, so it does not auto-load a `.env` file:
+
+```powershell
+$env:POSTGRES_HOST = "127.0.0.1"
+$env:POSTGRES_PORT = "5432"
+$env:POSTGRES_NAME = "postgres"
+$env:POSTGRES_USER = "postgres"
+$env:POSTGRES_PASSWORD = "postgres"
+$env:POSTGRES_TLS = "disable"
+$env:COOKIE_SECRET = "change-me"
+$env:PORT = "8080"
+```
+
+6. Start the backend:
+
+```bash
+cd backend
+go run ./cmd/city-ideasd
+```
+
+7. Start the frontend in another terminal:
+
+```bash
+cd frontend
+npm run dev
+```
+
+## Local Quality Checks
+
+### Go
+
+```bash
+cd backend
+gofmt -w .
+go vet ./...
+go test ./... -run '^$'
+```
 
 ### Web
 
-- `npm run dev` - start the Next.js dev server
-- `npm run build` - build the production bundle
-- `npm run start` - run the production server locally
-- `npm run lint` - run ESLint
-- `npm run typecheck` - run TypeScript checks
+```bash
+cd frontend
+npm run typecheck
+npm run build
+```
 
-### Backend
+### API contracts
 
-- `go work sync` - sync workspace modules
-- `go run .` from `backend/starter` - run the main backend service
-- `go test ./...` from `backend/internal`, `backend/starter`, or `backend/mail-proxy` - run Go tests
+```bash
+cd api
+buf lint
+buf generate
+```
+
+Generated Go outputs are written into `backend/internal/api/...`.
 
 ## License
 
-AGPL-3.0. See [LICENSE](LICENSE) for details.
+This project is licensed under the [GNU AGPL-3.0](./LICENSE).

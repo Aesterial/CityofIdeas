@@ -8,6 +8,7 @@ import (
 	configdomain "github.com/aesterial/cityideas/backend/internal/domain/config"
 	"github.com/aesterial/cityideas/backend/internal/infra/logger"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
+	"github.com/joho/godotenv"
 )
 
 var cfg configdomain.Config
@@ -45,6 +46,7 @@ func parseType[T any](tag string, def T) T {
 }
 
 func Ensure() error {
+	_ = godotenv.Load(".env")
 	cfg = configdomain.Config{
 		Database: configdomain.Database{
 			Host:     parseType("POSTGRES_HOST", "127.0.0.1"),

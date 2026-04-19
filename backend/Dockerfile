@@ -1,21 +1,14 @@
 ARG GO_VERSION=1.26
 
 FROM golang:${GO_VERSION}-bookworm AS build
-WORKDIR /app/backend
+WORKDIR /app
 
-COPY go.work ./
-COPY internal/go.mod internal/go.sum ./internal/
-COPY mail-proxy/go.mod mail-proxy/go.sum ./mail-proxy/
-COPY starter/go.mod starter/go.sum ./starter/
+COPY go.mod go.sum ./
+RUN go mod download
 
-RUN go work sync
-RUN cd internal && go mod download
-RUN cd starter && go mod download
+COPY . .
 
-COPY internal ./internal
-COPY starter ./starter
-
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -o /out/Aesterial-backend ./starter
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -o /out/city-ideasd ./cmd/city-ideasd
 
 FROM debian:bookworm-slim AS runtime
 RUN apt-get update \
@@ -23,7 +16,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --from=build /out/Aesterial-backend /app/Aesterial-backend
+COPY --from=build /out/city-ideasd /app/city-ideasd
 
 EXPOSE 8080
-CMD ["./Aesterial-backend"]
+CMD ["./city-ideasd"]
