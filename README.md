@@ -75,7 +75,7 @@ CityofIdeas-RSV/
 |   `-- third_party/         # protobuf dependencies
 |-- .github/                 # workflows and repository assets
 |-- docker-compose.yml       # deployment stack based on published images
-`-- run.bat                  # legacy Windows helper that still needs path refresh
+`-- run.bat                  
 ```
 
 ## Prerequisites
@@ -118,7 +118,7 @@ go mod download
 cd ..
 ```
 
-5. Export the minimum backend environment. The Go service reads variables directly from the shell, so it does not auto-load a `.env` file:
+5. Export the minimum backend environment.
 
 ```powershell
 $env:POSTGRES_HOST = "127.0.0.1"

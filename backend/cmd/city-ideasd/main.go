@@ -29,13 +29,13 @@ import (
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
+	log := logger.New()
+	log.SetDefault()
 	if err := config.Ensure(); err != nil {
 		logger.Critical("main", "failed to ensure config", logger.F("error", err))
 		return
 	}
 	cfg := config.Get()
-	log := logger.New()
-	log.SetDefault()
 	logger.Info("main", "creating database client")
 	conn, err := database.NewClient()
 	if err != nil {
@@ -66,7 +66,7 @@ func main() {
 
 	logger.Info("main", "starting listener")
 	serveErr := make(chan error, 1)
-	listener, err := net.Listen("tcp", "0.0.0.0"+cfg.Port)
+	listener, err := net.Listen("tcp", "0.0.0.0:"+cfg.Port)
 	if err != nil {
 		logger.Critical("main", "failed to start listener", logger.F("error", err))
 		return

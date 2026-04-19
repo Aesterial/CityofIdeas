@@ -12,7 +12,11 @@ import (
 var Is = stderrors.Is
 var New = stderrors.New
 var As = stderrors.As
-var AsType = stderrors.AsType
+
+func AsType[E error](err error) (E, bool) {
+	return stderrors.AsType[E](err)
+}
+
 var Join = stderrors.Join
 var ErrUnsupported = stderrors.ErrUnsupported
 var Unwrap = stderrors.Unwrap

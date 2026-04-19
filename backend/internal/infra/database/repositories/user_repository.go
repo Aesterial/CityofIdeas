@@ -239,12 +239,6 @@ func isPointerChanged[T comparable](v, e *T) bool {
 }
 
 func isChanged[T comparable](v, e T) bool {
-	if v == nil {
-		return false
-	}
-	if e == nil {
-		return false
-	}
 	return v != e
 }
 
