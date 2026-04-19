@@ -40,7 +40,7 @@ type Querier interface {
 	OpenedTickets(ctx context.Context, arg OpenedTicketsParams) ([]Ticket, error)
 	RevokeSession(ctx context.Context, id pgtype.UUID) error
 	SessionInfo(ctx context.Context, id pgtype.UUID) (Session, error)
-	SessionsByOwner(ctx context.Context, owner pgtype.UUID) ([]Session, error)
+	SessionsByOwner(ctx context.Context, arg SessionsByOwnerParams) ([]Session, error)
 	SetUserSecurityEmailVerified(ctx context.Context, owner pgtype.UUID) error
 	StartUserSecurityTotp(ctx context.Context, arg StartUserSecurityTotpParams) error
 	TicketInfo(ctx context.Context, id pgtype.UUID) (Ticket, error)

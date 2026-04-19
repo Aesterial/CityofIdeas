@@ -26,24 +26,34 @@ var File_xyz_city_ideas_v1_user_v1_service_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_user_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"'xyz.city_ideas.v1/user/v1/service.proto\x12\x19xyz.city_ideas.v1.user.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1dxyz.city_ideas.v1/types.proto\x1a&xyz.city_ideas.v1/user/v1/domain.proto2\xa9\x01\n" +
+	"'xyz.city_ideas.v1/user/v1/service.proto\x12\x19xyz.city_ideas.v1.user.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1dxyz.city_ideas.v1/types.proto\x1a&xyz.city_ideas.v1/user/v1/domain.proto2\xfe\x02\n" +
 	"\vUserService\x12R\n" +
 	"\x04Info\x12#.xyz.city_ideas.v1.RequestWithValue\x1a%.xyz.city_ideas.v1.user.v1.PublicUser\x12F\n" +
-	"\x04Self\x12\x16.google.protobuf.Empty\x1a&.xyz.city_ideas.v1.user.v1.PrivateUserBCZAgithub.com/aesterial/cityideas/backend/internal/api/v1/user/v1;v1b\beditionsp\xe8\a"
+	"\x04Self\x12\x16.google.protobuf.Empty\x1a&.xyz.city_ideas.v1.user.v1.PrivateUser\x12]\n" +
+	"\x04List\x12,.xyz.city_ideas.v1.RequestWithLimitAndOffset\x1a'.xyz.city_ideas.v1.user.v1.ListResponse\x12t\n" +
+	"\x11UpdatePreferences\x123.xyz.city_ideas.v1.user.v1.UpdatePreferencesRequest\x1a*.xyz.city_ideas.v1.user.v1.UserPreferencesBCZAgithub.com/aesterial/cityideas/backend/internal/api/v1/user/v1;v1b\beditionsp\xe8\a"
 
 var file_xyz_city_ideas_v1_user_v1_service_proto_goTypes = []any{
-	(*v1.RequestWithValue)(nil), // 0: xyz.city_ideas.v1.RequestWithValue
-	(*emptypb.Empty)(nil),       // 1: google.protobuf.Empty
-	(*PublicUser)(nil),          // 2: xyz.city_ideas.v1.user.v1.PublicUser
-	(*PrivateUser)(nil),         // 3: xyz.city_ideas.v1.user.v1.PrivateUser
+	(*v1.RequestWithValue)(nil),          // 0: xyz.city_ideas.v1.RequestWithValue
+	(*emptypb.Empty)(nil),                // 1: google.protobuf.Empty
+	(*v1.RequestWithLimitAndOffset)(nil), // 2: xyz.city_ideas.v1.RequestWithLimitAndOffset
+	(*UpdatePreferencesRequest)(nil),     // 3: xyz.city_ideas.v1.user.v1.UpdatePreferencesRequest
+	(*PublicUser)(nil),                   // 4: xyz.city_ideas.v1.user.v1.PublicUser
+	(*PrivateUser)(nil),                  // 5: xyz.city_ideas.v1.user.v1.PrivateUser
+	(*ListResponse)(nil),                 // 6: xyz.city_ideas.v1.user.v1.ListResponse
+	(*UserPreferences)(nil),              // 7: xyz.city_ideas.v1.user.v1.UserPreferences
 }
 var file_xyz_city_ideas_v1_user_v1_service_proto_depIdxs = []int32{
 	0, // 0: xyz.city_ideas.v1.user.v1.UserService.Info:input_type -> xyz.city_ideas.v1.RequestWithValue
 	1, // 1: xyz.city_ideas.v1.user.v1.UserService.Self:input_type -> google.protobuf.Empty
-	2, // 2: xyz.city_ideas.v1.user.v1.UserService.Info:output_type -> xyz.city_ideas.v1.user.v1.PublicUser
-	3, // 3: xyz.city_ideas.v1.user.v1.UserService.Self:output_type -> xyz.city_ideas.v1.user.v1.PrivateUser
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
+	2, // 2: xyz.city_ideas.v1.user.v1.UserService.List:input_type -> xyz.city_ideas.v1.RequestWithLimitAndOffset
+	3, // 3: xyz.city_ideas.v1.user.v1.UserService.UpdatePreferences:input_type -> xyz.city_ideas.v1.user.v1.UpdatePreferencesRequest
+	4, // 4: xyz.city_ideas.v1.user.v1.UserService.Info:output_type -> xyz.city_ideas.v1.user.v1.PublicUser
+	5, // 5: xyz.city_ideas.v1.user.v1.UserService.Self:output_type -> xyz.city_ideas.v1.user.v1.PrivateUser
+	6, // 6: xyz.city_ideas.v1.user.v1.UserService.List:output_type -> xyz.city_ideas.v1.user.v1.ListResponse
+	7, // 7: xyz.city_ideas.v1.user.v1.UserService.UpdatePreferences:output_type -> xyz.city_ideas.v1.user.v1.UserPreferences
+	4, // [4:8] is the sub-list for method output_type
+	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name

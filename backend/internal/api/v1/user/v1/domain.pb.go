@@ -592,6 +592,239 @@ func (b0 PrivateUser_builder) Build() *PrivateUser {
 	return m0
 }
 
+type UpdatePreferencesRequest struct {
+	state                      protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_DisplayName     *string                `protobuf:"bytes,1,opt,name=display_name,json=displayName"`
+	xxx_hidden_Description     *string                `protobuf:"bytes,2,opt,name=description"`
+	xxx_hidden_AvatarHash      *string                `protobuf:"bytes,3,opt,name=avatar_hash,json=avatarHash"`
+	xxx_hidden_SessionLiveTime int32                  `protobuf:"varint,4,opt,name=session_live_time,json=sessionLiveTime"`
+	XXX_raceDetectHookData     protoimpl.RaceDetectHookData
+	XXX_presence               [1]uint32
+	unknownFields              protoimpl.UnknownFields
+	sizeCache                  protoimpl.SizeCache
+}
+
+func (x *UpdatePreferencesRequest) Reset() {
+	*x = UpdatePreferencesRequest{}
+	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpdatePreferencesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpdatePreferencesRequest) ProtoMessage() {}
+
+func (x *UpdatePreferencesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *UpdatePreferencesRequest) GetDisplayName() string {
+	if x != nil {
+		if x.xxx_hidden_DisplayName != nil {
+			return *x.xxx_hidden_DisplayName
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *UpdatePreferencesRequest) GetDescription() string {
+	if x != nil {
+		if x.xxx_hidden_Description != nil {
+			return *x.xxx_hidden_Description
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *UpdatePreferencesRequest) GetAvatarHash() string {
+	if x != nil {
+		if x.xxx_hidden_AvatarHash != nil {
+			return *x.xxx_hidden_AvatarHash
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *UpdatePreferencesRequest) GetSessionLiveTime() int32 {
+	if x != nil {
+		return x.xxx_hidden_SessionLiveTime
+	}
+	return 0
+}
+
+func (x *UpdatePreferencesRequest) SetDisplayName(v string) {
+	x.xxx_hidden_DisplayName = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 4)
+}
+
+func (x *UpdatePreferencesRequest) SetDescription(v string) {
+	x.xxx_hidden_Description = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 4)
+}
+
+func (x *UpdatePreferencesRequest) SetAvatarHash(v string) {
+	x.xxx_hidden_AvatarHash = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 4)
+}
+
+func (x *UpdatePreferencesRequest) SetSessionLiveTime(v int32) {
+	x.xxx_hidden_SessionLiveTime = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 4)
+}
+
+func (x *UpdatePreferencesRequest) HasDisplayName() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *UpdatePreferencesRequest) HasDescription() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *UpdatePreferencesRequest) HasAvatarHash() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+}
+
+func (x *UpdatePreferencesRequest) HasSessionLiveTime() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
+}
+
+func (x *UpdatePreferencesRequest) ClearDisplayName() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_DisplayName = nil
+}
+
+func (x *UpdatePreferencesRequest) ClearDescription() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_Description = nil
+}
+
+func (x *UpdatePreferencesRequest) ClearAvatarHash() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	x.xxx_hidden_AvatarHash = nil
+}
+
+func (x *UpdatePreferencesRequest) ClearSessionLiveTime() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
+	x.xxx_hidden_SessionLiveTime = 0
+}
+
+type UpdatePreferencesRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	DisplayName     *string
+	Description     *string
+	AvatarHash      *string
+	SessionLiveTime *int32
+}
+
+func (b0 UpdatePreferencesRequest_builder) Build() *UpdatePreferencesRequest {
+	m0 := &UpdatePreferencesRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.DisplayName != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 4)
+		x.xxx_hidden_DisplayName = b.DisplayName
+	}
+	if b.Description != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 4)
+		x.xxx_hidden_Description = b.Description
+	}
+	if b.AvatarHash != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 4)
+		x.xxx_hidden_AvatarHash = b.AvatarHash
+	}
+	if b.SessionLiveTime != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 4)
+		x.xxx_hidden_SessionLiveTime = *b.SessionLiveTime
+	}
+	return m0
+}
+
+type ListResponse struct {
+	state           protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_List *[]*PublicUser         `protobuf:"bytes,1,rep,name=list"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ListResponse) Reset() {
+	*x = ListResponse{}
+	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListResponse) ProtoMessage() {}
+
+func (x *ListResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ListResponse) GetList() []*PublicUser {
+	if x != nil {
+		if x.xxx_hidden_List != nil {
+			return *x.xxx_hidden_List
+		}
+	}
+	return nil
+}
+
+func (x *ListResponse) SetList(v []*PublicUser) {
+	x.xxx_hidden_List = &v
+}
+
+type ListResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	List []*PublicUser
+}
+
+func (b0 ListResponse_builder) Build() *ListResponse {
+	m0 := &ListResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_List = &b.List
+	return m0
+}
+
 var File_xyz_city_ideas_v1_user_v1_domain_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc = "" +
@@ -614,26 +847,37 @@ const file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc = "" +
 	"\vPrivateUser\x129\n" +
 	"\x04info\x18\x01 \x01(\v2%.xyz.city_ideas.v1.user.v1.PublicUserR\x04info\x12!\n" +
 	"\fsession_live\x18\x02 \x01(\x05R\vsessionLive\x12\x14\n" +
-	"\x05email\x18\x03 \x01(\tR\x05emailBCZAgithub.com/aesterial/cityideas/backend/internal/api/v1/user/v1;v1b\beditionsp\xe8\a"
+	"\x05email\x18\x03 \x01(\tR\x05email\"\xac\x01\n" +
+	"\x18UpdatePreferencesRequest\x12!\n" +
+	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12 \n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1f\n" +
+	"\vavatar_hash\x18\x03 \x01(\tR\n" +
+	"avatarHash\x12*\n" +
+	"\x11session_live_time\x18\x04 \x01(\x05R\x0fsessionLiveTime\"I\n" +
+	"\fListResponse\x129\n" +
+	"\x04list\x18\x01 \x03(\v2%.xyz.city_ideas.v1.user.v1.PublicUserR\x04listBCZAgithub.com/aesterial/cityideas/backend/internal/api/v1/user/v1;v1b\beditionsp\xe8\a"
 
-var file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_xyz_city_ideas_v1_user_v1_domain_proto_goTypes = []any{
-	(*UserPreferences)(nil),       // 0: xyz.city_ideas.v1.user.v1.UserPreferences
-	(*UserRank)(nil),              // 1: xyz.city_ideas.v1.user.v1.UserRank
-	(*PublicUser)(nil),            // 2: xyz.city_ideas.v1.user.v1.PublicUser
-	(*PrivateUser)(nil),           // 3: xyz.city_ideas.v1.user.v1.PrivateUser
-	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
+	(*UserPreferences)(nil),          // 0: xyz.city_ideas.v1.user.v1.UserPreferences
+	(*UserRank)(nil),                 // 1: xyz.city_ideas.v1.user.v1.UserRank
+	(*PublicUser)(nil),               // 2: xyz.city_ideas.v1.user.v1.PublicUser
+	(*PrivateUser)(nil),              // 3: xyz.city_ideas.v1.user.v1.PrivateUser
+	(*UpdatePreferencesRequest)(nil), // 4: xyz.city_ideas.v1.user.v1.UpdatePreferencesRequest
+	(*ListResponse)(nil),             // 5: xyz.city_ideas.v1.user.v1.ListResponse
+	(*timestamppb.Timestamp)(nil),    // 6: google.protobuf.Timestamp
 }
 var file_xyz_city_ideas_v1_user_v1_domain_proto_depIdxs = []int32{
-	4, // 0: xyz.city_ideas.v1.user.v1.PublicUser.joined:type_name -> google.protobuf.Timestamp
+	6, // 0: xyz.city_ideas.v1.user.v1.PublicUser.joined:type_name -> google.protobuf.Timestamp
 	0, // 1: xyz.city_ideas.v1.user.v1.PublicUser.prefs:type_name -> xyz.city_ideas.v1.user.v1.UserPreferences
 	1, // 2: xyz.city_ideas.v1.user.v1.PublicUser.rank:type_name -> xyz.city_ideas.v1.user.v1.UserRank
 	2, // 3: xyz.city_ideas.v1.user.v1.PrivateUser.info:type_name -> xyz.city_ideas.v1.user.v1.PublicUser
-	4, // [4:4] is the sub-list for method output_type
-	4, // [4:4] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	2, // 4: xyz.city_ideas.v1.user.v1.ListResponse.list:type_name -> xyz.city_ideas.v1.user.v1.PublicUser
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_xyz_city_ideas_v1_user_v1_domain_proto_init() }
@@ -647,7 +891,7 @@ func file_xyz_city_ideas_v1_user_v1_domain_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc), len(file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

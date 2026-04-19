@@ -83,7 +83,7 @@ select expires > now() and device = $1 and hash = $2 from sessions where owner =
 update sessions set expires = expires + $1 where id = $2;
 
 -- name: SessionsByOwner :many
-select id, owner, at, seen_at, expires, mfa, device, hash from sessions where owner = $1;
+select id, owner, at, seen_at, expires, mfa, device, hash from sessions where owner = $1 limit $2 offset $3;
 
 -- name: SessionInfo :one
 select id, owner, at, seen_at, expires, mfa, device, hash from sessions where id = $1;

@@ -1,0 +1,22 @@
+edition = "2023";
+
+package xyz.city_ideas.v1.sessions.v1;
+
+option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/sessions/v1;v1";
+
+import "xyz.city_ideas.v1/types.proto";
+import "google/protobuf/timestamp.proto";
+
+message Session {
+  string id = 1;
+  bool mfa = 2;
+  xyz.city_ideas.v1.Device device = 3;
+  string hash = 4;
+  google.protobuf.Timestamp at = 5;
+  google.protobuf.Timestamp seen = 6;
+  bool expired = 7;
+}
+
+message ListResponse {
+  repeated Session list = 1;
+}

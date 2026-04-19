@@ -30,8 +30,8 @@ func (s *Service) Create(ctx context.Context, user domain.UUID, sessionLiveTime 
 	return session, nil
 }
 
-func (s *Service) List(ctx context.Context, user domain.UUID) (sessionsdomain.Sessions, error) {
-	list, err := s.ses.ByOwner(ctx, user)
+func (s *Service) List(ctx context.Context, user domain.UUID, limit int32, offset int32) (sessionsdomain.Sessions, error) {
+	list, err := s.ses.ByOwner(ctx, user, limit, offset)
 	if err != nil {
 		logger.Error("sessions", "failed to get sessions list by owner", logger.F("error", err))
 		return nil, errors.Wrap(err)

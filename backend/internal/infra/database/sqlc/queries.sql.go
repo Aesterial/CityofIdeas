@@ -562,11 +562,17 @@ func (q *Queries) SessionInfo(ctx context.Context, id pgtype.UUID) (Session, err
 }
 
 const SessionsByOwner = `-- name: SessionsByOwner :many
-select id, owner, at, seen_at, expires, mfa, device, hash from sessions where owner = $1
+select id, owner, at, seen_at, expires, mfa, device, hash from sessions where owner = $1 limit $2 offset $3
 `
 
-func (q *Queries) SessionsByOwner(ctx context.Context, owner pgtype.UUID) ([]Session, error) {
-	rows, err := q.db.Query(ctx, SessionsByOwner, owner)
+type SessionsByOwnerParams struct {
+	Owner  pgtype.UUID `json:"owner"`
+	Limit  int32       `json:"limit"`
+	Offset int32       `json:"offset"`
+}
+
+func (q *Queries) SessionsByOwner(ctx context.Context, arg SessionsByOwnerParams) ([]Session, error) {
+	rows, err := q.db.Query(ctx, SessionsByOwner, arg.Owner, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

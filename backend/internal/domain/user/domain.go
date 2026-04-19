@@ -77,11 +77,31 @@ func (u *User) PrivateProtobuf() *userpb.PrivateUser {
 
 type Users []*User
 
+func (u Users) Protobuf() []*userpb.PublicUser {
+	var out = make([]*userpb.PublicUser, len(u))
+	for i, e := range u {
+		out[i] = e.PublicProtobuf()
+	}
+	return out
+}
+
 type Preferences struct {
 	DisplayName     string
 	Description     string
 	Avatar          *string
 	SessionLiveTime int32
+}
+
+func ParsePreferences(prefs *userpb.UpdatePreferencesRequest) *Preferences {
+	if prefs == nil {
+		return nil
+	}
+	return &Preferences{
+		DisplayName:     prefs.GetDisplayName(),
+		Description:     prefs.GetDescription(),
+		Avatar:          new(prefs.GetAvatarHash()),
+		SessionLiveTime: prefs.GetSessionLiveTime(),
+	}
 }
 
 func (p *Preferences) Protobuf() *userpb.UserPreferences {

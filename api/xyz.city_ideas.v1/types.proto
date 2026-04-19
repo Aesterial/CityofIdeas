@@ -7,3 +7,15 @@ option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1;v1";
 message RequestWithValue {
   string value = 1;
 }
+
+message RequestWithLimitAndOffset {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+enum Device {
+  Unknown = 0;
+  Desktop = 1;
+  Mobile = 2;
+  Tablet = 3;
+}

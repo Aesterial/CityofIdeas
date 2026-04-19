@@ -21,8 +21,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_Info_FullMethodName = "/xyz.city_ideas.v1.user.v1.UserService/Info"
-	UserService_Self_FullMethodName = "/xyz.city_ideas.v1.user.v1.UserService/Self"
+	UserService_Info_FullMethodName              = "/xyz.city_ideas.v1.user.v1.UserService/Info"
+	UserService_Self_FullMethodName              = "/xyz.city_ideas.v1.user.v1.UserService/Self"
+	UserService_List_FullMethodName              = "/xyz.city_ideas.v1.user.v1.UserService/List"
+	UserService_UpdatePreferences_FullMethodName = "/xyz.city_ideas.v1.user.v1.UserService/UpdatePreferences"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -31,6 +33,8 @@ const (
 type UserServiceClient interface {
 	Info(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*PublicUser, error)
 	Self(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PrivateUser, error)
+	List(ctx context.Context, in *v1.RequestWithLimitAndOffset, opts ...grpc.CallOption) (*ListResponse, error)
+	UpdatePreferences(ctx context.Context, in *UpdatePreferencesRequest, opts ...grpc.CallOption) (*UserPreferences, error)
 }
 
 type userServiceClient struct {
@@ -61,12 +65,34 @@ func (c *userServiceClient) Self(ctx context.Context, in *emptypb.Empty, opts ..
 	return out, nil
 }
 
+func (c *userServiceClient) List(ctx context.Context, in *v1.RequestWithLimitAndOffset, opts ...grpc.CallOption) (*ListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListResponse)
+	err := c.cc.Invoke(ctx, UserService_List_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UpdatePreferences(ctx context.Context, in *UpdatePreferencesRequest, opts ...grpc.CallOption) (*UserPreferences, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserPreferences)
+	err := c.cc.Invoke(ctx, UserService_UpdatePreferences_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations should embed UnimplementedUserServiceServer
 // for forward compatibility.
 type UserServiceServer interface {
 	Info(context.Context, *v1.RequestWithValue) (*PublicUser, error)
 	Self(context.Context, *emptypb.Empty) (*PrivateUser, error)
+	List(context.Context, *v1.RequestWithLimitAndOffset) (*ListResponse, error)
+	UpdatePreferences(context.Context, *UpdatePreferencesRequest) (*UserPreferences, error)
 }
 
 // UnimplementedUserServiceServer should be embedded to have
@@ -81,6 +107,12 @@ func (UnimplementedUserServiceServer) Info(context.Context, *v1.RequestWithValue
 }
 func (UnimplementedUserServiceServer) Self(context.Context, *emptypb.Empty) (*PrivateUser, error) {
 	return nil, status.Error(codes.Unimplemented, "method Self not implemented")
+}
+func (UnimplementedUserServiceServer) List(context.Context, *v1.RequestWithLimitAndOffset) (*ListResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedUserServiceServer) UpdatePreferences(context.Context, *UpdatePreferencesRequest) (*UserPreferences, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdatePreferences not implemented")
 }
 func (UnimplementedUserServiceServer) testEmbeddedByValue() {}
 
@@ -138,6 +170,42 @@ func _UserService_Self_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithLimitAndOffset)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).List(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_List_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).List(ctx, req.(*v1.RequestWithLimitAndOffset))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UpdatePreferences_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePreferencesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdatePreferences(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UpdatePreferences_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdatePreferences(ctx, req.(*UpdatePreferencesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +220,14 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Self",
 			Handler:    _UserService_Self_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _UserService_List_Handler,
+		},
+		{
+			MethodName: "UpdatePreferences",
+			Handler:    _UserService_UpdatePreferences_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

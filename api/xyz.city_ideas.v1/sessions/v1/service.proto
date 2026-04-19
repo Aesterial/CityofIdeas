@@ -1,0 +1,14 @@
+edition = "2023";
+
+package xyz.city_ideas.v1.sessions.v1;
+
+option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/sessions/v1;v1";
+
+import "xyz.city_ideas.v1/types.proto";
+import "xyz.city_ideas.v1/sessions/v1/domain.proto";
+import "google/protobuf/empty.proto";
+
+service SessionService {
+  rpc List(xyz.city_ideas.v1.RequestWithLimitAndOffset) returns (xyz.city_ideas.v1.sessions.v1.ListResponse);
+  rpc Revoke(xyz.city_ideas.v1.RequestWithValue) returns (google.protobuf.Empty);
+}

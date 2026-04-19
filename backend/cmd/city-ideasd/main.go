@@ -9,6 +9,8 @@ import (
 	"time"
 
 	loginpb "github.com/aesterial/cityideas/backend/internal/api/v1/login/v1"
+	sessionpb "github.com/aesterial/cityideas/backend/internal/api/v1/sessions/v1"
+	userpb "github.com/aesterial/cityideas/backend/internal/api/v1/user/v1"
 	loginservice "github.com/aesterial/cityideas/backend/internal/app/login"
 	sessionsservice "github.com/aesterial/cityideas/backend/internal/app/sessions"
 	userservice "github.com/aesterial/cityideas/backend/internal/app/user"
@@ -55,7 +57,12 @@ func main() {
 	}
 	auth := handlers.NewAuthenticator(userService, sessionsService)
 	loginHandler := handlers.NewLoginHandler(loginService, auth)
+	userHandler := handlers.NewUserHandler(userService, auth)
+	sessionHandler := handlers.NewSessionHandler(sessionsService, auth)
+
 	loginpb.RegisterLoginServiceServer(srv, loginHandler)
+	userpb.RegisterUserServiceServer(srv, userHandler)
+	sessionpb.RegisterSessionServiceServer(srv, sessionHandler)
 
 	logger.Info("main", "starting listener")
 	serveErr := make(chan error, 1)

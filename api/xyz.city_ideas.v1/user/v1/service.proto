@@ -12,4 +12,6 @@ import "xyz.city_ideas.v1/user/v1/domain.proto";
 service UserService {
   rpc Info(xyz.city_ideas.v1.RequestWithValue) returns (xyz.city_ideas.v1.user.v1.PublicUser);
   rpc Self(google.protobuf.Empty) returns (xyz.city_ideas.v1.user.v1.PrivateUser);
+  rpc List(xyz.city_ideas.v1.RequestWithLimitAndOffset) returns (xyz.city_ideas.v1.user.v1.ListResponse);
+  rpc UpdatePreferences(xyz.city_ideas.v1.user.v1.UpdatePreferencesRequest) returns (UserPreferences);
 }

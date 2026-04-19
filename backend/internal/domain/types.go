@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	typespb "github.com/aesterial/cityideas/backend/internal/api/v1"
 	"github.com/aesterial/cityideas/backend/internal/infra/database/sqlc"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
 	"github.com/golang-jwt/jwt/v5"
@@ -61,6 +62,21 @@ func (d Device) IsValid() bool {
 		return true
 	default:
 		return false
+	}
+}
+
+func (d Device) Protobuf() typespb.Device {
+	switch d {
+	case DeviceUnknown:
+		return typespb.Device_Unknown
+	case DeviceMobile:
+		return typespb.Device_Mobile
+	case DeviceDesktop:
+		return typespb.Device_Desktop
+	case DeviceTablet:
+		return typespb.Device_Tablet
+	default:
+		return typespb.Device_Unknown
 	}
 }
 

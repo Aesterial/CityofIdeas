@@ -20,6 +20,53 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type Device int32
+
+const (
+	Device_Unknown Device = 0
+	Device_Desktop Device = 1
+	Device_Mobile  Device = 2
+	Device_Tablet  Device = 3
+)
+
+// Enum value maps for Device.
+var (
+	Device_name = map[int32]string{
+		0: "Unknown",
+		1: "Desktop",
+		2: "Mobile",
+		3: "Tablet",
+	}
+	Device_value = map[string]int32{
+		"Unknown": 0,
+		"Desktop": 1,
+		"Mobile":  2,
+		"Tablet":  3,
+	}
+)
+
+func (x Device) Enum() *Device {
+	p := new(Device)
+	*p = x
+	return p
+}
+
+func (x Device) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Device) Descriptor() protoreflect.EnumDescriptor {
+	return file_xyz_city_ideas_v1_types_proto_enumTypes[0].Descriptor()
+}
+
+func (Device) Type() protoreflect.EnumType {
+	return &file_xyz_city_ideas_v1_types_proto_enumTypes[0]
+}
+
+func (x Device) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 type RequestWithValue struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Value       *string                `protobuf:"bytes,1,opt,name=value"`
@@ -98,17 +145,135 @@ func (b0 RequestWithValue_builder) Build() *RequestWithValue {
 	return m0
 }
 
+type RequestWithLimitAndOffset struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Limit       int32                  `protobuf:"varint,1,opt,name=limit"`
+	xxx_hidden_Offset      int32                  `protobuf:"varint,2,opt,name=offset"`
+	XXX_raceDetectHookData protoimpl.RaceDetectHookData
+	XXX_presence           [1]uint32
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *RequestWithLimitAndOffset) Reset() {
+	*x = RequestWithLimitAndOffset{}
+	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestWithLimitAndOffset) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestWithLimitAndOffset) ProtoMessage() {}
+
+func (x *RequestWithLimitAndOffset) ProtoReflect() protoreflect.Message {
+	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *RequestWithLimitAndOffset) GetLimit() int32 {
+	if x != nil {
+		return x.xxx_hidden_Limit
+	}
+	return 0
+}
+
+func (x *RequestWithLimitAndOffset) GetOffset() int32 {
+	if x != nil {
+		return x.xxx_hidden_Offset
+	}
+	return 0
+}
+
+func (x *RequestWithLimitAndOffset) SetLimit(v int32) {
+	x.xxx_hidden_Limit = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
+}
+
+func (x *RequestWithLimitAndOffset) SetOffset(v int32) {
+	x.xxx_hidden_Offset = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 2)
+}
+
+func (x *RequestWithLimitAndOffset) HasLimit() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *RequestWithLimitAndOffset) HasOffset() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *RequestWithLimitAndOffset) ClearLimit() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_Limit = 0
+}
+
+func (x *RequestWithLimitAndOffset) ClearOffset() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_Offset = 0
+}
+
+type RequestWithLimitAndOffset_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	Limit  *int32
+	Offset *int32
+}
+
+func (b0 RequestWithLimitAndOffset_builder) Build() *RequestWithLimitAndOffset {
+	m0 := &RequestWithLimitAndOffset{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Limit != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 2)
+		x.xxx_hidden_Limit = *b.Limit
+	}
+	if b.Offset != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 2)
+		x.xxx_hidden_Offset = *b.Offset
+	}
+	return m0
+}
+
 var File_xyz_city_ideas_v1_types_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_types_proto_rawDesc = "" +
 	"\n" +
 	"\x1dxyz.city_ideas.v1/types.proto\x12\x11xyz.city_ideas.v1\"(\n" +
 	"\x10RequestWithValue\x12\x14\n" +
-	"\x05value\x18\x01 \x01(\tR\x05valueB;Z9github.com/aesterial/cityideas/backend/internal/api/v1;v1b\beditionsp\xe8\a"
+	"\x05value\x18\x01 \x01(\tR\x05value\"I\n" +
+	"\x19RequestWithLimitAndOffset\x12\x14\n" +
+	"\x05limit\x18\x01 \x01(\x05R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x02 \x01(\x05R\x06offset*:\n" +
+	"\x06Device\x12\v\n" +
+	"\aUnknown\x10\x00\x12\v\n" +
+	"\aDesktop\x10\x01\x12\n" +
+	"\n" +
+	"\x06Mobile\x10\x02\x12\n" +
+	"\n" +
+	"\x06Tablet\x10\x03B;Z9github.com/aesterial/cityideas/backend/internal/api/v1;v1b\beditionsp\xe8\a"
 
-var file_xyz_city_ideas_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_xyz_city_ideas_v1_types_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_xyz_city_ideas_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_xyz_city_ideas_v1_types_proto_goTypes = []any{
-	(*RequestWithValue)(nil), // 0: xyz.city_ideas.v1.RequestWithValue
+	(Device)(0),                       // 0: xyz.city_ideas.v1.Device
+	(*RequestWithValue)(nil),          // 1: xyz.city_ideas.v1.RequestWithValue
+	(*RequestWithLimitAndOffset)(nil), // 2: xyz.city_ideas.v1.RequestWithLimitAndOffset
 }
 var file_xyz_city_ideas_v1_types_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -128,13 +293,14 @@ func file_xyz_city_ideas_v1_types_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_xyz_city_ideas_v1_types_proto_rawDesc), len(file_xyz_city_ideas_v1_types_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   1,
+			NumEnums:      1,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_xyz_city_ideas_v1_types_proto_goTypes,
 		DependencyIndexes: file_xyz_city_ideas_v1_types_proto_depIdxs,
+		EnumInfos:         file_xyz_city_ideas_v1_types_proto_enumTypes,
 		MessageInfos:      file_xyz_city_ideas_v1_types_proto_msgTypes,
 	}.Build()
 	File_xyz_city_ideas_v1_types_proto = out.File

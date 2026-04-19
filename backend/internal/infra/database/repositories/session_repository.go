@@ -62,8 +62,15 @@ func (s *SessionsRepository) Create(ctx context.Context, user domain.UUID, expir
 	return s.parseSession(session), nil
 }
 
-func (s *SessionsRepository) ByOwner(ctx context.Context, user domain.UUID) (sessionsdomain.Sessions, error) {
-	list, err := s.conn.SessionsByOwner(ctx, user.ToPG())
+func (s *SessionsRepository) ByOwner(ctx context.Context, user domain.UUID, limit int32, offset int32) (sessionsdomain.Sessions, error) {
+	if limit <= 0 {
+		limit = 10
+	}
+	list, err := s.conn.SessionsByOwner(ctx, sqlc.SessionsByOwnerParams{
+		Owner:  user.ToPG(),
+		Limit:  limit,
+		Offset: offset,
+	})
 	if err != nil {
 		return nil, err
 	}
