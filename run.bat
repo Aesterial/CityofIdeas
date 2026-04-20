@@ -77,7 +77,7 @@ start "Frontend - dev" cmd /k ^
   "cd /d "%FRONTEND%" && echo. && echo [frontend] npm run dev && echo. && npm run dev"
 
 start "Backend - api" cmd /k ^
-  "cd /d "%BACKEND%" && echo. && echo [backend]  go run ./cmd/city-ideasd && echo. && go run ./cmd/city-ideasd"
+  "cd /d "%BACKEND%/cmd/city-ideasd" && echo. && echo [backend]  go run ./cmd/city-ideasd && echo. && go run ."
 
 echo.
 echo     [+] opened two windows for dev servers.

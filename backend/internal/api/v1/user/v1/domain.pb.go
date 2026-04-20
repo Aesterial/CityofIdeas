@@ -461,7 +461,7 @@ func (b0 PublicUser_builder) Build() *PublicUser {
 
 type PrivateUser struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Info        *PublicUser            `protobuf:"bytes,1,opt,name=info"`
+	xxx_hidden_Public      *PublicUser            `protobuf:"bytes,1,opt,name=public"`
 	xxx_hidden_SessionLive int32                  `protobuf:"varint,2,opt,name=session_live,json=sessionLive"`
 	xxx_hidden_Email       *string                `protobuf:"bytes,3,opt,name=email"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
@@ -495,9 +495,9 @@ func (x *PrivateUser) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *PrivateUser) GetInfo() *PublicUser {
+func (x *PrivateUser) GetPublic() *PublicUser {
 	if x != nil {
-		return x.xxx_hidden_Info
+		return x.xxx_hidden_Public
 	}
 	return nil
 }
@@ -519,8 +519,8 @@ func (x *PrivateUser) GetEmail() string {
 	return ""
 }
 
-func (x *PrivateUser) SetInfo(v *PublicUser) {
-	x.xxx_hidden_Info = v
+func (x *PrivateUser) SetPublic(v *PublicUser) {
+	x.xxx_hidden_Public = v
 }
 
 func (x *PrivateUser) SetSessionLive(v int32) {
@@ -533,11 +533,11 @@ func (x *PrivateUser) SetEmail(v string) {
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
 }
 
-func (x *PrivateUser) HasInfo() bool {
+func (x *PrivateUser) HasPublic() bool {
 	if x == nil {
 		return false
 	}
-	return x.xxx_hidden_Info != nil
+	return x.xxx_hidden_Public != nil
 }
 
 func (x *PrivateUser) HasSessionLive() bool {
@@ -554,8 +554,8 @@ func (x *PrivateUser) HasEmail() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
 }
 
-func (x *PrivateUser) ClearInfo() {
-	x.xxx_hidden_Info = nil
+func (x *PrivateUser) ClearPublic() {
+	x.xxx_hidden_Public = nil
 }
 
 func (x *PrivateUser) ClearSessionLive() {
@@ -571,7 +571,7 @@ func (x *PrivateUser) ClearEmail() {
 type PrivateUser_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Info        *PublicUser
+	Public      *PublicUser
 	SessionLive *int32
 	Email       *string
 }
@@ -580,7 +580,7 @@ func (b0 PrivateUser_builder) Build() *PrivateUser {
 	m0 := &PrivateUser{}
 	b, x := &b0, m0
 	_, _ = b, x
-	x.xxx_hidden_Info = b.Info
+	x.xxx_hidden_Public = b.Public
 	if b.SessionLive != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
 		x.xxx_hidden_SessionLive = *b.SessionLive
@@ -843,9 +843,9 @@ const file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc = "" +
 	"\busername\x18\x02 \x01(\tR\busername\x122\n" +
 	"\x06joined\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x06joined\x12@\n" +
 	"\x05prefs\x18\x04 \x01(\v2*.xyz.city_ideas.v1.user.v1.UserPreferencesR\x05prefs\x127\n" +
-	"\x04rank\x18\x05 \x01(\v2#.xyz.city_ideas.v1.user.v1.UserRankR\x04rank\"\x81\x01\n" +
-	"\vPrivateUser\x129\n" +
-	"\x04info\x18\x01 \x01(\v2%.xyz.city_ideas.v1.user.v1.PublicUserR\x04info\x12!\n" +
+	"\x04rank\x18\x05 \x01(\v2#.xyz.city_ideas.v1.user.v1.UserRankR\x04rank\"\x85\x01\n" +
+	"\vPrivateUser\x12=\n" +
+	"\x06public\x18\x01 \x01(\v2%.xyz.city_ideas.v1.user.v1.PublicUserR\x06public\x12!\n" +
 	"\fsession_live\x18\x02 \x01(\x05R\vsessionLive\x12\x14\n" +
 	"\x05email\x18\x03 \x01(\tR\x05email\"\xac\x01\n" +
 	"\x18UpdatePreferencesRequest\x12!\n" +
@@ -871,7 +871,7 @@ var file_xyz_city_ideas_v1_user_v1_domain_proto_depIdxs = []int32{
 	6, // 0: xyz.city_ideas.v1.user.v1.PublicUser.joined:type_name -> google.protobuf.Timestamp
 	0, // 1: xyz.city_ideas.v1.user.v1.PublicUser.prefs:type_name -> xyz.city_ideas.v1.user.v1.UserPreferences
 	1, // 2: xyz.city_ideas.v1.user.v1.PublicUser.rank:type_name -> xyz.city_ideas.v1.user.v1.UserRank
-	2, // 3: xyz.city_ideas.v1.user.v1.PrivateUser.info:type_name -> xyz.city_ideas.v1.user.v1.PublicUser
+	2, // 3: xyz.city_ideas.v1.user.v1.PrivateUser.public:type_name -> xyz.city_ideas.v1.user.v1.PublicUser
 	2, // 4: xyz.city_ideas.v1.user.v1.ListResponse.list:type_name -> xyz.city_ideas.v1.user.v1.PublicUser
 	5, // [5:5] is the sub-list for method output_type
 	5, // [5:5] is the sub-list for method input_type

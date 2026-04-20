@@ -2,6 +2,7 @@ package loginservice
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"github.com/aesterial/cityideas/backend/internal/domain"
@@ -29,12 +30,22 @@ func NewService(usr userdomain.Repository, ses sessionsdomain.Repository) *Servi
 
 func (s *Service) addCookie(ctx context.Context, username string, session domain.UUID, sessionLiveTime int32) error {
 	cfg := config.Get()
-	claims := domain.NewClaims(session.String(), cfg.Cookie.Issuer, username, "login", time.Duration(sessionLiveTime)*24)
+	var ttl = time.Hour * 24 * time.Duration(sessionLiveTime)
+	claims := domain.NewClaims(session.String(), cfg.Cookie.Issuer, username, "login", ttl)
 	token, err := claims.Issue(cfg.Cookie.Secret)
 	if err != nil {
 		return err
 	}
-	return s.addHeader(ctx, "set-cookie", token)
+	cookie := (&http.Cookie{
+		Name:     cfg.Cookie.Name,
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   cfg.IsProduction(),
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   int(ttl.Seconds()),
+	}).String()
+	return s.addHeader(ctx, "set-cookie", cookie)
 }
 
 func (*Service) addHeader(ctx context.Context, headerName string, value string) error {

@@ -17,6 +17,7 @@ type Querier interface {
 	CreateTicket(ctx context.Context, arg CreateTicketParams) (Ticket, error)
 	CreateTicketMessage(ctx context.Context, arg CreateTicketMessageParams) (TicketsMessage, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	CreateUserDefaultRank(ctx context.Context, owner pgtype.UUID) (CreateUserDefaultRankRow, error)
 	CreateUserPreferences(ctx context.Context, owner pgtype.UUID) (UsersPreference, error)
 	CreateUserSecurity(ctx context.Context, arg CreateUserSecurityParams) (UsersSecurity, error)
 	EndUserSecurityTotp(ctx context.Context, owner pgtype.UUID) error
@@ -41,6 +42,7 @@ type Querier interface {
 	RevokeSession(ctx context.Context, id pgtype.UUID) error
 	SessionInfo(ctx context.Context, id pgtype.UUID) (Session, error)
 	SessionsByOwner(ctx context.Context, arg SessionsByOwnerParams) ([]Session, error)
+	SetSessionLastSeen(ctx context.Context, id pgtype.UUID) error
 	SetUserSecurityEmailVerified(ctx context.Context, owner pgtype.UUID) error
 	StartUserSecurityTotp(ctx context.Context, arg StartUserSecurityTotpParams) error
 	TicketInfo(ctx context.Context, id pgtype.UUID) (Ticket, error)

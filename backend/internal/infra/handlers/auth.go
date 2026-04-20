@@ -9,6 +9,7 @@ import (
 	userservice "github.com/aesterial/cityideas/backend/internal/app/user"
 	"github.com/aesterial/cityideas/backend/internal/domain"
 	"github.com/aesterial/cityideas/backend/internal/infra/config"
+	"github.com/aesterial/cityideas/backend/internal/infra/logger"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/metadata"
@@ -59,6 +60,7 @@ func (a *Authenticator) User(ctx context.Context) (*domain.Metadata, error) {
 	cfg := config.Get()
 	token := a.getToken(md, cfg.Cookie.Name)
 	if token == "" {
+		logger.Error("auth", "token is empty")
 		return nil, errors.NotFound
 	}
 	claims, err := domain.ParseClaims(token, cfg.Cookie.Secret)
@@ -72,10 +74,16 @@ func (a *Authenticator) User(ctx context.Context) (*domain.Metadata, error) {
 	meta.SessionID = &domain.UUID{UUID: sid}
 	valid, err := a.ses.IsValid(ctx, *meta.SessionID, device, hash)
 	if err != nil {
+		logger.Error("auth", "error while verifying session", logger.F("error", err))
 		return nil, errors.Wrap(err)
 	}
 	if !valid {
+		logger.Info("auth", "session is not valid")
 		return nil, errors.AccessDenied
+	}
+	err = a.ses.LastSeen(ctx, *meta.SessionID)
+	if err != nil {
+		return nil, errors.Wrap(err)
 	}
 	session, err := a.ses.Info(ctx, *meta.SessionID)
 	if err != nil {

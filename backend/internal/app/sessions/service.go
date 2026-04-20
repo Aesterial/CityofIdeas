@@ -78,3 +78,12 @@ func (s *Service) Info(ctx context.Context, session domain.UUID) (*sessionsdomai
 	}
 	return info, nil
 }
+
+func (s *Service) LastSeen(ctx context.Context, session domain.UUID) error {
+	err := s.ses.LastSeen(ctx, session)
+	if err != nil {
+		logger.Error("sessions", "failed to set session last seen", logger.F("error", err))
+		return err
+	}
+	return nil
+}

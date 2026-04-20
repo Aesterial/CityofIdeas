@@ -40,7 +40,7 @@ func FingerPrint() grpc.UnaryServerInterceptor {
 			return nil, errors.InvalidArguments
 		}
 		parsed := useragent.Parse(userAgentContext(md))
-		device := domain.ParseDevice(parsed.Device)
+		device := domain.ParseDeviceUa(parsed)
 		if !device.IsValid() {
 			return nil, errors.AccessDenied
 		}

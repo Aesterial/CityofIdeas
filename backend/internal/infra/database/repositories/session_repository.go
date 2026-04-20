@@ -26,6 +26,7 @@ func (*SessionsRepository) parseSession(session sqlc.Session) *sessionsdomain.Se
 	if session.Device.Valid() {
 		device = domain.ParseDevice(string(session.Device))
 	}
+	expired := session.Expires.Time.Before(time.Now())
 	return &sessionsdomain.Session{
 		ID:      domain.UUID{UUID: session.ID.Bytes},
 		Owner:   domain.UUID{UUID: session.Owner.Bytes},
@@ -35,6 +36,7 @@ func (*SessionsRepository) parseSession(session sqlc.Session) *sessionsdomain.Se
 		At:      session.At.Time,
 		Seen:    session.SeenAt.Time,
 		Expires: session.Expires.Time,
+		Expired: expired,
 	}
 }
 
@@ -99,7 +101,7 @@ func (s *SessionsRepository) IsValid(ctx context.Context, session domain.UUID, d
 	b, err := s.conn.IsSessionValid(ctx, sqlc.IsSessionValidParams{
 		Device: device.SQLC(),
 		Hash:   hash,
-		Owner:  session.ToPG(),
+		ID:     session.ToPG(),
 	})
 	if err != nil {
 		return false, err
@@ -113,4 +115,12 @@ func (s *SessionsRepository) Info(ctx context.Context, session domain.UUID) (*se
 		return nil, err
 	}
 	return s.parseSession(sess), nil
+}
+
+func (s *SessionsRepository) LastSeen(ctx context.Context, session domain.UUID) error {
+	err := s.conn.SetSessionLastSeen(ctx, session.ToPG())
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -71,7 +71,7 @@ func (u *User) PrivateProtobuf() *userpb.PrivateUser {
 	var usr = userpb.PrivateUser{}
 	usr.SetSessionLive(u.Prefs.SessionLiveTime)
 	usr.SetEmail(u.Email)
-	usr.SetInfo(u.PublicProtobuf())
+	usr.SetPublic(u.PublicProtobuf())
 	return &usr
 }
 

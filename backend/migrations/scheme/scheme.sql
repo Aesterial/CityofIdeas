@@ -228,3 +228,5 @@ create table if not exists tickets_messages
 create unique index tickets_messages_idx on tickets_messages (id);
 create index tickets_ticket_idx on tickets_messages (ticket);
 create index tickets_author_idx on tickets_messages (author);
+
+insert into ranks (name, permissions) VALUES ('user', '{}'::jsonb);

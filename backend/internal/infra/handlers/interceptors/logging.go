@@ -35,6 +35,6 @@ func Logging() grpc.UnaryServerInterceptor {
 		default:
 			logger.Warning("logging", "request failed", fs...)
 		}
-		return resp, nil
+		return result, err
 	}
 }

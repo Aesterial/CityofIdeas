@@ -11,6 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/mileusna/useragent"
 )
 
 type UUID struct {
@@ -93,6 +94,22 @@ func ParseDevice(str string) Device {
 	}
 }
 
+func ParseDeviceUa(ua useragent.UserAgent) Device {
+	if ua.Bot {
+		return DeviceUnknown
+	}
+	switch {
+	case ua.Mobile:
+		return DeviceMobile
+	case ua.Tablet:
+		return DeviceTablet
+	case ua.Desktop:
+		return DeviceDesktop
+	default:
+		return DeviceUnknown
+	}
+}
+
 const UaDeviceKey = "device_ctx"
 const UaHashKey = "hash_ctx"
 
@@ -142,7 +159,7 @@ func NewClaims(id string, issuer string, subject string, audience string, durati
 func ParseClaims(token string, secret string) (*Claims, error) {
 	var claims = &Claims{}
 	tk, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (any, error) {
-		if t.Method != jwt.SigningMethodEdDSA {
+		if t.Method != jwt.SigningMethodHS384 {
 			return nil, errors.InvalidArguments
 		}
 		return []byte(secret), nil
@@ -157,6 +174,6 @@ func ParseClaims(token string, secret string) (*Claims, error) {
 }
 
 func (c *Claims) Issue(secret string) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodEdDSA, c)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS384, c)
 	return token.SignedString([]byte(secret))
 }

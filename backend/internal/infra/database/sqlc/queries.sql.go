@@ -144,6 +144,29 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const CreateUserDefaultRank = `-- name: CreateUserDefaultRank :one
+insert into users_ranks (owner, rank, expires) values ($1, (select id from ranks where name = 'user'), null) returning (select name from ranks where id = users_ranks.rank), (select color from ranks where id = users_ranks.rank), (select weight from ranks where id = users_ranks.rank), expires
+`
+
+type CreateUserDefaultRankRow struct {
+	Name    string             `json:"name"`
+	Color   int64              `json:"color"`
+	Weight  int32              `json:"weight"`
+	Expires pgtype.Timestamptz `json:"expires"`
+}
+
+func (q *Queries) CreateUserDefaultRank(ctx context.Context, owner pgtype.UUID) (CreateUserDefaultRankRow, error) {
+	row := q.db.QueryRow(ctx, CreateUserDefaultRank, owner)
+	var i CreateUserDefaultRankRow
+	err := row.Scan(
+		&i.Name,
+		&i.Color,
+		&i.Weight,
+		&i.Expires,
+	)
+	return i, err
+}
+
 const CreateUserPreferences = `-- name: CreateUserPreferences :one
 insert into users_preferences (owner) VALUES ($1) returning owner, display_name, description, avatar_hash, session_live
 `
@@ -431,17 +454,17 @@ type InsertRecoveryCodesParams struct {
 }
 
 const IsSessionValid = `-- name: IsSessionValid :one
-select expires > now() and device = $1 and hash = $2 from sessions where owner = $3
+select expires > now() and device = $1 and hash = $2 from sessions where id = $3
 `
 
 type IsSessionValidParams struct {
 	Device DeviceT     `json:"device"`
 	Hash   string      `json:"hash"`
-	Owner  pgtype.UUID `json:"owner"`
+	ID     pgtype.UUID `json:"id"`
 }
 
 func (q *Queries) IsSessionValid(ctx context.Context, arg IsSessionValidParams) (pgtype.Bool, error) {
-	row := q.db.QueryRow(ctx, IsSessionValid, arg.Device, arg.Hash, arg.Owner)
+	row := q.db.QueryRow(ctx, IsSessionValid, arg.Device, arg.Hash, arg.ID)
 	var column_1 pgtype.Bool
 	err := row.Scan(&column_1)
 	return column_1, err
@@ -598,6 +621,15 @@ func (q *Queries) SessionsByOwner(ctx context.Context, arg SessionsByOwnerParams
 		return nil, err
 	}
 	return items, nil
+}
+
+const SetSessionLastSeen = `-- name: SetSessionLastSeen :exec
+update sessions set seen_at = now() where id = $1
+`
+
+func (q *Queries) SetSessionLastSeen(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, SetSessionLastSeen, id)
+	return err
 }
 
 const SetUserSecurityEmailVerified = `-- name: SetUserSecurityEmailVerified :exec

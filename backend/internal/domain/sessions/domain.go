@@ -24,15 +24,11 @@ func (s *Session) Protobuf() *sessionpb.Session {
 	if s == nil {
 		return nil
 	}
-	var expired = s.Expired
-	if !expired {
-		expired = s.Expires.After(time.Now())
-	}
 	var out = &sessionpb.Session{}
 	out.SetId(s.ID.String())
 	out.SetAt(timestamppb.New(s.At))
 	out.SetDevice(s.Device.Protobuf())
-	out.SetExpired(expired)
+	out.SetExpired(s.Expired)
 	out.SetHash(s.Hash)
 	out.SetMfa(s.MFA)
 	out.SetSeen(timestamppb.New(s.Seen))

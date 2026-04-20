@@ -26,7 +26,7 @@ message PublicUser {
 }
 
 message PrivateUser {
-  PublicUser info = 1;
+  PublicUser public = 1;
   int32 session_live = 2;
   string email = 3;
 }

@@ -3,6 +3,7 @@ package errors
 import (
 	stderrors "errors"
 
+	"github.com/jackc/pgx/v5"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
@@ -22,8 +23,9 @@ var ErrUnsupported = stderrors.ErrUnsupported
 var Unwrap = stderrors.Unwrap
 
 type T struct {
-	st      *status.Status
-	content string
+	st       *status.Status
+	original error
+	content  string
 }
 
 func (e T) Error() string {
@@ -36,6 +38,13 @@ func (e T) Error() string {
 	return "unknown error"
 }
 
+func (e T) Original() error {
+	if e.original != nil {
+		return e.original
+	}
+	return nil
+}
+
 func (e T) GRPCStatus() *status.Status {
 	if e.st == nil {
 		return status.New(codes.Internal, "unknown error")
@@ -45,6 +54,11 @@ func (e T) GRPCStatus() *status.Status {
 
 func (e T) AddErrDetails(dat string) T {
 	e.content += " " + dat
+	return e
+}
+
+func (e T) SetOriginal(err error) T {
+	e.original = err
 	return e
 }
 
@@ -75,10 +89,13 @@ func Wrap(err error) error {
 	if err == nil {
 		return nil
 	}
-	if _, ok := stderrors.AsType[T](err); ok {
+	if _, ok := AsType[T](err); ok {
 		return err
 	}
-	return ServerError.AddErrDetails(err.Error())
+	if Is(err, pgx.ErrNoRows) {
+		return NotFound
+	}
+	return ServerError.AddErrDetails(err.Error()).SetOriginal(err)
 }
 
 var (

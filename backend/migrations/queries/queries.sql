@@ -7,6 +7,9 @@ insert into users_security (owner, password) VALUES ($1, $2) returning owner, pa
 -- name: CreateUserPreferences :one
 insert into users_preferences (owner) VALUES ($1) returning owner, display_name, description, avatar_hash, session_live;
 
+-- name: CreateUserDefaultRank :one
+insert into users_ranks (owner, rank, expires) values ($1, (select id from ranks where name = 'user'), null) returning (select name from ranks where id = users_ranks.rank), (select color from ranks where id = users_ranks.rank), (select weight from ranks where id = users_ranks.rank), expires;
+
 -- name: IsUserExists :one
 select exists (select 1 from users where username = $1 or email = $1);
 
@@ -77,7 +80,7 @@ insert into sessions (owner, expires, device, hash) VALUES ($1, $2, $3, $4) retu
 update sessions set expires = now() where id = $1;
 
 -- name: IsSessionValid :one
-select expires > now() and device = $1 and hash = $2 from sessions where owner = $3;
+select expires > now() and device = $1 and hash = $2 from sessions where id = $3;
 
 -- name: ExtendSession :exec
 update sessions set expires = expires + $1 where id = $2;
@@ -87,6 +90,9 @@ select id, owner, at, seen_at, expires, mfa, device, hash from sessions where ow
 
 -- name: SessionInfo :one
 select id, owner, at, seen_at, expires, mfa, device, hash from sessions where id = $1;
+
+-- name: SetSessionLastSeen :exec
+update sessions set seen_at = now() where id = $1;
 
 -- name: TicketsByAuthor :many
 select id, author, acceptor, status, topic, title, created, accepted, closed, closer, reason from tickets where author = $1 limit $2 offset $3;

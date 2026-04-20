@@ -139,7 +139,21 @@ func (u *UserRepository) Create(ctx context.Context, username string, email stri
 	if err != nil {
 		return nil, err
 	}
+	rank, err := u.conn.CreateUserDefaultRank(ctx, user.Uid)
+	if err != nil {
+		return nil, err
+	}
 	usr := u.parseUser(user)
+	var expires *time.Time = nil
+	if rank.Expires.Valid {
+		expires = &rank.Expires.Time
+	}
+	usr.Ranks = append(usr.Ranks, &ranksdomain.UserRank{
+		Name:    rank.Name,
+		Color:   rank.Color,
+		Weight:  rank.Weight,
+		Expires: expires,
+	})
 	usr.Security = u.parseSecurity(security)
 	usr.Prefs = u.parsePreferences(prefs)
 	return usr, nil
