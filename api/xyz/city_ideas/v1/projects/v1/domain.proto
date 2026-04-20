@@ -1,0 +1,65 @@
+edition = "2023";
+
+package xyz.city_ideas.v1.projects.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/projects/v1;v1";
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_CANCELLED = 1;
+  STATUS_LISTING = 2;
+  STATUS_REVIEWING = 3;
+  STATUS_IMPLEMENTING = 4;
+}
+
+message Project {
+  string id = 1;
+  string author = 2;
+  string title = 3;
+  string description = 4;
+  string category = 5;
+  Status status = 6;
+  string impl_link = 7;
+  int32 likes = 8;
+  google.protobuf.Timestamp at = 9;
+  google.protobuf.Timestamp updated = 10;
+  google.protobuf.Timestamp deleted = 11;
+}
+
+message Message {
+  string id = 1;
+  string author = 2;
+  string parent = 3;
+  string content = 4;
+  google.protobuf.Timestamp at = 5;
+  google.protobuf.Timestamp deleted = 6;
+}
+
+message Submission {
+  string id = 1;
+  string project = 2;
+  bool approved = 3;
+  string reason = 4;
+}
+
+message ProjectsListResponse {
+  repeated Project list = 1;
+}
+
+message SubmissionsListResponse {
+  repeated Submission list = 1;
+}
+
+message CreateProjectRequest {
+  string title = 1;
+  string description = 2;
+  string category = 3;
+}
+
+message CreateMessageRequest {
+  string project = 1;
+  string parent = 2;
+  string content = 3;
+}

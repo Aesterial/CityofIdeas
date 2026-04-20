@@ -7,9 +7,9 @@ import (
 )
 
 type Repository interface {
-	Projects(ctx context.Context, limit int, offset int) (Projects, error)
-	Submissions(ctx context.Context, limit int, offset int) (Submissions, error)
-	Messages(ctx context.Context, project domain.UUID, limit int, offset int) (Messages, error)
+	Projects(ctx context.Context, limit int32, offset int32) (Projects, error)
+	Submissions(ctx context.Context, limit int32, offset int32) (Submissions, error)
+	Messages(ctx context.Context, project domain.UUID, limit int32, offset int32) (Messages, error)
 	Project(ctx context.Context, id domain.UUID) (*Project, error)
 	CreateProject(ctx context.Context, author domain.UUID, title string, description string, category string) (*Project, error)
 	CreateMessage(ctx context.Context, author domain.UUID, project domain.UUID, parent *domain.UUID, content string) (*Message, error)

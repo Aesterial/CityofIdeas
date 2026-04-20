@@ -140,7 +140,9 @@ create table if not exists projects
     status      projects_status        not null default 'reviewing',
     impl_link   text,
     likes       int                    not null default 0,
-    at          timestamptz not null default now()
+    at          timestamptz not null default now(),
+    updated     timestamptz not null default now(),
+    deleted     timestamptz
 );
 
 create unique index if not exists projects_idx on projects (id);
@@ -149,7 +151,7 @@ create index if not exists projects_author_idx on projects (author);
 create table if not exists project_messages
 (
     id      uuid primary key     default gen_random_uuid(),
-    project uuid        not null references projects (id) on delete cascade,
+    linked uuid        not null references projects (id) on delete cascade,
     author  uuid        not null references users (uid),
     parent  uuid references project_messages (id),
     content text                   not null,
@@ -157,17 +159,20 @@ create table if not exists project_messages
     deleted timestamptz
 );
 
+create unique index project_messages_idx on project_messages (id);
+create unique index project_messages_author_idx on project_messages (author);
+
 create table if not exists submissions
 (
     id       uuid primary key default gen_random_uuid(),
-    project  uuid not null references projects (id) on delete cascade,
+    linked  uuid not null references projects (id) on delete cascade,
     approved boolean         not null    default false,
     reason   text,
-    unique (project)
+    unique (linked)
 );
 
 create unique index if not exists submissions_idx on submissions (id);
-create unique index if not exists submissions_project_idx on submissions (project);
+create unique index if not exists submissions_linked_idx on submissions (linked);
 
 create type maintenances_status as enum ('expected', 'running', 'completed');
 create type maintenances_type as enum ('emergency', 'planned');

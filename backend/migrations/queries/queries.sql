@@ -126,3 +126,39 @@ insert into tickets_messages (ticket, author, content) VALUES ($1, $2, $3) retur
 
 -- name: TicketMessages :many
 select id, ticket, author, content, created from tickets_messages where ticket = $1 limit $2 offset $3;
+
+-- name: CreateProject :one
+insert into projects (author, title, description) values ($1, $2, $3) returning  id, author, title, description, category, status, impl_link, likes, at, updated, deleted;
+
+-- name: ProjectsList :many
+select id, author, title, description, category, status, impl_link, likes, at, updated, deleted from projects limit $1 offset $2;
+
+-- name: ProjectInfo :one
+select id, author, title, description, category, status, impl_link, likes, at, updated, deleted from projects where id = $1 limit 1;
+
+-- name: SetProjectStatus :exec
+update projects set status = $1, impl_link = $2 where id = $3;
+
+-- name: UpdateProjectDescription :exec
+update projects set description = $1, updated = now() where id = $2;
+
+-- name: CreateSubmission :one
+insert into submissions (linked) VALUES ($1) returning id, linked, reason, approved;
+
+-- name: SubmissionsList :many
+select id, linked, approved, reason from submissions limit $1 offset $2;
+
+-- name: SubmissionInfo :one
+select id, linked, approved, reason from submissions where id = $1 limit 1;
+
+-- name: CreateMessage :one
+insert into project_messages (linked, author, parent, content) values ($1, $2, $3, $4) returning id, linked, author, parent, content, at, deleted;
+
+-- name: MessagesList :many
+select id, linked, author, parent, content, at, deleted from project_messages where linked = $1 and deleted is null limit $2 offset $3;
+
+-- name: MessageInfo :one
+select id, linked, author, parent, content, at, deleted from project_messages where id = $1 limit 1;
+
+-- name: DeleteMessage :exec
+update project_messages set deleted = now() where id = $1;

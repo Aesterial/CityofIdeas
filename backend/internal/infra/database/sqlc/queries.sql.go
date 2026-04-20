@@ -39,6 +39,66 @@ func (q *Queries) CloseTicket(ctx context.Context, arg CloseTicketParams) error 
 	return err
 }
 
+const CreateMessage = `-- name: CreateMessage :one
+insert into project_messages (linked, author, parent, content) values ($1, $2, $3, $4) returning id, linked, author, parent, content, at, deleted
+`
+
+type CreateMessageParams struct {
+	Linked  pgtype.UUID `json:"linked"`
+	Author  pgtype.UUID `json:"author"`
+	Parent  pgtype.UUID `json:"parent"`
+	Content string      `json:"content"`
+}
+
+func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (ProjectMessage, error) {
+	row := q.db.QueryRow(ctx, CreateMessage,
+		arg.Linked,
+		arg.Author,
+		arg.Parent,
+		arg.Content,
+	)
+	var i ProjectMessage
+	err := row.Scan(
+		&i.ID,
+		&i.Linked,
+		&i.Author,
+		&i.Parent,
+		&i.Content,
+		&i.At,
+		&i.Deleted,
+	)
+	return i, err
+}
+
+const CreateProject = `-- name: CreateProject :one
+insert into projects (author, title, description) values ($1, $2, $3) returning  id, author, title, description, category, status, impl_link, likes, at, updated, deleted
+`
+
+type CreateProjectParams struct {
+	Author      pgtype.UUID `json:"author"`
+	Title       string      `json:"title"`
+	Description string      `json:"description"`
+}
+
+func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error) {
+	row := q.db.QueryRow(ctx, CreateProject, arg.Author, arg.Title, arg.Description)
+	var i Project
+	err := row.Scan(
+		&i.ID,
+		&i.Author,
+		&i.Title,
+		&i.Description,
+		&i.Category,
+		&i.Status,
+		&i.ImplLink,
+		&i.Likes,
+		&i.At,
+		&i.Updated,
+		&i.Deleted,
+	)
+	return i, err
+}
+
 const CreateSession = `-- name: CreateSession :one
 insert into sessions (owner, expires, device, hash) VALUES ($1, $2, $3, $4) returning id, owner, at, seen_at, expires, mfa, device, hash
 `
@@ -67,6 +127,29 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 		&i.Mfa,
 		&i.Device,
 		&i.Hash,
+	)
+	return i, err
+}
+
+const CreateSubmission = `-- name: CreateSubmission :one
+insert into submissions (linked) VALUES ($1) returning id, linked, reason, approved
+`
+
+type CreateSubmissionRow struct {
+	ID       pgtype.UUID `json:"id"`
+	Linked   pgtype.UUID `json:"linked"`
+	Reason   pgtype.Text `json:"reason"`
+	Approved bool        `json:"approved"`
+}
+
+func (q *Queries) CreateSubmission(ctx context.Context, linked pgtype.UUID) (CreateSubmissionRow, error) {
+	row := q.db.QueryRow(ctx, CreateSubmission, linked)
+	var i CreateSubmissionRow
+	err := row.Scan(
+		&i.ID,
+		&i.Linked,
+		&i.Reason,
+		&i.Approved,
 	)
 	return i, err
 }
@@ -208,6 +291,15 @@ func (q *Queries) CreateUserSecurity(ctx context.Context, arg CreateUserSecurity
 		&i.TotpLastStep,
 	)
 	return i, err
+}
+
+const DeleteMessage = `-- name: DeleteMessage :exec
+update project_messages set deleted = now() where id = $1
+`
+
+func (q *Queries) DeleteMessage(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, DeleteMessage, id)
+	return err
 }
 
 const EndUserSecurityTotp = `-- name: EndUserSecurityTotp :exec
@@ -514,6 +606,63 @@ func (q *Queries) IsUserExists(ctx context.Context, username string) (bool, erro
 	return exists, err
 }
 
+const MessageInfo = `-- name: MessageInfo :one
+select id, linked, author, parent, content, at, deleted from project_messages where id = $1 limit 1
+`
+
+func (q *Queries) MessageInfo(ctx context.Context, id pgtype.UUID) (ProjectMessage, error) {
+	row := q.db.QueryRow(ctx, MessageInfo, id)
+	var i ProjectMessage
+	err := row.Scan(
+		&i.ID,
+		&i.Linked,
+		&i.Author,
+		&i.Parent,
+		&i.Content,
+		&i.At,
+		&i.Deleted,
+	)
+	return i, err
+}
+
+const MessagesList = `-- name: MessagesList :many
+select id, linked, author, parent, content, at, deleted from project_messages where linked = $1 and deleted is null limit $2 offset $3
+`
+
+type MessagesListParams struct {
+	Linked pgtype.UUID `json:"linked"`
+	Limit  int32       `json:"limit"`
+	Offset int32       `json:"offset"`
+}
+
+func (q *Queries) MessagesList(ctx context.Context, arg MessagesListParams) ([]ProjectMessage, error) {
+	rows, err := q.db.Query(ctx, MessagesList, arg.Linked, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ProjectMessage
+	for rows.Next() {
+		var i ProjectMessage
+		if err := rows.Scan(
+			&i.ID,
+			&i.Linked,
+			&i.Author,
+			&i.Parent,
+			&i.Content,
+			&i.At,
+			&i.Deleted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const OpenedTickets = `-- name: OpenedTickets :many
 select id, author, acceptor, status, topic, title, created, accepted, closed, closer, reason from tickets where closed is not null and acceptor is null limit $1 offset $2
 `
@@ -544,6 +693,70 @@ func (q *Queries) OpenedTickets(ctx context.Context, arg OpenedTicketsParams) ([
 			&i.Closed,
 			&i.Closer,
 			&i.Reason,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const ProjectInfo = `-- name: ProjectInfo :one
+select id, author, title, description, category, status, impl_link, likes, at, updated, deleted from projects where id = $1 limit 1
+`
+
+func (q *Queries) ProjectInfo(ctx context.Context, id pgtype.UUID) (Project, error) {
+	row := q.db.QueryRow(ctx, ProjectInfo, id)
+	var i Project
+	err := row.Scan(
+		&i.ID,
+		&i.Author,
+		&i.Title,
+		&i.Description,
+		&i.Category,
+		&i.Status,
+		&i.ImplLink,
+		&i.Likes,
+		&i.At,
+		&i.Updated,
+		&i.Deleted,
+	)
+	return i, err
+}
+
+const ProjectsList = `-- name: ProjectsList :many
+select id, author, title, description, category, status, impl_link, likes, at, updated, deleted from projects limit $1 offset $2
+`
+
+type ProjectsListParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) ProjectsList(ctx context.Context, arg ProjectsListParams) ([]Project, error) {
+	rows, err := q.db.Query(ctx, ProjectsList, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Project
+	for rows.Next() {
+		var i Project
+		if err := rows.Scan(
+			&i.ID,
+			&i.Author,
+			&i.Title,
+			&i.Description,
+			&i.Category,
+			&i.Status,
+			&i.ImplLink,
+			&i.Likes,
+			&i.At,
+			&i.Updated,
+			&i.Deleted,
 		); err != nil {
 			return nil, err
 		}
@@ -623,6 +836,21 @@ func (q *Queries) SessionsByOwner(ctx context.Context, arg SessionsByOwnerParams
 	return items, nil
 }
 
+const SetProjectStatus = `-- name: SetProjectStatus :exec
+update projects set status = $1, impl_link = $2 where id = $3
+`
+
+type SetProjectStatusParams struct {
+	Status   ProjectsStatus `json:"status"`
+	ImplLink pgtype.Text    `json:"impl_link"`
+	ID       pgtype.UUID    `json:"id"`
+}
+
+func (q *Queries) SetProjectStatus(ctx context.Context, arg SetProjectStatusParams) error {
+	_, err := q.db.Exec(ctx, SetProjectStatus, arg.Status, arg.ImplLink, arg.ID)
+	return err
+}
+
 const SetSessionLastSeen = `-- name: SetSessionLastSeen :exec
 update sessions set seen_at = now() where id = $1
 `
@@ -653,6 +881,56 @@ type StartUserSecurityTotpParams struct {
 func (q *Queries) StartUserSecurityTotp(ctx context.Context, arg StartUserSecurityTotpParams) error {
 	_, err := q.db.Exec(ctx, StartUserSecurityTotp, arg.Owner, arg.TotpPending)
 	return err
+}
+
+const SubmissionInfo = `-- name: SubmissionInfo :one
+select id, linked, approved, reason from submissions where id = $1 limit 1
+`
+
+func (q *Queries) SubmissionInfo(ctx context.Context, id pgtype.UUID) (Submission, error) {
+	row := q.db.QueryRow(ctx, SubmissionInfo, id)
+	var i Submission
+	err := row.Scan(
+		&i.ID,
+		&i.Linked,
+		&i.Approved,
+		&i.Reason,
+	)
+	return i, err
+}
+
+const SubmissionsList = `-- name: SubmissionsList :many
+select id, linked, approved, reason from submissions limit $1 offset $2
+`
+
+type SubmissionsListParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) SubmissionsList(ctx context.Context, arg SubmissionsListParams) ([]Submission, error) {
+	rows, err := q.db.Query(ctx, SubmissionsList, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Submission
+	for rows.Next() {
+		var i Submission
+		if err := rows.Scan(
+			&i.ID,
+			&i.Linked,
+			&i.Approved,
+			&i.Reason,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const TicketInfo = `-- name: TicketInfo :one
@@ -754,6 +1032,20 @@ func (q *Queries) TicketsByAuthor(ctx context.Context, arg TicketsByAuthorParams
 		return nil, err
 	}
 	return items, nil
+}
+
+const UpdateProjectDescription = `-- name: UpdateProjectDescription :exec
+update projects set description = $1, updated = now() where id = $2
+`
+
+type UpdateProjectDescriptionParams struct {
+	Description string      `json:"description"`
+	ID          pgtype.UUID `json:"id"`
+}
+
+func (q *Queries) UpdateProjectDescription(ctx context.Context, arg UpdateProjectDescriptionParams) error {
+	_, err := q.db.Exec(ctx, UpdateProjectDescription, arg.Description, arg.ID)
+	return err
 }
 
 const UpdateUserAvatar = `-- name: UpdateUserAvatar :exec

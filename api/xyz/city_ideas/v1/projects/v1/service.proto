@@ -1,0 +1,20 @@
+edition = "2023";
+
+package xyz.city_ideas.v1.projects.v1;
+
+import "google/protobuf/empty.proto";
+import "xyz/city_ideas/v1/types.proto";
+import "xyz/city_ideas/v1/projects/v1/domain.proto";
+
+option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/projects/v1;v1";
+
+service ProjectsService {
+  rpc CreateProject(xyz.city_ideas.v1.projects.v1.CreateProjectRequest) returns (xyz.city_ideas.v1.projects.v1.Project);
+  rpc CreateMessage(xyz.city_ideas.v1.projects.v1.CreateMessageRequest) returns (xyz.city_ideas.v1.projects.v1.Message);
+  rpc ProjectsList(xyz.city_ideas.v1.RequestWithLimitAndOffset) returns (xyz.city_ideas.v1.projects.v1.ProjectsListResponse);
+  rpc SubmissionsList(xyz.city_ideas.v1.RequestWithLimitAndOffset) returns (xyz.city_ideas.v1.projects.v1.SubmissionsListResponse);
+  rpc Project(xyz.city_ideas.v1.RequestWithValue) returns (xyz.city_ideas.v1.projects.v1.Project);
+  rpc Submission(xyz.city_ideas.v1.RequestWithValue) returns (xyz.city_ideas.v1.projects.v1.Submission);
+  rpc DeleteProject(xyz.city_ideas.v1.RequestWithValue) returns (google.protobuf.Empty);
+  rpc DeleteMessage(xyz.city_ideas.v1.RequestWithValue) returns (google.protobuf.Empty);
+}

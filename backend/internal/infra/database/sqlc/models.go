@@ -467,11 +467,13 @@ type Project struct {
 	ImplLink    pgtype.Text        `json:"impl_link"`
 	Likes       int32              `json:"likes"`
 	At          pgtype.Timestamptz `json:"at"`
+	Updated     pgtype.Timestamptz `json:"updated"`
+	Deleted     pgtype.Timestamptz `json:"deleted"`
 }
 
 type ProjectMessage struct {
 	ID      pgtype.UUID        `json:"id"`
-	Project pgtype.UUID        `json:"project"`
+	Linked  pgtype.UUID        `json:"linked"`
 	Author  pgtype.UUID        `json:"author"`
 	Parent  pgtype.UUID        `json:"parent"`
 	Content string             `json:"content"`
@@ -502,7 +504,7 @@ type Session struct {
 
 type Submission struct {
 	ID       pgtype.UUID `json:"id"`
-	Project  pgtype.UUID `json:"project"`
+	Linked   pgtype.UUID `json:"linked"`
 	Approved bool        `json:"approved"`
 	Reason   pgtype.Text `json:"reason"`
 }

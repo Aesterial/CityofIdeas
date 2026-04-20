@@ -13,13 +13,17 @@ import (
 type Querier interface {
 	AcceptTicket(ctx context.Context, arg AcceptTicketParams) error
 	CloseTicket(ctx context.Context, arg CloseTicketParams) error
+	CreateMessage(ctx context.Context, arg CreateMessageParams) (ProjectMessage, error)
+	CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
+	CreateSubmission(ctx context.Context, linked pgtype.UUID) (CreateSubmissionRow, error)
 	CreateTicket(ctx context.Context, arg CreateTicketParams) (Ticket, error)
 	CreateTicketMessage(ctx context.Context, arg CreateTicketMessageParams) (TicketsMessage, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateUserDefaultRank(ctx context.Context, owner pgtype.UUID) (CreateUserDefaultRankRow, error)
 	CreateUserPreferences(ctx context.Context, owner pgtype.UUID) (UsersPreference, error)
 	CreateUserSecurity(ctx context.Context, arg CreateUserSecurityParams) (UsersSecurity, error)
+	DeleteMessage(ctx context.Context, id pgtype.UUID) error
 	EndUserSecurityTotp(ctx context.Context, owner pgtype.UUID) error
 	ExpiredTickets(ctx context.Context, dollar_1 pgtype.Interval) ([]pgtype.UUID, error)
 	ExtendSession(ctx context.Context, arg ExtendSessionParams) error
@@ -38,16 +42,24 @@ type Querier interface {
 	IsTicketClosed(ctx context.Context, id pgtype.UUID) (bool, error)
 	IsUserBanned(ctx context.Context, target pgtype.UUID) (bool, error)
 	IsUserExists(ctx context.Context, username string) (bool, error)
+	MessageInfo(ctx context.Context, id pgtype.UUID) (ProjectMessage, error)
+	MessagesList(ctx context.Context, arg MessagesListParams) ([]ProjectMessage, error)
 	OpenedTickets(ctx context.Context, arg OpenedTicketsParams) ([]Ticket, error)
+	ProjectInfo(ctx context.Context, id pgtype.UUID) (Project, error)
+	ProjectsList(ctx context.Context, arg ProjectsListParams) ([]Project, error)
 	RevokeSession(ctx context.Context, id pgtype.UUID) error
 	SessionInfo(ctx context.Context, id pgtype.UUID) (Session, error)
 	SessionsByOwner(ctx context.Context, arg SessionsByOwnerParams) ([]Session, error)
+	SetProjectStatus(ctx context.Context, arg SetProjectStatusParams) error
 	SetSessionLastSeen(ctx context.Context, id pgtype.UUID) error
 	SetUserSecurityEmailVerified(ctx context.Context, owner pgtype.UUID) error
 	StartUserSecurityTotp(ctx context.Context, arg StartUserSecurityTotpParams) error
+	SubmissionInfo(ctx context.Context, id pgtype.UUID) (Submission, error)
+	SubmissionsList(ctx context.Context, arg SubmissionsListParams) ([]Submission, error)
 	TicketInfo(ctx context.Context, id pgtype.UUID) (Ticket, error)
 	TicketMessages(ctx context.Context, arg TicketMessagesParams) ([]TicketsMessage, error)
 	TicketsByAuthor(ctx context.Context, arg TicketsByAuthorParams) ([]Ticket, error)
+	UpdateProjectDescription(ctx context.Context, arg UpdateProjectDescriptionParams) error
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error
 	UpdateUserDescription(ctx context.Context, arg UpdateUserDescriptionParams) error
 	UpdateUserDisplayName(ctx context.Context, arg UpdateUserDisplayNameParams) error
