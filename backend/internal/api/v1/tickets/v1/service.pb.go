@@ -2,15 +2,13 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: xyz.city_ideas.v1/tickets/v1/service.proto
+// source: xyz/city_ideas/v1/tickets/v1/service.proto
 
 package v1
 
 import (
-	_ "github.com/aesterial/cityideas/backend/internal/api/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	_ "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	unsafe "unsafe"
 )
@@ -26,7 +24,7 @@ var File_xyz_city_ideas_v1_tickets_v1_service_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_tickets_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"*xyz.city_ideas.v1/tickets/v1/service.proto\x12\x1cxyz.city_ideas.v1.tickets.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1dxyz.city_ideas.v1/types.proto\x1a)xyz.city_ideas.v1/tickets/v1/domain.proto2r\n" +
+	"*xyz/city_ideas/v1/tickets/v1/service.proto\x12\x1cxyz.city_ideas.v1.tickets.v1\x1a)xyz/city_ideas/v1/tickets/v1/domain.proto2r\n" +
 	"\rTicketService\x12a\n" +
 	"\x06Create\x121.xyz.city_ideas.v1.tickets.v1.CreateTicketRequest\x1a$.xyz.city_ideas.v1.tickets.v1.TicketBFZDgithub.com/aesterial/cityideas/backend/internal/api/v1/tickets/v1;v1b\beditionsp\xe8\a"
 

@@ -7,15 +7,15 @@ import "google/protobuf/timestamp.proto";
 option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/tickets/v1;v1";
 
 enum Status {
-  Waiting = 0;
-  Closed = 1;
-  InWork = 2;
+  STATUS_UNSPECIFIED = 0;
+  STATUS_CLOSED = 1;
+  STATUS_IN_WORK = 2;
 }
 
 enum Closer {
-  System = 0;
-  User = 1;
-  Staff = 2;
+  CLOSER_UNSPECIFIED = 0;
+  CLOSER_USER = 1;
+  CLOSER_STAFF = 2;
 }
 
 message Ticket {

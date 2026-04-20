@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: xyz.city_ideas.v1/user/v1/service.proto
+// source: xyz/city_ideas/v1/user/v1/service.proto
 
 package v1
 
@@ -26,7 +26,7 @@ var File_xyz_city_ideas_v1_user_v1_service_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_user_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"'xyz.city_ideas.v1/user/v1/service.proto\x12\x19xyz.city_ideas.v1.user.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1dxyz.city_ideas.v1/types.proto\x1a&xyz.city_ideas.v1/user/v1/domain.proto2\xfe\x02\n" +
+	"'xyz/city_ideas/v1/user/v1/service.proto\x12\x19xyz.city_ideas.v1.user.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1dxyz/city_ideas/v1/types.proto\x1a&xyz/city_ideas/v1/user/v1/domain.proto2\xfe\x02\n" +
 	"\vUserService\x12R\n" +
 	"\x04Info\x12#.xyz.city_ideas.v1.RequestWithValue\x1a%.xyz.city_ideas.v1.user.v1.PublicUser\x12F\n" +
 	"\x04Self\x12\x16.google.protobuf.Empty\x1a&.xyz.city_ideas.v1.user.v1.PrivateUser\x12]\n" +

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: xyz.city_ideas.v1/login/v1/domain.proto
+// source: xyz/city_ideas/v1/login/v1/domain.proto
 
 package v1
 
@@ -167,7 +167,7 @@ func (b0 RegisterRequest_builder) Build() *RegisterRequest {
 
 type AuthorizeRequest struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_UserMail    *string                `protobuf:"bytes,1,opt,name=userMail"`
+	xxx_hidden_UserMail    *string                `protobuf:"bytes,1,opt,name=user_mail,json=userMail"`
 	xxx_hidden_Password    *string                `protobuf:"bytes,2,opt,name=password"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
@@ -348,13 +348,13 @@ var File_xyz_city_ideas_v1_login_v1_domain_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_login_v1_domain_proto_rawDesc = "" +
 	"\n" +
-	"'xyz.city_ideas.v1/login/v1/domain.proto\x12\x1axyz.city_ideas.v1.login.v1\x1a&xyz.city_ideas.v1/user/v1/domain.proto\"_\n" +
+	"'xyz/city_ideas/v1/login/v1/domain.proto\x12\x1axyz.city_ideas.v1.login.v1\x1a&xyz/city_ideas/v1/user/v1/domain.proto\"_\n" +
 	"\x0fRegisterRequest\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1a\n" +
-	"\bpassword\x18\x03 \x01(\tR\bpassword\"J\n" +
-	"\x10AuthorizeRequest\x12\x1a\n" +
-	"\buserMail\x18\x01 \x01(\tR\buserMail\x12\x1a\n" +
+	"\bpassword\x18\x03 \x01(\tR\bpassword\"K\n" +
+	"\x10AuthorizeRequest\x12\x1b\n" +
+	"\tuser_mail\x18\x01 \x01(\tR\buserMail\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"K\n" +
 	"\rLoginResponse\x12:\n" +
 	"\x04info\x18\x01 \x01(\v2&.xyz.city_ideas.v1.user.v1.PrivateUserR\x04infoBDZBgithub.com/aesterial/cityideas/backend/internal/api/v1/login/v1;v1b\beditionsp\xe8\a"

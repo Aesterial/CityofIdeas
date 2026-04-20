@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: xyz.city_ideas.v1/sessions/v1/domain.proto
+// source: xyz/city_ideas/v1/sessions/v1/domain.proto
 
 package v1
 
@@ -213,7 +213,7 @@ func (x *Session) ClearMfa() {
 
 func (x *Session) ClearDevice() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
-	x.xxx_hidden_Device = v1.Device_Unknown
+	x.xxx_hidden_Device = v1.Device_DEVICE_UNSPECIFIED
 }
 
 func (x *Session) ClearHash() {
@@ -338,7 +338,7 @@ var File_xyz_city_ideas_v1_sessions_v1_domain_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_sessions_v1_domain_proto_rawDesc = "" +
 	"\n" +
-	"*xyz.city_ideas.v1/sessions/v1/domain.proto\x12\x1dxyz.city_ideas.v1.sessions.v1\x1a\x1dxyz.city_ideas.v1/types.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xe8\x01\n" +
+	"*xyz/city_ideas/v1/sessions/v1/domain.proto\x12\x1dxyz.city_ideas.v1.sessions.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1dxyz/city_ideas/v1/types.proto\"\xe8\x01\n" +
 	"\aSession\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x10\n" +
 	"\x03mfa\x18\x02 \x01(\bR\x03mfa\x121\n" +

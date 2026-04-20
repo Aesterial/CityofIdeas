@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: xyz.city_ideas.v1/user/v1/domain.proto
+// source: xyz/city_ideas/v1/user/v1/domain.proto
 
 package v1
 
@@ -829,7 +829,7 @@ var File_xyz_city_ideas_v1_user_v1_domain_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc = "" +
 	"\n" +
-	"&xyz.city_ideas.v1/user/v1/domain.proto\x12\x19xyz.city_ideas.v1.user.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"n\n" +
+	"&xyz/city_ideas/v1/user/v1/domain.proto\x12\x19xyz.city_ideas.v1.user.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"n\n" +
 	"\x0fUserPreferences\x12 \n" +
 	"\vdescription\x18\x01 \x01(\tR\vdescription\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x16\n" +

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: xyz.city_ideas.v1/tickets/v1/domain.proto
+// source: xyz/city_ideas/v1/tickets/v1/domain.proto
 
 package v1
 
@@ -24,22 +24,22 @@ const (
 type Status int32
 
 const (
-	Status_Waiting Status = 0
-	Status_Closed  Status = 1
-	Status_InWork  Status = 2
+	Status_STATUS_UNSPECIFIED Status = 0
+	Status_STATUS_CLOSED      Status = 1
+	Status_STATUS_IN_WORK     Status = 2
 )
 
 // Enum value maps for Status.
 var (
 	Status_name = map[int32]string{
-		0: "Waiting",
-		1: "Closed",
-		2: "InWork",
+		0: "STATUS_UNSPECIFIED",
+		1: "STATUS_CLOSED",
+		2: "STATUS_IN_WORK",
 	}
 	Status_value = map[string]int32{
-		"Waiting": 0,
-		"Closed":  1,
-		"InWork":  2,
+		"STATUS_UNSPECIFIED": 0,
+		"STATUS_CLOSED":      1,
+		"STATUS_IN_WORK":     2,
 	}
 )
 
@@ -68,22 +68,22 @@ func (x Status) Number() protoreflect.EnumNumber {
 type Closer int32
 
 const (
-	Closer_System Closer = 0
-	Closer_User   Closer = 1
-	Closer_Staff  Closer = 2
+	Closer_CLOSER_UNSPECIFIED Closer = 0
+	Closer_CLOSER_USER        Closer = 1
+	Closer_CLOSER_STAFF       Closer = 2
 )
 
 // Enum value maps for Closer.
 var (
 	Closer_name = map[int32]string{
-		0: "System",
-		1: "User",
-		2: "Staff",
+		0: "CLOSER_UNSPECIFIED",
+		1: "CLOSER_USER",
+		2: "CLOSER_STAFF",
 	}
 	Closer_value = map[string]int32{
-		"System": 0,
-		"User":   1,
-		"Staff":  2,
+		"CLOSER_UNSPECIFIED": 0,
+		"CLOSER_USER":        1,
+		"CLOSER_STAFF":       2,
 	}
 )
 
@@ -189,7 +189,7 @@ func (x *Ticket) GetStatus() Status {
 			return x.xxx_hidden_Status
 		}
 	}
-	return Status_Waiting
+	return Status_STATUS_UNSPECIFIED
 }
 
 func (x *Ticket) GetTopic() string {
@@ -239,7 +239,7 @@ func (x *Ticket) GetCloser() Closer {
 			return x.xxx_hidden_Closer
 		}
 	}
-	return Closer_System
+	return Closer_CLOSER_UNSPECIFIED
 }
 
 func (x *Ticket) GetReason() string {
@@ -398,7 +398,7 @@ func (x *Ticket) ClearAcceptor() {
 
 func (x *Ticket) ClearStatus() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
-	x.xxx_hidden_Status = Status_Waiting
+	x.xxx_hidden_Status = Status_STATUS_UNSPECIFIED
 }
 
 func (x *Ticket) ClearTopic() {
@@ -425,7 +425,7 @@ func (x *Ticket) ClearClosed() {
 
 func (x *Ticket) ClearCloser() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 9)
-	x.xxx_hidden_Closer = Closer_System
+	x.xxx_hidden_Closer = Closer_CLOSER_UNSPECIFIED
 }
 
 func (x *Ticket) ClearReason() {
@@ -841,7 +841,7 @@ var File_xyz_city_ideas_v1_tickets_v1_domain_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_tickets_v1_domain_proto_rawDesc = "" +
 	"\n" +
-	")xyz.city_ideas.v1/tickets/v1/domain.proto\x12\x1cxyz.city_ideas.v1.tickets.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb3\x03\n" +
+	")xyz/city_ideas/v1/tickets/v1/domain.proto\x12\x1cxyz.city_ideas.v1.tickets.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb3\x03\n" +
 	"\x06Ticket\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tauthor_id\x18\x02 \x01(\tR\bauthorId\x12\x1a\n" +
@@ -864,18 +864,15 @@ const file_xyz_city_ideas_v1_tickets_v1_domain_proto_rawDesc = "" +
 	"\x13CreateTicketRequest\x12\x14\n" +
 	"\x05topic\x18\x01 \x01(\tR\x05topic\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage*-\n" +
-	"\x06Status\x12\v\n" +
-	"\aWaiting\x10\x00\x12\n" +
-	"\n" +
-	"\x06Closed\x10\x01\x12\n" +
-	"\n" +
-	"\x06InWork\x10\x02*)\n" +
-	"\x06Closer\x12\n" +
-	"\n" +
-	"\x06System\x10\x00\x12\b\n" +
-	"\x04User\x10\x01\x12\t\n" +
-	"\x05Staff\x10\x02BFZDgithub.com/aesterial/cityideas/backend/internal/api/v1/tickets/v1;v1b\beditionsp\xe8\a"
+	"\amessage\x18\x03 \x01(\tR\amessage*G\n" +
+	"\x06Status\x12\x16\n" +
+	"\x12STATUS_UNSPECIFIED\x10\x00\x12\x11\n" +
+	"\rSTATUS_CLOSED\x10\x01\x12\x12\n" +
+	"\x0eSTATUS_IN_WORK\x10\x02*C\n" +
+	"\x06Closer\x12\x16\n" +
+	"\x12CLOSER_UNSPECIFIED\x10\x00\x12\x0f\n" +
+	"\vCLOSER_USER\x10\x01\x12\x10\n" +
+	"\fCLOSER_STAFF\x10\x02BFZDgithub.com/aesterial/cityideas/backend/internal/api/v1/tickets/v1;v1b\beditionsp\xe8\a"
 
 var file_xyz_city_ideas_v1_tickets_v1_domain_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_xyz_city_ideas_v1_tickets_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 3)

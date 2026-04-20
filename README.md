@@ -71,7 +71,7 @@ CityofIdeas-RSV/
 |   |-- migrations/          # schema and sqlc query sources
 |   `-- Dockerfile           # backend container build
 |-- api/
-|   |-- xyz.city_ideas.v1/   # protobuf contracts
+|   |-- xyz/city_ideas/v1/   # protobuf contracts
 |   `-- third_party/         # protobuf dependencies
 |-- .github/                 # workflows and repository assets
 |-- docker-compose.yml       # deployment stack based on published images

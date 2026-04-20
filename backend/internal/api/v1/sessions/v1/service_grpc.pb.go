@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.0
 // - protoc             (unknown)
-// source: xyz.city_ideas.v1/sessions/v1/service.proto
+// source: xyz/city_ideas/v1/sessions/v1/service.proto
 
 package v1
 
@@ -155,5 +155,5 @@ var SessionService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "xyz.city_ideas.v1/sessions/v1/service.proto",
+	Metadata: "xyz/city_ideas/v1/sessions/v1/service.proto",
 }

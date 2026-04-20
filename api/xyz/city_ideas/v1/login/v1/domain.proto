@@ -2,7 +2,7 @@ edition = "2023";
 
 package xyz.city_ideas.v1.login.v1;
 
-import "xyz.city_ideas.v1/user/v1/domain.proto";
+import "xyz/city_ideas/v1/user/v1/domain.proto";
 
 option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/login/v1;v1";
 
@@ -13,7 +13,7 @@ message RegisterRequest {
 }
 
 message AuthorizeRequest {
-  string userMail = 1;
+  string user_mail = 1;
   string password = 2;
 }
 

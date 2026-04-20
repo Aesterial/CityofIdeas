@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: xyz.city_ideas.v1/sessions/v1/service.proto
+// source: xyz/city_ideas/v1/sessions/v1/service.proto
 
 package v1
 
@@ -26,7 +26,7 @@ var File_xyz_city_ideas_v1_sessions_v1_service_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_sessions_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"+xyz.city_ideas.v1/sessions/v1/service.proto\x12\x1dxyz.city_ideas.v1.sessions.v1\x1a\x1dxyz.city_ideas.v1/types.proto\x1a*xyz.city_ideas.v1/sessions/v1/domain.proto\x1a\x1bgoogle/protobuf/empty.proto2\xba\x01\n" +
+	"+xyz/city_ideas/v1/sessions/v1/service.proto\x12\x1dxyz.city_ideas.v1.sessions.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a*xyz/city_ideas/v1/sessions/v1/domain.proto\x1a\x1dxyz/city_ideas/v1/types.proto2\xba\x01\n" +
 	"\x0eSessionService\x12a\n" +
 	"\x04List\x12,.xyz.city_ideas.v1.RequestWithLimitAndOffset\x1a+.xyz.city_ideas.v1.sessions.v1.ListResponse\x12E\n" +
 	"\x06Revoke\x12#.xyz.city_ideas.v1.RequestWithValue\x1a\x16.google.protobuf.EmptyBGZEgithub.com/aesterial/cityideas/backend/internal/api/v1/sessions/v1;v1b\beditionsp\xe8\a"

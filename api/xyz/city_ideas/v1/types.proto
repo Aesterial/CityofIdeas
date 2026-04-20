@@ -14,8 +14,8 @@ message RequestWithLimitAndOffset {
 }
 
 enum Device {
-  Unknown = 0;
-  Desktop = 1;
-  Mobile = 2;
-  Tablet = 3;
+  DEVICE_UNSPECIFIED = 0;
+  DEVICE_DESKTOP = 1;
+  DEVICE_MOBILE = 2;
+  DEVICE_TABLET = 3;
 }

@@ -69,15 +69,15 @@ func (d Device) IsValid() bool {
 func (d Device) Protobuf() typespb.Device {
 	switch d {
 	case DeviceUnknown:
-		return typespb.Device_Unknown
+		return typespb.Device_DEVICE_UNSPECIFIED
 	case DeviceMobile:
-		return typespb.Device_Mobile
+		return typespb.Device_DEVICE_MOBILE
 	case DeviceDesktop:
-		return typespb.Device_Desktop
+		return typespb.Device_DEVICE_DESKTOP
 	case DeviceTablet:
-		return typespb.Device_Tablet
+		return typespb.Device_DEVICE_TABLET
 	default:
-		return typespb.Device_Unknown
+		return typespb.Device_DEVICE_UNSPECIFIED
 	}
 }
 

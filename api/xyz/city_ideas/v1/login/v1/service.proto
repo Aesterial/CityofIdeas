@@ -3,7 +3,7 @@ edition = "2023";
 package xyz.city_ideas.v1.login.v1;
 
 import "google/protobuf/empty.proto";
-import "xyz.city_ideas.v1/login/v1/domain.proto";
+import "xyz/city_ideas/v1/login/v1/domain.proto";
 
 option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/login/v1;v1";
 

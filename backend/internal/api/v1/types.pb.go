@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.11
 // 	protoc        (unknown)
-// source: xyz.city_ideas.v1/types.proto
+// source: xyz/city_ideas/v1/types.proto
 
 package v1
 
@@ -23,25 +23,25 @@ const (
 type Device int32
 
 const (
-	Device_Unknown Device = 0
-	Device_Desktop Device = 1
-	Device_Mobile  Device = 2
-	Device_Tablet  Device = 3
+	Device_DEVICE_UNSPECIFIED Device = 0
+	Device_DEVICE_DESKTOP     Device = 1
+	Device_DEVICE_MOBILE      Device = 2
+	Device_DEVICE_TABLET      Device = 3
 )
 
 // Enum value maps for Device.
 var (
 	Device_name = map[int32]string{
-		0: "Unknown",
-		1: "Desktop",
-		2: "Mobile",
-		3: "Tablet",
+		0: "DEVICE_UNSPECIFIED",
+		1: "DEVICE_DESKTOP",
+		2: "DEVICE_MOBILE",
+		3: "DEVICE_TABLET",
 	}
 	Device_value = map[string]int32{
-		"Unknown": 0,
-		"Desktop": 1,
-		"Mobile":  2,
-		"Tablet":  3,
+		"DEVICE_UNSPECIFIED": 0,
+		"DEVICE_DESKTOP":     1,
+		"DEVICE_MOBILE":      2,
+		"DEVICE_TABLET":      3,
 	}
 )
 
@@ -254,19 +254,17 @@ var File_xyz_city_ideas_v1_types_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_types_proto_rawDesc = "" +
 	"\n" +
-	"\x1dxyz.city_ideas.v1/types.proto\x12\x11xyz.city_ideas.v1\"(\n" +
+	"\x1dxyz/city_ideas/v1/types.proto\x12\x11xyz.city_ideas.v1\"(\n" +
 	"\x10RequestWithValue\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\"I\n" +
 	"\x19RequestWithLimitAndOffset\x12\x14\n" +
 	"\x05limit\x18\x01 \x01(\x05R\x05limit\x12\x16\n" +
-	"\x06offset\x18\x02 \x01(\x05R\x06offset*:\n" +
-	"\x06Device\x12\v\n" +
-	"\aUnknown\x10\x00\x12\v\n" +
-	"\aDesktop\x10\x01\x12\n" +
-	"\n" +
-	"\x06Mobile\x10\x02\x12\n" +
-	"\n" +
-	"\x06Tablet\x10\x03B;Z9github.com/aesterial/cityideas/backend/internal/api/v1;v1b\beditionsp\xe8\a"
+	"\x06offset\x18\x02 \x01(\x05R\x06offset*Z\n" +
+	"\x06Device\x12\x16\n" +
+	"\x12DEVICE_UNSPECIFIED\x10\x00\x12\x12\n" +
+	"\x0eDEVICE_DESKTOP\x10\x01\x12\x11\n" +
+	"\rDEVICE_MOBILE\x10\x02\x12\x11\n" +
+	"\rDEVICE_TABLET\x10\x03B;Z9github.com/aesterial/cityideas/backend/internal/api/v1;v1b\beditionsp\xe8\a"
 
 var file_xyz_city_ideas_v1_types_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_xyz_city_ideas_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
