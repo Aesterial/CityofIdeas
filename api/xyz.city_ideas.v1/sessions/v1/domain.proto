@@ -2,10 +2,10 @@ edition = "2023";
 
 package xyz.city_ideas.v1.sessions.v1;
 
-option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/sessions/v1;v1";
-
-import "xyz.city_ideas.v1/types.proto";
 import "google/protobuf/timestamp.proto";
+import "xyz.city_ideas.v1/types.proto";
+
+option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/sessions/v1;v1";
 
 message Session {
   string id = 1;

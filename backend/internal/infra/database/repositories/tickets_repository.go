@@ -140,7 +140,7 @@ func (t *TicketsRepository) CreateTicket(ctx context.Context, user domain.UUID, 
 }
 
 func (t *TicketsRepository) AcceptTicket(ctx context.Context, target ticketsdomain.Target) error {
-	accepted, err := t.conn.IsTicketAccepted(ctx, target.Ticket.ToPG())
+	accepted, err := t.isAccepted(ctx, target.Ticket)
 	if err != nil {
 		return err
 	}

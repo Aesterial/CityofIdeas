@@ -64,5 +64,5 @@ type Config struct {
 }
 
 func (c Config) IsProduction() bool {
-	return c.Debug == false
+	return !c.Debug
 }

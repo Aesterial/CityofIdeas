@@ -299,6 +299,9 @@ func (u *UserRepository) UpdatePreferences(ctx context.Context, user domain.UUID
 			SessionLive: prefs.SessionLiveTime,
 			Owner:       user.ToPG(),
 		})
+		if err != nil {
+			return nil, err
+		}
 		ps.SessionLiveTime = prefs.SessionLiveTime
 	}
 	return ps, nil

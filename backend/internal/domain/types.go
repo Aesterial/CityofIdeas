@@ -110,8 +110,12 @@ func ParseDeviceUa(ua useragent.UserAgent) Device {
 	}
 }
 
-const UaDeviceKey = "device_ctx"
-const UaHashKey = "hash_ctx"
+type ctxValue string
+
+const (
+	UaDeviceKey ctxValue = "device_ctx"
+	UaHashKey   ctxValue = "hash_ctx"
+)
 
 func UaFromContext(ctx context.Context) (Device, string) {
 	dev, ok := ctx.Value(UaDeviceKey).(Device)

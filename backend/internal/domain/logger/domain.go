@@ -36,7 +36,7 @@ func (f Field) GetValue() string {
 }
 
 func (f Fields) Map() map[string]string {
-	if f == nil || len(f) == 0 {
+	if f == nil {
 		return nil
 	}
 	var m = make(map[string]string, len(f))

@@ -64,6 +64,9 @@ func (s *Service) Register(ctx context.Context, username string, email string, p
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
+	if exists {
+		return nil, errors.Conflict
+	}
 	exists, err = s.usr.IsUserExists(ctx, email)
 	if err != nil {
 		return nil, errors.Wrap(err)
