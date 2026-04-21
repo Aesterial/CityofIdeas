@@ -136,6 +136,9 @@ select id, author, title, description, category, status, impl_link, likes, at, u
 -- name: ProjectInfo :one
 select id, author, title, description, category, status, impl_link, likes, at, updated, deleted from projects where id = $1 limit 1;
 
+-- name: ProjectAuthor :one
+select author from projects where id = $1;
+
 -- name: SetProjectStatus :exec
 update projects set status = $1, impl_link = $2 where id = $3;
 
@@ -162,3 +165,45 @@ select id, linked, author, parent, content, at, deleted from project_messages wh
 
 -- name: DeleteMessage :exec
 update project_messages set deleted = now() where id = $1;
+
+-- name: DeleteProject :exec
+update projects set deleted = now(), status = 'cancelled' where id = $1;
+
+-- name: CreateRank :one
+insert into ranks (name, description, color, weight, permissions) values ($1, $2, $3, $4, $5) returning id, name, description, color, weight, permissions, added_at;
+
+-- name: RankInfo :one
+select id, name, description, color, weight, permissions, added_at from ranks where name = $1 limit 1;
+
+-- name: RankInfoByID :one
+select id, name, description, color, weight, permissions, added_at from ranks where id = $1 limit 1;
+
+-- name: RanksList :many
+select id, name, description, color, weight, permissions, added_at from ranks limit $1 offset $2;
+
+-- name: DeleteRank :exec
+delete from ranks where name = $1;
+
+-- name: IsRankExists :one
+select exists (select 1 from ranks where name = $1);
+
+-- name: RankUsers :many
+select owner from users_ranks join ranks on ranks.id = users_ranks.rank where ranks.name = $1;
+
+-- name: RevokeRankFromUser :exec
+update users_ranks set expires = now() from ranks where users_ranks.rank = ranks.id and ranks.name = $1 and users_ranks.owner = $2;
+
+-- name: UpdateRankName :exec
+update ranks set name = $1 where id = $2;
+
+-- name: UpdateRankDescription :exec
+update ranks set description = $1 where id = $2;
+
+-- name: UpdateRankColor :exec
+update ranks set color = $1 where id = $2;
+
+-- name: UpdateRankWeight :exec
+update ranks set weight = $1 where id = $2;
+
+-- name: UpdateRankPermissions :exec
+update ranks set permissions = $1 where id = $2;

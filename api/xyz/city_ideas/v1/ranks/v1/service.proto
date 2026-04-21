@@ -1,0 +1,16 @@
+edition = "2023";
+
+package xyz.city_ideas.v1.ranks.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "xyz/city_ideas/v1/ranks/v1/domain.proto";
+import "xyz/city_ideas/v1/types.proto";
+
+option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/ranks/v1;v1";
+
+service RankService {
+  rpc Permissions(google.protobuf.Empty) returns (xyz.city_ideas.v1.ranks.v1.Permissions);
+  rpc Create(xyz.city_ideas.v1.ranks.v1.CreateRequest) returns (xyz.city_ideas.v1.ranks.v1.Rank);
+  rpc Rank(xyz.city_ideas.v1.RequestWithValue) returns (xyz.city_ideas.v1.ranks.v1.Rank);
+}

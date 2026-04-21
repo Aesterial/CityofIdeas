@@ -12,17 +12,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type ProjectsRepository struct {
+type ProjectRepository struct {
 	conn sqlc.Querier
 }
 
-func NewProjectsRepository(conn sqlc.Querier) *ProjectsRepository {
-	return &ProjectsRepository{conn: conn}
+func NewProjectsRepository(conn sqlc.Querier) *ProjectRepository {
+	return &ProjectRepository{conn: conn}
 }
 
-var _ projectsdomain.Repository = (*ProjectsRepository)(nil)
+var _ projectsdomain.Repository = (*ProjectRepository)(nil)
 
-func (*ProjectsRepository) parseProject(project sqlc.Project) *projectsdomain.Project {
+func (*ProjectRepository) parseProject(project sqlc.Project) *projectsdomain.Project {
 	var link *url.URL
 	if project.ImplLink.Valid {
 		var err error
@@ -50,7 +50,7 @@ func (*ProjectsRepository) parseProject(project sqlc.Project) *projectsdomain.Pr
 	}
 }
 
-func (*ProjectsRepository) parseSubmission(submission sqlc.Submission) *projectsdomain.Submission {
+func (*ProjectRepository) parseSubmission(submission sqlc.Submission) *projectsdomain.Submission {
 	var reason *string = nil
 	if submission.Reason.Valid {
 		reason = &submission.Reason.String
@@ -63,7 +63,7 @@ func (*ProjectsRepository) parseSubmission(submission sqlc.Submission) *projects
 	}
 }
 
-func (*ProjectsRepository) parseMessage(message sqlc.ProjectMessage) *projectsdomain.Message {
+func (*ProjectRepository) parseMessage(message sqlc.ProjectMessage) *projectsdomain.Message {
 	var parent *domain.UUID = nil
 	if message.Parent.Valid {
 		parent = &domain.UUID{UUID: message.Parent.Bytes}
@@ -83,7 +83,7 @@ func (*ProjectsRepository) parseMessage(message sqlc.ProjectMessage) *projectsdo
 	}
 }
 
-func (p *ProjectsRepository) parseMessages(messages []sqlc.ProjectMessage) projectsdomain.Messages {
+func (p *ProjectRepository) parseMessages(messages []sqlc.ProjectMessage) projectsdomain.Messages {
 	if messages == nil {
 		return nil
 	}
@@ -94,7 +94,7 @@ func (p *ProjectsRepository) parseMessages(messages []sqlc.ProjectMessage) proje
 	return out
 }
 
-func (p *ProjectsRepository) parseProjects(projects []sqlc.Project) projectsdomain.Projects {
+func (p *ProjectRepository) parseProjects(projects []sqlc.Project) projectsdomain.Projects {
 	if projects == nil {
 		return nil
 	}
@@ -105,7 +105,7 @@ func (p *ProjectsRepository) parseProjects(projects []sqlc.Project) projectsdoma
 	return out
 }
 
-func (p *ProjectsRepository) parseSubmissions(submissions []sqlc.Submission) projectsdomain.Submissions {
+func (p *ProjectRepository) parseSubmissions(submissions []sqlc.Submission) projectsdomain.Submissions {
 	if submissions == nil {
 		return nil
 	}
@@ -116,7 +116,7 @@ func (p *ProjectsRepository) parseSubmissions(submissions []sqlc.Submission) pro
 	return out
 }
 
-func (p *ProjectsRepository) Projects(ctx context.Context, limit int32, offset int32) (projectsdomain.Projects, error) {
+func (p *ProjectRepository) Projects(ctx context.Context, limit int32, offset int32) (projectsdomain.Projects, error) {
 	if limit <= 0 {
 		limit = 10
 	}
@@ -130,7 +130,7 @@ func (p *ProjectsRepository) Projects(ctx context.Context, limit int32, offset i
 	return p.parseProjects(list), nil
 }
 
-func (p *ProjectsRepository) Submissions(ctx context.Context, limit int32, offset int32) (projectsdomain.Submissions, error) {
+func (p *ProjectRepository) Submissions(ctx context.Context, limit int32, offset int32) (projectsdomain.Submissions, error) {
 	if limit <= 0 {
 		limit = 10
 	}
@@ -144,7 +144,7 @@ func (p *ProjectsRepository) Submissions(ctx context.Context, limit int32, offse
 	return p.parseSubmissions(list), nil
 }
 
-func (p *ProjectsRepository) Messages(ctx context.Context, project domain.UUID, limit int32, offset int32) (projectsdomain.Messages, error) {
+func (p *ProjectRepository) Messages(ctx context.Context, project domain.UUID, limit int32, offset int32) (projectsdomain.Messages, error) {
 	if limit <= 0 {
 		limit = 10
 	}
@@ -159,7 +159,7 @@ func (p *ProjectsRepository) Messages(ctx context.Context, project domain.UUID, 
 	return p.parseMessages(list), nil
 }
 
-func (p *ProjectsRepository) Project(ctx context.Context, id domain.UUID) (*projectsdomain.Project, error) {
+func (p *ProjectRepository) Project(ctx context.Context, id domain.UUID) (*projectsdomain.Project, error) {
 	info, err := p.conn.ProjectInfo(ctx, id.ToPG())
 	if err != nil {
 		return nil, err
@@ -167,7 +167,7 @@ func (p *ProjectsRepository) Project(ctx context.Context, id domain.UUID) (*proj
 	return p.parseProject(info), nil
 }
 
-func (p *ProjectsRepository) CreateProject(ctx context.Context, author domain.UUID, title string, description string, category string) (*projectsdomain.Project, error) {
+func (p *ProjectRepository) CreateProject(ctx context.Context, author domain.UUID, title string, description string, category string) (*projectsdomain.Project, error) {
 	info, err := p.conn.CreateProject(ctx, sqlc.CreateProjectParams{
 		Author:      author.ToPG(),
 		Title:       title,
@@ -179,7 +179,7 @@ func (p *ProjectsRepository) CreateProject(ctx context.Context, author domain.UU
 	return p.parseProject(info), nil
 }
 
-func (p *ProjectsRepository) CreateMessage(ctx context.Context, author domain.UUID, project domain.UUID, parent *domain.UUID, content string) (*projectsdomain.Message, error) {
+func (p *ProjectRepository) CreateMessage(ctx context.Context, author domain.UUID, project domain.UUID, parent *domain.UUID, content string) (*projectsdomain.Message, error) {
 	var pr = pgtype.UUID{Valid: false}
 	if parent != nil {
 		pr = pgtype.UUID{Bytes: parent.UUID, Valid: true}
@@ -196,7 +196,7 @@ func (p *ProjectsRepository) CreateMessage(ctx context.Context, author domain.UU
 	return p.parseMessage(info), nil
 }
 
-func (p *ProjectsRepository) SetStatus(ctx context.Context, project domain.UUID, status projectsdomain.Status, value ...string) error {
+func (p *ProjectRepository) SetStatus(ctx context.Context, project domain.UUID, status projectsdomain.Status, value ...string) error {
 	var link = pgtype.Text{Valid: false}
 	if status == projectsdomain.StatusImplementing {
 		if len(value) > 0 {
@@ -211,7 +211,7 @@ func (p *ProjectsRepository) SetStatus(ctx context.Context, project domain.UUID,
 	return err
 }
 
-func (p *ProjectsRepository) UpdateDescription(ctx context.Context, project domain.UUID, desc string) error {
+func (p *ProjectRepository) UpdateDescription(ctx context.Context, project domain.UUID, desc string) error {
 	if desc == "" {
 		return errors.InvalidArguments
 	}
@@ -222,6 +222,18 @@ func (p *ProjectsRepository) UpdateDescription(ctx context.Context, project doma
 	return err
 }
 
-func (p *ProjectsRepository) DeleteMessage(ctx context.Context, message domain.UUID) error {
+func (p *ProjectRepository) DeleteMessage(ctx context.Context, message domain.UUID) error {
 	return p.conn.DeleteMessage(ctx, message.ToPG())
+}
+
+func (p *ProjectRepository) DeleteProject(ctx context.Context, project domain.UUID) error {
+	return p.conn.DeleteProject(ctx, project.ToPG())
+}
+
+func (p *ProjectRepository) ProjectAuthor(ctx context.Context, project domain.UUID) (*domain.UUID, error) {
+	id, err := p.conn.ProjectAuthor(ctx, project.ToPG())
+	if err != nil {
+		return nil, err
+	}
+	return new(domain.FromPG(id)), err
 }

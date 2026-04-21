@@ -5,7 +5,7 @@ import (
 
 	typespb "github.com/aesterial/cityideas/backend/internal/api/v1"
 	sessionpb "github.com/aesterial/cityideas/backend/internal/api/v1/sessions/v1"
-	sessionsservice "github.com/aesterial/cityideas/backend/internal/app/sessions"
+	sessionsservice "github.com/aesterial/cityideas/backend/internal/app/session"
 	"github.com/aesterial/cityideas/backend/internal/domain"
 	"github.com/aesterial/cityideas/backend/internal/infra/logger"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"

@@ -5,20 +5,20 @@ import (
 	"time"
 
 	"github.com/aesterial/cityideas/backend/internal/domain"
-	sessionsdomain "github.com/aesterial/cityideas/backend/internal/domain/sessions"
+	sessiondomain "github.com/aesterial/cityideas/backend/internal/domain/sessions"
 	"github.com/aesterial/cityideas/backend/internal/infra/logger"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
 )
 
 type Service struct {
-	ses sessionsdomain.Repository
+	ses sessiondomain.Repository
 }
 
-func NewService(ses sessionsdomain.Repository) *Service {
+func NewService(ses sessiondomain.Repository) *Service {
 	return &Service{ses: ses}
 }
 
-func (s *Service) Create(ctx context.Context, user domain.UUID, sessionLiveTime int, device domain.Device, hash string) (*sessionsdomain.Session, error) {
+func (s *Service) Create(ctx context.Context, user domain.UUID, sessionLiveTime int, device domain.Device, hash string) (*sessiondomain.Session, error) {
 	if sessionLiveTime == 0 || !device.IsValid() || hash == "" {
 		return nil, errors.InvalidArguments
 	}
@@ -30,7 +30,7 @@ func (s *Service) Create(ctx context.Context, user domain.UUID, sessionLiveTime 
 	return session, nil
 }
 
-func (s *Service) List(ctx context.Context, user domain.UUID, limit int32, offset int32) (sessionsdomain.Sessions, error) {
+func (s *Service) List(ctx context.Context, user domain.UUID, limit int32, offset int32) (sessiondomain.Sessions, error) {
 	list, err := s.ses.ByOwner(ctx, user, limit, offset)
 	if err != nil {
 		logger.Error("sessions", "failed to get sessions list by owner", logger.F("error", err))
@@ -70,7 +70,7 @@ func (s *Service) IsValid(ctx context.Context, session domain.UUID, device domai
 	return valid, nil
 }
 
-func (s *Service) Info(ctx context.Context, session domain.UUID) (*sessionsdomain.Session, error) {
+func (s *Service) Info(ctx context.Context, session domain.UUID) (*sessiondomain.Session, error) {
 	info, err := s.ses.Info(ctx, session)
 	if err != nil {
 		logger.Error("sessions", "failed to get information about session", logger.F("error", err))

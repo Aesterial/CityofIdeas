@@ -1,0 +1,30 @@
+edition = "2023";
+
+package xyz.city_ideas.v1.ranks.v1;
+
+import "google/protobuf/timestamp.proto";
+import "xyz/city_ideas/v1/types.proto";
+
+option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/ranks/v1;v1";
+
+message CreateRequest {
+  string name = 1;
+  string description = 2;
+  int64 color = 3;
+  int32 weight = 4;
+  repeated string perms = 5;
+}
+
+message Rank {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  int64 color = 4;
+  int32 weight = 5;
+  repeated string permissions = 6;
+  google.protobuf.Timestamp at = 7;
+}
+
+message Permissions {
+  repeated string perms = 1;
+}

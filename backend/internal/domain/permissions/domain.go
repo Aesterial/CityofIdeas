@@ -47,7 +47,20 @@ const (
 	MaintenanceStop  Permission = "maintenance.stop"
 )
 
-var All = []Permission{
+type Permissions []Permission
+
+func (p Permissions) Strings() []string {
+	if p == nil {
+		return nil
+	}
+	var out = make([]string, len(p))
+	for i, perm := range p {
+		out[i] = perm.String()
+	}
+	return out
+}
+
+var All = Permissions{
 	UserUpdateAll,
 	UserUpdateDisplayName,
 	UserUpdateDescription,

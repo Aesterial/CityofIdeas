@@ -9,10 +9,14 @@ import (
 	"time"
 
 	loginpb "github.com/aesterial/cityideas/backend/internal/api/v1/login/v1"
+	projectpb "github.com/aesterial/cityideas/backend/internal/api/v1/projects/v1"
+	rankpb "github.com/aesterial/cityideas/backend/internal/api/v1/ranks/v1"
 	sessionpb "github.com/aesterial/cityideas/backend/internal/api/v1/sessions/v1"
 	userpb "github.com/aesterial/cityideas/backend/internal/api/v1/user/v1"
 	loginservice "github.com/aesterial/cityideas/backend/internal/app/login"
-	sessionsservice "github.com/aesterial/cityideas/backend/internal/app/sessions"
+	projectservice "github.com/aesterial/cityideas/backend/internal/app/project"
+	rankservice "github.com/aesterial/cityideas/backend/internal/app/rank"
+	sessionservice "github.com/aesterial/cityideas/backend/internal/app/session"
 	userservice "github.com/aesterial/cityideas/backend/internal/app/user"
 	"github.com/aesterial/cityideas/backend/internal/infra/config"
 	"github.com/aesterial/cityideas/backend/internal/infra/database"
@@ -45,23 +49,31 @@ func main() {
 	defer conn.Close()
 
 	userRepository := repositories.NewUserRepository(conn.Querier())
-	sessionsRepository := repositories.NewSessionsRepository(conn.Querier())
+	sessionRepository := repositories.NewSessionsRepository(conn.Querier())
+	projectRepository := repositories.NewProjectsRepository(conn.Querier())
+	rankRepository := repositories.NewRankRepository(conn.Querier())
 	userService := userservice.NewService(userRepository)
-	sessionsService := sessionsservice.NewService(sessionsRepository)
-	loginService := loginservice.NewService(userRepository, sessionsRepository)
+	sessionService := sessionservice.NewService(sessionRepository)
+	loginService := loginservice.NewService(userRepository, sessionRepository)
+	projectService := projectservice.NewService(projectRepository)
+	rankService := rankservice.NewService(rankRepository)
 
 	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptors.FingerPrint(), interceptors.Logging(), recovery.UnaryServerInterceptor(recovery.WithRecoveryHandlerContext(interceptors.Recovery))))
 	if !cfg.IsProduction() {
 		reflection.Register(srv)
 	}
-	auth := handlers.NewAuthenticator(userService, sessionsService)
+	auth := handlers.NewAuthenticator(userService, sessionService, rankService)
 	loginHandler := handlers.NewLoginHandler(loginService, auth)
 	userHandler := handlers.NewUserHandler(userService, auth)
-	sessionHandler := handlers.NewSessionHandler(sessionsService, auth)
+	sessionHandler := handlers.NewSessionHandler(sessionService, auth)
+	projectHandler := handlers.NewProjectHandler(projectService, auth)
+	rankHandler := handlers.NewRankHandler(rankService, auth)
 
 	loginpb.RegisterLoginServiceServer(srv, loginHandler)
 	userpb.RegisterUserServiceServer(srv, userHandler)
 	sessionpb.RegisterSessionServiceServer(srv, sessionHandler)
+	projectpb.RegisterProjectsServiceServer(srv, projectHandler)
+	rankpb.RegisterRankServiceServer(srv, rankHandler)
 
 	logger.Info("main", "starting listener")
 	listener, err := net.Listen("tcp", "0.0.0.0:"+cfg.Port)

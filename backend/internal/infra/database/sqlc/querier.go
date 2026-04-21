@@ -15,6 +15,7 @@ type Querier interface {
 	CloseTicket(ctx context.Context, arg CloseTicketParams) error
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (ProjectMessage, error)
 	CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error)
+	CreateRank(ctx context.Context, arg CreateRankParams) (Rank, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	CreateSubmission(ctx context.Context, linked pgtype.UUID) (CreateSubmissionRow, error)
 	CreateTicket(ctx context.Context, arg CreateTicketParams) (Ticket, error)
@@ -24,6 +25,8 @@ type Querier interface {
 	CreateUserPreferences(ctx context.Context, owner pgtype.UUID) (UsersPreference, error)
 	CreateUserSecurity(ctx context.Context, arg CreateUserSecurityParams) (UsersSecurity, error)
 	DeleteMessage(ctx context.Context, id pgtype.UUID) error
+	DeleteProject(ctx context.Context, id pgtype.UUID) error
+	DeleteRank(ctx context.Context, name string) error
 	EndUserSecurityTotp(ctx context.Context, owner pgtype.UUID) error
 	ExpiredTickets(ctx context.Context, dollar_1 pgtype.Interval) ([]pgtype.UUID, error)
 	ExtendSession(ctx context.Context, arg ExtendSessionParams) error
@@ -37,6 +40,7 @@ type Querier interface {
 	GetUserSecurity(ctx context.Context, owner pgtype.UUID) (UsersSecurity, error)
 	GetUsers(ctx context.Context, arg GetUsersParams) ([]User, error)
 	InsertRecoveryCodes(ctx context.Context, arg []InsertRecoveryCodesParams) (int64, error)
+	IsRankExists(ctx context.Context, name string) (bool, error)
 	IsSessionValid(ctx context.Context, arg IsSessionValidParams) (pgtype.Bool, error)
 	IsTicketAccepted(ctx context.Context, id pgtype.UUID) (bool, error)
 	IsTicketClosed(ctx context.Context, id pgtype.UUID) (bool, error)
@@ -45,8 +49,14 @@ type Querier interface {
 	MessageInfo(ctx context.Context, id pgtype.UUID) (ProjectMessage, error)
 	MessagesList(ctx context.Context, arg MessagesListParams) ([]ProjectMessage, error)
 	OpenedTickets(ctx context.Context, arg OpenedTicketsParams) ([]Ticket, error)
+	ProjectAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
 	ProjectInfo(ctx context.Context, id pgtype.UUID) (Project, error)
 	ProjectsList(ctx context.Context, arg ProjectsListParams) ([]Project, error)
+	RankInfo(ctx context.Context, name string) (Rank, error)
+	RankInfoByID(ctx context.Context, id pgtype.UUID) (Rank, error)
+	RankUsers(ctx context.Context, name string) ([]pgtype.UUID, error)
+	RanksList(ctx context.Context, arg RanksListParams) ([]Rank, error)
+	RevokeRankFromUser(ctx context.Context, arg RevokeRankFromUserParams) error
 	RevokeSession(ctx context.Context, id pgtype.UUID) error
 	SessionInfo(ctx context.Context, id pgtype.UUID) (Session, error)
 	SessionsByOwner(ctx context.Context, arg SessionsByOwnerParams) ([]Session, error)
@@ -60,6 +70,11 @@ type Querier interface {
 	TicketMessages(ctx context.Context, arg TicketMessagesParams) ([]TicketsMessage, error)
 	TicketsByAuthor(ctx context.Context, arg TicketsByAuthorParams) ([]Ticket, error)
 	UpdateProjectDescription(ctx context.Context, arg UpdateProjectDescriptionParams) error
+	UpdateRankColor(ctx context.Context, arg UpdateRankColorParams) error
+	UpdateRankDescription(ctx context.Context, arg UpdateRankDescriptionParams) error
+	UpdateRankName(ctx context.Context, arg UpdateRankNameParams) error
+	UpdateRankPermissions(ctx context.Context, arg UpdateRankPermissionsParams) error
+	UpdateRankWeight(ctx context.Context, arg UpdateRankWeightParams) error
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error
 	UpdateUserDescription(ctx context.Context, arg UpdateUserDescriptionParams) error
 	UpdateUserDisplayName(ctx context.Context, arg UpdateUserDisplayNameParams) error

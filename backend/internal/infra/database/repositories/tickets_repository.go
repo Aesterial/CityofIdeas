@@ -12,17 +12,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type TicketsRepository struct {
+type TicketRepository struct {
 	conn sqlc.Querier
 }
 
-func NewTicketsRepository(conn sqlc.Querier) *TicketsRepository {
-	return &TicketsRepository{conn: conn}
+func NewTicketsRepository(conn sqlc.Querier) *TicketRepository {
+	return &TicketRepository{conn: conn}
 }
 
-var _ ticketsdomain.Repository = (*TicketsRepository)(nil)
+var _ ticketsdomain.Repository = (*TicketRepository)(nil)
 
-func (t *TicketsRepository) parseTicket(ticket sqlc.Ticket) *ticketsdomain.Ticket {
+func (t *TicketRepository) parseTicket(ticket sqlc.Ticket) *ticketsdomain.Ticket {
 	var accepted, closed *time.Time = nil, nil
 	var acceptor *domain.UUID = nil
 	var closer *ticketsdomain.Caller = nil
@@ -57,7 +57,7 @@ func (t *TicketsRepository) parseTicket(ticket sqlc.Ticket) *ticketsdomain.Ticke
 	}
 }
 
-func (t *TicketsRepository) parseTickets(tickets []sqlc.Ticket) ticketsdomain.Tickets {
+func (t *TicketRepository) parseTickets(tickets []sqlc.Ticket) ticketsdomain.Tickets {
 	var out = make(ticketsdomain.Tickets, len(tickets))
 	for i, ticket := range tickets {
 		out[i] = t.parseTicket(ticket)
@@ -65,7 +65,7 @@ func (t *TicketsRepository) parseTickets(tickets []sqlc.Ticket) ticketsdomain.Ti
 	return out
 }
 
-func (t *TicketsRepository) TicketsByUser(ctx context.Context, user domain.UUID, limit int32, offset int32) (ticketsdomain.Tickets, error) {
+func (t *TicketRepository) TicketsByUser(ctx context.Context, user domain.UUID, limit int32, offset int32) (ticketsdomain.Tickets, error) {
 	if limit <= 0 {
 		limit = 10
 	}
@@ -80,7 +80,7 @@ func (t *TicketsRepository) TicketsByUser(ctx context.Context, user domain.UUID,
 	return t.parseTickets(list), nil
 }
 
-func (t *TicketsRepository) OpenedTickets(ctx context.Context, limit int32, offset int32) (ticketsdomain.Tickets, error) {
+func (t *TicketRepository) OpenedTickets(ctx context.Context, limit int32, offset int32) (ticketsdomain.Tickets, error) {
 	if limit <= 0 {
 		limit = 10
 	}
@@ -94,7 +94,7 @@ func (t *TicketsRepository) OpenedTickets(ctx context.Context, limit int32, offs
 	return t.parseTickets(list), nil
 }
 
-func (t *TicketsRepository) Info(ctx context.Context, ticket domain.UUID) (*ticketsdomain.Ticket, error) {
+func (t *TicketRepository) Info(ctx context.Context, ticket domain.UUID) (*ticketsdomain.Ticket, error) {
 	info, err := t.conn.TicketInfo(ctx, ticket.ToPG())
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func (t *TicketsRepository) Info(ctx context.Context, ticket domain.UUID) (*tick
 	return t.parseTicket(info), nil
 }
 
-func (t *TicketsRepository) IsClosed(ctx context.Context, ticket domain.UUID) (bool, error) {
+func (t *TicketRepository) IsClosed(ctx context.Context, ticket domain.UUID) (bool, error) {
 	closed, err := t.conn.IsTicketClosed(ctx, ticket.ToPG())
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -113,7 +113,7 @@ func (t *TicketsRepository) IsClosed(ctx context.Context, ticket domain.UUID) (b
 	return closed, nil
 }
 
-func (t *TicketsRepository) isAccepted(ctx context.Context, ticket domain.UUID) (bool, error) {
+func (t *TicketRepository) isAccepted(ctx context.Context, ticket domain.UUID) (bool, error) {
 	accepted, err := t.conn.IsTicketAccepted(ctx, ticket.ToPG())
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -124,7 +124,7 @@ func (t *TicketsRepository) isAccepted(ctx context.Context, ticket domain.UUID) 
 	return accepted, nil
 }
 
-func (t *TicketsRepository) CreateTicket(ctx context.Context, user domain.UUID, topic string, title string) (*ticketsdomain.Ticket, error) {
+func (t *TicketRepository) CreateTicket(ctx context.Context, user domain.UUID, topic string, title string) (*ticketsdomain.Ticket, error) {
 	if topic == "" || title == "" {
 		return nil, errors.InvalidArguments
 	}
@@ -139,7 +139,7 @@ func (t *TicketsRepository) CreateTicket(ctx context.Context, user domain.UUID, 
 	return t.parseTicket(out), nil
 }
 
-func (t *TicketsRepository) AcceptTicket(ctx context.Context, target ticketsdomain.Target) error {
+func (t *TicketRepository) AcceptTicket(ctx context.Context, target ticketsdomain.Target) error {
 	accepted, err := t.isAccepted(ctx, target.Ticket)
 	if err != nil {
 		return err
@@ -153,7 +153,7 @@ func (t *TicketsRepository) AcceptTicket(ctx context.Context, target ticketsdoma
 	})
 }
 
-func (t *TicketsRepository) CloseTicket(ctx context.Context, caller ticketsdomain.Caller, reason *string) error {
+func (t *TicketRepository) CloseTicket(ctx context.Context, caller ticketsdomain.Caller, reason *string) error {
 	var arg sqlc.CloseTicketParams
 	arg.Closer = sqlc.NullTicketsCaller{TicketsCaller: caller.SQLC(), Valid: true}
 	if caller != ticketsdomain.CallerUser {
@@ -165,7 +165,7 @@ func (t *TicketsRepository) CloseTicket(ctx context.Context, caller ticketsdomai
 	return t.conn.CloseTicket(ctx, arg)
 }
 
-func (t *TicketsRepository) ExpiredTickets(ctx context.Context, hours time.Duration) ([]*domain.UUID, error) {
+func (t *TicketRepository) ExpiredTickets(ctx context.Context, hours time.Duration) ([]*domain.UUID, error) {
 	ids, err := t.conn.ExpiredTickets(ctx, pgtype.Interval{Microseconds: hours.Microseconds(), Valid: true})
 	if err != nil {
 		return nil, err
@@ -177,7 +177,7 @@ func (t *TicketsRepository) ExpiredTickets(ctx context.Context, hours time.Durat
 	return out, nil
 }
 
-func (*TicketsRepository) parseMessage(src sqlc.TicketsMessage) *ticketsdomain.Message {
+func (*TicketRepository) parseMessage(src sqlc.TicketsMessage) *ticketsdomain.Message {
 	return &ticketsdomain.Message{
 		ID:      domain.UUID{UUID: src.ID.Bytes},
 		Ticket:  domain.UUID{UUID: src.Ticket.Bytes},
@@ -187,7 +187,7 @@ func (*TicketsRepository) parseMessage(src sqlc.TicketsMessage) *ticketsdomain.M
 	}
 }
 
-func (t *TicketsRepository) parseMessages(src []sqlc.TicketsMessage) ticketsdomain.Messages {
+func (t *TicketRepository) parseMessages(src []sqlc.TicketsMessage) ticketsdomain.Messages {
 	var out = make(ticketsdomain.Messages, len(src))
 	for i, e := range src {
 		out[i] = t.parseMessage(e)
@@ -195,7 +195,7 @@ func (t *TicketsRepository) parseMessages(src []sqlc.TicketsMessage) ticketsdoma
 	return out
 }
 
-func (t *TicketsRepository) CreateMessage(ctx context.Context, target ticketsdomain.Target, content string) (*ticketsdomain.Message, error) {
+func (t *TicketRepository) CreateMessage(ctx context.Context, target ticketsdomain.Target, content string) (*ticketsdomain.Message, error) {
 	if content == "" {
 		return nil, errors.InvalidArguments
 	}
@@ -217,7 +217,7 @@ func (t *TicketsRepository) CreateMessage(ctx context.Context, target ticketsdom
 	return t.parseMessage(message), nil
 }
 
-func (t *TicketsRepository) MessagesList(ctx context.Context, ticket domain.UUID, limit int32, offset int32) (ticketsdomain.Messages, error) {
+func (t *TicketRepository) MessagesList(ctx context.Context, ticket domain.UUID, limit int32, offset int32) (ticketsdomain.Messages, error) {
 	if limit <= 0 {
 		limit = 20
 	}

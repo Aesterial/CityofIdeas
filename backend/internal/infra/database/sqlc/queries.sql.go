@@ -99,6 +99,39 @@ func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (P
 	return i, err
 }
 
+const CreateRank = `-- name: CreateRank :one
+insert into ranks (name, description, color, weight, permissions) values ($1, $2, $3, $4, $5) returning id, name, description, color, weight, permissions, added_at
+`
+
+type CreateRankParams struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Color       int64  `json:"color"`
+	Weight      int32  `json:"weight"`
+	Permissions []byte `json:"permissions"`
+}
+
+func (q *Queries) CreateRank(ctx context.Context, arg CreateRankParams) (Rank, error) {
+	row := q.db.QueryRow(ctx, CreateRank,
+		arg.Name,
+		arg.Description,
+		arg.Color,
+		arg.Weight,
+		arg.Permissions,
+	)
+	var i Rank
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.Color,
+		&i.Weight,
+		&i.Permissions,
+		&i.AddedAt,
+	)
+	return i, err
+}
+
 const CreateSession = `-- name: CreateSession :one
 insert into sessions (owner, expires, device, hash) VALUES ($1, $2, $3, $4) returning id, owner, at, seen_at, expires, mfa, device, hash
 `
@@ -299,6 +332,24 @@ update project_messages set deleted = now() where id = $1
 
 func (q *Queries) DeleteMessage(ctx context.Context, id pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, DeleteMessage, id)
+	return err
+}
+
+const DeleteProject = `-- name: DeleteProject :exec
+update projects set deleted = now(), status = 'cancelled' where id = $1
+`
+
+func (q *Queries) DeleteProject(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, DeleteProject, id)
+	return err
+}
+
+const DeleteRank = `-- name: DeleteRank :exec
+delete from ranks where name = $1
+`
+
+func (q *Queries) DeleteRank(ctx context.Context, name string) error {
+	_, err := q.db.Exec(ctx, DeleteRank, name)
 	return err
 }
 
@@ -545,6 +596,17 @@ type InsertRecoveryCodesParams struct {
 	Hash  string      `json:"hash"`
 }
 
+const IsRankExists = `-- name: IsRankExists :one
+select exists (select 1 from ranks where name = $1)
+`
+
+func (q *Queries) IsRankExists(ctx context.Context, name string) (bool, error) {
+	row := q.db.QueryRow(ctx, IsRankExists, name)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const IsSessionValid = `-- name: IsSessionValid :one
 select expires > now() and device = $1 and hash = $2 from sessions where id = $3
 `
@@ -704,6 +766,17 @@ func (q *Queries) OpenedTickets(ctx context.Context, arg OpenedTicketsParams) ([
 	return items, nil
 }
 
+const ProjectAuthor = `-- name: ProjectAuthor :one
+select author from projects where id = $1
+`
+
+func (q *Queries) ProjectAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, ProjectAuthor, id)
+	var author pgtype.UUID
+	err := row.Scan(&author)
+	return author, err
+}
+
 const ProjectInfo = `-- name: ProjectInfo :one
 select id, author, title, description, category, status, impl_link, likes, at, updated, deleted from projects where id = $1 limit 1
 `
@@ -766,6 +839,119 @@ func (q *Queries) ProjectsList(ctx context.Context, arg ProjectsListParams) ([]P
 		return nil, err
 	}
 	return items, nil
+}
+
+const RankInfo = `-- name: RankInfo :one
+select id, name, description, color, weight, permissions, added_at from ranks where name = $1 limit 1
+`
+
+func (q *Queries) RankInfo(ctx context.Context, name string) (Rank, error) {
+	row := q.db.QueryRow(ctx, RankInfo, name)
+	var i Rank
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.Color,
+		&i.Weight,
+		&i.Permissions,
+		&i.AddedAt,
+	)
+	return i, err
+}
+
+const RankInfoByID = `-- name: RankInfoByID :one
+select id, name, description, color, weight, permissions, added_at from ranks where id = $1 limit 1
+`
+
+func (q *Queries) RankInfoByID(ctx context.Context, id pgtype.UUID) (Rank, error) {
+	row := q.db.QueryRow(ctx, RankInfoByID, id)
+	var i Rank
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.Color,
+		&i.Weight,
+		&i.Permissions,
+		&i.AddedAt,
+	)
+	return i, err
+}
+
+const RankUsers = `-- name: RankUsers :many
+select owner from users_ranks join ranks on ranks.id = users_ranks.rank where ranks.name = $1
+`
+
+func (q *Queries) RankUsers(ctx context.Context, name string) ([]pgtype.UUID, error) {
+	rows, err := q.db.Query(ctx, RankUsers, name)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []pgtype.UUID
+	for rows.Next() {
+		var owner pgtype.UUID
+		if err := rows.Scan(&owner); err != nil {
+			return nil, err
+		}
+		items = append(items, owner)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const RanksList = `-- name: RanksList :many
+select id, name, description, color, weight, permissions, added_at from ranks limit $1 offset $2
+`
+
+type RanksListParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) RanksList(ctx context.Context, arg RanksListParams) ([]Rank, error) {
+	rows, err := q.db.Query(ctx, RanksList, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Rank
+	for rows.Next() {
+		var i Rank
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.Color,
+			&i.Weight,
+			&i.Permissions,
+			&i.AddedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const RevokeRankFromUser = `-- name: RevokeRankFromUser :exec
+update users_ranks set expires = now() from ranks where users_ranks.rank = ranks.id and ranks.name = $1 and users_ranks.owner = $2
+`
+
+type RevokeRankFromUserParams struct {
+	Name  string      `json:"name"`
+	Owner pgtype.UUID `json:"owner"`
+}
+
+func (q *Queries) RevokeRankFromUser(ctx context.Context, arg RevokeRankFromUserParams) error {
+	_, err := q.db.Exec(ctx, RevokeRankFromUser, arg.Name, arg.Owner)
+	return err
 }
 
 const RevokeSession = `-- name: RevokeSession :exec
@@ -1045,6 +1231,76 @@ type UpdateProjectDescriptionParams struct {
 
 func (q *Queries) UpdateProjectDescription(ctx context.Context, arg UpdateProjectDescriptionParams) error {
 	_, err := q.db.Exec(ctx, UpdateProjectDescription, arg.Description, arg.ID)
+	return err
+}
+
+const UpdateRankColor = `-- name: UpdateRankColor :exec
+update ranks set color = $1 where id = $2
+`
+
+type UpdateRankColorParams struct {
+	Color int64       `json:"color"`
+	ID    pgtype.UUID `json:"id"`
+}
+
+func (q *Queries) UpdateRankColor(ctx context.Context, arg UpdateRankColorParams) error {
+	_, err := q.db.Exec(ctx, UpdateRankColor, arg.Color, arg.ID)
+	return err
+}
+
+const UpdateRankDescription = `-- name: UpdateRankDescription :exec
+update ranks set description = $1 where id = $2
+`
+
+type UpdateRankDescriptionParams struct {
+	Description string      `json:"description"`
+	ID          pgtype.UUID `json:"id"`
+}
+
+func (q *Queries) UpdateRankDescription(ctx context.Context, arg UpdateRankDescriptionParams) error {
+	_, err := q.db.Exec(ctx, UpdateRankDescription, arg.Description, arg.ID)
+	return err
+}
+
+const UpdateRankName = `-- name: UpdateRankName :exec
+update ranks set name = $1 where id = $2
+`
+
+type UpdateRankNameParams struct {
+	Name string      `json:"name"`
+	ID   pgtype.UUID `json:"id"`
+}
+
+func (q *Queries) UpdateRankName(ctx context.Context, arg UpdateRankNameParams) error {
+	_, err := q.db.Exec(ctx, UpdateRankName, arg.Name, arg.ID)
+	return err
+}
+
+const UpdateRankPermissions = `-- name: UpdateRankPermissions :exec
+update ranks set permissions = $1 where id = $2
+`
+
+type UpdateRankPermissionsParams struct {
+	Permissions []byte      `json:"permissions"`
+	ID          pgtype.UUID `json:"id"`
+}
+
+func (q *Queries) UpdateRankPermissions(ctx context.Context, arg UpdateRankPermissionsParams) error {
+	_, err := q.db.Exec(ctx, UpdateRankPermissions, arg.Permissions, arg.ID)
+	return err
+}
+
+const UpdateRankWeight = `-- name: UpdateRankWeight :exec
+update ranks set weight = $1 where id = $2
+`
+
+type UpdateRankWeightParams struct {
+	Weight int32       `json:"weight"`
+	ID     pgtype.UUID `json:"id"`
+}
+
+func (q *Queries) UpdateRankWeight(ctx context.Context, arg UpdateRankWeightParams) error {
+	_, err := q.db.Exec(ctx, UpdateRankWeight, arg.Weight, arg.ID)
 	return err
 }
 

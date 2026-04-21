@@ -22,6 +22,22 @@ func (u UUID) ToPG() pgtype.UUID {
 	return pgtype.UUID{Bytes: u.UUID, Valid: true}
 }
 
+func FromString(str string) (UUID, error) {
+	id, err := uuid.Parse(str)
+	if err != nil {
+		return UUID{}, errors.InvalidArguments
+	}
+	return UUID{UUID: id}, nil
+}
+
+func FromUUID(id uuid.UUID) UUID {
+	return UUID{UUID: id}
+}
+
+func FromPG(id pgtype.UUID) UUID {
+	return UUID{UUID: id.Bytes}
+}
+
 type Device int
 
 const (
@@ -132,13 +148,14 @@ func UaFromContext(ctx context.Context) (Device, string) {
 type Metadata struct {
 	UserID    *UUID
 	SessionID *UUID
+	RankID    *UUID
 }
 
 func (m *Metadata) IsEmpty() bool {
 	if m == nil {
 		return true
 	}
-	return m.UserID == nil && m.SessionID == nil
+	return m.UserID == nil && m.SessionID == nil && m.RankID == nil
 }
 
 type Claims struct {
