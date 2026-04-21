@@ -13,4 +13,7 @@ service RankService {
   rpc Permissions(google.protobuf.Empty) returns (xyz.city_ideas.v1.ranks.v1.Permissions);
   rpc Create(xyz.city_ideas.v1.ranks.v1.CreateRequest) returns (xyz.city_ideas.v1.ranks.v1.Rank);
   rpc Rank(xyz.city_ideas.v1.RequestWithValue) returns (xyz.city_ideas.v1.ranks.v1.Rank);
+  rpc List(xyz.city_ideas.v1.RequestWithLimitAndOffset) returns (xyz.city_ideas.v1.ranks.v1.ListResponse);
+  rpc Edit(xyz.city_ideas.v1.ranks.v1.Rank) returns (xyz.city_ideas.v1.ranks.v1.Rank);
+  rpc Delete(xyz.city_ideas.v1.RequestWithValue) returns (google.protobuf.Empty);
 }

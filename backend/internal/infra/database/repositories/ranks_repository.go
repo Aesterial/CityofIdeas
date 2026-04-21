@@ -120,7 +120,7 @@ func (r *RankRepository) Update(ctx context.Context, name string, rank ranksdoma
 		}
 		current.Color = rank.Color
 	}
-	if rank.Weight != 0 && rank.Weight != rank.Weight {
+	if rank.Weight != 0 && rank.Weight != current.Weight {
 		err = r.conn.UpdateRankWeight(ctx, sqlc.UpdateRankWeightParams{
 			Weight: rank.Weight,
 			ID:     current.ID.ToPG(),
@@ -147,11 +147,8 @@ func (r *RankRepository) Update(ctx context.Context, name string, rank ranksdoma
 	return current, nil
 }
 
-func (r *RankRepository) Delete(ctx context.Context, name string) error {
-	if name == "" {
-		return errors.InvalidArguments
-	}
-	return r.conn.DeleteRank(ctx, name)
+func (r *RankRepository) Delete(ctx context.Context, id domain.UUID) error {
+	return r.conn.DeleteRank(ctx, id.ToPG())
 }
 
 func (r *RankRepository) Rank(ctx context.Context, name string) (*ranksdomain.Rank, error) {
@@ -221,4 +218,18 @@ func (r *RankRepository) Revoke(ctx context.Context, user domain.UUID, name stri
 		return err
 	}
 	return nil
+}
+
+func (r *RankRepository) Ranks(ctx context.Context, limit int32, offset int32) (ranksdomain.Ranks, error) {
+	if limit <= 0 {
+		limit = 10
+	}
+	out, err := r.conn.RanksList(ctx, sqlc.RanksListParams{
+		Limit:  limit,
+		Offset: offset,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.parseRanks(out), nil
 }

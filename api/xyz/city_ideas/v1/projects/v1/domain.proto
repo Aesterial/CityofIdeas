@@ -52,6 +52,10 @@ message SubmissionsListResponse {
   repeated Submission list = 1;
 }
 
+message MessagesListResponse {
+  repeated Message list = 1;
+}
+
 message CreateProjectRequest {
   string title = 1;
   string description = 2;

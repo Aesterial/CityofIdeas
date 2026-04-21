@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	AcceptSubmission(ctx context.Context, id pgtype.UUID) error
 	AcceptTicket(ctx context.Context, arg AcceptTicketParams) error
 	CloseTicket(ctx context.Context, arg CloseTicketParams) error
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (ProjectMessage, error)
@@ -26,7 +27,8 @@ type Querier interface {
 	CreateUserSecurity(ctx context.Context, arg CreateUserSecurityParams) (UsersSecurity, error)
 	DeleteMessage(ctx context.Context, id pgtype.UUID) error
 	DeleteProject(ctx context.Context, id pgtype.UUID) error
-	DeleteRank(ctx context.Context, name string) error
+	DeleteRank(ctx context.Context, id pgtype.UUID) error
+	DenySubmission(ctx context.Context, arg DenySubmissionParams) error
 	EndUserSecurityTotp(ctx context.Context, owner pgtype.UUID) error
 	ExpiredTickets(ctx context.Context, dollar_1 pgtype.Interval) ([]pgtype.UUID, error)
 	ExtendSession(ctx context.Context, arg ExtendSessionParams) error
@@ -46,8 +48,10 @@ type Querier interface {
 	IsTicketClosed(ctx context.Context, id pgtype.UUID) (bool, error)
 	IsUserBanned(ctx context.Context, target pgtype.UUID) (bool, error)
 	IsUserExists(ctx context.Context, username string) (bool, error)
+	MessageAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
 	MessageInfo(ctx context.Context, id pgtype.UUID) (ProjectMessage, error)
 	MessagesList(ctx context.Context, arg MessagesListParams) ([]ProjectMessage, error)
+	MessagesListWithDeleted(ctx context.Context, arg MessagesListWithDeletedParams) ([]ProjectMessage, error)
 	OpenedTickets(ctx context.Context, arg OpenedTicketsParams) ([]Ticket, error)
 	ProjectAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
 	ProjectInfo(ctx context.Context, id pgtype.UUID) (Project, error)

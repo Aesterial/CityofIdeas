@@ -6,6 +6,7 @@ import (
 	typespb "github.com/aesterial/cityideas/backend/internal/api/v1"
 	userpb "github.com/aesterial/cityideas/backend/internal/api/v1/user/v1"
 	userservice "github.com/aesterial/cityideas/backend/internal/app/user"
+	permissionsdomain "github.com/aesterial/cityideas/backend/internal/domain/permissions"
 	userdomain "github.com/aesterial/cityideas/backend/internal/domain/user"
 	"github.com/aesterial/cityideas/backend/internal/infra/logger"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
@@ -68,11 +69,13 @@ func (h *UserHandler) List(ctx context.Context, req *typespb.RequestWithLimitAnd
 	if req == nil {
 		return nil, errors.InvalidArguments
 	}
-	_, err := h.auth.User(ctx)
+	meta, err := h.auth.User(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
-	// TODO: Add permissions request
+	if err = h.auth.Permissions(ctx, *meta, permissionsdomain.UserViewAll); err != nil {
+		return nil, err
+	}
 	list, err := h.srv.List(ctx, req.GetLimit(), req.GetOffset())
 	if err != nil {
 		return nil, err

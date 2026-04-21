@@ -13,8 +13,11 @@ service ProjectsService {
   rpc CreateMessage(xyz.city_ideas.v1.projects.v1.CreateMessageRequest) returns (xyz.city_ideas.v1.projects.v1.Message);
   rpc ProjectsList(xyz.city_ideas.v1.RequestWithLimitAndOffset) returns (xyz.city_ideas.v1.projects.v1.ProjectsListResponse);
   rpc SubmissionsList(xyz.city_ideas.v1.RequestWithLimitAndOffset) returns (xyz.city_ideas.v1.projects.v1.SubmissionsListResponse);
+  rpc MessagesList(xyz.city_ideas.v1.RequestWithLimitAndOffsetAndValue) returns (xyz.city_ideas.v1.projects.v1.MessagesListResponse);
   rpc Project(xyz.city_ideas.v1.RequestWithValue) returns (xyz.city_ideas.v1.projects.v1.Project);
   rpc Submission(xyz.city_ideas.v1.RequestWithValue) returns (xyz.city_ideas.v1.projects.v1.Submission);
   rpc DeleteProject(xyz.city_ideas.v1.RequestWithValue) returns (google.protobuf.Empty);
   rpc DeleteMessage(xyz.city_ideas.v1.RequestWithValue) returns (google.protobuf.Empty);
+  rpc AcceptSubmission(xyz.city_ideas.v1.RequestWithValue) returns (google.protobuf.Empty);
+  rpc DenySubmission(xyz.city_ideas.v1.RequestWithValues) returns (google.protobuf.Empty);
 }

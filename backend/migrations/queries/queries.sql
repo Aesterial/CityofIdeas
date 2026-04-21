@@ -137,7 +137,10 @@ select id, author, title, description, category, status, impl_link, likes, at, u
 select id, author, title, description, category, status, impl_link, likes, at, updated, deleted from projects where id = $1 limit 1;
 
 -- name: ProjectAuthor :one
-select author from projects where id = $1;
+select author
+from projects
+where id = $1
+limit 1;
 
 -- name: SetProjectStatus :exec
 update projects set status = $1, impl_link = $2 where id = $3;
@@ -154,11 +157,34 @@ select id, linked, approved, reason from submissions limit $1 offset $2;
 -- name: SubmissionInfo :one
 select id, linked, approved, reason from submissions where id = $1 limit 1;
 
+-- name: AcceptSubmission :exec
+update submissions
+set approved = true
+where id = $1;
+
+-- name: DenySubmission :exec
+update submissions
+set approved = false,
+    reason   = $1
+where id = $2;
+
 -- name: CreateMessage :one
 insert into project_messages (linked, author, parent, content) values ($1, $2, $3, $4) returning id, linked, author, parent, content, at, deleted;
 
+-- name: MessageAuthor :one
+select author
+from project_messages
+where id = $1
+limit 1;
+
 -- name: MessagesList :many
 select id, linked, author, parent, content, at, deleted from project_messages where linked = $1 and deleted is null limit $2 offset $3;
+
+-- name: MessagesListWithDeleted :many
+select id, linked, author, parent, content, at, deleted
+from project_messages
+where linked = $1
+limit $2 offset $3;
 
 -- name: MessageInfo :one
 select id, linked, author, parent, content, at, deleted from project_messages where id = $1 limit 1;
@@ -182,7 +208,9 @@ select id, name, description, color, weight, permissions, added_at from ranks wh
 select id, name, description, color, weight, permissions, added_at from ranks limit $1 offset $2;
 
 -- name: DeleteRank :exec
-delete from ranks where name = $1;
+delete
+from ranks
+where id = $1;
 
 -- name: IsRankExists :one
 select exists (select 1 from ranks where name = $1);

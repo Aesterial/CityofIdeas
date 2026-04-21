@@ -11,6 +11,15 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const AcceptSubmission = `-- name: AcceptSubmission :exec
+update submissions set approved = true where id = $1
+`
+
+func (q *Queries) AcceptSubmission(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, AcceptSubmission, id)
+	return err
+}
+
 const AcceptTicket = `-- name: AcceptTicket :exec
 update tickets set acceptor = $1, accepted = now(), status = 'in work' where id = $2
 `
@@ -345,11 +354,25 @@ func (q *Queries) DeleteProject(ctx context.Context, id pgtype.UUID) error {
 }
 
 const DeleteRank = `-- name: DeleteRank :exec
-delete from ranks where name = $1
+delete from ranks where id = $1
 `
 
-func (q *Queries) DeleteRank(ctx context.Context, name string) error {
-	_, err := q.db.Exec(ctx, DeleteRank, name)
+func (q *Queries) DeleteRank(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, DeleteRank, id)
+	return err
+}
+
+const DenySubmission = `-- name: DenySubmission :exec
+update submissions set approved = false, reason = $1 where id = $2
+`
+
+type DenySubmissionParams struct {
+	Reason pgtype.Text `json:"reason"`
+	ID     pgtype.UUID `json:"id"`
+}
+
+func (q *Queries) DenySubmission(ctx context.Context, arg DenySubmissionParams) error {
+	_, err := q.db.Exec(ctx, DenySubmission, arg.Reason, arg.ID)
 	return err
 }
 
@@ -668,6 +691,17 @@ func (q *Queries) IsUserExists(ctx context.Context, username string) (bool, erro
 	return exists, err
 }
 
+const MessageAuthor = `-- name: MessageAuthor :one
+select author from project_messages where id = $1 limit 1
+`
+
+func (q *Queries) MessageAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, MessageAuthor, id)
+	var author pgtype.UUID
+	err := row.Scan(&author)
+	return author, err
+}
+
 const MessageInfo = `-- name: MessageInfo :one
 select id, linked, author, parent, content, at, deleted from project_messages where id = $1 limit 1
 `
@@ -699,6 +733,44 @@ type MessagesListParams struct {
 
 func (q *Queries) MessagesList(ctx context.Context, arg MessagesListParams) ([]ProjectMessage, error) {
 	rows, err := q.db.Query(ctx, MessagesList, arg.Linked, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ProjectMessage
+	for rows.Next() {
+		var i ProjectMessage
+		if err := rows.Scan(
+			&i.ID,
+			&i.Linked,
+			&i.Author,
+			&i.Parent,
+			&i.Content,
+			&i.At,
+			&i.Deleted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const MessagesListWithDeleted = `-- name: MessagesListWithDeleted :many
+select id, linked, author, parent, content, at, deleted from project_messages where linked = $1 limit $2 offset $3
+`
+
+type MessagesListWithDeletedParams struct {
+	Linked pgtype.UUID `json:"linked"`
+	Limit  int32       `json:"limit"`
+	Offset int32       `json:"offset"`
+}
+
+func (q *Queries) MessagesListWithDeleted(ctx context.Context, arg MessagesListWithDeletedParams) ([]ProjectMessage, error) {
+	rows, err := q.db.Query(ctx, MessagesListWithDeleted, arg.Linked, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -767,7 +839,7 @@ func (q *Queries) OpenedTickets(ctx context.Context, arg OpenedTicketsParams) ([
 }
 
 const ProjectAuthor = `-- name: ProjectAuthor :one
-select author from projects where id = $1
+select author from projects where id = $1 limit 1
 `
 
 func (q *Queries) ProjectAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {

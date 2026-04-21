@@ -28,3 +28,7 @@ message Rank {
 message Permissions {
   repeated string perms = 1;
 }
+
+message ListResponse {
+  repeated Rank list = 1;
+}

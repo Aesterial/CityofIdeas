@@ -64,3 +64,31 @@ func (s *Service) UpdateRank(ctx context.Context, name string, rank ranksdomain.
 	}
 	return out, nil
 }
+
+func (s *Service) RanksList(ctx context.Context, limit int32, offset int32) (ranksdomain.Ranks, error) {
+	if limit <= 0 {
+		limit = 10
+	}
+	list, err := s.rank.Ranks(ctx, limit, offset)
+	if err != nil {
+		logger.Error("rank", "failed to get list of ranks", logger.F("error", err))
+		return nil, errors.Wrap(err)
+	}
+	return list, nil
+}
+
+func (s *Service) DeleteRank(ctx context.Context, rank string) error {
+	if rank == "" {
+		return errors.InvalidArguments
+	}
+	id, err := domain.FromString(rank)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	err = s.rank.Delete(ctx, id)
+	if err != nil {
+		logger.Error("rank", "failed to delete rank", logger.F("error", err))
+		return errors.Wrap(err)
+	}
+	return nil
+}

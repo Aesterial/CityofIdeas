@@ -27,28 +27,39 @@ var File_xyz_city_ideas_v1_ranks_v1_service_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_ranks_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"(xyz/city_ideas/v1/ranks/v1/service.proto\x12\x1axyz.city_ideas.v1.ranks.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a'xyz/city_ideas/v1/ranks/v1/domain.proto\x1a\x1dxyz/city_ideas/v1/types.proto2\x83\x02\n" +
+	"(xyz/city_ideas/v1/ranks/v1/service.proto\x12\x1axyz.city_ideas.v1.ranks.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a'xyz/city_ideas/v1/ranks/v1/domain.proto\x1a\x1dxyz/city_ideas/v1/types.proto2\xf6\x03\n" +
 	"\vRankService\x12N\n" +
 	"\vPermissions\x12\x16.google.protobuf.Empty\x1a'.xyz.city_ideas.v1.ranks.v1.Permissions\x12U\n" +
 	"\x06Create\x12).xyz.city_ideas.v1.ranks.v1.CreateRequest\x1a .xyz.city_ideas.v1.ranks.v1.Rank\x12M\n" +
-	"\x04Rank\x12#.xyz.city_ideas.v1.RequestWithValue\x1a .xyz.city_ideas.v1.ranks.v1.RankBDZBgithub.com/aesterial/cityideas/backend/internal/api/v1/ranks/v1;v1b\beditionsp\xe8\a"
+	"\x04Rank\x12#.xyz.city_ideas.v1.RequestWithValue\x1a .xyz.city_ideas.v1.ranks.v1.Rank\x12^\n" +
+	"\x04List\x12,.xyz.city_ideas.v1.RequestWithLimitAndOffset\x1a(.xyz.city_ideas.v1.ranks.v1.ListResponse\x12J\n" +
+	"\x04Edit\x12 .xyz.city_ideas.v1.ranks.v1.Rank\x1a .xyz.city_ideas.v1.ranks.v1.Rank\x12E\n" +
+	"\x06Delete\x12#.xyz.city_ideas.v1.RequestWithValue\x1a\x16.google.protobuf.EmptyBDZBgithub.com/aesterial/cityideas/backend/internal/api/v1/ranks/v1;v1b\beditionsp\xe8\a"
 
 var file_xyz_city_ideas_v1_ranks_v1_service_proto_goTypes = []any{
-	(*emptypb.Empty)(nil),       // 0: google.protobuf.Empty
-	(*CreateRequest)(nil),       // 1: xyz.city_ideas.v1.ranks.v1.CreateRequest
-	(*v1.RequestWithValue)(nil), // 2: xyz.city_ideas.v1.RequestWithValue
-	(*Permissions)(nil),         // 3: xyz.city_ideas.v1.ranks.v1.Permissions
-	(*Rank)(nil),                // 4: xyz.city_ideas.v1.ranks.v1.Rank
+	(*emptypb.Empty)(nil),                // 0: google.protobuf.Empty
+	(*CreateRequest)(nil),                // 1: xyz.city_ideas.v1.ranks.v1.CreateRequest
+	(*v1.RequestWithValue)(nil),          // 2: xyz.city_ideas.v1.RequestWithValue
+	(*v1.RequestWithLimitAndOffset)(nil), // 3: xyz.city_ideas.v1.RequestWithLimitAndOffset
+	(*Rank)(nil),                         // 4: xyz.city_ideas.v1.ranks.v1.Rank
+	(*Permissions)(nil),                  // 5: xyz.city_ideas.v1.ranks.v1.Permissions
+	(*ListResponse)(nil),                 // 6: xyz.city_ideas.v1.ranks.v1.ListResponse
 }
 var file_xyz_city_ideas_v1_ranks_v1_service_proto_depIdxs = []int32{
 	0, // 0: xyz.city_ideas.v1.ranks.v1.RankService.Permissions:input_type -> google.protobuf.Empty
 	1, // 1: xyz.city_ideas.v1.ranks.v1.RankService.Create:input_type -> xyz.city_ideas.v1.ranks.v1.CreateRequest
 	2, // 2: xyz.city_ideas.v1.ranks.v1.RankService.Rank:input_type -> xyz.city_ideas.v1.RequestWithValue
-	3, // 3: xyz.city_ideas.v1.ranks.v1.RankService.Permissions:output_type -> xyz.city_ideas.v1.ranks.v1.Permissions
-	4, // 4: xyz.city_ideas.v1.ranks.v1.RankService.Create:output_type -> xyz.city_ideas.v1.ranks.v1.Rank
-	4, // 5: xyz.city_ideas.v1.ranks.v1.RankService.Rank:output_type -> xyz.city_ideas.v1.ranks.v1.Rank
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
+	3, // 3: xyz.city_ideas.v1.ranks.v1.RankService.List:input_type -> xyz.city_ideas.v1.RequestWithLimitAndOffset
+	4, // 4: xyz.city_ideas.v1.ranks.v1.RankService.Edit:input_type -> xyz.city_ideas.v1.ranks.v1.Rank
+	2, // 5: xyz.city_ideas.v1.ranks.v1.RankService.Delete:input_type -> xyz.city_ideas.v1.RequestWithValue
+	5, // 6: xyz.city_ideas.v1.ranks.v1.RankService.Permissions:output_type -> xyz.city_ideas.v1.ranks.v1.Permissions
+	4, // 7: xyz.city_ideas.v1.ranks.v1.RankService.Create:output_type -> xyz.city_ideas.v1.ranks.v1.Rank
+	4, // 8: xyz.city_ideas.v1.ranks.v1.RankService.Rank:output_type -> xyz.city_ideas.v1.ranks.v1.Rank
+	6, // 9: xyz.city_ideas.v1.ranks.v1.RankService.List:output_type -> xyz.city_ideas.v1.ranks.v1.ListResponse
+	4, // 10: xyz.city_ideas.v1.ranks.v1.RankService.Edit:output_type -> xyz.city_ideas.v1.ranks.v1.Rank
+	0, // 11: xyz.city_ideas.v1.ranks.v1.RankService.Delete:output_type -> google.protobuf.Empty
+	6, // [6:12] is the sub-list for method output_type
+	0, // [0:6] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name

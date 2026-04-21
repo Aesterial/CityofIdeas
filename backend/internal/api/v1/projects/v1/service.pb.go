@@ -26,52 +26,64 @@ var File_xyz_city_ideas_v1_projects_v1_service_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_projects_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"+xyz/city_ideas/v1/projects/v1/service.proto\x12\x1dxyz.city_ideas.v1.projects.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1dxyz/city_ideas/v1/types.proto\x1a*xyz/city_ideas/v1/projects/v1/domain.proto2\xab\x06\n" +
+	"+xyz/city_ideas/v1/projects/v1/service.proto\x12\x1dxyz.city_ideas.v1.projects.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1dxyz/city_ideas/v1/types.proto\x1a*xyz/city_ideas/v1/projects/v1/domain.proto2\xc7\b\n" +
 	"\x0fProjectsService\x12l\n" +
 	"\rCreateProject\x123.xyz.city_ideas.v1.projects.v1.CreateProjectRequest\x1a&.xyz.city_ideas.v1.projects.v1.Project\x12l\n" +
 	"\rCreateMessage\x123.xyz.city_ideas.v1.projects.v1.CreateMessageRequest\x1a&.xyz.city_ideas.v1.projects.v1.Message\x12q\n" +
 	"\fProjectsList\x12,.xyz.city_ideas.v1.RequestWithLimitAndOffset\x1a3.xyz.city_ideas.v1.projects.v1.ProjectsListResponse\x12w\n" +
-	"\x0fSubmissionsList\x12,.xyz.city_ideas.v1.RequestWithLimitAndOffset\x1a6.xyz.city_ideas.v1.projects.v1.SubmissionsListResponse\x12V\n" +
+	"\x0fSubmissionsList\x12,.xyz.city_ideas.v1.RequestWithLimitAndOffset\x1a6.xyz.city_ideas.v1.projects.v1.SubmissionsListResponse\x12y\n" +
+	"\fMessagesList\x124.xyz.city_ideas.v1.RequestWithLimitAndOffsetAndValue\x1a3.xyz.city_ideas.v1.projects.v1.MessagesListResponse\x12V\n" +
 	"\aProject\x12#.xyz.city_ideas.v1.RequestWithValue\x1a&.xyz.city_ideas.v1.projects.v1.Project\x12\\\n" +
 	"\n" +
 	"Submission\x12#.xyz.city_ideas.v1.RequestWithValue\x1a).xyz.city_ideas.v1.projects.v1.Submission\x12L\n" +
 	"\rDeleteProject\x12#.xyz.city_ideas.v1.RequestWithValue\x1a\x16.google.protobuf.Empty\x12L\n" +
-	"\rDeleteMessage\x12#.xyz.city_ideas.v1.RequestWithValue\x1a\x16.google.protobuf.EmptyBGZEgithub.com/aesterial/cityideas/backend/internal/api/v1/projects/v1;v1b\beditionsp\xe8\a"
+	"\rDeleteMessage\x12#.xyz.city_ideas.v1.RequestWithValue\x1a\x16.google.protobuf.Empty\x12O\n" +
+	"\x10AcceptSubmission\x12#.xyz.city_ideas.v1.RequestWithValue\x1a\x16.google.protobuf.Empty\x12N\n" +
+	"\x0eDenySubmission\x12$.xyz.city_ideas.v1.RequestWithValues\x1a\x16.google.protobuf.EmptyBGZEgithub.com/aesterial/cityideas/backend/internal/api/v1/projects/v1;v1b\beditionsp\xe8\a"
 
 var file_xyz_city_ideas_v1_projects_v1_service_proto_goTypes = []any{
-	(*CreateProjectRequest)(nil),         // 0: xyz.city_ideas.v1.projects.v1.CreateProjectRequest
-	(*CreateMessageRequest)(nil),         // 1: xyz.city_ideas.v1.projects.v1.CreateMessageRequest
-	(*v1.RequestWithLimitAndOffset)(nil), // 2: xyz.city_ideas.v1.RequestWithLimitAndOffset
-	(*v1.RequestWithValue)(nil),          // 3: xyz.city_ideas.v1.RequestWithValue
-	(*Project)(nil),                      // 4: xyz.city_ideas.v1.projects.v1.Project
-	(*Message)(nil),                      // 5: xyz.city_ideas.v1.projects.v1.Message
-	(*ProjectsListResponse)(nil),         // 6: xyz.city_ideas.v1.projects.v1.ProjectsListResponse
-	(*SubmissionsListResponse)(nil),      // 7: xyz.city_ideas.v1.projects.v1.SubmissionsListResponse
-	(*Submission)(nil),                   // 8: xyz.city_ideas.v1.projects.v1.Submission
-	(*emptypb.Empty)(nil),                // 9: google.protobuf.Empty
+	(*CreateProjectRequest)(nil),                 // 0: xyz.city_ideas.v1.projects.v1.CreateProjectRequest
+	(*CreateMessageRequest)(nil),                 // 1: xyz.city_ideas.v1.projects.v1.CreateMessageRequest
+	(*v1.RequestWithLimitAndOffset)(nil),         // 2: xyz.city_ideas.v1.RequestWithLimitAndOffset
+	(*v1.RequestWithLimitAndOffsetAndValue)(nil), // 3: xyz.city_ideas.v1.RequestWithLimitAndOffsetAndValue
+	(*v1.RequestWithValue)(nil),                  // 4: xyz.city_ideas.v1.RequestWithValue
+	(*v1.RequestWithValues)(nil),                 // 5: xyz.city_ideas.v1.RequestWithValues
+	(*Project)(nil),                              // 6: xyz.city_ideas.v1.projects.v1.Project
+	(*Message)(nil),                              // 7: xyz.city_ideas.v1.projects.v1.Message
+	(*ProjectsListResponse)(nil),                 // 8: xyz.city_ideas.v1.projects.v1.ProjectsListResponse
+	(*SubmissionsListResponse)(nil),              // 9: xyz.city_ideas.v1.projects.v1.SubmissionsListResponse
+	(*MessagesListResponse)(nil),                 // 10: xyz.city_ideas.v1.projects.v1.MessagesListResponse
+	(*Submission)(nil),                           // 11: xyz.city_ideas.v1.projects.v1.Submission
+	(*emptypb.Empty)(nil),                        // 12: google.protobuf.Empty
 }
 var file_xyz_city_ideas_v1_projects_v1_service_proto_depIdxs = []int32{
-	0, // 0: xyz.city_ideas.v1.projects.v1.ProjectsService.CreateProject:input_type -> xyz.city_ideas.v1.projects.v1.CreateProjectRequest
-	1, // 1: xyz.city_ideas.v1.projects.v1.ProjectsService.CreateMessage:input_type -> xyz.city_ideas.v1.projects.v1.CreateMessageRequest
-	2, // 2: xyz.city_ideas.v1.projects.v1.ProjectsService.ProjectsList:input_type -> xyz.city_ideas.v1.RequestWithLimitAndOffset
-	2, // 3: xyz.city_ideas.v1.projects.v1.ProjectsService.SubmissionsList:input_type -> xyz.city_ideas.v1.RequestWithLimitAndOffset
-	3, // 4: xyz.city_ideas.v1.projects.v1.ProjectsService.Project:input_type -> xyz.city_ideas.v1.RequestWithValue
-	3, // 5: xyz.city_ideas.v1.projects.v1.ProjectsService.Submission:input_type -> xyz.city_ideas.v1.RequestWithValue
-	3, // 6: xyz.city_ideas.v1.projects.v1.ProjectsService.DeleteProject:input_type -> xyz.city_ideas.v1.RequestWithValue
-	3, // 7: xyz.city_ideas.v1.projects.v1.ProjectsService.DeleteMessage:input_type -> xyz.city_ideas.v1.RequestWithValue
-	4, // 8: xyz.city_ideas.v1.projects.v1.ProjectsService.CreateProject:output_type -> xyz.city_ideas.v1.projects.v1.Project
-	5, // 9: xyz.city_ideas.v1.projects.v1.ProjectsService.CreateMessage:output_type -> xyz.city_ideas.v1.projects.v1.Message
-	6, // 10: xyz.city_ideas.v1.projects.v1.ProjectsService.ProjectsList:output_type -> xyz.city_ideas.v1.projects.v1.ProjectsListResponse
-	7, // 11: xyz.city_ideas.v1.projects.v1.ProjectsService.SubmissionsList:output_type -> xyz.city_ideas.v1.projects.v1.SubmissionsListResponse
-	4, // 12: xyz.city_ideas.v1.projects.v1.ProjectsService.Project:output_type -> xyz.city_ideas.v1.projects.v1.Project
-	8, // 13: xyz.city_ideas.v1.projects.v1.ProjectsService.Submission:output_type -> xyz.city_ideas.v1.projects.v1.Submission
-	9, // 14: xyz.city_ideas.v1.projects.v1.ProjectsService.DeleteProject:output_type -> google.protobuf.Empty
-	9, // 15: xyz.city_ideas.v1.projects.v1.ProjectsService.DeleteMessage:output_type -> google.protobuf.Empty
-	8, // [8:16] is the sub-list for method output_type
-	0, // [0:8] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	0,  // 0: xyz.city_ideas.v1.projects.v1.ProjectsService.CreateProject:input_type -> xyz.city_ideas.v1.projects.v1.CreateProjectRequest
+	1,  // 1: xyz.city_ideas.v1.projects.v1.ProjectsService.CreateMessage:input_type -> xyz.city_ideas.v1.projects.v1.CreateMessageRequest
+	2,  // 2: xyz.city_ideas.v1.projects.v1.ProjectsService.ProjectsList:input_type -> xyz.city_ideas.v1.RequestWithLimitAndOffset
+	2,  // 3: xyz.city_ideas.v1.projects.v1.ProjectsService.SubmissionsList:input_type -> xyz.city_ideas.v1.RequestWithLimitAndOffset
+	3,  // 4: xyz.city_ideas.v1.projects.v1.ProjectsService.MessagesList:input_type -> xyz.city_ideas.v1.RequestWithLimitAndOffsetAndValue
+	4,  // 5: xyz.city_ideas.v1.projects.v1.ProjectsService.Project:input_type -> xyz.city_ideas.v1.RequestWithValue
+	4,  // 6: xyz.city_ideas.v1.projects.v1.ProjectsService.Submission:input_type -> xyz.city_ideas.v1.RequestWithValue
+	4,  // 7: xyz.city_ideas.v1.projects.v1.ProjectsService.DeleteProject:input_type -> xyz.city_ideas.v1.RequestWithValue
+	4,  // 8: xyz.city_ideas.v1.projects.v1.ProjectsService.DeleteMessage:input_type -> xyz.city_ideas.v1.RequestWithValue
+	4,  // 9: xyz.city_ideas.v1.projects.v1.ProjectsService.AcceptSubmission:input_type -> xyz.city_ideas.v1.RequestWithValue
+	5,  // 10: xyz.city_ideas.v1.projects.v1.ProjectsService.DenySubmission:input_type -> xyz.city_ideas.v1.RequestWithValues
+	6,  // 11: xyz.city_ideas.v1.projects.v1.ProjectsService.CreateProject:output_type -> xyz.city_ideas.v1.projects.v1.Project
+	7,  // 12: xyz.city_ideas.v1.projects.v1.ProjectsService.CreateMessage:output_type -> xyz.city_ideas.v1.projects.v1.Message
+	8,  // 13: xyz.city_ideas.v1.projects.v1.ProjectsService.ProjectsList:output_type -> xyz.city_ideas.v1.projects.v1.ProjectsListResponse
+	9,  // 14: xyz.city_ideas.v1.projects.v1.ProjectsService.SubmissionsList:output_type -> xyz.city_ideas.v1.projects.v1.SubmissionsListResponse
+	10, // 15: xyz.city_ideas.v1.projects.v1.ProjectsService.MessagesList:output_type -> xyz.city_ideas.v1.projects.v1.MessagesListResponse
+	6,  // 16: xyz.city_ideas.v1.projects.v1.ProjectsService.Project:output_type -> xyz.city_ideas.v1.projects.v1.Project
+	11, // 17: xyz.city_ideas.v1.projects.v1.ProjectsService.Submission:output_type -> xyz.city_ideas.v1.projects.v1.Submission
+	12, // 18: xyz.city_ideas.v1.projects.v1.ProjectsService.DeleteProject:output_type -> google.protobuf.Empty
+	12, // 19: xyz.city_ideas.v1.projects.v1.ProjectsService.DeleteMessage:output_type -> google.protobuf.Empty
+	12, // 20: xyz.city_ideas.v1.projects.v1.ProjectsService.AcceptSubmission:output_type -> google.protobuf.Empty
+	12, // 21: xyz.city_ideas.v1.projects.v1.ProjectsService.DenySubmission:output_type -> google.protobuf.Empty
+	11, // [11:22] is the sub-list for method output_type
+	0,  // [0:11] is the sub-list for method input_type
+	0,  // [0:0] is the sub-list for extension type_name
+	0,  // [0:0] is the sub-list for extension extendee
+	0,  // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_xyz_city_ideas_v1_projects_v1_service_proto_init() }

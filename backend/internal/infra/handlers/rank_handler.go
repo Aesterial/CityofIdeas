@@ -6,7 +6,9 @@ import (
 	typespb "github.com/aesterial/cityideas/backend/internal/api/v1"
 	rankpb "github.com/aesterial/cityideas/backend/internal/api/v1/ranks/v1"
 	rankservice "github.com/aesterial/cityideas/backend/internal/app/rank"
+	"github.com/aesterial/cityideas/backend/internal/domain"
 	permissionsdomain "github.com/aesterial/cityideas/backend/internal/domain/permissions"
+	ranksdomain "github.com/aesterial/cityideas/backend/internal/domain/ranks"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -84,4 +86,71 @@ func (h *RankHandler) Permissions(ctx context.Context, _ *emptypb.Empty) (*rankp
 	var out = &rankpb.Permissions{}
 	out.SetPerms(permissionsdomain.All.Strings())
 	return out, nil
+}
+
+func (h *RankHandler) List(ctx context.Context, req *typespb.RequestWithLimitAndOffset) (*rankpb.ListResponse, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
+	}
+	meta, err := h.auth.User(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = h.auth.Permissions(ctx, *meta, permissionsdomain.RankList); err != nil {
+		return nil, err
+	}
+	list, err := h.rank.RanksList(ctx, req.GetLimit(), req.GetOffset())
+	if err != nil {
+		return nil, err
+	}
+	var out = &rankpb.ListResponse{}
+	out.SetList(list.Protobuf())
+	return out, nil
+}
+
+func (h *RankHandler) Edit(ctx context.Context, req *rankpb.Rank) (*rankpb.Rank, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
+	}
+	meta, err := h.auth.User(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = h.auth.Permissions(ctx, *meta, permissionsdomain.RankUpdate); err != nil {
+		return nil, err
+	}
+	id, err := domain.FromString(req.GetId())
+	if err != nil {
+		return nil, err
+	}
+	out, err := h.rank.UpdateRank(ctx, req.GetName(), ranksdomain.Rank{
+		ID:          id,
+		Name:        req.GetName(),
+		Description: req.GetDescription(),
+		Color:       req.GetColor(),
+		Weight:      req.GetWeight(),
+		Permissions: permissionsdomain.FromStrings(req.GetPermissions()),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return out.Protobuf(), nil
+}
+
+func (h *RankHandler) Delete(ctx context.Context, req *typespb.RequestWithValue) (*emptypb.Empty, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
+	}
+	meta, err := h.auth.User(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+	if err = h.auth.Permissions(ctx, *meta, permissionsdomain.RankDelete); err != nil {
+		return nil, err
+	}
+	err = h.rank.DeleteRank(ctx, req.GetValue())
+	if err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, nil
 }

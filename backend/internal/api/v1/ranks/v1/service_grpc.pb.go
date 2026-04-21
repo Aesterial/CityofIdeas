@@ -24,6 +24,9 @@ const (
 	RankService_Permissions_FullMethodName = "/xyz.city_ideas.v1.ranks.v1.RankService/Permissions"
 	RankService_Create_FullMethodName      = "/xyz.city_ideas.v1.ranks.v1.RankService/Create"
 	RankService_Rank_FullMethodName        = "/xyz.city_ideas.v1.ranks.v1.RankService/Rank"
+	RankService_List_FullMethodName        = "/xyz.city_ideas.v1.ranks.v1.RankService/List"
+	RankService_Edit_FullMethodName        = "/xyz.city_ideas.v1.ranks.v1.RankService/Edit"
+	RankService_Delete_FullMethodName      = "/xyz.city_ideas.v1.ranks.v1.RankService/Delete"
 )
 
 // RankServiceClient is the client API for RankService service.
@@ -33,6 +36,9 @@ type RankServiceClient interface {
 	Permissions(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Permissions, error)
 	Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*Rank, error)
 	Rank(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*Rank, error)
+	List(ctx context.Context, in *v1.RequestWithLimitAndOffset, opts ...grpc.CallOption) (*ListResponse, error)
+	Edit(ctx context.Context, in *Rank, opts ...grpc.CallOption) (*Rank, error)
+	Delete(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type rankServiceClient struct {
@@ -73,6 +79,36 @@ func (c *rankServiceClient) Rank(ctx context.Context, in *v1.RequestWithValue, o
 	return out, nil
 }
 
+func (c *rankServiceClient) List(ctx context.Context, in *v1.RequestWithLimitAndOffset, opts ...grpc.CallOption) (*ListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListResponse)
+	err := c.cc.Invoke(ctx, RankService_List_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rankServiceClient) Edit(ctx context.Context, in *Rank, opts ...grpc.CallOption) (*Rank, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Rank)
+	err := c.cc.Invoke(ctx, RankService_Edit_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rankServiceClient) Delete(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, RankService_Delete_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RankServiceServer is the server API for RankService service.
 // All implementations should embed UnimplementedRankServiceServer
 // for forward compatibility.
@@ -80,6 +116,9 @@ type RankServiceServer interface {
 	Permissions(context.Context, *emptypb.Empty) (*Permissions, error)
 	Create(context.Context, *CreateRequest) (*Rank, error)
 	Rank(context.Context, *v1.RequestWithValue) (*Rank, error)
+	List(context.Context, *v1.RequestWithLimitAndOffset) (*ListResponse, error)
+	Edit(context.Context, *Rank) (*Rank, error)
+	Delete(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error)
 }
 
 // UnimplementedRankServiceServer should be embedded to have
@@ -97,6 +136,15 @@ func (UnimplementedRankServiceServer) Create(context.Context, *CreateRequest) (*
 }
 func (UnimplementedRankServiceServer) Rank(context.Context, *v1.RequestWithValue) (*Rank, error) {
 	return nil, status.Error(codes.Unimplemented, "method Rank not implemented")
+}
+func (UnimplementedRankServiceServer) List(context.Context, *v1.RequestWithLimitAndOffset) (*ListResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedRankServiceServer) Edit(context.Context, *Rank) (*Rank, error) {
+	return nil, status.Error(codes.Unimplemented, "method Edit not implemented")
+}
+func (UnimplementedRankServiceServer) Delete(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method Delete not implemented")
 }
 func (UnimplementedRankServiceServer) testEmbeddedByValue() {}
 
@@ -172,6 +220,60 @@ func _RankService_Rank_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RankService_List_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithLimitAndOffset)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RankServiceServer).List(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RankService_List_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RankServiceServer).List(ctx, req.(*v1.RequestWithLimitAndOffset))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RankService_Edit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Rank)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RankServiceServer).Edit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RankService_Edit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RankServiceServer).Edit(ctx, req.(*Rank))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RankService_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RankServiceServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RankService_Delete_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RankServiceServer).Delete(ctx, req.(*v1.RequestWithValue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RankService_ServiceDesc is the grpc.ServiceDesc for RankService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +292,18 @@ var RankService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Rank",
 			Handler:    _RankService_Rank_Handler,
+		},
+		{
+			MethodName: "List",
+			Handler:    _RankService_List_Handler,
+		},
+		{
+			MethodName: "Edit",
+			Handler:    _RankService_Edit_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _RankService_Delete_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

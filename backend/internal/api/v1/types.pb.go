@@ -145,6 +145,63 @@ func (b0 RequestWithValue_builder) Build() *RequestWithValue {
 	return m0
 }
 
+type RequestWithValues struct {
+	state             protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Values []string               `protobuf:"bytes,1,rep,name=values"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *RequestWithValues) Reset() {
+	*x = RequestWithValues{}
+	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestWithValues) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestWithValues) ProtoMessage() {}
+
+func (x *RequestWithValues) ProtoReflect() protoreflect.Message {
+	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *RequestWithValues) GetValues() []string {
+	if x != nil {
+		return x.xxx_hidden_Values
+	}
+	return nil
+}
+
+func (x *RequestWithValues) SetValues(v []string) {
+	x.xxx_hidden_Values = v
+}
+
+type RequestWithValues_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	Values []string
+}
+
+func (b0 RequestWithValues_builder) Build() *RequestWithValues {
+	m0 := &RequestWithValues{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Values = b.Values
+	return m0
+}
+
 type RequestWithLimitAndOffset struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Limit       int32                  `protobuf:"varint,1,opt,name=limit"`
@@ -157,7 +214,7 @@ type RequestWithLimitAndOffset struct {
 
 func (x *RequestWithLimitAndOffset) Reset() {
 	*x = RequestWithLimitAndOffset{}
-	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[1]
+	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -169,7 +226,7 @@ func (x *RequestWithLimitAndOffset) String() string {
 func (*RequestWithLimitAndOffset) ProtoMessage() {}
 
 func (x *RequestWithLimitAndOffset) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[1]
+	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -250,16 +307,160 @@ func (b0 RequestWithLimitAndOffset_builder) Build() *RequestWithLimitAndOffset {
 	return m0
 }
 
+type RequestWithLimitAndOffsetAndValue struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Limit       int32                  `protobuf:"varint,1,opt,name=limit"`
+	xxx_hidden_Offset      int32                  `protobuf:"varint,2,opt,name=offset"`
+	xxx_hidden_Value       *string                `protobuf:"bytes,3,opt,name=value"`
+	XXX_raceDetectHookData protoimpl.RaceDetectHookData
+	XXX_presence           [1]uint32
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *RequestWithLimitAndOffsetAndValue) Reset() {
+	*x = RequestWithLimitAndOffsetAndValue{}
+	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequestWithLimitAndOffsetAndValue) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequestWithLimitAndOffsetAndValue) ProtoMessage() {}
+
+func (x *RequestWithLimitAndOffsetAndValue) ProtoReflect() protoreflect.Message {
+	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *RequestWithLimitAndOffsetAndValue) GetLimit() int32 {
+	if x != nil {
+		return x.xxx_hidden_Limit
+	}
+	return 0
+}
+
+func (x *RequestWithLimitAndOffsetAndValue) GetOffset() int32 {
+	if x != nil {
+		return x.xxx_hidden_Offset
+	}
+	return 0
+}
+
+func (x *RequestWithLimitAndOffsetAndValue) GetValue() string {
+	if x != nil {
+		if x.xxx_hidden_Value != nil {
+			return *x.xxx_hidden_Value
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *RequestWithLimitAndOffsetAndValue) SetLimit(v int32) {
+	x.xxx_hidden_Limit = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 3)
+}
+
+func (x *RequestWithLimitAndOffsetAndValue) SetOffset(v int32) {
+	x.xxx_hidden_Offset = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 3)
+}
+
+func (x *RequestWithLimitAndOffsetAndValue) SetValue(v string) {
+	x.xxx_hidden_Value = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
+}
+
+func (x *RequestWithLimitAndOffsetAndValue) HasLimit() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *RequestWithLimitAndOffsetAndValue) HasOffset() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *RequestWithLimitAndOffsetAndValue) HasValue() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+}
+
+func (x *RequestWithLimitAndOffsetAndValue) ClearLimit() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_Limit = 0
+}
+
+func (x *RequestWithLimitAndOffsetAndValue) ClearOffset() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_Offset = 0
+}
+
+func (x *RequestWithLimitAndOffsetAndValue) ClearValue() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	x.xxx_hidden_Value = nil
+}
+
+type RequestWithLimitAndOffsetAndValue_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	Limit  *int32
+	Offset *int32
+	Value  *string
+}
+
+func (b0 RequestWithLimitAndOffsetAndValue_builder) Build() *RequestWithLimitAndOffsetAndValue {
+	m0 := &RequestWithLimitAndOffsetAndValue{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Limit != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 3)
+		x.xxx_hidden_Limit = *b.Limit
+	}
+	if b.Offset != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
+		x.xxx_hidden_Offset = *b.Offset
+	}
+	if b.Value != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
+		x.xxx_hidden_Value = b.Value
+	}
+	return m0
+}
+
 var File_xyz_city_ideas_v1_types_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_types_proto_rawDesc = "" +
 	"\n" +
 	"\x1dxyz/city_ideas/v1/types.proto\x12\x11xyz.city_ideas.v1\"(\n" +
 	"\x10RequestWithValue\x12\x14\n" +
-	"\x05value\x18\x01 \x01(\tR\x05value\"I\n" +
+	"\x05value\x18\x01 \x01(\tR\x05value\"+\n" +
+	"\x11RequestWithValues\x12\x16\n" +
+	"\x06values\x18\x01 \x03(\tR\x06values\"I\n" +
 	"\x19RequestWithLimitAndOffset\x12\x14\n" +
 	"\x05limit\x18\x01 \x01(\x05R\x05limit\x12\x16\n" +
-	"\x06offset\x18\x02 \x01(\x05R\x06offset*Z\n" +
+	"\x06offset\x18\x02 \x01(\x05R\x06offset\"g\n" +
+	"!RequestWithLimitAndOffsetAndValue\x12\x14\n" +
+	"\x05limit\x18\x01 \x01(\x05R\x05limit\x12\x16\n" +
+	"\x06offset\x18\x02 \x01(\x05R\x06offset\x12\x14\n" +
+	"\x05value\x18\x03 \x01(\tR\x05value*Z\n" +
 	"\x06Device\x12\x16\n" +
 	"\x12DEVICE_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eDEVICE_DESKTOP\x10\x01\x12\x11\n" +
@@ -267,11 +468,13 @@ const file_xyz_city_ideas_v1_types_proto_rawDesc = "" +
 	"\rDEVICE_TABLET\x10\x03B;Z9github.com/aesterial/cityideas/backend/internal/api/v1;v1b\beditionsp\xe8\a"
 
 var file_xyz_city_ideas_v1_types_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_xyz_city_ideas_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_xyz_city_ideas_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_xyz_city_ideas_v1_types_proto_goTypes = []any{
-	(Device)(0),                       // 0: xyz.city_ideas.v1.Device
-	(*RequestWithValue)(nil),          // 1: xyz.city_ideas.v1.RequestWithValue
-	(*RequestWithLimitAndOffset)(nil), // 2: xyz.city_ideas.v1.RequestWithLimitAndOffset
+	(Device)(0),                               // 0: xyz.city_ideas.v1.Device
+	(*RequestWithValue)(nil),                  // 1: xyz.city_ideas.v1.RequestWithValue
+	(*RequestWithValues)(nil),                 // 2: xyz.city_ideas.v1.RequestWithValues
+	(*RequestWithLimitAndOffset)(nil),         // 3: xyz.city_ideas.v1.RequestWithLimitAndOffset
+	(*RequestWithLimitAndOffsetAndValue)(nil), // 4: xyz.city_ideas.v1.RequestWithLimitAndOffsetAndValue
 }
 var file_xyz_city_ideas_v1_types_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -292,7 +495,7 @@ func file_xyz_city_ideas_v1_types_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_xyz_city_ideas_v1_types_proto_rawDesc), len(file_xyz_city_ideas_v1_types_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

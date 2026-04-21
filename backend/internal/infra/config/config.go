@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -41,8 +42,7 @@ func parseType[T any](tag string, def T) T {
 		}
 		return any(f).(T)
 	case []string:
-		origins := strings.SplitSeq(value, ",")
-		return any(origins).(T)
+		return any(slices.Collect(strings.SplitSeq(value, ","))).(T)
 	default:
 		return def
 	}

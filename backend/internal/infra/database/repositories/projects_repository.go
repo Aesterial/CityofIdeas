@@ -144,17 +144,38 @@ func (p *ProjectRepository) Submissions(ctx context.Context, limit int32, offset
 	return p.parseSubmissions(list), nil
 }
 
-func (p *ProjectRepository) Messages(ctx context.Context, project domain.UUID, limit int32, offset int32) (projectsdomain.Messages, error) {
+func (p *ProjectRepository) Submission(ctx context.Context, id domain.UUID) (*projectsdomain.Submission, error) {
+	info, err := p.conn.SubmissionInfo(ctx, id.ToPG())
+	if err != nil {
+		return nil, err
+	}
+	return p.parseSubmission(info), nil
+}
+
+func (p *ProjectRepository) Messages(ctx context.Context, project domain.UUID, limit int32, offset int32, showDeleted bool) (projectsdomain.Messages, error) {
 	if limit <= 0 {
 		limit = 10
 	}
-	list, err := p.conn.MessagesList(ctx, sqlc.MessagesListParams{
-		Linked: project.ToPG(),
-		Limit:  limit,
-		Offset: offset,
-	})
-	if err != nil {
-		return nil, err
+	var list []sqlc.ProjectMessage
+	var err error
+	if showDeleted {
+		list, err = p.conn.MessagesListWithDeleted(ctx, sqlc.MessagesListWithDeletedParams{
+			Linked: project.ToPG(),
+			Limit:  limit,
+			Offset: offset,
+		})
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		list, err = p.conn.MessagesList(ctx, sqlc.MessagesListParams{
+			Linked: project.ToPG(),
+			Limit:  limit,
+			Offset: offset,
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 	return p.parseMessages(list), nil
 }
@@ -235,5 +256,34 @@ func (p *ProjectRepository) ProjectAuthor(ctx context.Context, project domain.UU
 	if err != nil {
 		return nil, err
 	}
-	return new(domain.FromPG(id)), err
+	return new(domain.FromPG(id)), nil
+}
+
+func (p *ProjectRepository) MessageAuthor(ctx context.Context, message domain.UUID) (*domain.UUID, error) {
+	id, err := p.conn.MessageAuthor(ctx, message.ToPG())
+	if err != nil {
+		return nil, err
+	}
+	return new(domain.FromPG(id)), nil
+}
+
+func (p *ProjectRepository) SubmissionReview(ctx context.Context, project domain.UUID, conclusion bool, reason *string) error {
+	if conclusion {
+		err := p.conn.AcceptSubmission(ctx, project.ToPG())
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	if reason == nil {
+		return errors.InvalidArguments
+	}
+	err := p.conn.DenySubmission(ctx, sqlc.DenySubmissionParams{
+		Reason: pgtype.Text{String: *reason, Valid: true},
+		ID:     project.ToPG(),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }

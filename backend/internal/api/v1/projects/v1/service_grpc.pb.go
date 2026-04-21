@@ -21,14 +21,17 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ProjectsService_CreateProject_FullMethodName   = "/xyz.city_ideas.v1.projects.v1.ProjectsService/CreateProject"
-	ProjectsService_CreateMessage_FullMethodName   = "/xyz.city_ideas.v1.projects.v1.ProjectsService/CreateMessage"
-	ProjectsService_ProjectsList_FullMethodName    = "/xyz.city_ideas.v1.projects.v1.ProjectsService/ProjectsList"
-	ProjectsService_SubmissionsList_FullMethodName = "/xyz.city_ideas.v1.projects.v1.ProjectsService/SubmissionsList"
-	ProjectsService_Project_FullMethodName         = "/xyz.city_ideas.v1.projects.v1.ProjectsService/Project"
-	ProjectsService_Submission_FullMethodName      = "/xyz.city_ideas.v1.projects.v1.ProjectsService/Submission"
-	ProjectsService_DeleteProject_FullMethodName   = "/xyz.city_ideas.v1.projects.v1.ProjectsService/DeleteProject"
-	ProjectsService_DeleteMessage_FullMethodName   = "/xyz.city_ideas.v1.projects.v1.ProjectsService/DeleteMessage"
+	ProjectsService_CreateProject_FullMethodName    = "/xyz.city_ideas.v1.projects.v1.ProjectsService/CreateProject"
+	ProjectsService_CreateMessage_FullMethodName    = "/xyz.city_ideas.v1.projects.v1.ProjectsService/CreateMessage"
+	ProjectsService_ProjectsList_FullMethodName     = "/xyz.city_ideas.v1.projects.v1.ProjectsService/ProjectsList"
+	ProjectsService_SubmissionsList_FullMethodName  = "/xyz.city_ideas.v1.projects.v1.ProjectsService/SubmissionsList"
+	ProjectsService_MessagesList_FullMethodName     = "/xyz.city_ideas.v1.projects.v1.ProjectsService/MessagesList"
+	ProjectsService_Project_FullMethodName          = "/xyz.city_ideas.v1.projects.v1.ProjectsService/Project"
+	ProjectsService_Submission_FullMethodName       = "/xyz.city_ideas.v1.projects.v1.ProjectsService/Submission"
+	ProjectsService_DeleteProject_FullMethodName    = "/xyz.city_ideas.v1.projects.v1.ProjectsService/DeleteProject"
+	ProjectsService_DeleteMessage_FullMethodName    = "/xyz.city_ideas.v1.projects.v1.ProjectsService/DeleteMessage"
+	ProjectsService_AcceptSubmission_FullMethodName = "/xyz.city_ideas.v1.projects.v1.ProjectsService/AcceptSubmission"
+	ProjectsService_DenySubmission_FullMethodName   = "/xyz.city_ideas.v1.projects.v1.ProjectsService/DenySubmission"
 )
 
 // ProjectsServiceClient is the client API for ProjectsService service.
@@ -39,10 +42,13 @@ type ProjectsServiceClient interface {
 	CreateMessage(ctx context.Context, in *CreateMessageRequest, opts ...grpc.CallOption) (*Message, error)
 	ProjectsList(ctx context.Context, in *v1.RequestWithLimitAndOffset, opts ...grpc.CallOption) (*ProjectsListResponse, error)
 	SubmissionsList(ctx context.Context, in *v1.RequestWithLimitAndOffset, opts ...grpc.CallOption) (*SubmissionsListResponse, error)
+	MessagesList(ctx context.Context, in *v1.RequestWithLimitAndOffsetAndValue, opts ...grpc.CallOption) (*MessagesListResponse, error)
 	Project(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*Project, error)
 	Submission(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*Submission, error)
 	DeleteProject(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	DeleteMessage(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	AcceptSubmission(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DenySubmission(ctx context.Context, in *v1.RequestWithValues, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type projectsServiceClient struct {
@@ -93,6 +99,16 @@ func (c *projectsServiceClient) SubmissionsList(ctx context.Context, in *v1.Requ
 	return out, nil
 }
 
+func (c *projectsServiceClient) MessagesList(ctx context.Context, in *v1.RequestWithLimitAndOffsetAndValue, opts ...grpc.CallOption) (*MessagesListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MessagesListResponse)
+	err := c.cc.Invoke(ctx, ProjectsService_MessagesList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *projectsServiceClient) Project(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*Project, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Project)
@@ -133,6 +149,26 @@ func (c *projectsServiceClient) DeleteMessage(ctx context.Context, in *v1.Reques
 	return out, nil
 }
 
+func (c *projectsServiceClient) AcceptSubmission(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ProjectsService_AcceptSubmission_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *projectsServiceClient) DenySubmission(ctx context.Context, in *v1.RequestWithValues, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ProjectsService_DenySubmission_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProjectsServiceServer is the server API for ProjectsService service.
 // All implementations should embed UnimplementedProjectsServiceServer
 // for forward compatibility.
@@ -141,10 +177,13 @@ type ProjectsServiceServer interface {
 	CreateMessage(context.Context, *CreateMessageRequest) (*Message, error)
 	ProjectsList(context.Context, *v1.RequestWithLimitAndOffset) (*ProjectsListResponse, error)
 	SubmissionsList(context.Context, *v1.RequestWithLimitAndOffset) (*SubmissionsListResponse, error)
+	MessagesList(context.Context, *v1.RequestWithLimitAndOffsetAndValue) (*MessagesListResponse, error)
 	Project(context.Context, *v1.RequestWithValue) (*Project, error)
 	Submission(context.Context, *v1.RequestWithValue) (*Submission, error)
 	DeleteProject(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error)
 	DeleteMessage(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error)
+	AcceptSubmission(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error)
+	DenySubmission(context.Context, *v1.RequestWithValues) (*emptypb.Empty, error)
 }
 
 // UnimplementedProjectsServiceServer should be embedded to have
@@ -166,6 +205,9 @@ func (UnimplementedProjectsServiceServer) ProjectsList(context.Context, *v1.Requ
 func (UnimplementedProjectsServiceServer) SubmissionsList(context.Context, *v1.RequestWithLimitAndOffset) (*SubmissionsListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SubmissionsList not implemented")
 }
+func (UnimplementedProjectsServiceServer) MessagesList(context.Context, *v1.RequestWithLimitAndOffsetAndValue) (*MessagesListResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method MessagesList not implemented")
+}
 func (UnimplementedProjectsServiceServer) Project(context.Context, *v1.RequestWithValue) (*Project, error) {
 	return nil, status.Error(codes.Unimplemented, "method Project not implemented")
 }
@@ -177,6 +219,12 @@ func (UnimplementedProjectsServiceServer) DeleteProject(context.Context, *v1.Req
 }
 func (UnimplementedProjectsServiceServer) DeleteMessage(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteMessage not implemented")
+}
+func (UnimplementedProjectsServiceServer) AcceptSubmission(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method AcceptSubmission not implemented")
+}
+func (UnimplementedProjectsServiceServer) DenySubmission(context.Context, *v1.RequestWithValues) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DenySubmission not implemented")
 }
 func (UnimplementedProjectsServiceServer) testEmbeddedByValue() {}
 
@@ -270,6 +318,24 @@ func _ProjectsService_SubmissionsList_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProjectsService_MessagesList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithLimitAndOffsetAndValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectsServiceServer).MessagesList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProjectsService_MessagesList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectsServiceServer).MessagesList(ctx, req.(*v1.RequestWithLimitAndOffsetAndValue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ProjectsService_Project_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(v1.RequestWithValue)
 	if err := dec(in); err != nil {
@@ -342,6 +408,42 @@ func _ProjectsService_DeleteMessage_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProjectsService_AcceptSubmission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectsServiceServer).AcceptSubmission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProjectsService_AcceptSubmission_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectsServiceServer).AcceptSubmission(ctx, req.(*v1.RequestWithValue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProjectsService_DenySubmission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithValues)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectsServiceServer).DenySubmission(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProjectsService_DenySubmission_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectsServiceServer).DenySubmission(ctx, req.(*v1.RequestWithValues))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProjectsService_ServiceDesc is the grpc.ServiceDesc for ProjectsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -366,6 +468,10 @@ var ProjectsService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ProjectsService_SubmissionsList_Handler,
 		},
 		{
+			MethodName: "MessagesList",
+			Handler:    _ProjectsService_MessagesList_Handler,
+		},
+		{
 			MethodName: "Project",
 			Handler:    _ProjectsService_Project_Handler,
 		},
@@ -380,6 +486,14 @@ var ProjectsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteMessage",
 			Handler:    _ProjectsService_DeleteMessage_Handler,
+		},
+		{
+			MethodName: "AcceptSubmission",
+			Handler:    _ProjectsService_AcceptSubmission_Handler,
+		},
+		{
+			MethodName: "DenySubmission",
+			Handler:    _ProjectsService_DenySubmission_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

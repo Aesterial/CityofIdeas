@@ -39,6 +39,9 @@ const (
 	ProjectUpdateClose      Permission = "project.update.close"
 	ProjectUpdateApprove    Permission = "project.update.approve"
 	ProjectUpdateImplement  Permission = "project.update.implement"
+	ProjectSubmissionInfo   Permission = "project.submission.info"
+	ProjectSubmissionList   Permission = "project.submission.list"
+	ProjectSubmissionReview Permission = "project.submission.review"
 	ProjectMessageCreate    Permission = "project.message.create"
 	ProjectMessageViewAll   Permission = "project.message.view.all"
 	ProjectMessageDeleteAll Permission = "project.message.delete.all"
@@ -87,6 +90,9 @@ var All = Permissions{
 	ProjectUpdateClose,
 	ProjectUpdateApprove,
 	ProjectUpdateImplement,
+	ProjectSubmissionInfo,
+	ProjectSubmissionList,
+	ProjectSubmissionReview,
 	ProjectMessageCreate,
 	ProjectMessageViewAll,
 	ProjectMessageDeleteAll,

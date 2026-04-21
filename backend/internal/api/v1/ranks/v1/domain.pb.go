@@ -507,6 +507,65 @@ func (b0 Permissions_builder) Build() *Permissions {
 	return m0
 }
 
+type ListResponse struct {
+	state           protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_List *[]*Rank               `protobuf:"bytes,1,rep,name=list"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ListResponse) Reset() {
+	*x = ListResponse{}
+	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListResponse) ProtoMessage() {}
+
+func (x *ListResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ListResponse) GetList() []*Rank {
+	if x != nil {
+		if x.xxx_hidden_List != nil {
+			return *x.xxx_hidden_List
+		}
+	}
+	return nil
+}
+
+func (x *ListResponse) SetList(v []*Rank) {
+	x.xxx_hidden_List = &v
+}
+
+type ListResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	List []*Rank
+}
+
+func (b0 ListResponse_builder) Build() *ListResponse {
+	m0 := &ListResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_List = &b.List
+	return m0
+}
+
 var File_xyz_city_ideas_v1_ranks_v1_domain_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_ranks_v1_domain_proto_rawDesc = "" +
@@ -527,22 +586,26 @@ const file_xyz_city_ideas_v1_ranks_v1_domain_proto_rawDesc = "" +
 	"\vpermissions\x18\x06 \x03(\tR\vpermissions\x12*\n" +
 	"\x02at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\x02at\"#\n" +
 	"\vPermissions\x12\x14\n" +
-	"\x05perms\x18\x01 \x03(\tR\x05permsBDZBgithub.com/aesterial/cityideas/backend/internal/api/v1/ranks/v1;v1b\beditionsp\xe8\a"
+	"\x05perms\x18\x01 \x03(\tR\x05perms\"D\n" +
+	"\fListResponse\x124\n" +
+	"\x04list\x18\x01 \x03(\v2 .xyz.city_ideas.v1.ranks.v1.RankR\x04listBDZBgithub.com/aesterial/cityideas/backend/internal/api/v1/ranks/v1;v1b\beditionsp\xe8\a"
 
-var file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_xyz_city_ideas_v1_ranks_v1_domain_proto_goTypes = []any{
 	(*CreateRequest)(nil),         // 0: xyz.city_ideas.v1.ranks.v1.CreateRequest
 	(*Rank)(nil),                  // 1: xyz.city_ideas.v1.ranks.v1.Rank
 	(*Permissions)(nil),           // 2: xyz.city_ideas.v1.ranks.v1.Permissions
-	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
+	(*ListResponse)(nil),          // 3: xyz.city_ideas.v1.ranks.v1.ListResponse
+	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
 }
 var file_xyz_city_ideas_v1_ranks_v1_domain_proto_depIdxs = []int32{
-	3, // 0: xyz.city_ideas.v1.ranks.v1.Rank.at:type_name -> google.protobuf.Timestamp
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	4, // 0: xyz.city_ideas.v1.ranks.v1.Rank.at:type_name -> google.protobuf.Timestamp
+	1, // 1: xyz.city_ideas.v1.ranks.v1.ListResponse.list:type_name -> xyz.city_ideas.v1.ranks.v1.Rank
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_xyz_city_ideas_v1_ranks_v1_domain_proto_init() }
@@ -556,7 +619,7 @@ func file_xyz_city_ideas_v1_ranks_v1_domain_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_xyz_city_ideas_v1_ranks_v1_domain_proto_rawDesc), len(file_xyz_city_ideas_v1_ranks_v1_domain_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
