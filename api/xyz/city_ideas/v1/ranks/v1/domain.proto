@@ -3,7 +3,6 @@ edition = "2023";
 package xyz.city_ideas.v1.ranks.v1;
 
 import "google/protobuf/timestamp.proto";
-import "xyz/city_ideas/v1/types.proto";
 
 option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/ranks/v1;v1";
 

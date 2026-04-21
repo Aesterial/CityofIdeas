@@ -2,7 +2,6 @@ edition = "2023";
 
 package xyz.city_ideas.v1.ranks.v1;
 
-import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 import "xyz/city_ideas/v1/ranks/v1/domain.proto";
 import "xyz/city_ideas/v1/types.proto";

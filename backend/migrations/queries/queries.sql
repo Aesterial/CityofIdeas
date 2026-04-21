@@ -128,7 +128,9 @@ insert into tickets_messages (ticket, author, content) VALUES ($1, $2, $3) retur
 select id, ticket, author, content, created from tickets_messages where ticket = $1 limit $2 offset $3;
 
 -- name: CreateProject :one
-insert into projects (author, title, description) values ($1, $2, $3) returning  id, author, title, description, category, status, impl_link, likes, at, updated, deleted;
+insert into projects (author, title, description, category)
+values ($1, $2, $3, $4)
+returning id, author, title, description, category, status, impl_link, likes, at, updated, deleted;
 
 -- name: ProjectsList :many
 select id, author, title, description, category, status, impl_link, likes, at, updated, deleted from projects limit $1 offset $2;

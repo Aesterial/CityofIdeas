@@ -159,7 +159,7 @@ func (s *Service) Submission(ctx context.Context, submission string) (*projectdo
 }
 
 func (s *Service) SubmissionReview(ctx context.Context, project string, conclusion bool, reason *string) error {
-	if conclusion == false && reason == nil || project == "" {
+	if !conclusion && reason == nil || project == "" {
 		return errors.InvalidArguments
 	}
 	id, err := domain.FromString(project)

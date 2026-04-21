@@ -193,6 +193,7 @@ func (p *ProjectRepository) CreateProject(ctx context.Context, author domain.UUI
 		Author:      author.ToPG(),
 		Title:       title,
 		Description: description,
+		Category:    category,
 	})
 	if err != nil {
 		return nil, err

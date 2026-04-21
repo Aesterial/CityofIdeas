@@ -12,7 +12,9 @@ import (
 )
 
 const AcceptSubmission = `-- name: AcceptSubmission :exec
-update submissions set approved = true where id = $1
+update submissions
+set approved = true
+where id = $1
 `
 
 func (q *Queries) AcceptSubmission(ctx context.Context, id pgtype.UUID) error {
@@ -80,17 +82,23 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (P
 }
 
 const CreateProject = `-- name: CreateProject :one
-insert into projects (author, title, description) values ($1, $2, $3) returning  id, author, title, description, category, status, impl_link, likes, at, updated, deleted
+insert into projects (author, title, description, category) values ($1, $2, $3, $4) returning  id, author, title, description, category, status, impl_link, likes, at, updated, deleted
 `
 
 type CreateProjectParams struct {
 	Author      pgtype.UUID `json:"author"`
 	Title       string      `json:"title"`
 	Description string      `json:"description"`
+	Category    string      `json:"category"`
 }
 
 func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error) {
-	row := q.db.QueryRow(ctx, CreateProject, arg.Author, arg.Title, arg.Description)
+	row := q.db.QueryRow(ctx, CreateProject,
+		arg.Author,
+		arg.Title,
+		arg.Description,
+		arg.Category,
+	)
 	var i Project
 	err := row.Scan(
 		&i.ID,
@@ -354,7 +362,9 @@ func (q *Queries) DeleteProject(ctx context.Context, id pgtype.UUID) error {
 }
 
 const DeleteRank = `-- name: DeleteRank :exec
-delete from ranks where id = $1
+delete
+from ranks
+where id = $1
 `
 
 func (q *Queries) DeleteRank(ctx context.Context, id pgtype.UUID) error {
@@ -363,7 +373,10 @@ func (q *Queries) DeleteRank(ctx context.Context, id pgtype.UUID) error {
 }
 
 const DenySubmission = `-- name: DenySubmission :exec
-update submissions set approved = false, reason = $1 where id = $2
+update submissions
+set approved = false,
+    reason   = $1
+where id = $2
 `
 
 type DenySubmissionParams struct {
@@ -692,7 +705,10 @@ func (q *Queries) IsUserExists(ctx context.Context, username string) (bool, erro
 }
 
 const MessageAuthor = `-- name: MessageAuthor :one
-select author from project_messages where id = $1 limit 1
+select author
+from project_messages
+where id = $1
+limit 1
 `
 
 func (q *Queries) MessageAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
@@ -760,7 +776,10 @@ func (q *Queries) MessagesList(ctx context.Context, arg MessagesListParams) ([]P
 }
 
 const MessagesListWithDeleted = `-- name: MessagesListWithDeleted :many
-select id, linked, author, parent, content, at, deleted from project_messages where linked = $1 limit $2 offset $3
+select id, linked, author, parent, content, at, deleted
+from project_messages
+where linked = $1
+limit $2 offset $3
 `
 
 type MessagesListWithDeletedParams struct {
@@ -839,7 +858,10 @@ func (q *Queries) OpenedTickets(ctx context.Context, arg OpenedTicketsParams) ([
 }
 
 const ProjectAuthor = `-- name: ProjectAuthor :one
-select author from projects where id = $1 limit 1
+select author
+from projects
+where id = $1
+limit 1
 `
 
 func (q *Queries) ProjectAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
