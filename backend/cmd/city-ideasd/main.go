@@ -58,7 +58,7 @@ func main() {
 	projectService := projectservice.NewService(projectRepository)
 	rankService := rankservice.NewService(rankRepository)
 
-	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptors.FingerPrint(), interceptors.Logging(), recovery.UnaryServerInterceptor(recovery.WithRecoveryHandlerContext(interceptors.Recovery))))
+	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptors.CsrfCheck(), interceptors.FingerPrint(), interceptors.Logging(), recovery.UnaryServerInterceptor(recovery.WithRecoveryHandlerContext(interceptors.Recovery))))
 	if !cfg.IsProduction() {
 		reflection.Register(srv)
 	}

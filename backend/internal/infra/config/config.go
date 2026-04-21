@@ -40,6 +40,9 @@ func parseType[T any](tag string, def T) T {
 			return def
 		}
 		return any(f).(T)
+	case []string:
+		origins := strings.SplitSeq(value, ",")
+		return any(origins).(T)
 	default:
 		return def
 	}
@@ -61,8 +64,9 @@ func Ensure() error {
 			Secret: parseType("COOKIE_SECRET", ""),
 			Issuer: parseType("COOKIE_ISSUER", "https://aesterial.xyz"),
 		},
-		Debug: parseType("DEBUG", false),
-		Port:  parseType("PORT", "8080"),
+		AllowedOrigins: parseType("ALLOWED_ORIGINS", []string{"https://aesterial.xyz"}),
+		Debug:          parseType("DEBUG", false),
+		Port:           parseType("PORT", "8080"),
 	}
 	if !cfg.Database.TlsMode.IsValid() || ((cfg.Database.TlsMode == configdomain.TlsDisable) && cfg.IsProduction()) {
 		return errors.InvalidArguments

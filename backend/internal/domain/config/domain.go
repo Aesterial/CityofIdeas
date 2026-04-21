@@ -56,11 +56,12 @@ type Cookie struct {
 }
 
 type Config struct {
-	Database Database
-	Cookie   Cookie
-	Port     string
-	Debug    bool
-	Loaded   bool
+	Database       Database
+	Cookie         Cookie
+	AllowedOrigins []string
+	Port           string
+	Debug          bool
+	Loaded         bool
 }
 
 func (c Config) IsProduction() bool {
