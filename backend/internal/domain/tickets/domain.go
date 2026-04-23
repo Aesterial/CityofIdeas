@@ -4,8 +4,10 @@ import (
 	"strings"
 	"time"
 
+	ticketpb "github.com/aesterial/cityideas/backend/internal/api/v1/tickets/v1"
 	"github.com/aesterial/cityideas/backend/internal/domain"
 	"github.com/aesterial/cityideas/backend/internal/infra/database/sqlc"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Status int
@@ -14,7 +16,8 @@ type Caller int
 const (
 	StatusClosed Status = iota
 	StatusWaiting
-	StatusInWork
+	StatusListing
+	StatusImplementing
 )
 
 const (
@@ -30,8 +33,10 @@ func ParseStatus(str string) Status {
 		return StatusClosed
 	case "waiting":
 		return StatusWaiting
-	case "inwork":
-		return StatusInWork
+	case "listing":
+		return StatusListing
+	case "implementing":
+		return StatusImplementing
 	default:
 		return StatusWaiting
 	}
@@ -56,10 +61,27 @@ func (s Status) String() string {
 		return "closed"
 	case StatusWaiting:
 		return "waiting"
-	case StatusInWork:
-		return "in work"
+	case StatusListing:
+		return "listing"
+	case StatusImplementing:
+		return "implementing"
 	default:
 		return "waiting"
+	}
+}
+
+func (s Status) Protobuf() ticketpb.Status {
+	switch s {
+	case StatusClosed:
+		return ticketpb.Status_STATUS_CLOSED
+	case StatusWaiting:
+		return ticketpb.Status_STATUS_WAITING
+	case StatusListing:
+		return ticketpb.Status_STATUS_LISTING
+	case StatusImplementing:
+		return ticketpb.Status_STATUS_IMPLEMENTING
+	default:
+		return ticketpb.Status_STATUS_UNSPECIFIED
 	}
 }
 
@@ -89,6 +111,19 @@ func (c Caller) SQLC() sqlc.TicketsCaller {
 	}
 }
 
+func (c Caller) Protobuf() ticketpb.Caller {
+	switch c {
+	case CallerUser:
+		return ticketpb.Caller_CALLER_USER
+	case CallerStaff:
+		return ticketpb.Caller_CALLER_STAFF
+	case CallerSystem:
+		return ticketpb.Caller_CALLER_SYSTEM
+	default:
+		return ticketpb.Caller_CALLER_UNSPECIFIED
+	}
+}
+
 type Ticket struct {
 	ID       domain.UUID
 	Author   domain.UUID
@@ -99,11 +134,67 @@ type Ticket struct {
 	Acceptor *domain.UUID
 	Accepted *time.Time
 	Closed   *time.Time
-	Closer   *Caller
+	Closer   *domain.UUID
+	Caller   *Caller
 	Reason   *string
 }
 
+func (t *Ticket) Protobuf() *ticketpb.Ticket {
+	if t == nil {
+		return nil
+	}
+	var acceptor string
+	if t.Accepted != nil {
+		acceptor = t.Acceptor.String()
+	}
+	var accepted *timestamppb.Timestamp = nil
+	if t.Accepted != nil {
+		accepted = timestamppb.New(*t.Accepted)
+	}
+	var closed *timestamppb.Timestamp = nil
+	if t.Closed != nil {
+		closed = timestamppb.New(*t.Closed)
+	}
+	var caller ticketpb.Caller
+	if t.Caller != nil {
+		caller = t.Caller.Protobuf()
+	}
+	var closer string
+	if t.Closer != nil {
+		closer = t.Closer.String()
+	}
+	var reason string
+	if t.Reason != nil {
+		reason = *t.Reason
+	}
+	var out = &ticketpb.Ticket{}
+	out.SetId(t.ID.String())
+	out.SetAuthorId(t.Author.String())
+	out.SetAcceptor(acceptor)
+	out.SetStatus(t.Status.Protobuf())
+	out.SetTopic(t.Topic)
+	out.SetTitle(t.Title)
+	out.SetCreated(timestamppb.New(t.Created))
+	out.SetAccepted(accepted)
+	out.SetClosed(closed)
+	out.SetCloser(closer)
+	out.SetCaller(caller)
+	out.SetReason(reason)
+	return out
+}
+
 type Tickets []*Ticket
+
+func (t Tickets) Protobuf() []*ticketpb.Ticket {
+	if t == nil {
+		return nil
+	}
+	var out = make([]*ticketpb.Ticket, len(t))
+	for i, ticket := range t {
+		out[i] = ticket.Protobuf()
+	}
+	return out
+}
 
 type Message struct {
 	ID      domain.UUID
@@ -113,7 +204,31 @@ type Message struct {
 	Created time.Time
 }
 
+func (m *Message) Protobuf() *ticketpb.Message {
+	if m == nil {
+		return nil
+	}
+	var out = &ticketpb.Message{}
+	out.SetId(m.ID.String())
+	out.SetTicket(m.Ticket.String())
+	out.SetAuthor(m.Author.String())
+	out.SetContent(m.Content)
+	out.SetCreated(timestamppb.New(m.Created))
+	return out
+}
+
 type Messages []*Message
+
+func (m Messages) Protobuf() []*ticketpb.Message {
+	if m == nil {
+		return nil
+	}
+	var out = make([]*ticketpb.Message, len(m))
+	for i, message := range m {
+		out[i] = message.Protobuf()
+	}
+	return out
+}
 
 type Target struct {
 	Ticket domain.UUID

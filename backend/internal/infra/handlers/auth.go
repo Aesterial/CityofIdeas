@@ -106,6 +106,9 @@ func (a *Authenticator) User(ctx context.Context) (*domain.Metadata, error) {
 	if banned {
 		return &meta, errors.Banned
 	}
+	if meta.IsEmpty() {
+		return nil, errors.InvalidArguments
+	}
 	return &meta, nil
 }
 

@@ -10,10 +10,12 @@ import (
 type Repository interface {
 	// TicketsByUser returns list of tickets where provided user is author
 	TicketsByUser(ctx context.Context, user domain.UUID, limit int32, offset int32) (Tickets, error)
-	// OpenedTickets list of opened tickets in range of limit
-	OpenedTickets(ctx context.Context, limit int32, offset int32) (Tickets, error)
+	// Tickets list of tickets in range of limit
+	Tickets(ctx context.Context, limit int32, offset int32) (Tickets, error)
 	// Info returns information about requested ticket
 	Info(ctx context.Context, ticket domain.UUID) (*Ticket, error)
+	// Owner returns owner author field from ticket record
+	Owner(ctx context.Context, ticket domain.UUID) (*domain.UUID, error)
 	// IsClosed returns status of ticket
 	IsClosed(ctx context.Context, ticket domain.UUID) (bool, error)
 	// CreateTicket creates new ticket, sets user as author, topic and title set to their own fields
@@ -21,7 +23,7 @@ type Repository interface {
 	// AcceptTicket sets provided user as acceptor to given ticket record
 	AcceptTicket(ctx context.Context, target Target) error
 	// CloseTicket reason can be nil only if caller is author of ticket
-	CloseTicket(ctx context.Context, caller Caller, reason *string) error
+	CloseTicket(ctx context.Context, ticket domain.UUID, by *domain.UUID, caller Caller, reason *string) error
 	// ExpiredTickets returns list of tickets ids where last message sent is older than provided hours
 	ExpiredTickets(ctx context.Context, hours time.Duration) ([]*domain.UUID, error)
 

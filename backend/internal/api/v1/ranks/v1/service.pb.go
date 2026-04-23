@@ -11,7 +11,6 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
-	_ "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	unsafe "unsafe"
 )
@@ -27,7 +26,7 @@ var File_xyz_city_ideas_v1_ranks_v1_service_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_ranks_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"(xyz/city_ideas/v1/ranks/v1/service.proto\x12\x1axyz.city_ideas.v1.ranks.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a'xyz/city_ideas/v1/ranks/v1/domain.proto\x1a\x1dxyz/city_ideas/v1/types.proto2\xf6\x03\n" +
+	"(xyz/city_ideas/v1/ranks/v1/service.proto\x12\x1axyz.city_ideas.v1.ranks.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a'xyz/city_ideas/v1/ranks/v1/domain.proto\x1a\x1dxyz/city_ideas/v1/types.proto2\xf6\x03\n" +
 	"\vRankService\x12N\n" +
 	"\vPermissions\x12\x16.google.protobuf.Empty\x1a'.xyz.city_ideas.v1.ranks.v1.Permissions\x12U\n" +
 	"\x06Create\x12).xyz.city_ideas.v1.ranks.v1.CreateRequest\x1a .xyz.city_ideas.v1.ranks.v1.Rank\x12M\n" +

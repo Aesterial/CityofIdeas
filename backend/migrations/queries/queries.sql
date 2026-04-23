@@ -95,13 +95,60 @@ select id, owner, at, seen_at, expires, mfa, device, hash from sessions where id
 update sessions set seen_at = now() where id = $1;
 
 -- name: TicketsByAuthor :many
-select id, author, acceptor, status, topic, title, created, accepted, closed, closer, reason from tickets where author = $1 limit $2 offset $3;
+select id,
+       author,
+       acceptor,
+       status,
+       topic,
+       title,
+       created,
+       accepted,
+       closed,
+       closer,
+       caller,
+       reason
+from tickets
+where author = $1
+limit $2 offset $3;
 
--- name: OpenedTickets :many
-select id, author, acceptor, status, topic, title, created, accepted, closed, closer, reason from tickets where closed is not null and acceptor is null limit $1 offset $2;
+-- name: Tickets :many
+select id,
+       author,
+       acceptor,
+       status,
+       topic,
+       title,
+       created,
+       accepted,
+       closed,
+       closer,
+       caller,
+       reason
+from tickets
+limit $1 offset $2;
 
 -- name: TicketInfo :one
-select id, author, acceptor, status, topic, title, created, accepted, closed, closer, reason from tickets where id = $1 limit 1;
+select id,
+       author,
+       acceptor,
+       status,
+       topic,
+       title,
+       created,
+       accepted,
+       closed,
+       closer,
+       caller,
+       reason
+from tickets
+where id = $1
+limit 1;
+
+-- name: TicketOwner :one
+select author
+from tickets
+where id = $1
+limit 1;
 
 -- name: IsTicketClosed :one
 select (closed is not null)::boolean as is_closed from tickets where id = $1;
@@ -110,13 +157,21 @@ select (closed is not null)::boolean as is_closed from tickets where id = $1;
 select (acceptor is not null)::boolean as is_accepted from tickets where id = $1;
 
 -- name: CreateTicket :one
-insert into tickets (author, title, topic) VALUES ($1, $2, $3) returning id, author, acceptor, status, topic, title, created, accepted, closed, closer, reason;
+insert into tickets (author, title, topic)
+VALUES ($1, $2, $3)
+returning id, author, acceptor, status, topic, title, created, accepted, closed, closer, caller, reason;
 
 -- name: AcceptTicket :exec
 update tickets set acceptor = $1, accepted = now(), status = 'in work' where id = $2;
 
 -- name: CloseTicket :exec
-update tickets set status = 'closed', closed = now(), closer = $1, reason = $2 where id = $1;
+update tickets
+set status = 'closed',
+    closed = now(),
+    closer = $1,
+    caller = $2,
+    reason = $3
+where id = $4;
 
 -- name: ExpiredTickets :many
 select ticket from tickets_messages group by ticket having max(created) < now() - $1::interval;

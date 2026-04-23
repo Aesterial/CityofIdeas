@@ -30,6 +30,7 @@ const (
 	TicketViewAll          Permission = "ticket.view.all"
 	TicketAccept           Permission = "ticket.accept"
 	TicketClose            Permission = "ticket.close"
+	TicketMessageViewAll   Permission = "ticket.message.view.all"
 	TicketMessageCreate    Permission = "ticket.message.create"
 	TicketMessageCreateAll Permission = "ticket.message.create.all"
 
@@ -81,6 +82,7 @@ var All = Permissions{
 	TicketViewAll,
 	TicketAccept,
 	TicketClose,
+	TicketMessageViewAll,
 	TicketMessageCreate,
 	TicketMessageCreateAll,
 

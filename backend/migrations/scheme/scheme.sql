@@ -211,10 +211,11 @@ create table if not exists tickets
     created  timestamptz not null default now(),
     accepted timestamptz,
     closed   timestamptz,
-    closer   tickets_caller,
+    closer uuid,
+    caller tickets_caller,
     reason   text,
     check (author <> acceptor),
-    check (closer is null or closer = 'user' or reason is not null)
+    check (caller is null or caller = 'user' or reason is not null)
 );
 
 create unique index tickets_idx on tickets (id);

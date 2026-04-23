@@ -519,7 +519,8 @@ type Ticket struct {
 	Created  pgtype.Timestamptz `json:"created"`
 	Accepted pgtype.Timestamptz `json:"accepted"`
 	Closed   pgtype.Timestamptz `json:"closed"`
-	Closer   NullTicketsCaller  `json:"closer"`
+	Closer   pgtype.UUID        `json:"closer"`
+	Caller   NullTicketsCaller  `json:"caller"`
 	Reason   pgtype.Text        `json:"reason"`
 }
 

@@ -37,16 +37,23 @@ func (q *Queries) AcceptTicket(ctx context.Context, arg AcceptTicketParams) erro
 }
 
 const CloseTicket = `-- name: CloseTicket :exec
-update tickets set status = 'closed', closed = now(), closer = $1, reason = $2 where id = $1
+update tickets set status = 'closed', closed = now(), closer = $1, caller = $2, reason = $3 where id = $4
 `
 
 type CloseTicketParams struct {
-	Closer NullTicketsCaller `json:"closer"`
+	Closer pgtype.UUID       `json:"closer"`
+	Caller NullTicketsCaller `json:"caller"`
 	Reason pgtype.Text       `json:"reason"`
+	ID     pgtype.UUID       `json:"id"`
 }
 
 func (q *Queries) CloseTicket(ctx context.Context, arg CloseTicketParams) error {
-	_, err := q.db.Exec(ctx, CloseTicket, arg.Closer, arg.Reason)
+	_, err := q.db.Exec(ctx, CloseTicket,
+		arg.Closer,
+		arg.Caller,
+		arg.Reason,
+		arg.ID,
+	)
 	return err
 }
 
@@ -82,7 +89,9 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (P
 }
 
 const CreateProject = `-- name: CreateProject :one
-insert into projects (author, title, description, category) values ($1, $2, $3, $4) returning  id, author, title, description, category, status, impl_link, likes, at, updated, deleted
+insert into projects (author, title, description, category)
+values ($1, $2, $3, $4)
+returning id, author, title, description, category, status, impl_link, likes, at, updated, deleted
 `
 
 type CreateProjectParams struct {
@@ -205,7 +214,7 @@ func (q *Queries) CreateSubmission(ctx context.Context, linked pgtype.UUID) (Cre
 }
 
 const CreateTicket = `-- name: CreateTicket :one
-insert into tickets (author, title, topic) VALUES ($1, $2, $3) returning id, author, acceptor, status, topic, title, created, accepted, closed, closer, reason
+insert into tickets (author, title, topic) VALUES ($1, $2, $3) returning id, author, acceptor, status, topic, title, created, accepted, closed, closer, caller, reason
 `
 
 type CreateTicketParams struct {
@@ -228,6 +237,7 @@ func (q *Queries) CreateTicket(ctx context.Context, arg CreateTicketParams) (Tic
 		&i.Accepted,
 		&i.Closed,
 		&i.Closer,
+		&i.Caller,
 		&i.Reason,
 	)
 	return i, err
@@ -816,47 +826,6 @@ func (q *Queries) MessagesListWithDeleted(ctx context.Context, arg MessagesListW
 	return items, nil
 }
 
-const OpenedTickets = `-- name: OpenedTickets :many
-select id, author, acceptor, status, topic, title, created, accepted, closed, closer, reason from tickets where closed is not null and acceptor is null limit $1 offset $2
-`
-
-type OpenedTicketsParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
-}
-
-func (q *Queries) OpenedTickets(ctx context.Context, arg OpenedTicketsParams) ([]Ticket, error) {
-	rows, err := q.db.Query(ctx, OpenedTickets, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []Ticket
-	for rows.Next() {
-		var i Ticket
-		if err := rows.Scan(
-			&i.ID,
-			&i.Author,
-			&i.Acceptor,
-			&i.Status,
-			&i.Topic,
-			&i.Title,
-			&i.Created,
-			&i.Accepted,
-			&i.Closed,
-			&i.Closer,
-			&i.Reason,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const ProjectAuthor = `-- name: ProjectAuthor :one
 select author
 from projects
@@ -1214,7 +1183,7 @@ func (q *Queries) SubmissionsList(ctx context.Context, arg SubmissionsListParams
 }
 
 const TicketInfo = `-- name: TicketInfo :one
-select id, author, acceptor, status, topic, title, created, accepted, closed, closer, reason from tickets where id = $1 limit 1
+select id, author, acceptor, status, topic, title, created, accepted, closed, closer, caller, reason from tickets where id = $1 limit 1
 `
 
 func (q *Queries) TicketInfo(ctx context.Context, id pgtype.UUID) (Ticket, error) {
@@ -1231,6 +1200,7 @@ func (q *Queries) TicketInfo(ctx context.Context, id pgtype.UUID) (Ticket, error
 		&i.Accepted,
 		&i.Closed,
 		&i.Closer,
+		&i.Caller,
 		&i.Reason,
 	)
 	return i, err
@@ -1272,8 +1242,61 @@ func (q *Queries) TicketMessages(ctx context.Context, arg TicketMessagesParams) 
 	return items, nil
 }
 
+const TicketOwner = `-- name: TicketOwner :one
+select author from tickets where id = $1 limit 1
+`
+
+func (q *Queries) TicketOwner(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, TicketOwner, id)
+	var author pgtype.UUID
+	err := row.Scan(&author)
+	return author, err
+}
+
+const Tickets = `-- name: Tickets :many
+select id, author, acceptor, status, topic, title, created, accepted, closed, closer, caller, reason from tickets limit $1 offset $2
+`
+
+type TicketsParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) Tickets(ctx context.Context, arg TicketsParams) ([]Ticket, error) {
+	rows, err := q.db.Query(ctx, Tickets, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Ticket
+	for rows.Next() {
+		var i Ticket
+		if err := rows.Scan(
+			&i.ID,
+			&i.Author,
+			&i.Acceptor,
+			&i.Status,
+			&i.Topic,
+			&i.Title,
+			&i.Created,
+			&i.Accepted,
+			&i.Closed,
+			&i.Closer,
+			&i.Caller,
+			&i.Reason,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const TicketsByAuthor = `-- name: TicketsByAuthor :many
-select id, author, acceptor, status, topic, title, created, accepted, closed, closer, reason from tickets where author = $1 limit $2 offset $3
+select id, author, acceptor, status, topic, title, created, accepted, closed, closer, caller, reason from tickets where author = $1 limit $2 offset $3
 `
 
 type TicketsByAuthorParams struct {
@@ -1302,6 +1325,7 @@ func (q *Queries) TicketsByAuthor(ctx context.Context, arg TicketsByAuthorParams
 			&i.Accepted,
 			&i.Closed,
 			&i.Closer,
+			&i.Caller,
 			&i.Reason,
 		); err != nil {
 			return nil, err

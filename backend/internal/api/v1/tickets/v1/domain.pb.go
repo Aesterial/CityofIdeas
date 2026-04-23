@@ -24,9 +24,11 @@ const (
 type Status int32
 
 const (
-	Status_STATUS_UNSPECIFIED Status = 0
-	Status_STATUS_CLOSED      Status = 1
-	Status_STATUS_IN_WORK     Status = 2
+	Status_STATUS_UNSPECIFIED  Status = 0
+	Status_STATUS_CLOSED       Status = 1
+	Status_STATUS_WAITING      Status = 2
+	Status_STATUS_LISTING      Status = 3
+	Status_STATUS_IMPLEMENTING Status = 4
 )
 
 // Enum value maps for Status.
@@ -34,12 +36,16 @@ var (
 	Status_name = map[int32]string{
 		0: "STATUS_UNSPECIFIED",
 		1: "STATUS_CLOSED",
-		2: "STATUS_IN_WORK",
+		2: "STATUS_WAITING",
+		3: "STATUS_LISTING",
+		4: "STATUS_IMPLEMENTING",
 	}
 	Status_value = map[string]int32{
-		"STATUS_UNSPECIFIED": 0,
-		"STATUS_CLOSED":      1,
-		"STATUS_IN_WORK":     2,
+		"STATUS_UNSPECIFIED":  0,
+		"STATUS_CLOSED":       1,
+		"STATUS_WAITING":      2,
+		"STATUS_LISTING":      3,
+		"STATUS_IMPLEMENTING": 4,
 	}
 )
 
@@ -65,47 +71,50 @@ func (x Status) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
-type Closer int32
+type Caller int32
 
 const (
-	Closer_CLOSER_UNSPECIFIED Closer = 0
-	Closer_CLOSER_USER        Closer = 1
-	Closer_CLOSER_STAFF       Closer = 2
+	Caller_CALLER_UNSPECIFIED Caller = 0
+	Caller_CALLER_USER        Caller = 1
+	Caller_CALLER_STAFF       Caller = 2
+	Caller_CALLER_SYSTEM      Caller = 3
 )
 
-// Enum value maps for Closer.
+// Enum value maps for Caller.
 var (
-	Closer_name = map[int32]string{
-		0: "CLOSER_UNSPECIFIED",
-		1: "CLOSER_USER",
-		2: "CLOSER_STAFF",
+	Caller_name = map[int32]string{
+		0: "CALLER_UNSPECIFIED",
+		1: "CALLER_USER",
+		2: "CALLER_STAFF",
+		3: "CALLER_SYSTEM",
 	}
-	Closer_value = map[string]int32{
-		"CLOSER_UNSPECIFIED": 0,
-		"CLOSER_USER":        1,
-		"CLOSER_STAFF":       2,
+	Caller_value = map[string]int32{
+		"CALLER_UNSPECIFIED": 0,
+		"CALLER_USER":        1,
+		"CALLER_STAFF":       2,
+		"CALLER_SYSTEM":      3,
 	}
 )
 
-func (x Closer) Enum() *Closer {
-	p := new(Closer)
+func (x Caller) Enum() *Caller {
+	p := new(Caller)
 	*p = x
 	return p
 }
 
-func (x Closer) String() string {
+func (x Caller) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 
-func (Closer) Descriptor() protoreflect.EnumDescriptor {
+func (Caller) Descriptor() protoreflect.EnumDescriptor {
 	return file_xyz_city_ideas_v1_tickets_v1_domain_proto_enumTypes[1].Descriptor()
 }
 
-func (Closer) Type() protoreflect.EnumType {
+func (Caller) Type() protoreflect.EnumType {
 	return &file_xyz_city_ideas_v1_tickets_v1_domain_proto_enumTypes[1]
 }
 
-func (x Closer) Number() protoreflect.EnumNumber {
+func (x Caller) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
 
@@ -120,8 +129,9 @@ type Ticket struct {
 	xxx_hidden_Created     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=created"`
 	xxx_hidden_Accepted    *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=accepted"`
 	xxx_hidden_Closed      *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=closed"`
-	xxx_hidden_Closer      Closer                 `protobuf:"varint,10,opt,name=closer,enum=xyz.city_ideas.v1.tickets.v1.Closer"`
-	xxx_hidden_Reason      *string                `protobuf:"bytes,11,opt,name=reason"`
+	xxx_hidden_Caller      Caller                 `protobuf:"varint,10,opt,name=caller,enum=xyz.city_ideas.v1.tickets.v1.Caller"`
+	xxx_hidden_Closer      *string                `protobuf:"bytes,11,opt,name=closer"`
+	xxx_hidden_Reason      *string                `protobuf:"bytes,12,opt,name=reason"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
 	unknownFields          protoimpl.UnknownFields
@@ -233,13 +243,23 @@ func (x *Ticket) GetClosed() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *Ticket) GetCloser() Closer {
+func (x *Ticket) GetCaller() Caller {
 	if x != nil {
 		if protoimpl.X.Present(&(x.XXX_presence[0]), 9) {
-			return x.xxx_hidden_Closer
+			return x.xxx_hidden_Caller
 		}
 	}
-	return Closer_CLOSER_UNSPECIFIED
+	return Caller_CALLER_UNSPECIFIED
+}
+
+func (x *Ticket) GetCloser() string {
+	if x != nil {
+		if x.xxx_hidden_Closer != nil {
+			return *x.xxx_hidden_Closer
+		}
+		return ""
+	}
+	return ""
 }
 
 func (x *Ticket) GetReason() string {
@@ -254,32 +274,32 @@ func (x *Ticket) GetReason() string {
 
 func (x *Ticket) SetId(v string) {
 	x.xxx_hidden_Id = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 11)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 12)
 }
 
 func (x *Ticket) SetAuthorId(v string) {
 	x.xxx_hidden_AuthorId = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 11)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 12)
 }
 
 func (x *Ticket) SetAcceptor(v string) {
 	x.xxx_hidden_Acceptor = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 11)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 12)
 }
 
 func (x *Ticket) SetStatus(v Status) {
 	x.xxx_hidden_Status = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 11)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 12)
 }
 
 func (x *Ticket) SetTopic(v string) {
 	x.xxx_hidden_Topic = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 11)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 12)
 }
 
 func (x *Ticket) SetTitle(v string) {
 	x.xxx_hidden_Title = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 11)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 12)
 }
 
 func (x *Ticket) SetCreated(v *timestamppb.Timestamp) {
@@ -294,14 +314,19 @@ func (x *Ticket) SetClosed(v *timestamppb.Timestamp) {
 	x.xxx_hidden_Closed = v
 }
 
-func (x *Ticket) SetCloser(v Closer) {
-	x.xxx_hidden_Closer = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 9, 11)
+func (x *Ticket) SetCaller(v Caller) {
+	x.xxx_hidden_Caller = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 9, 12)
+}
+
+func (x *Ticket) SetCloser(v string) {
+	x.xxx_hidden_Closer = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 10, 12)
 }
 
 func (x *Ticket) SetReason(v string) {
 	x.xxx_hidden_Reason = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 10, 11)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 11, 12)
 }
 
 func (x *Ticket) HasId() bool {
@@ -367,18 +392,25 @@ func (x *Ticket) HasClosed() bool {
 	return x.xxx_hidden_Closed != nil
 }
 
-func (x *Ticket) HasCloser() bool {
+func (x *Ticket) HasCaller() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 9)
 }
 
-func (x *Ticket) HasReason() bool {
+func (x *Ticket) HasCloser() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 10)
+}
+
+func (x *Ticket) HasReason() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 11)
 }
 
 func (x *Ticket) ClearId() {
@@ -423,13 +455,18 @@ func (x *Ticket) ClearClosed() {
 	x.xxx_hidden_Closed = nil
 }
 
-func (x *Ticket) ClearCloser() {
+func (x *Ticket) ClearCaller() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 9)
-	x.xxx_hidden_Closer = Closer_CLOSER_UNSPECIFIED
+	x.xxx_hidden_Caller = Caller_CALLER_UNSPECIFIED
+}
+
+func (x *Ticket) ClearCloser() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 10)
+	x.xxx_hidden_Closer = nil
 }
 
 func (x *Ticket) ClearReason() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 10)
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 11)
 	x.xxx_hidden_Reason = nil
 }
 
@@ -445,7 +482,8 @@ type Ticket_builder struct {
 	Created  *timestamppb.Timestamp
 	Accepted *timestamppb.Timestamp
 	Closed   *timestamppb.Timestamp
-	Closer   *Closer
+	Caller   *Caller
+	Closer   *string
 	Reason   *string
 }
 
@@ -454,38 +492,42 @@ func (b0 Ticket_builder) Build() *Ticket {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Id != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 11)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 12)
 		x.xxx_hidden_Id = b.Id
 	}
 	if b.AuthorId != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 11)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 12)
 		x.xxx_hidden_AuthorId = b.AuthorId
 	}
 	if b.Acceptor != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 11)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 12)
 		x.xxx_hidden_Acceptor = b.Acceptor
 	}
 	if b.Status != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 11)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 12)
 		x.xxx_hidden_Status = *b.Status
 	}
 	if b.Topic != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 11)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 12)
 		x.xxx_hidden_Topic = b.Topic
 	}
 	if b.Title != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 11)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 12)
 		x.xxx_hidden_Title = b.Title
 	}
 	x.xxx_hidden_Created = b.Created
 	x.xxx_hidden_Accepted = b.Accepted
 	x.xxx_hidden_Closed = b.Closed
+	if b.Caller != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 9, 12)
+		x.xxx_hidden_Caller = *b.Caller
+	}
 	if b.Closer != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 9, 11)
-		x.xxx_hidden_Closer = *b.Closer
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 10, 12)
+		x.xxx_hidden_Closer = b.Closer
 	}
 	if b.Reason != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 10, 11)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 11, 12)
 		x.xxx_hidden_Reason = b.Reason
 	}
 	return m0
@@ -837,11 +879,129 @@ func (b0 CreateTicketRequest_builder) Build() *CreateTicketRequest {
 	return m0
 }
 
+type TicketListResponse struct {
+	state           protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_List *[]*Ticket             `protobuf:"bytes,1,rep,name=list"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *TicketListResponse) Reset() {
+	*x = TicketListResponse{}
+	mi := &file_xyz_city_ideas_v1_tickets_v1_domain_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TicketListResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TicketListResponse) ProtoMessage() {}
+
+func (x *TicketListResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_xyz_city_ideas_v1_tickets_v1_domain_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *TicketListResponse) GetList() []*Ticket {
+	if x != nil {
+		if x.xxx_hidden_List != nil {
+			return *x.xxx_hidden_List
+		}
+	}
+	return nil
+}
+
+func (x *TicketListResponse) SetList(v []*Ticket) {
+	x.xxx_hidden_List = &v
+}
+
+type TicketListResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	List []*Ticket
+}
+
+func (b0 TicketListResponse_builder) Build() *TicketListResponse {
+	m0 := &TicketListResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_List = &b.List
+	return m0
+}
+
+type MessageListResponse struct {
+	state           protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_List *[]*Message            `protobuf:"bytes,1,rep,name=list"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *MessageListResponse) Reset() {
+	*x = MessageListResponse{}
+	mi := &file_xyz_city_ideas_v1_tickets_v1_domain_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MessageListResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MessageListResponse) ProtoMessage() {}
+
+func (x *MessageListResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_xyz_city_ideas_v1_tickets_v1_domain_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *MessageListResponse) GetList() []*Message {
+	if x != nil {
+		if x.xxx_hidden_List != nil {
+			return *x.xxx_hidden_List
+		}
+	}
+	return nil
+}
+
+func (x *MessageListResponse) SetList(v []*Message) {
+	x.xxx_hidden_List = &v
+}
+
+type MessageListResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	List []*Message
+}
+
+func (b0 MessageListResponse_builder) Build() *MessageListResponse {
+	m0 := &MessageListResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_List = &b.List
+	return m0
+}
+
 var File_xyz_city_ideas_v1_tickets_v1_domain_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_tickets_v1_domain_proto_rawDesc = "" +
 	"\n" +
-	")xyz/city_ideas/v1/tickets/v1/domain.proto\x12\x1cxyz.city_ideas.v1.tickets.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xb3\x03\n" +
+	")xyz/city_ideas/v1/tickets/v1/domain.proto\x12\x1cxyz.city_ideas.v1.tickets.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xcb\x03\n" +
 	"\x06Ticket\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tauthor_id\x18\x02 \x01(\tR\bauthorId\x12\x1a\n" +
@@ -852,9 +1012,10 @@ const file_xyz_city_ideas_v1_tickets_v1_domain_proto_rawDesc = "" +
 	"\acreated\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\acreated\x126\n" +
 	"\baccepted\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\baccepted\x122\n" +
 	"\x06closed\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\x06closed\x12<\n" +
-	"\x06closer\x18\n" +
-	" \x01(\x0e2$.xyz.city_ideas.v1.tickets.v1.CloserR\x06closer\x12\x16\n" +
-	"\x06reason\x18\v \x01(\tR\x06reason\"\x99\x01\n" +
+	"\x06caller\x18\n" +
+	" \x01(\x0e2$.xyz.city_ideas.v1.tickets.v1.CallerR\x06caller\x12\x16\n" +
+	"\x06closer\x18\v \x01(\tR\x06closer\x12\x16\n" +
+	"\x06reason\x18\f \x01(\tR\x06reason\"\x99\x01\n" +
 	"\aMessage\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
 	"\x06ticket\x18\x02 \x01(\tR\x06ticket\x12\x16\n" +
@@ -864,38 +1025,49 @@ const file_xyz_city_ideas_v1_tickets_v1_domain_proto_rawDesc = "" +
 	"\x13CreateTicketRequest\x12\x14\n" +
 	"\x05topic\x18\x01 \x01(\tR\x05topic\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage*G\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\"N\n" +
+	"\x12TicketListResponse\x128\n" +
+	"\x04list\x18\x01 \x03(\v2$.xyz.city_ideas.v1.tickets.v1.TicketR\x04list\"P\n" +
+	"\x13MessageListResponse\x129\n" +
+	"\x04list\x18\x01 \x03(\v2%.xyz.city_ideas.v1.tickets.v1.MessageR\x04list*t\n" +
 	"\x06Status\x12\x16\n" +
 	"\x12STATUS_UNSPECIFIED\x10\x00\x12\x11\n" +
 	"\rSTATUS_CLOSED\x10\x01\x12\x12\n" +
-	"\x0eSTATUS_IN_WORK\x10\x02*C\n" +
-	"\x06Closer\x12\x16\n" +
-	"\x12CLOSER_UNSPECIFIED\x10\x00\x12\x0f\n" +
-	"\vCLOSER_USER\x10\x01\x12\x10\n" +
-	"\fCLOSER_STAFF\x10\x02BFZDgithub.com/aesterial/cityideas/backend/internal/api/v1/tickets/v1;v1b\beditionsp\xe8\a"
+	"\x0eSTATUS_WAITING\x10\x02\x12\x12\n" +
+	"\x0eSTATUS_LISTING\x10\x03\x12\x17\n" +
+	"\x13STATUS_IMPLEMENTING\x10\x04*V\n" +
+	"\x06Caller\x12\x16\n" +
+	"\x12CALLER_UNSPECIFIED\x10\x00\x12\x0f\n" +
+	"\vCALLER_USER\x10\x01\x12\x10\n" +
+	"\fCALLER_STAFF\x10\x02\x12\x11\n" +
+	"\rCALLER_SYSTEM\x10\x03BFZDgithub.com/aesterial/cityideas/backend/internal/api/v1/tickets/v1;v1b\beditionsp\xe8\a"
 
 var file_xyz_city_ideas_v1_tickets_v1_domain_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_xyz_city_ideas_v1_tickets_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_xyz_city_ideas_v1_tickets_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_xyz_city_ideas_v1_tickets_v1_domain_proto_goTypes = []any{
 	(Status)(0),                   // 0: xyz.city_ideas.v1.tickets.v1.Status
-	(Closer)(0),                   // 1: xyz.city_ideas.v1.tickets.v1.Closer
+	(Caller)(0),                   // 1: xyz.city_ideas.v1.tickets.v1.Caller
 	(*Ticket)(nil),                // 2: xyz.city_ideas.v1.tickets.v1.Ticket
 	(*Message)(nil),               // 3: xyz.city_ideas.v1.tickets.v1.Message
 	(*CreateTicketRequest)(nil),   // 4: xyz.city_ideas.v1.tickets.v1.CreateTicketRequest
-	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
+	(*TicketListResponse)(nil),    // 5: xyz.city_ideas.v1.tickets.v1.TicketListResponse
+	(*MessageListResponse)(nil),   // 6: xyz.city_ideas.v1.tickets.v1.MessageListResponse
+	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
 }
 var file_xyz_city_ideas_v1_tickets_v1_domain_proto_depIdxs = []int32{
 	0, // 0: xyz.city_ideas.v1.tickets.v1.Ticket.status:type_name -> xyz.city_ideas.v1.tickets.v1.Status
-	5, // 1: xyz.city_ideas.v1.tickets.v1.Ticket.created:type_name -> google.protobuf.Timestamp
-	5, // 2: xyz.city_ideas.v1.tickets.v1.Ticket.accepted:type_name -> google.protobuf.Timestamp
-	5, // 3: xyz.city_ideas.v1.tickets.v1.Ticket.closed:type_name -> google.protobuf.Timestamp
-	1, // 4: xyz.city_ideas.v1.tickets.v1.Ticket.closer:type_name -> xyz.city_ideas.v1.tickets.v1.Closer
-	5, // 5: xyz.city_ideas.v1.tickets.v1.Message.created:type_name -> google.protobuf.Timestamp
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	7, // 1: xyz.city_ideas.v1.tickets.v1.Ticket.created:type_name -> google.protobuf.Timestamp
+	7, // 2: xyz.city_ideas.v1.tickets.v1.Ticket.accepted:type_name -> google.protobuf.Timestamp
+	7, // 3: xyz.city_ideas.v1.tickets.v1.Ticket.closed:type_name -> google.protobuf.Timestamp
+	1, // 4: xyz.city_ideas.v1.tickets.v1.Ticket.caller:type_name -> xyz.city_ideas.v1.tickets.v1.Caller
+	7, // 5: xyz.city_ideas.v1.tickets.v1.Message.created:type_name -> google.protobuf.Timestamp
+	2, // 6: xyz.city_ideas.v1.tickets.v1.TicketListResponse.list:type_name -> xyz.city_ideas.v1.tickets.v1.Ticket
+	3, // 7: xyz.city_ideas.v1.tickets.v1.MessageListResponse.list:type_name -> xyz.city_ideas.v1.tickets.v1.Message
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_xyz_city_ideas_v1_tickets_v1_domain_proto_init() }
@@ -909,7 +1081,7 @@ func file_xyz_city_ideas_v1_tickets_v1_domain_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_xyz_city_ideas_v1_tickets_v1_domain_proto_rawDesc), len(file_xyz_city_ideas_v1_tickets_v1_domain_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   3,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

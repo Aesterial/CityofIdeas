@@ -52,7 +52,6 @@ type Querier interface {
 	MessageInfo(ctx context.Context, id pgtype.UUID) (ProjectMessage, error)
 	MessagesList(ctx context.Context, arg MessagesListParams) ([]ProjectMessage, error)
 	MessagesListWithDeleted(ctx context.Context, arg MessagesListWithDeletedParams) ([]ProjectMessage, error)
-	OpenedTickets(ctx context.Context, arg OpenedTicketsParams) ([]Ticket, error)
 	ProjectAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
 	ProjectInfo(ctx context.Context, id pgtype.UUID) (Project, error)
 	ProjectsList(ctx context.Context, arg ProjectsListParams) ([]Project, error)
@@ -72,6 +71,8 @@ type Querier interface {
 	SubmissionsList(ctx context.Context, arg SubmissionsListParams) ([]Submission, error)
 	TicketInfo(ctx context.Context, id pgtype.UUID) (Ticket, error)
 	TicketMessages(ctx context.Context, arg TicketMessagesParams) ([]TicketsMessage, error)
+	TicketOwner(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
+	Tickets(ctx context.Context, arg TicketsParams) ([]Ticket, error)
 	TicketsByAuthor(ctx context.Context, arg TicketsByAuthorParams) ([]Ticket, error)
 	UpdateProjectDescription(ctx context.Context, arg UpdateProjectDescriptionParams) error
 	UpdateRankColor(ctx context.Context, arg UpdateRankColorParams) error

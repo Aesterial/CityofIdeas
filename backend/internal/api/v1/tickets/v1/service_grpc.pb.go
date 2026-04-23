@@ -8,9 +8,11 @@ package v1
 
 import (
 	context "context"
+	v1 "github.com/aesterial/cityideas/backend/internal/api/v1"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -19,14 +21,28 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	TicketService_Create_FullMethodName = "/xyz.city_ideas.v1.tickets.v1.TicketService/Create"
+	TicketService_CreateTicket_FullMethodName  = "/xyz.city_ideas.v1.tickets.v1.TicketService/CreateTicket"
+	TicketService_Info_FullMethodName          = "/xyz.city_ideas.v1.tickets.v1.TicketService/Info"
+	TicketService_SelfTickets_FullMethodName   = "/xyz.city_ideas.v1.tickets.v1.TicketService/SelfTickets"
+	TicketService_TicketsList_FullMethodName   = "/xyz.city_ideas.v1.tickets.v1.TicketService/TicketsList"
+	TicketService_Accept_FullMethodName        = "/xyz.city_ideas.v1.tickets.v1.TicketService/Accept"
+	TicketService_Close_FullMethodName         = "/xyz.city_ideas.v1.tickets.v1.TicketService/Close"
+	TicketService_CreateMessage_FullMethodName = "/xyz.city_ideas.v1.tickets.v1.TicketService/CreateMessage"
+	TicketService_Messages_FullMethodName      = "/xyz.city_ideas.v1.tickets.v1.TicketService/Messages"
 )
 
 // TicketServiceClient is the client API for TicketService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TicketServiceClient interface {
-	Create(ctx context.Context, in *CreateTicketRequest, opts ...grpc.CallOption) (*Ticket, error)
+	CreateTicket(ctx context.Context, in *CreateTicketRequest, opts ...grpc.CallOption) (*Ticket, error)
+	Info(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*Ticket, error)
+	SelfTickets(ctx context.Context, in *v1.RequestWithLimitAndOffset, opts ...grpc.CallOption) (*TicketListResponse, error)
+	TicketsList(ctx context.Context, in *v1.RequestWithLimitAndOffset, opts ...grpc.CallOption) (*TicketListResponse, error)
+	Accept(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Close(ctx context.Context, in *v1.RequestWithValues, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	CreateMessage(ctx context.Context, in *v1.RequestWithValues, opts ...grpc.CallOption) (*Message, error)
+	Messages(ctx context.Context, in *v1.RequestWithLimitAndOffsetAndValue, opts ...grpc.CallOption) (*MessageListResponse, error)
 }
 
 type ticketServiceClient struct {
@@ -37,10 +53,80 @@ func NewTicketServiceClient(cc grpc.ClientConnInterface) TicketServiceClient {
 	return &ticketServiceClient{cc}
 }
 
-func (c *ticketServiceClient) Create(ctx context.Context, in *CreateTicketRequest, opts ...grpc.CallOption) (*Ticket, error) {
+func (c *ticketServiceClient) CreateTicket(ctx context.Context, in *CreateTicketRequest, opts ...grpc.CallOption) (*Ticket, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Ticket)
-	err := c.cc.Invoke(ctx, TicketService_Create_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, TicketService_CreateTicket_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ticketServiceClient) Info(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*Ticket, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Ticket)
+	err := c.cc.Invoke(ctx, TicketService_Info_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ticketServiceClient) SelfTickets(ctx context.Context, in *v1.RequestWithLimitAndOffset, opts ...grpc.CallOption) (*TicketListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TicketListResponse)
+	err := c.cc.Invoke(ctx, TicketService_SelfTickets_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ticketServiceClient) TicketsList(ctx context.Context, in *v1.RequestWithLimitAndOffset, opts ...grpc.CallOption) (*TicketListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TicketListResponse)
+	err := c.cc.Invoke(ctx, TicketService_TicketsList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ticketServiceClient) Accept(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, TicketService_Accept_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ticketServiceClient) Close(ctx context.Context, in *v1.RequestWithValues, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, TicketService_Close_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ticketServiceClient) CreateMessage(ctx context.Context, in *v1.RequestWithValues, opts ...grpc.CallOption) (*Message, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Message)
+	err := c.cc.Invoke(ctx, TicketService_CreateMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ticketServiceClient) Messages(ctx context.Context, in *v1.RequestWithLimitAndOffsetAndValue, opts ...grpc.CallOption) (*MessageListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(MessageListResponse)
+	err := c.cc.Invoke(ctx, TicketService_Messages_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +137,14 @@ func (c *ticketServiceClient) Create(ctx context.Context, in *CreateTicketReques
 // All implementations should embed UnimplementedTicketServiceServer
 // for forward compatibility.
 type TicketServiceServer interface {
-	Create(context.Context, *CreateTicketRequest) (*Ticket, error)
+	CreateTicket(context.Context, *CreateTicketRequest) (*Ticket, error)
+	Info(context.Context, *v1.RequestWithValue) (*Ticket, error)
+	SelfTickets(context.Context, *v1.RequestWithLimitAndOffset) (*TicketListResponse, error)
+	TicketsList(context.Context, *v1.RequestWithLimitAndOffset) (*TicketListResponse, error)
+	Accept(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error)
+	Close(context.Context, *v1.RequestWithValues) (*emptypb.Empty, error)
+	CreateMessage(context.Context, *v1.RequestWithValues) (*Message, error)
+	Messages(context.Context, *v1.RequestWithLimitAndOffsetAndValue) (*MessageListResponse, error)
 }
 
 // UnimplementedTicketServiceServer should be embedded to have
@@ -61,8 +154,29 @@ type TicketServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedTicketServiceServer struct{}
 
-func (UnimplementedTicketServiceServer) Create(context.Context, *CreateTicketRequest) (*Ticket, error) {
-	return nil, status.Error(codes.Unimplemented, "method Create not implemented")
+func (UnimplementedTicketServiceServer) CreateTicket(context.Context, *CreateTicketRequest) (*Ticket, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateTicket not implemented")
+}
+func (UnimplementedTicketServiceServer) Info(context.Context, *v1.RequestWithValue) (*Ticket, error) {
+	return nil, status.Error(codes.Unimplemented, "method Info not implemented")
+}
+func (UnimplementedTicketServiceServer) SelfTickets(context.Context, *v1.RequestWithLimitAndOffset) (*TicketListResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SelfTickets not implemented")
+}
+func (UnimplementedTicketServiceServer) TicketsList(context.Context, *v1.RequestWithLimitAndOffset) (*TicketListResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method TicketsList not implemented")
+}
+func (UnimplementedTicketServiceServer) Accept(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method Accept not implemented")
+}
+func (UnimplementedTicketServiceServer) Close(context.Context, *v1.RequestWithValues) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method Close not implemented")
+}
+func (UnimplementedTicketServiceServer) CreateMessage(context.Context, *v1.RequestWithValues) (*Message, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateMessage not implemented")
+}
+func (UnimplementedTicketServiceServer) Messages(context.Context, *v1.RequestWithLimitAndOffsetAndValue) (*MessageListResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Messages not implemented")
 }
 func (UnimplementedTicketServiceServer) testEmbeddedByValue() {}
 
@@ -84,20 +198,146 @@ func RegisterTicketServiceServer(s grpc.ServiceRegistrar, srv TicketServiceServe
 	s.RegisterService(&TicketService_ServiceDesc, srv)
 }
 
-func _TicketService_Create_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _TicketService_CreateTicket_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateTicketRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TicketServiceServer).Create(ctx, in)
+		return srv.(TicketServiceServer).CreateTicket(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: TicketService_Create_FullMethodName,
+		FullMethod: TicketService_CreateTicket_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TicketServiceServer).Create(ctx, req.(*CreateTicketRequest))
+		return srv.(TicketServiceServer).CreateTicket(ctx, req.(*CreateTicketRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TicketService_Info_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TicketServiceServer).Info(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TicketService_Info_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TicketServiceServer).Info(ctx, req.(*v1.RequestWithValue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TicketService_SelfTickets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithLimitAndOffset)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TicketServiceServer).SelfTickets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TicketService_SelfTickets_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TicketServiceServer).SelfTickets(ctx, req.(*v1.RequestWithLimitAndOffset))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TicketService_TicketsList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithLimitAndOffset)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TicketServiceServer).TicketsList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TicketService_TicketsList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TicketServiceServer).TicketsList(ctx, req.(*v1.RequestWithLimitAndOffset))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TicketService_Accept_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TicketServiceServer).Accept(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TicketService_Accept_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TicketServiceServer).Accept(ctx, req.(*v1.RequestWithValue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TicketService_Close_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithValues)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TicketServiceServer).Close(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TicketService_Close_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TicketServiceServer).Close(ctx, req.(*v1.RequestWithValues))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TicketService_CreateMessage_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithValues)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TicketServiceServer).CreateMessage(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TicketService_CreateMessage_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TicketServiceServer).CreateMessage(ctx, req.(*v1.RequestWithValues))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TicketService_Messages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithLimitAndOffsetAndValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TicketServiceServer).Messages(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TicketService_Messages_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TicketServiceServer).Messages(ctx, req.(*v1.RequestWithLimitAndOffsetAndValue))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -110,8 +350,36 @@ var TicketService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*TicketServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Create",
-			Handler:    _TicketService_Create_Handler,
+			MethodName: "CreateTicket",
+			Handler:    _TicketService_CreateTicket_Handler,
+		},
+		{
+			MethodName: "Info",
+			Handler:    _TicketService_Info_Handler,
+		},
+		{
+			MethodName: "SelfTickets",
+			Handler:    _TicketService_SelfTickets_Handler,
+		},
+		{
+			MethodName: "TicketsList",
+			Handler:    _TicketService_TicketsList_Handler,
+		},
+		{
+			MethodName: "Accept",
+			Handler:    _TicketService_Accept_Handler,
+		},
+		{
+			MethodName: "Close",
+			Handler:    _TicketService_Close_Handler,
+		},
+		{
+			MethodName: "CreateMessage",
+			Handler:    _TicketService_CreateMessage_Handler,
+		},
+		{
+			MethodName: "Messages",
+			Handler:    _TicketService_Messages_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

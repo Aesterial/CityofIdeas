@@ -7,8 +7,10 @@
 package v1
 
 import (
+	v1 "github.com/aesterial/cityideas/backend/internal/api/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	reflect "reflect"
 	unsafe "unsafe"
 )
@@ -24,19 +26,48 @@ var File_xyz_city_ideas_v1_tickets_v1_service_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_tickets_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"*xyz/city_ideas/v1/tickets/v1/service.proto\x12\x1cxyz.city_ideas.v1.tickets.v1\x1a)xyz/city_ideas/v1/tickets/v1/domain.proto2r\n" +
-	"\rTicketService\x12a\n" +
-	"\x06Create\x121.xyz.city_ideas.v1.tickets.v1.CreateTicketRequest\x1a$.xyz.city_ideas.v1.tickets.v1.TicketBFZDgithub.com/aesterial/cityideas/backend/internal/api/v1/tickets/v1;v1b\beditionsp\xe8\a"
+	"*xyz/city_ideas/v1/tickets/v1/service.proto\x12\x1cxyz.city_ideas.v1.tickets.v1\x1a)xyz/city_ideas/v1/tickets/v1/domain.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1dxyz/city_ideas/v1/types.proto2\x8a\x06\n" +
+	"\rTicketService\x12g\n" +
+	"\fCreateTicket\x121.xyz.city_ideas.v1.tickets.v1.CreateTicketRequest\x1a$.xyz.city_ideas.v1.tickets.v1.Ticket\x12Q\n" +
+	"\x04Info\x12#.xyz.city_ideas.v1.RequestWithValue\x1a$.xyz.city_ideas.v1.tickets.v1.Ticket\x12m\n" +
+	"\vSelfTickets\x12,.xyz.city_ideas.v1.RequestWithLimitAndOffset\x1a0.xyz.city_ideas.v1.tickets.v1.TicketListResponse\x12m\n" +
+	"\vTicketsList\x12,.xyz.city_ideas.v1.RequestWithLimitAndOffset\x1a0.xyz.city_ideas.v1.tickets.v1.TicketListResponse\x12E\n" +
+	"\x06Accept\x12#.xyz.city_ideas.v1.RequestWithValue\x1a\x16.google.protobuf.Empty\x12E\n" +
+	"\x05Close\x12$.xyz.city_ideas.v1.RequestWithValues\x1a\x16.google.protobuf.Empty\x12\\\n" +
+	"\rCreateMessage\x12$.xyz.city_ideas.v1.RequestWithValues\x1a%.xyz.city_ideas.v1.tickets.v1.Message\x12s\n" +
+	"\bMessages\x124.xyz.city_ideas.v1.RequestWithLimitAndOffsetAndValue\x1a1.xyz.city_ideas.v1.tickets.v1.MessageListResponseBFZDgithub.com/aesterial/cityideas/backend/internal/api/v1/tickets/v1;v1b\beditionsp\xe8\a"
 
 var file_xyz_city_ideas_v1_tickets_v1_service_proto_goTypes = []any{
-	(*CreateTicketRequest)(nil), // 0: xyz.city_ideas.v1.tickets.v1.CreateTicketRequest
-	(*Ticket)(nil),              // 1: xyz.city_ideas.v1.tickets.v1.Ticket
+	(*CreateTicketRequest)(nil),                  // 0: xyz.city_ideas.v1.tickets.v1.CreateTicketRequest
+	(*v1.RequestWithValue)(nil),                  // 1: xyz.city_ideas.v1.RequestWithValue
+	(*v1.RequestWithLimitAndOffset)(nil),         // 2: xyz.city_ideas.v1.RequestWithLimitAndOffset
+	(*v1.RequestWithValues)(nil),                 // 3: xyz.city_ideas.v1.RequestWithValues
+	(*v1.RequestWithLimitAndOffsetAndValue)(nil), // 4: xyz.city_ideas.v1.RequestWithLimitAndOffsetAndValue
+	(*Ticket)(nil),                               // 5: xyz.city_ideas.v1.tickets.v1.Ticket
+	(*TicketListResponse)(nil),                   // 6: xyz.city_ideas.v1.tickets.v1.TicketListResponse
+	(*emptypb.Empty)(nil),                        // 7: google.protobuf.Empty
+	(*Message)(nil),                              // 8: xyz.city_ideas.v1.tickets.v1.Message
+	(*MessageListResponse)(nil),                  // 9: xyz.city_ideas.v1.tickets.v1.MessageListResponse
 }
 var file_xyz_city_ideas_v1_tickets_v1_service_proto_depIdxs = []int32{
-	0, // 0: xyz.city_ideas.v1.tickets.v1.TicketService.Create:input_type -> xyz.city_ideas.v1.tickets.v1.CreateTicketRequest
-	1, // 1: xyz.city_ideas.v1.tickets.v1.TicketService.Create:output_type -> xyz.city_ideas.v1.tickets.v1.Ticket
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	0, // 0: xyz.city_ideas.v1.tickets.v1.TicketService.CreateTicket:input_type -> xyz.city_ideas.v1.tickets.v1.CreateTicketRequest
+	1, // 1: xyz.city_ideas.v1.tickets.v1.TicketService.Info:input_type -> xyz.city_ideas.v1.RequestWithValue
+	2, // 2: xyz.city_ideas.v1.tickets.v1.TicketService.SelfTickets:input_type -> xyz.city_ideas.v1.RequestWithLimitAndOffset
+	2, // 3: xyz.city_ideas.v1.tickets.v1.TicketService.TicketsList:input_type -> xyz.city_ideas.v1.RequestWithLimitAndOffset
+	1, // 4: xyz.city_ideas.v1.tickets.v1.TicketService.Accept:input_type -> xyz.city_ideas.v1.RequestWithValue
+	3, // 5: xyz.city_ideas.v1.tickets.v1.TicketService.Close:input_type -> xyz.city_ideas.v1.RequestWithValues
+	3, // 6: xyz.city_ideas.v1.tickets.v1.TicketService.CreateMessage:input_type -> xyz.city_ideas.v1.RequestWithValues
+	4, // 7: xyz.city_ideas.v1.tickets.v1.TicketService.Messages:input_type -> xyz.city_ideas.v1.RequestWithLimitAndOffsetAndValue
+	5, // 8: xyz.city_ideas.v1.tickets.v1.TicketService.CreateTicket:output_type -> xyz.city_ideas.v1.tickets.v1.Ticket
+	5, // 9: xyz.city_ideas.v1.tickets.v1.TicketService.Info:output_type -> xyz.city_ideas.v1.tickets.v1.Ticket
+	6, // 10: xyz.city_ideas.v1.tickets.v1.TicketService.SelfTickets:output_type -> xyz.city_ideas.v1.tickets.v1.TicketListResponse
+	6, // 11: xyz.city_ideas.v1.tickets.v1.TicketService.TicketsList:output_type -> xyz.city_ideas.v1.tickets.v1.TicketListResponse
+	7, // 12: xyz.city_ideas.v1.tickets.v1.TicketService.Accept:output_type -> google.protobuf.Empty
+	7, // 13: xyz.city_ideas.v1.tickets.v1.TicketService.Close:output_type -> google.protobuf.Empty
+	8, // 14: xyz.city_ideas.v1.tickets.v1.TicketService.CreateMessage:output_type -> xyz.city_ideas.v1.tickets.v1.Message
+	9, // 15: xyz.city_ideas.v1.tickets.v1.TicketService.Messages:output_type -> xyz.city_ideas.v1.tickets.v1.MessageListResponse
+	8, // [8:16] is the sub-list for method output_type
+	0, // [0:8] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name

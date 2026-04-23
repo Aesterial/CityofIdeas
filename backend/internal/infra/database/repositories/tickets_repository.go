@@ -25,7 +25,8 @@ var _ ticketsdomain.Repository = (*TicketRepository)(nil)
 func (t *TicketRepository) parseTicket(ticket sqlc.Ticket) *ticketsdomain.Ticket {
 	var accepted, closed *time.Time = nil, nil
 	var acceptor *domain.UUID = nil
-	var closer *ticketsdomain.Caller = nil
+	var caller *ticketsdomain.Caller = nil
+	var closer *domain.UUID = nil
 	var reason *string = nil
 	if ticket.Acceptor.Valid {
 		acceptor = &domain.UUID{UUID: ticket.Acceptor.Bytes}
@@ -36,8 +37,11 @@ func (t *TicketRepository) parseTicket(ticket sqlc.Ticket) *ticketsdomain.Ticket
 	if ticket.Accepted.Valid {
 		accepted = &ticket.Accepted.Time
 	}
+	if ticket.Caller.Valid {
+		caller = new(ticketsdomain.ParseCaller(string(ticket.Caller.TicketsCaller)))
+	}
 	if ticket.Closer.Valid {
-		closer = new(ticketsdomain.ParseCaller(string(ticket.Closer.TicketsCaller)))
+		closer = new(domain.FromPG(ticket.Closer))
 	}
 	if ticket.Reason.Valid {
 		reason = &ticket.Reason.String
@@ -53,6 +57,7 @@ func (t *TicketRepository) parseTicket(ticket sqlc.Ticket) *ticketsdomain.Ticket
 		Accepted: accepted,
 		Closed:   closed,
 		Closer:   closer,
+		Caller:   caller,
 		Reason:   reason,
 	}
 }
@@ -80,11 +85,11 @@ func (t *TicketRepository) TicketsByUser(ctx context.Context, user domain.UUID, 
 	return t.parseTickets(list), nil
 }
 
-func (t *TicketRepository) OpenedTickets(ctx context.Context, limit int32, offset int32) (ticketsdomain.Tickets, error) {
+func (t *TicketRepository) Tickets(ctx context.Context, limit int32, offset int32) (ticketsdomain.Tickets, error) {
 	if limit <= 0 {
 		limit = 10
 	}
-	list, err := t.conn.OpenedTickets(ctx, sqlc.OpenedTicketsParams{
+	list, err := t.conn.Tickets(ctx, sqlc.TicketsParams{
 		Limit:  limit,
 		Offset: offset,
 	})
@@ -153,15 +158,24 @@ func (t *TicketRepository) AcceptTicket(ctx context.Context, target ticketsdomai
 	})
 }
 
-func (t *TicketRepository) CloseTicket(ctx context.Context, caller ticketsdomain.Caller, reason *string) error {
+func (t *TicketRepository) CloseTicket(ctx context.Context, ticket domain.UUID, by *domain.UUID, caller ticketsdomain.Caller, reason *string) error {
 	var arg sqlc.CloseTicketParams
-	arg.Closer = sqlc.NullTicketsCaller{TicketsCaller: caller.SQLC(), Valid: true}
+	if caller != ticketsdomain.CallerSystem && by == nil {
+		return errors.AccessDenied
+	}
+	arg.Caller = sqlc.NullTicketsCaller{TicketsCaller: caller.SQLC(), Valid: true}
 	if caller != ticketsdomain.CallerUser {
 		if reason == nil {
 			return errors.InvalidArguments
 		}
 		arg.Reason = pgtype.Text{String: *reason, Valid: true}
 	}
+	var closer pgtype.UUID
+	if by != nil {
+		closer = by.ToPG()
+	}
+	arg.ID = ticket.ToPG()
+	arg.Closer = closer
 	return t.conn.CloseTicket(ctx, arg)
 }
 
@@ -230,4 +244,12 @@ func (t *TicketRepository) MessagesList(ctx context.Context, ticket domain.UUID,
 		return nil, err
 	}
 	return t.parseMessages(list), nil
+}
+
+func (t *TicketRepository) Owner(ctx context.Context, ticket domain.UUID) (*domain.UUID, error) {
+	owner, err := t.conn.TicketOwner(ctx, ticket.ToPG())
+	if err != nil {
+		return nil, err
+	}
+	return new(domain.FromPG(owner)), nil
 }

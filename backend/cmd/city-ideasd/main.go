@@ -12,11 +12,13 @@ import (
 	projectpb "github.com/aesterial/cityideas/backend/internal/api/v1/projects/v1"
 	rankpb "github.com/aesterial/cityideas/backend/internal/api/v1/ranks/v1"
 	sessionpb "github.com/aesterial/cityideas/backend/internal/api/v1/sessions/v1"
+	ticketpb "github.com/aesterial/cityideas/backend/internal/api/v1/tickets/v1"
 	userpb "github.com/aesterial/cityideas/backend/internal/api/v1/user/v1"
 	loginservice "github.com/aesterial/cityideas/backend/internal/app/login"
 	projectservice "github.com/aesterial/cityideas/backend/internal/app/project"
 	rankservice "github.com/aesterial/cityideas/backend/internal/app/rank"
 	sessionservice "github.com/aesterial/cityideas/backend/internal/app/session"
+	ticketservice "github.com/aesterial/cityideas/backend/internal/app/ticket"
 	userservice "github.com/aesterial/cityideas/backend/internal/app/user"
 	"github.com/aesterial/cityideas/backend/internal/infra/config"
 	"github.com/aesterial/cityideas/backend/internal/infra/database"
@@ -51,11 +53,13 @@ func main() {
 	userRepository := repositories.NewUserRepository(conn.Querier())
 	sessionRepository := repositories.NewSessionsRepository(conn.Querier())
 	projectRepository := repositories.NewProjectsRepository(conn.Querier())
+	ticketRepository := repositories.NewTicketsRepository(conn.Querier())
 	rankRepository := repositories.NewRankRepository(conn.Querier())
 	userService := userservice.NewService(userRepository)
 	sessionService := sessionservice.NewService(sessionRepository)
 	loginService := loginservice.NewService(userRepository, sessionRepository)
 	projectService := projectservice.NewService(projectRepository)
+	ticketService := ticketservice.NewService(ticketRepository)
 	rankService := rankservice.NewService(rankRepository)
 
 	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptors.CsrfCheck(), interceptors.FingerPrint(), interceptors.Logging(), recovery.UnaryServerInterceptor(recovery.WithRecoveryHandlerContext(interceptors.Recovery))))
@@ -68,12 +72,14 @@ func main() {
 	sessionHandler := handlers.NewSessionHandler(sessionService, auth)
 	projectHandler := handlers.NewProjectHandler(projectService, auth)
 	rankHandler := handlers.NewRankHandler(rankService, auth)
+	ticketHandler := handlers.NewTicketHandler(ticketService, auth)
 
 	loginpb.RegisterLoginServiceServer(srv, loginHandler)
 	userpb.RegisterUserServiceServer(srv, userHandler)
 	sessionpb.RegisterSessionServiceServer(srv, sessionHandler)
 	projectpb.RegisterProjectsServiceServer(srv, projectHandler)
 	rankpb.RegisterRankServiceServer(srv, rankHandler)
+	ticketpb.RegisterTicketServiceServer(srv, ticketHandler)
 
 	logger.Info("main", "starting listener")
 	listener, err := net.Listen("tcp", "0.0.0.0:"+cfg.Port)
