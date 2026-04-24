@@ -182,6 +182,7 @@ func (r *RankRepository) User(ctx context.Context, user domain.UUID) (ranksdomai
 			expires = &e.Expires.Time
 		}
 		out[i] = &ranksdomain.UserRank{
+			ID:      domain.FromPG(e.ID),
 			Name:    e.Name,
 			Color:   e.Color,
 			Weight:  e.Weight,

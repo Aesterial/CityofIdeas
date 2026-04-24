@@ -78,6 +78,9 @@ func (a *Authenticator) User(ctx context.Context) (*domain.Metadata, error) {
 	meta.SessionID = &domain.UUID{UUID: sid}
 	valid, err := a.ses.IsValid(ctx, *meta.SessionID, device, hash)
 	if err != nil {
+		if errors.Is(err, errors.NotFound) {
+			return nil, errors.Unauthenticated
+		}
 		logger.Error("auth", "error while verifying session", logger.F("error", err))
 		return nil, errors.Wrap(err)
 	}

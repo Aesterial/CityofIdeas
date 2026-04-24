@@ -37,7 +37,13 @@ func (q *Queries) AcceptTicket(ctx context.Context, arg AcceptTicketParams) erro
 }
 
 const CloseTicket = `-- name: CloseTicket :exec
-update tickets set status = 'closed', closed = now(), closer = $1, caller = $2, reason = $3 where id = $4
+update tickets
+set status = 'closed',
+    closed = now(),
+    closer = $1,
+    caller = $2,
+    reason = $3
+where id = $4
 `
 
 type CloseTicketParams struct {
@@ -214,7 +220,9 @@ func (q *Queries) CreateSubmission(ctx context.Context, linked pgtype.UUID) (Cre
 }
 
 const CreateTicket = `-- name: CreateTicket :one
-insert into tickets (author, title, topic) VALUES ($1, $2, $3) returning id, author, acceptor, status, topic, title, created, accepted, closed, closer, caller, reason
+insert into tickets (author, title, topic)
+VALUES ($1, $2, $3)
+returning id, author, acceptor, status, topic, title, created, accepted, closed, closer, caller, reason
 `
 
 type CreateTicketParams struct {
@@ -518,10 +526,11 @@ func (q *Queries) GetUserPreferences(ctx context.Context, owner pgtype.UUID) (Us
 }
 
 const GetUserRanks = `-- name: GetUserRanks :many
-select ranks.name, ranks.color, ranks.weight, users_ranks.expires from users_ranks join ranks on ranks.id = users_ranks.rank where users_ranks.owner = $1
+select ranks.id, ranks.name, ranks.color, ranks.weight, users_ranks.expires from users_ranks join ranks on ranks.id = users_ranks.rank where users_ranks.owner = $1
 `
 
 type GetUserRanksRow struct {
+	ID      pgtype.UUID        `json:"id"`
 	Name    string             `json:"name"`
 	Color   int64              `json:"color"`
 	Weight  int32              `json:"weight"`
@@ -538,6 +547,7 @@ func (q *Queries) GetUserRanks(ctx context.Context, owner pgtype.UUID) ([]GetUse
 	for rows.Next() {
 		var i GetUserRanksRow
 		if err := rows.Scan(
+			&i.ID,
 			&i.Name,
 			&i.Color,
 			&i.Weight,
@@ -864,7 +874,7 @@ func (q *Queries) ProjectInfo(ctx context.Context, id pgtype.UUID) (Project, err
 }
 
 const ProjectsList = `-- name: ProjectsList :many
-select id, author, title, description, category, status, impl_link, likes, at, updated, deleted from projects limit $1 offset $2
+select id, author, title, description, category, status, impl_link, likes, at, updated, deleted from projects where status <> 'reviewing' limit $1 offset $2
 `
 
 type ProjectsListParams struct {
@@ -1183,7 +1193,21 @@ func (q *Queries) SubmissionsList(ctx context.Context, arg SubmissionsListParams
 }
 
 const TicketInfo = `-- name: TicketInfo :one
-select id, author, acceptor, status, topic, title, created, accepted, closed, closer, caller, reason from tickets where id = $1 limit 1
+select id,
+       author,
+       acceptor,
+       status,
+       topic,
+       title,
+       created,
+       accepted,
+       closed,
+       closer,
+       caller,
+       reason
+from tickets
+where id = $1
+limit 1
 `
 
 func (q *Queries) TicketInfo(ctx context.Context, id pgtype.UUID) (Ticket, error) {
@@ -1243,7 +1267,10 @@ func (q *Queries) TicketMessages(ctx context.Context, arg TicketMessagesParams) 
 }
 
 const TicketOwner = `-- name: TicketOwner :one
-select author from tickets where id = $1 limit 1
+select author
+from tickets
+where id = $1
+limit 1
 `
 
 func (q *Queries) TicketOwner(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
@@ -1254,7 +1281,20 @@ func (q *Queries) TicketOwner(ctx context.Context, id pgtype.UUID) (pgtype.UUID,
 }
 
 const Tickets = `-- name: Tickets :many
-select id, author, acceptor, status, topic, title, created, accepted, closed, closer, caller, reason from tickets limit $1 offset $2
+select id,
+       author,
+       acceptor,
+       status,
+       topic,
+       title,
+       created,
+       accepted,
+       closed,
+       closer,
+       caller,
+       reason
+from tickets
+limit $1 offset $2
 `
 
 type TicketsParams struct {
@@ -1296,7 +1336,21 @@ func (q *Queries) Tickets(ctx context.Context, arg TicketsParams) ([]Ticket, err
 }
 
 const TicketsByAuthor = `-- name: TicketsByAuthor :many
-select id, author, acceptor, status, topic, title, created, accepted, closed, closer, caller, reason from tickets where author = $1 limit $2 offset $3
+select id,
+       author,
+       acceptor,
+       status,
+       topic,
+       title,
+       created,
+       accepted,
+       closed,
+       closer,
+       caller,
+       reason
+from tickets
+where author = $1
+limit $2 offset $3
 `
 
 type TicketsByAuthorParams struct {

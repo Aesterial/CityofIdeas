@@ -198,6 +198,10 @@ func (p *ProjectRepository) CreateProject(ctx context.Context, author domain.UUI
 	if err != nil {
 		return nil, err
 	}
+	_, err = p.conn.CreateSubmission(ctx, info.ID)
+	if err != nil {
+		return nil, err
+	}
 	return p.parseProject(info), nil
 }
 

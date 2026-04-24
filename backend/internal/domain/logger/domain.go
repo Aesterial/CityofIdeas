@@ -104,5 +104,5 @@ func (e Entry) Render() string {
 	for k, v := range e.Fields {
 		pairs = append(pairs, fmt.Sprintf("%s=%s", k, v))
 	}
-	return fmt.Sprintf(layout, strings.ToUpper(e.Level.String()), e.Service, e.Content, e.At.String()) + " | " + strings.Join(pairs, ", ")
+	return fmt.Sprintf(layout, strings.ToUpper(e.Level.String()), e.Service, e.Content, e.At.Format("2006-01-02 15:04:05")) + " | " + strings.Join(pairs, ", ")
 }
