@@ -37,7 +37,7 @@ func inList(list []string, arg string) bool {
 	return found
 }
 
-func CsrfCheck() grpc.UnaryServerInterceptor {
+func (s *Service) CsrfCheck() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		meta, ok := metadata.FromIncomingContext(ctx)
 		if !ok {

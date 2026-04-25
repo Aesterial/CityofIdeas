@@ -1,0 +1,51 @@
+edition="2023";
+
+package xyz.city_ideas.v1.maintenances.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/maintenances/v1;v1";
+
+enum Type {
+  TYPE_UNSPECIFIED = 0;
+  TYPE_EMERGENCY = 1;
+  TYPE_PLANNED = 2;
+}
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_EXPECTED = 1;
+  STATUS_RUNNING = 2;
+  STATUS_COMPLETED = 3;
+}
+
+message TimeRange {
+  google.protobuf.Timestamp start = 1;
+  google.protobuf.Timestamp end = 2;
+}
+
+message Maintenance {
+  string id = 1;
+  string description = 2;
+  Status status = 3;
+  Type type = 4;
+  TimeRange planned = 5;
+  TimeRange actual = 6;
+  string caller_id = 7;
+  google.protobuf.Timestamp at = 8;
+}
+
+message IsPlannedResponse {
+  bool value = 1;
+  google.protobuf.Timestamp at = 2;
+  string description = 3;
+}
+
+message HistoryResponse {
+  repeated Maintenance list = 1;
+}
+
+message CreateRequest {
+  string description = 1;
+  TimeRange time = 2;
+}

@@ -308,3 +308,21 @@ update ranks set weight = $1 where id = $2;
 
 -- name: UpdateRankPermissions :exec
 update ranks set permissions = $1 where id = $2;
+
+-- name: CreateMaintenance :one
+insert into maintenances (description, planned_start, planned_end, caller) values ($1, $2, $3, $4) returning id, description, status, type, planned_start, planned_end, actual_start, actual_end, caller, created;
+
+-- name: HasActiveMaintenance :one
+select exists (select 1 from maintenances where tatus = 'running' or (planned_start < now() and actual_end is not null));
+
+-- name: ActiveMaintenance :one
+select id, description, status, type, planned_start, planned_end, actual_start, actual_end, caller, created from maintenances where status = 'running' or (planned_start < now() and actual_end is not null) limit 1;
+
+-- name: MaintenancesHistory :many
+select id, description, status, type, planned_start, planned_end, actual_start, actual_end, caller, created from maintenances limit $1 offset $2;
+
+-- name: StartMaintenance :exec
+update maintenances set status = 'running', actual_start = now() where id = $1;
+
+-- name: EndMaintenance :exec
+update maintenances set status = 'completed', actual_end = now() where id = $1;

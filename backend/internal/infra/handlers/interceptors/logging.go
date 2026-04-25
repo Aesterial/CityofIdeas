@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func Logging() grpc.UnaryServerInterceptor {
+func (s *Service) Logging() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		at := time.Now()
 		result, err := handler(ctx, req)

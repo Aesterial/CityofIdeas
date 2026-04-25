@@ -15,6 +15,7 @@ import (
 	ticketpb "github.com/aesterial/cityideas/backend/internal/api/v1/tickets/v1"
 	userpb "github.com/aesterial/cityideas/backend/internal/api/v1/user/v1"
 	loginservice "github.com/aesterial/cityideas/backend/internal/app/login"
+	maintenanceservice "github.com/aesterial/cityideas/backend/internal/app/maintenance"
 	projectservice "github.com/aesterial/cityideas/backend/internal/app/project"
 	rankservice "github.com/aesterial/cityideas/backend/internal/app/rank"
 	sessionservice "github.com/aesterial/cityideas/backend/internal/app/session"
@@ -55,14 +56,17 @@ func main() {
 	projectRepository := repositories.NewProjectsRepository(conn.Querier())
 	ticketRepository := repositories.NewTicketsRepository(conn.Querier())
 	rankRepository := repositories.NewRankRepository(conn.Querier())
+	maintenanceRepository := repositories.NewMaintenanceRepository(conn.Querier())
 	userService := userservice.NewService(userRepository)
 	sessionService := sessionservice.NewService(sessionRepository)
 	loginService := loginservice.NewService(userRepository, sessionRepository)
 	projectService := projectservice.NewService(projectRepository)
 	ticketService := ticketservice.NewService(ticketRepository)
 	rankService := rankservice.NewService(rankRepository)
+	maintenanceService := maintenanceservice.NewService(maintenanceRepository)
+	interceptorService := interceptors.NewService(maintenanceService)
 
-	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptors.CsrfCheck(), interceptors.FingerPrint(), interceptors.Logging(), recovery.UnaryServerInterceptor(recovery.WithRecoveryHandlerContext(interceptors.Recovery))))
+	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptorService.CsrfCheck(), interceptorService.AvailabilityCheck(), interceptorService.FingerPrint(), interceptorService.Logging(), recovery.UnaryServerInterceptor(recovery.WithRecoveryHandlerContext(interceptorService.Recovery))))
 	if !cfg.IsProduction() {
 		reflection.Register(srv)
 	}

@@ -7,7 +7,7 @@ import (
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
 )
 
-func Recovery(ctx context.Context, p any) error {
+func (s *Service) Recovery(ctx context.Context, p any) error {
 	slog.ErrorContext(ctx, "panic received", "panic", p)
 	return errors.ServerError
 }

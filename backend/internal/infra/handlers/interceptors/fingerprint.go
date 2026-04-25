@@ -33,7 +33,7 @@ func userAgentHash(ua useragent.UserAgent) string {
 	}, "|"))))
 }
 
-func FingerPrint() grpc.UnaryServerInterceptor {
+func (s *Service) FingerPrint() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {

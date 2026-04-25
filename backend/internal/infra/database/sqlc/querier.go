@@ -13,7 +13,9 @@ import (
 type Querier interface {
 	AcceptSubmission(ctx context.Context, id pgtype.UUID) error
 	AcceptTicket(ctx context.Context, arg AcceptTicketParams) error
+	ActiveMaintenance(ctx context.Context) (Maintenance, error)
 	CloseTicket(ctx context.Context, arg CloseTicketParams) error
+	CreateMaintenance(ctx context.Context, arg CreateMaintenanceParams) (Maintenance, error)
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (ProjectMessage, error)
 	CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error)
 	CreateRank(ctx context.Context, arg CreateRankParams) (Rank, error)
@@ -29,6 +31,7 @@ type Querier interface {
 	DeleteProject(ctx context.Context, id pgtype.UUID) error
 	DeleteRank(ctx context.Context, id pgtype.UUID) error
 	DenySubmission(ctx context.Context, arg DenySubmissionParams) error
+	EndMaintenance(ctx context.Context, id pgtype.UUID) error
 	EndUserSecurityTotp(ctx context.Context, owner pgtype.UUID) error
 	ExpiredTickets(ctx context.Context, dollar_1 pgtype.Interval) ([]pgtype.UUID, error)
 	ExtendSession(ctx context.Context, arg ExtendSessionParams) error
@@ -41,6 +44,7 @@ type Querier interface {
 	GetUserRecoveryCodes(ctx context.Context, owner pgtype.UUID) ([]UsersSecurityCode, error)
 	GetUserSecurity(ctx context.Context, owner pgtype.UUID) (UsersSecurity, error)
 	GetUsers(ctx context.Context, arg GetUsersParams) ([]User, error)
+	HasActiveMaintenance(ctx context.Context) (bool, error)
 	InsertRecoveryCodes(ctx context.Context, arg []InsertRecoveryCodesParams) (int64, error)
 	IsRankExists(ctx context.Context, name string) (bool, error)
 	IsSessionValid(ctx context.Context, arg IsSessionValidParams) (pgtype.Bool, error)
@@ -48,6 +52,7 @@ type Querier interface {
 	IsTicketClosed(ctx context.Context, id pgtype.UUID) (bool, error)
 	IsUserBanned(ctx context.Context, target pgtype.UUID) (bool, error)
 	IsUserExists(ctx context.Context, username string) (bool, error)
+	MaintenancesHistory(ctx context.Context, arg MaintenancesHistoryParams) ([]Maintenance, error)
 	MessageAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
 	MessageInfo(ctx context.Context, id pgtype.UUID) (ProjectMessage, error)
 	MessagesList(ctx context.Context, arg MessagesListParams) ([]ProjectMessage, error)
@@ -66,6 +71,7 @@ type Querier interface {
 	SetProjectStatus(ctx context.Context, arg SetProjectStatusParams) error
 	SetSessionLastSeen(ctx context.Context, id pgtype.UUID) error
 	SetUserSecurityEmailVerified(ctx context.Context, owner pgtype.UUID) error
+	StartMaintenance(ctx context.Context, id pgtype.UUID) error
 	StartUserSecurityTotp(ctx context.Context, arg StartUserSecurityTotpParams) error
 	SubmissionInfo(ctx context.Context, id pgtype.UUID) (Submission, error)
 	SubmissionsList(ctx context.Context, arg SubmissionsListParams) ([]Submission, error)

@@ -1,0 +1,17 @@
+edition="2023";
+
+package xyz.city_ideas.v1.maintenances.v1;
+
+option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/maintenances/v1;v1";
+
+import "google/protobuf/empty.proto";
+import "xyz/city_ideas/v1/maintenances/v1/domain.proto";
+import "xyz/city_ideas/v1/types.proto";
+
+service MaintenanceService {
+  rpc IsPlanned(google.protobuf.Empty) returns (xyz.city_ideas.v1.maintenances.v1.IsPlannedResponse);
+  rpc History(xyz.city_ideas.v1.RequestWithLimitAndOffset) returns (xyz.city_ideas.v1.maintenances.v1.HistoryResponse);
+  rpc Create(xyz.city_ideas.v1.maintenances.v1.CreateRequest) returns (xyz.city_ideas.v1.maintenances.v1.Maintenance);
+  rpc Start(xyz.city_ideas.v1.RequestWithValue) returns (google.protobuf.Empty);
+  rpc End(xyz.city_ideas.v1.RequestWithValue) returns (google.protobuf.Empty);
+}

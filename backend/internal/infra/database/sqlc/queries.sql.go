@@ -36,6 +36,28 @@ func (q *Queries) AcceptTicket(ctx context.Context, arg AcceptTicketParams) erro
 	return err
 }
 
+const ActiveMaintenance = `-- name: ActiveMaintenance :one
+select id, description, status, type, planned_start, planned_end, actual_start, actual_end, caller, created from maintenances where status = 'running' or (planned_start < now() and actual_end is not null) limit 1
+`
+
+func (q *Queries) ActiveMaintenance(ctx context.Context) (Maintenance, error) {
+	row := q.db.QueryRow(ctx, ActiveMaintenance)
+	var i Maintenance
+	err := row.Scan(
+		&i.ID,
+		&i.Description,
+		&i.Status,
+		&i.Type,
+		&i.PlannedStart,
+		&i.PlannedEnd,
+		&i.ActualStart,
+		&i.ActualEnd,
+		&i.Caller,
+		&i.Created,
+	)
+	return i, err
+}
+
 const CloseTicket = `-- name: CloseTicket :exec
 update tickets
 set status = 'closed',
@@ -61,6 +83,40 @@ func (q *Queries) CloseTicket(ctx context.Context, arg CloseTicketParams) error 
 		arg.ID,
 	)
 	return err
+}
+
+const CreateMaintenance = `-- name: CreateMaintenance :one
+insert into maintenances (description, planned_start, planned_end, caller) values ($1, $2, $3, $4) returning id, description, status, type, planned_start, planned_end, actual_start, actual_end, caller, created
+`
+
+type CreateMaintenanceParams struct {
+	Description  string             `json:"description"`
+	PlannedStart pgtype.Timestamptz `json:"planned_start"`
+	PlannedEnd   pgtype.Timestamptz `json:"planned_end"`
+	Caller       pgtype.UUID        `json:"caller"`
+}
+
+func (q *Queries) CreateMaintenance(ctx context.Context, arg CreateMaintenanceParams) (Maintenance, error) {
+	row := q.db.QueryRow(ctx, CreateMaintenance,
+		arg.Description,
+		arg.PlannedStart,
+		arg.PlannedEnd,
+		arg.Caller,
+	)
+	var i Maintenance
+	err := row.Scan(
+		&i.ID,
+		&i.Description,
+		&i.Status,
+		&i.Type,
+		&i.PlannedStart,
+		&i.PlannedEnd,
+		&i.ActualStart,
+		&i.ActualEnd,
+		&i.Caller,
+		&i.Created,
+	)
+	return i, err
 }
 
 const CreateMessage = `-- name: CreateMessage :one
@@ -407,6 +463,15 @@ func (q *Queries) DenySubmission(ctx context.Context, arg DenySubmissionParams) 
 	return err
 }
 
+const EndMaintenance = `-- name: EndMaintenance :exec
+update maintenances set status = 'completed', actual_end = now() where id = $1
+`
+
+func (q *Queries) EndMaintenance(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, EndMaintenance, id)
+	return err
+}
+
 const EndUserSecurityTotp = `-- name: EndUserSecurityTotp :exec
 update users_security set totp_enabled = true, totp_secret = totp_pending, totp_confirmed = now(), totp_pending = null, totp_pending_created = null where owner = $1
 `
@@ -526,7 +591,10 @@ func (q *Queries) GetUserPreferences(ctx context.Context, owner pgtype.UUID) (Us
 }
 
 const GetUserRanks = `-- name: GetUserRanks :many
-select ranks.id, ranks.name, ranks.color, ranks.weight, users_ranks.expires from users_ranks join ranks on ranks.id = users_ranks.rank where users_ranks.owner = $1
+select ranks.id, ranks.name, ranks.color, ranks.weight, users_ranks.expires
+from users_ranks
+         join ranks on ranks.id = users_ranks.rank
+where users_ranks.owner = $1
 `
 
 type GetUserRanksRow struct {
@@ -647,6 +715,17 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 	return items, nil
 }
 
+const HasActiveMaintenance = `-- name: HasActiveMaintenance :one
+select exists (select 1 from maintenances where tatus = 'running' or (planned_start < now() and actual_end is not null))
+`
+
+func (q *Queries) HasActiveMaintenance(ctx context.Context) (bool, error) {
+	row := q.db.QueryRow(ctx, HasActiveMaintenance)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 type InsertRecoveryCodesParams struct {
 	Owner pgtype.UUID `json:"owner"`
 	Hash  string      `json:"hash"`
@@ -722,6 +801,46 @@ func (q *Queries) IsUserExists(ctx context.Context, username string) (bool, erro
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const MaintenancesHistory = `-- name: MaintenancesHistory :many
+select id, description, status, type, planned_start, planned_end, actual_start, actual_end, caller, created from maintenances limit $1 offset $2
+`
+
+type MaintenancesHistoryParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) MaintenancesHistory(ctx context.Context, arg MaintenancesHistoryParams) ([]Maintenance, error) {
+	rows, err := q.db.Query(ctx, MaintenancesHistory, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Maintenance
+	for rows.Next() {
+		var i Maintenance
+		if err := rows.Scan(
+			&i.ID,
+			&i.Description,
+			&i.Status,
+			&i.Type,
+			&i.PlannedStart,
+			&i.PlannedEnd,
+			&i.ActualStart,
+			&i.ActualEnd,
+			&i.Caller,
+			&i.Created,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const MessageAuthor = `-- name: MessageAuthor :one
@@ -874,7 +993,20 @@ func (q *Queries) ProjectInfo(ctx context.Context, id pgtype.UUID) (Project, err
 }
 
 const ProjectsList = `-- name: ProjectsList :many
-select id, author, title, description, category, status, impl_link, likes, at, updated, deleted from projects where status <> 'reviewing' limit $1 offset $2
+select id,
+       author,
+       title,
+       description,
+       category,
+       status,
+       impl_link,
+       likes,
+       at,
+       updated,
+       deleted
+from projects
+where status <> 'reviewing'
+limit $1 offset $2
 `
 
 type ProjectsListParams struct {
@@ -1125,6 +1257,15 @@ update users_security set email_verified = true where owner = $1
 
 func (q *Queries) SetUserSecurityEmailVerified(ctx context.Context, owner pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, SetUserSecurityEmailVerified, owner)
+	return err
+}
+
+const StartMaintenance = `-- name: StartMaintenance :exec
+update maintenances set status = 'running', actual_start = now() where id = $1
+`
+
+func (q *Queries) StartMaintenance(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, StartMaintenance, id)
 	return err
 }
 
