@@ -2,6 +2,7 @@ package maintenanceservice
 
 import (
 	"context"
+	"time"
 
 	"github.com/aesterial/cityideas/backend/internal/domain"
 	maintenancesdomain "github.com/aesterial/cityideas/backend/internal/domain/maintenances"
@@ -27,6 +28,15 @@ func (s *Service) IsActive(ctx context.Context) (*maintenancesdomain.Maintenance
 		return nil, errors.Wrap(err)
 	}
 	return out, nil
+}
+
+func (s *Service) IsPlanned(ctx context.Context) (*time.Time, string, error) {
+	at, desc, err := s.mt.IsPlanned(ctx)
+	if err != nil {
+		logger.Error("maintenance", "failed to get planned", logger.F("error", err))
+		return nil, "", errors.Wrap(err)
+	}
+	return at, desc, nil
 }
 
 func (s *Service) History(ctx context.Context, limit int32, offset int32) (maintenancesdomain.Maintenances, error) {

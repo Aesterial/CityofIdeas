@@ -36,9 +36,8 @@ message Maintenance {
 }
 
 message IsPlannedResponse {
-  bool value = 1;
-  google.protobuf.Timestamp at = 2;
-  string description = 3;
+  google.protobuf.Timestamp at = 1;
+  string description = 2;
 }
 
 message HistoryResponse {

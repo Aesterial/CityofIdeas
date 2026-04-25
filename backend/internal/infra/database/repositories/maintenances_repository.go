@@ -113,3 +113,15 @@ func (m *MaintenanceRepository) Start(ctx context.Context, id domain.UUID) error
 func (m *MaintenanceRepository) Close(ctx context.Context, id domain.UUID) error {
 	return m.conn.EndMaintenance(ctx, id.ToPG())
 }
+
+func (m *MaintenanceRepository) IsPlanned(ctx context.Context) (*time.Time, string, error) {
+	out, err := m.conn.PlannedMaintenance(ctx)
+	if err != nil {
+		return nil, "", err
+	}
+	var planned *time.Time
+	if out.PlannedStart.Valid {
+		planned = &out.PlannedStart.Time
+	}
+	return planned, out.Description, nil
+}

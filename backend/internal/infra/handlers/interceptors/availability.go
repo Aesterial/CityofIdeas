@@ -2,6 +2,7 @@ package interceptors
 
 import (
 	"context"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -18,6 +19,9 @@ var (
 
 func (s *Service) AvailabilityCheck() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+		if strings.Contains(info.FullMethod, "xyz.city_ideas.v1.maintenances.v1") {
+			return handler(ctx, req)
+		}
 		now := time.Now()
 		if now.UnixNano() < noMaintenanceUntilUnix.Load() {
 			return handler(ctx, req)
@@ -29,7 +33,7 @@ func (s *Service) AvailabilityCheck() grpc.UnaryServerInterceptor {
 			return handler(ctx, req)
 		}
 		active, err := s.mt.IsActive(ctx)
-		if err != nil {
+		if err != nil && !errors.Is(err, errors.NotFound) {
 			availabilityMu.Unlock()
 			logger.Error("interceptors", "failed to check is maintenance valid", logger.F("error", err))
 			return nil, errors.Unavailable

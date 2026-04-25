@@ -313,7 +313,9 @@ update ranks set permissions = $1 where id = $2;
 insert into maintenances (description, planned_start, planned_end, caller) values ($1, $2, $3, $4) returning id, description, status, type, planned_start, planned_end, actual_start, actual_end, caller, created;
 
 -- name: HasActiveMaintenance :one
-select exists (select 1 from maintenances where tatus = 'running' or (planned_start < now() and actual_end is not null));
+select exists (select 1
+               from maintenances
+               where status = 'running' or (planned_start < now() and actual_end is not null));
 
 -- name: ActiveMaintenance :one
 select id, description, status, type, planned_start, planned_end, actual_start, actual_end, caller, created from maintenances where status = 'running' or (planned_start < now() and actual_end is not null) limit 1;
@@ -326,3 +328,9 @@ update maintenances set status = 'running', actual_start = now() where id = $1;
 
 -- name: EndMaintenance :exec
 update maintenances set status = 'completed', actual_end = now() where id = $1;
+
+-- name: PlannedMaintenance :one
+select planned_start, description
+from maintenances
+where status = 'expected'
+limit 1;

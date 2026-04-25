@@ -188,7 +188,7 @@ func (u *UserRepository) List(ctx context.Context, limit int32, offset int32) (u
 		limit = 100
 	}
 
-	listFn := func(ctx context.Context, args ...any) (userdomain.Users, error) {
+	listFn := func(_ context.Context, args ...any) (userdomain.Users, error) {
 		l, err := u.conn.GetUsers(ctx, sqlc.GetUsersParams{
 			Limit:  limit,
 			Offset: offset,
@@ -199,7 +199,7 @@ func (u *UserRepository) List(ctx context.Context, limit int32, offset int32) (u
 		return u.parseUsers(l), nil
 	}
 
-	prefsFn := func(ctx context.Context, user *userdomain.User) (*userdomain.User, error) {
+	prefsFn := func(_ context.Context, user *userdomain.User) (*userdomain.User, error) {
 		if user == nil {
 			return nil, errors.InvalidArguments
 		}
@@ -211,7 +211,7 @@ func (u *UserRepository) List(ctx context.Context, limit int32, offset int32) (u
 		}
 		return user, nil
 	}
-	ranksFn := func(ctx context.Context, user *userdomain.User) (*userdomain.User, error) {
+	ranksFn := func(_ context.Context, user *userdomain.User) (*userdomain.User, error) {
 		if user == nil {
 			return nil, errors.InvalidArguments
 		}

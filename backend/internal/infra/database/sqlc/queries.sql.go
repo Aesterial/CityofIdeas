@@ -716,7 +716,7 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 }
 
 const HasActiveMaintenance = `-- name: HasActiveMaintenance :one
-select exists (select 1 from maintenances where tatus = 'running' or (planned_start < now() and actual_end is not null))
+select exists (select 1 from maintenances where status = 'running' or (planned_start < now() and actual_end is not null))
 `
 
 func (q *Queries) HasActiveMaintenance(ctx context.Context) (bool, error) {
@@ -953,6 +953,22 @@ func (q *Queries) MessagesListWithDeleted(ctx context.Context, arg MessagesListW
 		return nil, err
 	}
 	return items, nil
+}
+
+const PlannedMaintenance = `-- name: PlannedMaintenance :one
+select planned_start, description from maintenances where status = 'expected' limit 1
+`
+
+type PlannedMaintenanceRow struct {
+	PlannedStart pgtype.Timestamptz `json:"planned_start"`
+	Description  string             `json:"description"`
+}
+
+func (q *Queries) PlannedMaintenance(ctx context.Context) (PlannedMaintenanceRow, error) {
+	row := q.db.QueryRow(ctx, PlannedMaintenance)
+	var i PlannedMaintenanceRow
+	err := row.Scan(&i.PlannedStart, &i.Description)
+	return i, err
 }
 
 const ProjectAuthor = `-- name: ProjectAuthor :one

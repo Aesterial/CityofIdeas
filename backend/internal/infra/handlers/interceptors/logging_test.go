@@ -13,7 +13,7 @@ import (
 func TestLoggingInterceptorReturnsHandlerError(t *testing.T) {
 	t.Parallel()
 
-	interceptor := Logging()
+	interceptor := NewService(nil).Logging()
 	expected := errors.AccessDenied
 
 	resp, err := interceptor(

@@ -47,8 +47,10 @@ const (
 	ProjectMessageViewAll   Permission = "project.message.view.all"
 	ProjectMessageDeleteAll Permission = "project.message.delete.all"
 
-	MaintenanceStart Permission = "maintenance.start"
-	MaintenanceStop  Permission = "maintenance.stop"
+	MaintenanceHistory Permission = "maintenance.history"
+	MaintenanceCreate  Permission = "maintenance.create"
+	MaintenanceStart   Permission = "maintenance.start"
+	MaintenanceStop    Permission = "maintenance.stop"
 )
 
 type Permissions []Permission
@@ -99,6 +101,8 @@ var All = Permissions{
 	ProjectMessageViewAll,
 	ProjectMessageDeleteAll,
 
+	MaintenanceHistory,
+	MaintenanceCreate,
 	MaintenanceStart,
 	MaintenanceStop,
 }

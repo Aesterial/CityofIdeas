@@ -490,9 +490,8 @@ func (b0 Maintenance_builder) Build() *Maintenance {
 
 type IsPlannedResponse struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Value       bool                   `protobuf:"varint,1,opt,name=value"`
-	xxx_hidden_At          *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=at"`
-	xxx_hidden_Description *string                `protobuf:"bytes,3,opt,name=description"`
+	xxx_hidden_At          *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=at"`
+	xxx_hidden_Description *string                `protobuf:"bytes,2,opt,name=description"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
 	unknownFields          protoimpl.UnknownFields
@@ -524,13 +523,6 @@ func (x *IsPlannedResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *IsPlannedResponse) GetValue() bool {
-	if x != nil {
-		return x.xxx_hidden_Value
-	}
-	return false
-}
-
 func (x *IsPlannedResponse) GetAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.xxx_hidden_At
@@ -548,25 +540,13 @@ func (x *IsPlannedResponse) GetDescription() string {
 	return ""
 }
 
-func (x *IsPlannedResponse) SetValue(v bool) {
-	x.xxx_hidden_Value = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 3)
-}
-
 func (x *IsPlannedResponse) SetAt(v *timestamppb.Timestamp) {
 	x.xxx_hidden_At = v
 }
 
 func (x *IsPlannedResponse) SetDescription(v string) {
 	x.xxx_hidden_Description = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
-}
-
-func (x *IsPlannedResponse) HasValue() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 2)
 }
 
 func (x *IsPlannedResponse) HasAt() bool {
@@ -580,12 +560,7 @@ func (x *IsPlannedResponse) HasDescription() bool {
 	if x == nil {
 		return false
 	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
-}
-
-func (x *IsPlannedResponse) ClearValue() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
-	x.xxx_hidden_Value = false
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
 }
 
 func (x *IsPlannedResponse) ClearAt() {
@@ -593,14 +568,13 @@ func (x *IsPlannedResponse) ClearAt() {
 }
 
 func (x *IsPlannedResponse) ClearDescription() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
 	x.xxx_hidden_Description = nil
 }
 
 type IsPlannedResponse_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Value       *bool
 	At          *timestamppb.Timestamp
 	Description *string
 }
@@ -609,13 +583,9 @@ func (b0 IsPlannedResponse_builder) Build() *IsPlannedResponse {
 	m0 := &IsPlannedResponse{}
 	b, x := &b0, m0
 	_, _ = b, x
-	if b.Value != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 3)
-		x.xxx_hidden_Value = *b.Value
-	}
 	x.xxx_hidden_At = b.At
 	if b.Description != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 2)
 		x.xxx_hidden_Description = b.Description
 	}
 	return m0
@@ -799,11 +769,10 @@ const file_xyz_city_ideas_v1_maintenances_v1_domain_proto_rawDesc = "" +
 	"\aplanned\x18\x05 \x01(\v2,.xyz.city_ideas.v1.maintenances.v1.TimeRangeR\aplanned\x12D\n" +
 	"\x06actual\x18\x06 \x01(\v2,.xyz.city_ideas.v1.maintenances.v1.TimeRangeR\x06actual\x12\x1b\n" +
 	"\tcaller_id\x18\a \x01(\tR\bcallerId\x12*\n" +
-	"\x02at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\x02at\"w\n" +
-	"\x11IsPlannedResponse\x12\x14\n" +
-	"\x05value\x18\x01 \x01(\bR\x05value\x12*\n" +
-	"\x02at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x02at\x12 \n" +
-	"\vdescription\x18\x03 \x01(\tR\vdescription\"U\n" +
+	"\x02at\x18\b \x01(\v2\x1a.google.protobuf.TimestampR\x02at\"a\n" +
+	"\x11IsPlannedResponse\x12*\n" +
+	"\x02at\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x02at\x12 \n" +
+	"\vdescription\x18\x02 \x01(\tR\vdescription\"U\n" +
 	"\x0fHistoryResponse\x12B\n" +
 	"\x04list\x18\x01 \x03(\v2..xyz.city_ideas.v1.maintenances.v1.MaintenanceR\x04list\"s\n" +
 	"\rCreateRequest\x12 \n" +

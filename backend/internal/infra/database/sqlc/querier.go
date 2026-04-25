@@ -57,6 +57,7 @@ type Querier interface {
 	MessageInfo(ctx context.Context, id pgtype.UUID) (ProjectMessage, error)
 	MessagesList(ctx context.Context, arg MessagesListParams) ([]ProjectMessage, error)
 	MessagesListWithDeleted(ctx context.Context, arg MessagesListWithDeletedParams) ([]ProjectMessage, error)
+	PlannedMaintenance(ctx context.Context) (PlannedMaintenanceRow, error)
 	ProjectAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
 	ProjectInfo(ctx context.Context, id pgtype.UUID) (Project, error)
 	ProjectsList(ctx context.Context, arg ProjectsListParams) ([]Project, error)

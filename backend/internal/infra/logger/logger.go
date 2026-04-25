@@ -6,6 +6,8 @@ import (
 	"time"
 
 	loggerdomain "github.com/aesterial/cityideas/backend/internal/domain/logger"
+	"github.com/aesterial/cityideas/backend/internal/shared/errors"
+	"github.com/jackc/pgx/v5"
 )
 
 type Logger struct {
@@ -42,7 +44,21 @@ func (l *Logger) Critical(service string, content string, fields loggerdomain.Fi
 	l.log(loggerdomain.LevelCritical, service, content, fields)
 }
 
+func (*Logger) shouldSkip(fields loggerdomain.Fields, ignored ...loggerdomain.Field) bool {
+	for _, field := range fields {
+		for _, ignore := range ignored {
+			if field == ignore {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (l *Logger) log(level loggerdomain.Level, service string, content string, fields loggerdomain.Fields) {
+	if l.shouldSkip(fields, F("error", errors.NotFound), F("error", pgx.ErrNoRows)) {
+		return
+	}
 	l.logger.Println(loggerdomain.NewEntry(service, content, level, time.Now(), fields).Render())
 }
 

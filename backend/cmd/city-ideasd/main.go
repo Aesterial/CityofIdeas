@@ -9,6 +9,7 @@ import (
 	"time"
 
 	loginpb "github.com/aesterial/cityideas/backend/internal/api/v1/login/v1"
+	maintenancepb "github.com/aesterial/cityideas/backend/internal/api/v1/maintenances/v1"
 	projectpb "github.com/aesterial/cityideas/backend/internal/api/v1/projects/v1"
 	rankpb "github.com/aesterial/cityideas/backend/internal/api/v1/ranks/v1"
 	sessionpb "github.com/aesterial/cityideas/backend/internal/api/v1/sessions/v1"
@@ -77,6 +78,7 @@ func main() {
 	projectHandler := handlers.NewProjectHandler(projectService, auth)
 	rankHandler := handlers.NewRankHandler(rankService, auth)
 	ticketHandler := handlers.NewTicketHandler(ticketService, auth)
+	maintenanceHandler := handlers.NewMaintenanceHandler(maintenanceService, auth)
 
 	loginpb.RegisterLoginServiceServer(srv, loginHandler)
 	userpb.RegisterUserServiceServer(srv, userHandler)
@@ -84,6 +86,7 @@ func main() {
 	projectpb.RegisterProjectsServiceServer(srv, projectHandler)
 	rankpb.RegisterRankServiceServer(srv, rankHandler)
 	ticketpb.RegisterTicketServiceServer(srv, ticketHandler)
+	maintenancepb.RegisterMaintenanceServiceServer(srv, maintenanceHandler)
 
 	logger.Info("main", "starting listener")
 	listener, err := net.Listen("tcp", "0.0.0.0:"+cfg.Port)

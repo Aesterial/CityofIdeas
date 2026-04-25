@@ -21,7 +21,7 @@ func (s *Service) Logging() grpc.UnaryServerInterceptor {
 			logger.F("duration", time.Since(at).Milliseconds()),
 		}
 		if err == nil {
-			logger.Info("logging", "request handler", fs...)
+			logger.Info("logging", "request handle", fs...)
 			return result, nil
 		}
 		st, ok := status.FromError(err)
