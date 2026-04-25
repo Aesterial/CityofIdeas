@@ -1,0 +1,45 @@
+edition = "2023";
+
+package xyz.city_ideas.v1.statistics.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/statistics/v1;v1";
+
+message Global {
+  int32 ideas = 1;
+  int32 implemented = 2;
+  int32 votes = 3;
+  // contains the city with the maximum number of created projects.
+  string city = 4;
+}
+
+message GraphPoint {
+  google.protobuf.Timestamp at = 1;
+  int32 value = 2;
+}
+
+message ProjectCreation {
+  repeated GraphPoint list = 1;
+}
+
+message Graph {
+  repeated GraphPoint list = 1;
+  Separator separator = 2;
+}
+
+message SeparatorValue {
+  Separator value = 1;
+}
+
+message RequestByCity {
+  Separator separator = 1;
+  // value can be null if requestor wants information widely
+  string city = 2;
+}
+
+enum Separator {
+  SEPARATOR_UNSPECIFIED = 0;
+  SEPARATOR_HOURLY = 1;
+  SEPARATOR_WEEKLY = 2;
+}

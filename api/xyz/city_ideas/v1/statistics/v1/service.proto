@@ -1,0 +1,16 @@
+edition = "2023";
+
+package xyz.city_ideas.v1.statistics.v1;
+
+import "google/protobuf/empty.proto";
+import "xyz/city_ideas/v1/statistics/v1/domain.proto";
+
+option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/statistics/v1;v1";
+
+service StatisticService {
+  rpc Global(google.protobuf.Empty) returns (xyz.city_ideas.v1.statistics.v1.Global);
+  rpc ProjectVotes(xyz.city_ideas.v1.statistics.v1.RequestByCity) returns (xyz.city_ideas.v1.statistics.v1.Graph);
+  rpc ProjectCreation(xyz.city_ideas.v1.statistics.v1.RequestByCity) returns (xyz.city_ideas.v1.statistics.v1.Graph);
+  rpc ProjectDiscussion(xyz.city_ideas.v1.statistics.v1.RequestByCity) returns (xyz.city_ideas.v1.statistics.v1.Graph);
+  rpc QuestionsActivity(xyz.city_ideas.v1.statistics.v1.SeparatorValue) returns (xyz.city_ideas.v1.statistics.v1.Graph);
+}
