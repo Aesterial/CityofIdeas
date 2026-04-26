@@ -89,7 +89,7 @@ func main() {
 	maintenancepb.RegisterMaintenanceServiceServer(srv, maintenanceHandler)
 
 	logger.Info("main", "starting listener")
-	listener, err := net.Listen("tcp", "0.0.0.0:"+cfg.Port)
+	listener, err := net.Listen("tcp", cfg.Host+":"+cfg.Port)
 	if err != nil {
 		logger.Critical("main", "failed to start listener", logger.F("error", err))
 		return

@@ -65,6 +65,7 @@ func Ensure() error {
 			Issuer: parseType("COOKIE_ISSUER", "https://aesterial.xyz"),
 		},
 		AllowedOrigins: parseType("ALLOWED_ORIGINS", []string{"https://aesterial.xyz"}),
+		Host:           parseType("HOST", "0.0.0.0"),
 		Debug:          parseType("DEBUG", false),
 		Port:           parseType("PORT", "8080"),
 	}

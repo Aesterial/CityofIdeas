@@ -59,6 +59,7 @@ type Config struct {
 	Database       Database
 	Cookie         Cookie
 	AllowedOrigins []string
+	Host           string
 	Port           string
 	Debug          bool
 	Loaded         bool

@@ -286,6 +286,9 @@ func (p *ProjectRepository) CreateProject(ctx context.Context, author domain.UUI
 		Lat:  latitude,
 		Lot:  longitude,
 	})
+	if err != nil {
+		return nil, err
+	}
 	proj := p.parseProject(info)
 	proj.Location = p.parseLocation(location)
 	return proj, nil
