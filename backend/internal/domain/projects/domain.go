@@ -64,6 +64,23 @@ func (s Status) Protobuf() projectpb.Status {
 	}
 }
 
+type ProjectLocation struct {
+	City      string
+	Latitude  float64
+	Longitude float64
+}
+
+func (p *ProjectLocation) Protobuf() *projectpb.ProjectLocation {
+	if p == nil {
+		return nil
+	}
+	var out = &projectpb.ProjectLocation{}
+	out.SetCity(p.City)
+	out.SetLat(p.Latitude)
+	out.SetLot(p.Longitude)
+	return out
+}
+
 type Project struct {
 	ID          domain.UUID
 	Author      domain.UUID
@@ -72,10 +89,11 @@ type Project struct {
 	Category    string
 	Status      Status
 	Link        *url.URL
-	Likes       int32
+	Likes       int64
 	At          time.Time
 	Updated     time.Time
 	Cancelled   *time.Time
+	Location    *ProjectLocation
 }
 
 func (p *Project) Protobuf() *projectpb.Project {
@@ -102,6 +120,7 @@ func (p *Project) Protobuf() *projectpb.Project {
 	out.SetAt(timestamppb.New(p.At))
 	out.SetUpdated(timestamppb.New(p.Updated))
 	out.SetDeleted(cancelled)
+	out.SetLocation(p.Location.Protobuf())
 	return out
 }
 

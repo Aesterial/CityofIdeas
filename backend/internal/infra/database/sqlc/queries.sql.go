@@ -14,11 +14,11 @@ import (
 const AcceptSubmission = `-- name: AcceptSubmission :exec
 update submissions
 set approved = true
-where id = $1
+where linked = $1
 `
 
-func (q *Queries) AcceptSubmission(ctx context.Context, id pgtype.UUID) error {
-	_, err := q.db.Exec(ctx, AcceptSubmission, id)
+func (q *Queries) AcceptSubmission(ctx context.Context, linked pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, AcceptSubmission, linked)
 	return err
 }
 
@@ -153,7 +153,7 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (P
 const CreateProject = `-- name: CreateProject :one
 insert into projects (author, title, description, category)
 values ($1, $2, $3, $4)
-returning id, author, title, description, category, status, impl_link, likes, at, updated, deleted
+returning id, author, title, description, category, status, impl_link, at, updated, deleted
 `
 
 type CreateProjectParams struct {
@@ -179,10 +179,37 @@ func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (P
 		&i.Category,
 		&i.Status,
 		&i.ImplLink,
-		&i.Likes,
 		&i.At,
 		&i.Updated,
 		&i.Deleted,
+	)
+	return i, err
+}
+
+const CreateProjectLocation = `-- name: CreateProjectLocation :one
+insert into project_location (id, city, lat, lot) values ($1, $2, $3, $4) returning id, city, lat, lot
+`
+
+type CreateProjectLocationParams struct {
+	ID   pgtype.UUID `json:"id"`
+	City string      `json:"city"`
+	Lat  float64     `json:"lat"`
+	Lot  float64     `json:"lot"`
+}
+
+func (q *Queries) CreateProjectLocation(ctx context.Context, arg CreateProjectLocationParams) (ProjectLocation, error) {
+	row := q.db.QueryRow(ctx, CreateProjectLocation,
+		arg.ID,
+		arg.City,
+		arg.Lat,
+		arg.Lot,
+	)
+	var i ProjectLocation
+	err := row.Scan(
+		&i.ID,
+		&i.City,
+		&i.Lat,
+		&i.Lot,
 	)
 	return i, err
 }
@@ -450,16 +477,16 @@ const DenySubmission = `-- name: DenySubmission :exec
 update submissions
 set approved = false,
     reason   = $1
-where id = $2
+where linked = $2
 `
 
 type DenySubmissionParams struct {
 	Reason pgtype.Text `json:"reason"`
-	ID     pgtype.UUID `json:"id"`
+	Linked pgtype.UUID `json:"linked"`
 }
 
 func (q *Queries) DenySubmission(ctx context.Context, arg DenySubmissionParams) error {
-	_, err := q.db.Exec(ctx, DenySubmission, arg.Reason, arg.ID)
+	_, err := q.db.Exec(ctx, DenySubmission, arg.Reason, arg.Linked)
 	return err
 }
 
@@ -716,7 +743,9 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 }
 
 const HasActiveMaintenance = `-- name: HasActiveMaintenance :one
-select exists (select 1 from maintenances where status = 'running' or (planned_start < now() and actual_end is not null))
+select exists (select 1
+               from maintenances
+               where status = 'running' or (planned_start < now() and actual_end is not null))
 `
 
 func (q *Queries) HasActiveMaintenance(ctx context.Context) (bool, error) {
@@ -755,6 +784,17 @@ type IsSessionValidParams struct {
 func (q *Queries) IsSessionValid(ctx context.Context, arg IsSessionValidParams) (pgtype.Bool, error) {
 	row := q.db.QueryRow(ctx, IsSessionValid, arg.Device, arg.Hash, arg.ID)
 	var column_1 pgtype.Bool
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
+const IsSubmissionReviewed = `-- name: IsSubmissionReviewed :one
+select approved <> false from submissions where linked = $1
+`
+
+func (q *Queries) IsSubmissionReviewed(ctx context.Context, linked pgtype.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, IsSubmissionReviewed, linked)
+	var column_1 bool
 	err := row.Scan(&column_1)
 	return column_1, err
 }
@@ -956,7 +996,10 @@ func (q *Queries) MessagesListWithDeleted(ctx context.Context, arg MessagesListW
 }
 
 const PlannedMaintenance = `-- name: PlannedMaintenance :one
-select planned_start, description from maintenances where status = 'expected' limit 1
+select planned_start, description
+from maintenances
+where status = 'expected'
+limit 1
 `
 
 type PlannedMaintenanceRow struct {
@@ -986,21 +1029,35 @@ func (q *Queries) ProjectAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUI
 }
 
 const ProjectInfo = `-- name: ProjectInfo :one
-select id, author, title, description, category, status, impl_link, likes, at, updated, deleted from projects where id = $1 limit 1
+select projects.id, projects.author, title, description, category, count(project_likes.project)::bigint as likes_count, status, impl_link, projects.at, updated, deleted from projects left join project_likes on project_likes.project = projects.id where projects.id = $1 group by projects.id, projects.author, title, description, category, status, impl_link, projects.at, updated, deleted limit 1
 `
 
-func (q *Queries) ProjectInfo(ctx context.Context, id pgtype.UUID) (Project, error) {
+type ProjectInfoRow struct {
+	ID          pgtype.UUID        `json:"id"`
+	Author      pgtype.UUID        `json:"author"`
+	Title       string             `json:"title"`
+	Description string             `json:"description"`
+	Category    string             `json:"category"`
+	LikesCount  int64              `json:"likes_count"`
+	Status      ProjectsStatus     `json:"status"`
+	ImplLink    pgtype.Text        `json:"impl_link"`
+	At          pgtype.Timestamptz `json:"at"`
+	Updated     pgtype.Timestamptz `json:"updated"`
+	Deleted     pgtype.Timestamptz `json:"deleted"`
+}
+
+func (q *Queries) ProjectInfo(ctx context.Context, id pgtype.UUID) (ProjectInfoRow, error) {
 	row := q.db.QueryRow(ctx, ProjectInfo, id)
-	var i Project
+	var i ProjectInfoRow
 	err := row.Scan(
 		&i.ID,
 		&i.Author,
 		&i.Title,
 		&i.Description,
 		&i.Category,
+		&i.LikesCount,
 		&i.Status,
 		&i.ImplLink,
-		&i.Likes,
 		&i.At,
 		&i.Updated,
 		&i.Deleted,
@@ -1008,20 +1065,50 @@ func (q *Queries) ProjectInfo(ctx context.Context, id pgtype.UUID) (Project, err
 	return i, err
 }
 
+const ProjectLocationInfo = `-- name: ProjectLocationInfo :one
+select id, city, lat, lot from project_location where id = $1
+`
+
+func (q *Queries) ProjectLocationInfo(ctx context.Context, id pgtype.UUID) (ProjectLocation, error) {
+	row := q.db.QueryRow(ctx, ProjectLocationInfo, id)
+	var i ProjectLocation
+	err := row.Scan(
+		&i.ID,
+		&i.City,
+		&i.Lat,
+		&i.Lot,
+	)
+	return i, err
+}
+
 const ProjectsList = `-- name: ProjectsList :many
-select id,
-       author,
-       title,
-       description,
-       category,
-       status,
-       impl_link,
-       likes,
-       at,
-       updated,
-       deleted
+select
+    projects.id,
+    projects.author,
+    title,
+    description,
+    category,
+    status,
+    impl_link,
+    count(project_likes.project)::bigint as likes_count,
+    projects.at,
+    updated,
+    deleted
 from projects
-where status <> 'reviewing'
+         left join project_likes
+                   on project_likes.project = projects.id
+where status <> 'reviewing' and status <> 'cancelled'
+group by
+    projects.id,
+    projects.author,
+    title,
+    description,
+    category,
+    status,
+    impl_link,
+    projects.at,
+    updated,
+    deleted
 limit $1 offset $2
 `
 
@@ -1030,15 +1117,29 @@ type ProjectsListParams struct {
 	Offset int32 `json:"offset"`
 }
 
-func (q *Queries) ProjectsList(ctx context.Context, arg ProjectsListParams) ([]Project, error) {
+type ProjectsListRow struct {
+	ID          pgtype.UUID        `json:"id"`
+	Author      pgtype.UUID        `json:"author"`
+	Title       string             `json:"title"`
+	Description string             `json:"description"`
+	Category    string             `json:"category"`
+	Status      ProjectsStatus     `json:"status"`
+	ImplLink    pgtype.Text        `json:"impl_link"`
+	LikesCount  int64              `json:"likes_count"`
+	At          pgtype.Timestamptz `json:"at"`
+	Updated     pgtype.Timestamptz `json:"updated"`
+	Deleted     pgtype.Timestamptz `json:"deleted"`
+}
+
+func (q *Queries) ProjectsList(ctx context.Context, arg ProjectsListParams) ([]ProjectsListRow, error) {
 	rows, err := q.db.Query(ctx, ProjectsList, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Project
+	var items []ProjectsListRow
 	for rows.Next() {
-		var i Project
+		var i ProjectsListRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Author,
@@ -1047,7 +1148,7 @@ func (q *Queries) ProjectsList(ctx context.Context, arg ProjectsListParams) ([]P
 			&i.Category,
 			&i.Status,
 			&i.ImplLink,
-			&i.Likes,
+			&i.LikesCount,
 			&i.At,
 			&i.Updated,
 			&i.Deleted,

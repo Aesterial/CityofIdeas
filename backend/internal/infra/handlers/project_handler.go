@@ -40,6 +40,9 @@ func (h *ProjectHandler) CreateProject(ctx context.Context, req *projectpb.Creat
 	if err := h.isRequestValid(req); err != nil {
 		return nil, err
 	}
+	if req.GetLocation() == nil {
+		return nil, errors.InvalidArguments
+	}
 	meta, err := h.auth.User(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err)
@@ -47,7 +50,7 @@ func (h *ProjectHandler) CreateProject(ctx context.Context, req *projectpb.Creat
 	if err = h.auth.Permissions(ctx, *meta, permissionsdomain.ProjectCreate); err != nil {
 		return nil, err
 	}
-	project, err := h.proj.CreateProject(ctx, *meta.UserID, req.GetTitle(), req.GetDescription(), req.GetCategory())
+	project, err := h.proj.CreateProject(ctx, *meta.UserID, req.GetTitle(), req.GetDescription(), req.GetCategory(), req.GetLocation().GetCity(), req.GetLocation().GetLat(), req.GetLocation().GetLot())
 	if err != nil {
 		return nil, err
 	}

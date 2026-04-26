@@ -14,6 +14,12 @@ enum Status {
   STATUS_IMPLEMENTING = 4;
 }
 
+message ProjectLocation {
+  string city = 1;
+  double lat = 2;
+  double lot = 3;
+}
+
 message Project {
   string id = 1;
   string author = 2;
@@ -26,6 +32,7 @@ message Project {
   google.protobuf.Timestamp at = 9;
   google.protobuf.Timestamp updated = 10;
   google.protobuf.Timestamp deleted = 11;
+  ProjectLocation location = 12;
 }
 
 message Message {
@@ -60,6 +67,7 @@ message CreateProjectRequest {
   string title = 1;
   string description = 2;
   string category = 3;
+  ProjectLocation location = 4;
 }
 
 message CreateMessageRequest {

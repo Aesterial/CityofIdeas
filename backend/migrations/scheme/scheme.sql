@@ -139,7 +139,6 @@ create table if not exists projects
     category    varchar(64)            not null default 'other',
     status      projects_status        not null default 'reviewing',
     impl_link   text,
-    likes       int                    not null default 0,
     at          timestamptz not null default now(),
     updated     timestamptz not null default now(),
     deleted     timestamptz
@@ -147,6 +146,27 @@ create table if not exists projects
 
 create unique index if not exists projects_idx on projects (id);
 create index if not exists projects_author_idx on projects (author);
+
+create table if not exists project_location
+(
+    id   uuid primary key references projects (id),
+    city varchar(64) not null,
+    lat  float       not null,
+    lot  float       not null
+);
+
+create unique index if not exists project_location_idx on project_location (id);
+
+create table if not exists project_likes
+(
+    project uuid primary key references projects (id),
+    author  uuid        not null references users (uid),
+    at      timestamptz not null default now(),
+    unique (project, author)
+);
+
+create index if not exists project_likes_idx on project_likes (project);
+create index if not exists project_likes_author_idx on project_likes (author);
 
 create table if not exists project_messages
 (

@@ -18,7 +18,7 @@ func (s *Service) Logging() grpc.UnaryServerInterceptor {
 
 		fs := []loggerdomain.Field{
 			logger.F("method", info.FullMethod),
-			logger.F("duration", time.Since(at).Milliseconds()),
+			logger.F("duration (ms)", time.Since(at).Milliseconds()),
 		}
 		if err == nil {
 			logger.Info("logging", "request handle", fs...)

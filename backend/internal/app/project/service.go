@@ -17,11 +17,11 @@ func NewService(proj projectdomain.Repository) *Service {
 	return &Service{proj: proj}
 }
 
-func (s *Service) CreateProject(ctx context.Context, user domain.UUID, title string, description string, category string) (*projectdomain.Project, error) {
+func (s *Service) CreateProject(ctx context.Context, user domain.UUID, title string, description string, category string, city string, latitude float64, longitude float64) (*projectdomain.Project, error) {
 	if title == "" || category == "" {
 		return nil, errors.InvalidArguments
 	}
-	proj, err := s.proj.CreateProject(ctx, user, title, description, category)
+	proj, err := s.proj.CreateProject(ctx, user, title, description, category, city, latitude, longitude)
 	if err != nil {
 		logger.Error("projects", "failed to create project", logger.F("error", err))
 		return nil, errors.Wrap(err)

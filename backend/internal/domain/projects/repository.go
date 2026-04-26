@@ -15,7 +15,7 @@ type Repository interface {
 	MessageAuthor(ctx context.Context, message domain.UUID) (*domain.UUID, error)
 	Project(ctx context.Context, id domain.UUID) (*Project, error)
 	ProjectAuthor(ctx context.Context, project domain.UUID) (*domain.UUID, error)
-	CreateProject(ctx context.Context, author domain.UUID, title string, description string, category string) (*Project, error)
+	CreateProject(ctx context.Context, author domain.UUID, title string, description string, category string, city string, lat float64, lot float64) (*Project, error)
 	CreateMessage(ctx context.Context, author domain.UUID, project domain.UUID, parent *domain.UUID, content string) (*Message, error)
 	SetStatus(ctx context.Context, project domain.UUID, status Status, value ...string) error
 	UpdateDescription(ctx context.Context, project domain.UUID, desc string) error

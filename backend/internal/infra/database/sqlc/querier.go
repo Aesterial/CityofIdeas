@@ -11,13 +11,14 @@ import (
 )
 
 type Querier interface {
-	AcceptSubmission(ctx context.Context, id pgtype.UUID) error
+	AcceptSubmission(ctx context.Context, linked pgtype.UUID) error
 	AcceptTicket(ctx context.Context, arg AcceptTicketParams) error
 	ActiveMaintenance(ctx context.Context) (Maintenance, error)
 	CloseTicket(ctx context.Context, arg CloseTicketParams) error
 	CreateMaintenance(ctx context.Context, arg CreateMaintenanceParams) (Maintenance, error)
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (ProjectMessage, error)
 	CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error)
+	CreateProjectLocation(ctx context.Context, arg CreateProjectLocationParams) (ProjectLocation, error)
 	CreateRank(ctx context.Context, arg CreateRankParams) (Rank, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	CreateSubmission(ctx context.Context, linked pgtype.UUID) (CreateSubmissionRow, error)
@@ -48,6 +49,7 @@ type Querier interface {
 	InsertRecoveryCodes(ctx context.Context, arg []InsertRecoveryCodesParams) (int64, error)
 	IsRankExists(ctx context.Context, name string) (bool, error)
 	IsSessionValid(ctx context.Context, arg IsSessionValidParams) (pgtype.Bool, error)
+	IsSubmissionReviewed(ctx context.Context, linked pgtype.UUID) (bool, error)
 	IsTicketAccepted(ctx context.Context, id pgtype.UUID) (bool, error)
 	IsTicketClosed(ctx context.Context, id pgtype.UUID) (bool, error)
 	IsUserBanned(ctx context.Context, target pgtype.UUID) (bool, error)
@@ -59,8 +61,9 @@ type Querier interface {
 	MessagesListWithDeleted(ctx context.Context, arg MessagesListWithDeletedParams) ([]ProjectMessage, error)
 	PlannedMaintenance(ctx context.Context) (PlannedMaintenanceRow, error)
 	ProjectAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
-	ProjectInfo(ctx context.Context, id pgtype.UUID) (Project, error)
-	ProjectsList(ctx context.Context, arg ProjectsListParams) ([]Project, error)
+	ProjectInfo(ctx context.Context, id pgtype.UUID) (ProjectInfoRow, error)
+	ProjectLocationInfo(ctx context.Context, id pgtype.UUID) (ProjectLocation, error)
+	ProjectsList(ctx context.Context, arg ProjectsListParams) ([]ProjectsListRow, error)
 	RankInfo(ctx context.Context, name string) (Rank, error)
 	RankInfoByID(ctx context.Context, id pgtype.UUID) (Rank, error)
 	RankUsers(ctx context.Context, name string) ([]pgtype.UUID, error)

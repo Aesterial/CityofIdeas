@@ -188,26 +188,64 @@ select id, ticket, author, content, created from tickets_messages where ticket =
 -- name: CreateProject :one
 insert into projects (author, title, description, category)
 values ($1, $2, $3, $4)
-returning id, author, title, description, category, status, impl_link, likes, at, updated, deleted;
+returning id, author, title, description, category, status, impl_link, at, updated, deleted;
+
+-- name: CreateProjectLocation :one
+insert into project_location (id, city, lat, lot)
+values ($1, $2, $3, $4)
+returning id, city, lat, lot;
 
 -- name: ProjectsList :many
-select id,
-       author,
+select projects.id,
+       projects.author,
        title,
        description,
        category,
        status,
        impl_link,
-       likes,
-       at,
+       count(project_likes.project)::bigint as likes_count,
+       projects.at,
        updated,
        deleted
 from projects
+         left join project_likes
+                   on project_likes.project = projects.id
 where status <> 'reviewing'
+  and status <> 'cancelled'
+group by projects.id,
+         projects.author,
+         title,
+         description,
+         category,
+         status,
+         impl_link,
+         projects.at,
+         updated,
+         deleted
 limit $1 offset $2;
 
 -- name: ProjectInfo :one
-select id, author, title, description, category, status, impl_link, likes, at, updated, deleted from projects where id = $1 limit 1;
+select projects.id,
+       projects.author,
+       title,
+       description,
+       category,
+       count(project_likes.project)::bigint as likes_count,
+       status,
+       impl_link,
+       projects.at,
+       updated,
+       deleted
+from projects
+         left join project_likes on project_likes.project = projects.id
+where projects.id = $1
+group by projects.id, projects.author, title, description, category, status, impl_link, projects.at, updated, deleted
+limit 1;
+
+-- name: ProjectLocationInfo :one
+select id, city, lat, lot
+from project_location
+where id = $1;
 
 -- name: ProjectAuthor :one
 select author
@@ -233,13 +271,18 @@ select id, linked, approved, reason from submissions where id = $1 limit 1;
 -- name: AcceptSubmission :exec
 update submissions
 set approved = true
-where id = $1;
+where linked = $1;
 
 -- name: DenySubmission :exec
 update submissions
 set approved = false,
     reason   = $1
-where id = $2;
+where linked = $2;
+
+-- name: IsSubmissionReviewed :one
+select approved <> false
+from submissions
+where linked = $1;
 
 -- name: CreateMessage :one
 insert into project_messages (linked, author, parent, content) values ($1, $2, $3, $4) returning id, linked, author, parent, content, at, deleted;

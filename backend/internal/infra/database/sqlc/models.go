@@ -465,10 +465,22 @@ type Project struct {
 	Category    string             `json:"category"`
 	Status      ProjectsStatus     `json:"status"`
 	ImplLink    pgtype.Text        `json:"impl_link"`
-	Likes       int32              `json:"likes"`
 	At          pgtype.Timestamptz `json:"at"`
 	Updated     pgtype.Timestamptz `json:"updated"`
 	Deleted     pgtype.Timestamptz `json:"deleted"`
+}
+
+type ProjectLike struct {
+	Project pgtype.UUID        `json:"project"`
+	Author  pgtype.UUID        `json:"author"`
+	At      pgtype.Timestamptz `json:"at"`
+}
+
+type ProjectLocation struct {
+	ID   pgtype.UUID `json:"id"`
+	City string      `json:"city"`
+	Lat  float64     `json:"lat"`
+	Lot  float64     `json:"lot"`
 }
 
 type ProjectMessage struct {
