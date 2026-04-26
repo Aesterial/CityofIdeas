@@ -26,7 +26,8 @@ type Separator int32
 const (
 	Separator_SEPARATOR_UNSPECIFIED Separator = 0
 	Separator_SEPARATOR_HOURLY      Separator = 1
-	Separator_SEPARATOR_WEEKLY      Separator = 2
+	Separator_SEPARATOR_DAILY       Separator = 2
+	Separator_SEPARATOR_WEEKLY      Separator = 3
 )
 
 // Enum value maps for Separator.
@@ -34,12 +35,14 @@ var (
 	Separator_name = map[int32]string{
 		0: "SEPARATOR_UNSPECIFIED",
 		1: "SEPARATOR_HOURLY",
-		2: "SEPARATOR_WEEKLY",
+		2: "SEPARATOR_DAILY",
+		3: "SEPARATOR_WEEKLY",
 	}
 	Separator_value = map[string]int32{
 		"SEPARATOR_UNSPECIFIED": 0,
 		"SEPARATOR_HOURLY":      1,
-		"SEPARATOR_WEEKLY":      2,
+		"SEPARATOR_DAILY":       2,
+		"SEPARATOR_WEEKLY":      3,
 	}
 )
 
@@ -67,9 +70,9 @@ func (x Separator) Number() protoreflect.EnumNumber {
 
 type Global struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Ideas       int32                  `protobuf:"varint,1,opt,name=ideas"`
-	xxx_hidden_Implemented int32                  `protobuf:"varint,2,opt,name=implemented"`
-	xxx_hidden_Votes       int32                  `protobuf:"varint,3,opt,name=votes"`
+	xxx_hidden_Ideas       int64                  `protobuf:"varint,1,opt,name=ideas"`
+	xxx_hidden_Implemented int64                  `protobuf:"varint,2,opt,name=implemented"`
+	xxx_hidden_Votes       int64                  `protobuf:"varint,3,opt,name=votes"`
 	xxx_hidden_City        *string                `protobuf:"bytes,4,opt,name=city"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
@@ -102,21 +105,21 @@ func (x *Global) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *Global) GetIdeas() int32 {
+func (x *Global) GetIdeas() int64 {
 	if x != nil {
 		return x.xxx_hidden_Ideas
 	}
 	return 0
 }
 
-func (x *Global) GetImplemented() int32 {
+func (x *Global) GetImplemented() int64 {
 	if x != nil {
 		return x.xxx_hidden_Implemented
 	}
 	return 0
 }
 
-func (x *Global) GetVotes() int32 {
+func (x *Global) GetVotes() int64 {
 	if x != nil {
 		return x.xxx_hidden_Votes
 	}
@@ -133,17 +136,17 @@ func (x *Global) GetCity() string {
 	return ""
 }
 
-func (x *Global) SetIdeas(v int32) {
+func (x *Global) SetIdeas(v int64) {
 	x.xxx_hidden_Ideas = v
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 4)
 }
 
-func (x *Global) SetImplemented(v int32) {
+func (x *Global) SetImplemented(v int64) {
 	x.xxx_hidden_Implemented = v
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 4)
 }
 
-func (x *Global) SetVotes(v int32) {
+func (x *Global) SetVotes(v int64) {
 	x.xxx_hidden_Votes = v
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 4)
 }
@@ -204,9 +207,9 @@ func (x *Global) ClearCity() {
 type Global_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	Ideas       *int32
-	Implemented *int32
-	Votes       *int32
+	Ideas       *int64
+	Implemented *int64
+	Votes       *int64
 	// contains the city with the maximum number of created projects.
 	City *string
 }
@@ -334,65 +337,6 @@ func (b0 GraphPoint_builder) Build() *GraphPoint {
 	return m0
 }
 
-type ProjectCreation struct {
-	state           protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_List *[]*GraphPoint         `protobuf:"bytes,1,rep,name=list"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
-}
-
-func (x *ProjectCreation) Reset() {
-	*x = ProjectCreation{}
-	mi := &file_xyz_city_ideas_v1_statistics_v1_domain_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ProjectCreation) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ProjectCreation) ProtoMessage() {}
-
-func (x *ProjectCreation) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_statistics_v1_domain_proto_msgTypes[2]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *ProjectCreation) GetList() []*GraphPoint {
-	if x != nil {
-		if x.xxx_hidden_List != nil {
-			return *x.xxx_hidden_List
-		}
-	}
-	return nil
-}
-
-func (x *ProjectCreation) SetList(v []*GraphPoint) {
-	x.xxx_hidden_List = &v
-}
-
-type ProjectCreation_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	List []*GraphPoint
-}
-
-func (b0 ProjectCreation_builder) Build() *ProjectCreation {
-	m0 := &ProjectCreation{}
-	b, x := &b0, m0
-	_, _ = b, x
-	x.xxx_hidden_List = &b.List
-	return m0
-}
-
 type Graph struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_List        *[]*GraphPoint         `protobuf:"bytes,1,rep,name=list"`
@@ -405,7 +349,7 @@ type Graph struct {
 
 func (x *Graph) Reset() {
 	*x = Graph{}
-	mi := &file_xyz_city_ideas_v1_statistics_v1_domain_proto_msgTypes[3]
+	mi := &file_xyz_city_ideas_v1_statistics_v1_domain_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -417,7 +361,7 @@ func (x *Graph) String() string {
 func (*Graph) ProtoMessage() {}
 
 func (x *Graph) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_statistics_v1_domain_proto_msgTypes[3]
+	mi := &file_xyz_city_ideas_v1_statistics_v1_domain_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -497,7 +441,7 @@ type SeparatorValue struct {
 
 func (x *SeparatorValue) Reset() {
 	*x = SeparatorValue{}
-	mi := &file_xyz_city_ideas_v1_statistics_v1_domain_proto_msgTypes[4]
+	mi := &file_xyz_city_ideas_v1_statistics_v1_domain_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -509,7 +453,7 @@ func (x *SeparatorValue) String() string {
 func (*SeparatorValue) ProtoMessage() {}
 
 func (x *SeparatorValue) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_statistics_v1_domain_proto_msgTypes[4]
+	mi := &file_xyz_city_ideas_v1_statistics_v1_domain_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -575,7 +519,7 @@ type RequestByCity struct {
 
 func (x *RequestByCity) Reset() {
 	*x = RequestByCity{}
-	mi := &file_xyz_city_ideas_v1_statistics_v1_domain_proto_msgTypes[5]
+	mi := &file_xyz_city_ideas_v1_statistics_v1_domain_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -587,7 +531,7 @@ func (x *RequestByCity) String() string {
 func (*RequestByCity) ProtoMessage() {}
 
 func (x *RequestByCity) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_statistics_v1_domain_proto_msgTypes[5]
+	mi := &file_xyz_city_ideas_v1_statistics_v1_domain_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -680,16 +624,14 @@ const file_xyz_city_ideas_v1_statistics_v1_domain_proto_rawDesc = "" +
 	"\n" +
 	",xyz/city_ideas/v1/statistics/v1/domain.proto\x12\x1fxyz.city_ideas.v1.statistics.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"j\n" +
 	"\x06Global\x12\x14\n" +
-	"\x05ideas\x18\x01 \x01(\x05R\x05ideas\x12 \n" +
-	"\vimplemented\x18\x02 \x01(\x05R\vimplemented\x12\x14\n" +
-	"\x05votes\x18\x03 \x01(\x05R\x05votes\x12\x12\n" +
+	"\x05ideas\x18\x01 \x01(\x03R\x05ideas\x12 \n" +
+	"\vimplemented\x18\x02 \x01(\x03R\vimplemented\x12\x14\n" +
+	"\x05votes\x18\x03 \x01(\x03R\x05votes\x12\x12\n" +
 	"\x04city\x18\x04 \x01(\tR\x04city\"N\n" +
 	"\n" +
 	"GraphPoint\x12*\n" +
 	"\x02at\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x02at\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x05R\x05value\"R\n" +
-	"\x0fProjectCreation\x12?\n" +
-	"\x04list\x18\x01 \x03(\v2+.xyz.city_ideas.v1.statistics.v1.GraphPointR\x04list\"\x92\x01\n" +
+	"\x05value\x18\x02 \x01(\x05R\x05value\"\x92\x01\n" +
 	"\x05Graph\x12?\n" +
 	"\x04list\x18\x01 \x03(\v2+.xyz.city_ideas.v1.statistics.v1.GraphPointR\x04list\x12H\n" +
 	"\tseparator\x18\x02 \x01(\x0e2*.xyz.city_ideas.v1.statistics.v1.SeparatorR\tseparator\"R\n" +
@@ -697,36 +639,35 @@ const file_xyz_city_ideas_v1_statistics_v1_domain_proto_rawDesc = "" +
 	"\x05value\x18\x01 \x01(\x0e2*.xyz.city_ideas.v1.statistics.v1.SeparatorR\x05value\"m\n" +
 	"\rRequestByCity\x12H\n" +
 	"\tseparator\x18\x01 \x01(\x0e2*.xyz.city_ideas.v1.statistics.v1.SeparatorR\tseparator\x12\x12\n" +
-	"\x04city\x18\x02 \x01(\tR\x04city*R\n" +
+	"\x04city\x18\x02 \x01(\tR\x04city*g\n" +
 	"\tSeparator\x12\x19\n" +
 	"\x15SEPARATOR_UNSPECIFIED\x10\x00\x12\x14\n" +
-	"\x10SEPARATOR_HOURLY\x10\x01\x12\x14\n" +
-	"\x10SEPARATOR_WEEKLY\x10\x02BIZGgithub.com/aesterial/cityideas/backend/internal/api/v1/statistics/v1;v1b\beditionsp\xe8\a"
+	"\x10SEPARATOR_HOURLY\x10\x01\x12\x13\n" +
+	"\x0fSEPARATOR_DAILY\x10\x02\x12\x14\n" +
+	"\x10SEPARATOR_WEEKLY\x10\x03BIZGgithub.com/aesterial/cityideas/backend/internal/api/v1/statistics/v1;v1b\beditionsp\xe8\a"
 
 var file_xyz_city_ideas_v1_statistics_v1_domain_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_xyz_city_ideas_v1_statistics_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_xyz_city_ideas_v1_statistics_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_xyz_city_ideas_v1_statistics_v1_domain_proto_goTypes = []any{
 	(Separator)(0),                // 0: xyz.city_ideas.v1.statistics.v1.Separator
 	(*Global)(nil),                // 1: xyz.city_ideas.v1.statistics.v1.Global
 	(*GraphPoint)(nil),            // 2: xyz.city_ideas.v1.statistics.v1.GraphPoint
-	(*ProjectCreation)(nil),       // 3: xyz.city_ideas.v1.statistics.v1.ProjectCreation
-	(*Graph)(nil),                 // 4: xyz.city_ideas.v1.statistics.v1.Graph
-	(*SeparatorValue)(nil),        // 5: xyz.city_ideas.v1.statistics.v1.SeparatorValue
-	(*RequestByCity)(nil),         // 6: xyz.city_ideas.v1.statistics.v1.RequestByCity
-	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
+	(*Graph)(nil),                 // 3: xyz.city_ideas.v1.statistics.v1.Graph
+	(*SeparatorValue)(nil),        // 4: xyz.city_ideas.v1.statistics.v1.SeparatorValue
+	(*RequestByCity)(nil),         // 5: xyz.city_ideas.v1.statistics.v1.RequestByCity
+	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
 }
 var file_xyz_city_ideas_v1_statistics_v1_domain_proto_depIdxs = []int32{
-	7, // 0: xyz.city_ideas.v1.statistics.v1.GraphPoint.at:type_name -> google.protobuf.Timestamp
-	2, // 1: xyz.city_ideas.v1.statistics.v1.ProjectCreation.list:type_name -> xyz.city_ideas.v1.statistics.v1.GraphPoint
-	2, // 2: xyz.city_ideas.v1.statistics.v1.Graph.list:type_name -> xyz.city_ideas.v1.statistics.v1.GraphPoint
-	0, // 3: xyz.city_ideas.v1.statistics.v1.Graph.separator:type_name -> xyz.city_ideas.v1.statistics.v1.Separator
-	0, // 4: xyz.city_ideas.v1.statistics.v1.SeparatorValue.value:type_name -> xyz.city_ideas.v1.statistics.v1.Separator
-	0, // 5: xyz.city_ideas.v1.statistics.v1.RequestByCity.separator:type_name -> xyz.city_ideas.v1.statistics.v1.Separator
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	6, // 0: xyz.city_ideas.v1.statistics.v1.GraphPoint.at:type_name -> google.protobuf.Timestamp
+	2, // 1: xyz.city_ideas.v1.statistics.v1.Graph.list:type_name -> xyz.city_ideas.v1.statistics.v1.GraphPoint
+	0, // 2: xyz.city_ideas.v1.statistics.v1.Graph.separator:type_name -> xyz.city_ideas.v1.statistics.v1.Separator
+	0, // 3: xyz.city_ideas.v1.statistics.v1.SeparatorValue.value:type_name -> xyz.city_ideas.v1.statistics.v1.Separator
+	0, // 4: xyz.city_ideas.v1.statistics.v1.RequestByCity.separator:type_name -> xyz.city_ideas.v1.statistics.v1.Separator
+	5, // [5:5] is the sub-list for method output_type
+	5, // [5:5] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_xyz_city_ideas_v1_statistics_v1_domain_proto_init() }
@@ -740,7 +681,7 @@ func file_xyz_city_ideas_v1_statistics_v1_domain_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_xyz_city_ideas_v1_statistics_v1_domain_proto_rawDesc), len(file_xyz_city_ideas_v1_statistics_v1_domain_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   6,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

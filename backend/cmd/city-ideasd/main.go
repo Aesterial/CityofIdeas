@@ -13,6 +13,7 @@ import (
 	projectpb "github.com/aesterial/cityideas/backend/internal/api/v1/projects/v1"
 	rankpb "github.com/aesterial/cityideas/backend/internal/api/v1/ranks/v1"
 	sessionpb "github.com/aesterial/cityideas/backend/internal/api/v1/sessions/v1"
+	statpb "github.com/aesterial/cityideas/backend/internal/api/v1/statistics/v1"
 	ticketpb "github.com/aesterial/cityideas/backend/internal/api/v1/tickets/v1"
 	userpb "github.com/aesterial/cityideas/backend/internal/api/v1/user/v1"
 	loginservice "github.com/aesterial/cityideas/backend/internal/app/login"
@@ -20,6 +21,7 @@ import (
 	projectservice "github.com/aesterial/cityideas/backend/internal/app/project"
 	rankservice "github.com/aesterial/cityideas/backend/internal/app/rank"
 	sessionservice "github.com/aesterial/cityideas/backend/internal/app/session"
+	statisticsservice "github.com/aesterial/cityideas/backend/internal/app/statistics"
 	ticketservice "github.com/aesterial/cityideas/backend/internal/app/ticket"
 	userservice "github.com/aesterial/cityideas/backend/internal/app/user"
 	"github.com/aesterial/cityideas/backend/internal/infra/config"
@@ -58,6 +60,7 @@ func main() {
 	ticketRepository := repositories.NewTicketsRepository(conn.Querier())
 	rankRepository := repositories.NewRankRepository(conn.Querier())
 	maintenanceRepository := repositories.NewMaintenanceRepository(conn.Querier())
+	statisticsRepository := repositories.NewStatisticsRepository(conn.Querier())
 	userService := userservice.NewService(userRepository)
 	sessionService := sessionservice.NewService(sessionRepository)
 	loginService := loginservice.NewService(userRepository, sessionRepository)
@@ -65,6 +68,7 @@ func main() {
 	ticketService := ticketservice.NewService(ticketRepository)
 	rankService := rankservice.NewService(rankRepository)
 	maintenanceService := maintenanceservice.NewService(maintenanceRepository)
+	statisticsService := statisticsservice.NewService(statisticsRepository)
 	interceptorService := interceptors.NewService(maintenanceService)
 
 	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptorService.CsrfCheck(), interceptorService.AvailabilityCheck(), interceptorService.FingerPrint(), interceptorService.Logging(), recovery.UnaryServerInterceptor(recovery.WithRecoveryHandlerContext(interceptorService.Recovery))))
@@ -79,6 +83,7 @@ func main() {
 	rankHandler := handlers.NewRankHandler(rankService, auth)
 	ticketHandler := handlers.NewTicketHandler(ticketService, auth)
 	maintenanceHandler := handlers.NewMaintenanceHandler(maintenanceService, auth)
+	statisticsHandler := handlers.NewStatisticsHandler(statisticsService, auth)
 
 	loginpb.RegisterLoginServiceServer(srv, loginHandler)
 	userpb.RegisterUserServiceServer(srv, userHandler)
@@ -87,6 +92,7 @@ func main() {
 	rankpb.RegisterRankServiceServer(srv, rankHandler)
 	ticketpb.RegisterTicketServiceServer(srv, ticketHandler)
 	maintenancepb.RegisterMaintenanceServiceServer(srv, maintenanceHandler)
+	statpb.RegisterStatisticServiceServer(srv, statisticsHandler)
 
 	logger.Info("main", "starting listener")
 	listener, err := net.Listen("tcp", cfg.Host+":"+cfg.Port)

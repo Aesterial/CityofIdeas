@@ -44,6 +44,10 @@ with generated_password as (select encode(gen_random_bytes(16), 'hex') as passwo
                        "project.message.create": {},
                        "project.message.view.all": {},
                        "project.message.delete.all": {},
+                       "statistics.votes": {},
+                       "statistics.creation": {},
+                       "statistics.questions": {},
+                       "statistics.discussion": {},
                        "maintenance.start": {},
                        "maintenance.stop": {}
                      }'::jsonb,

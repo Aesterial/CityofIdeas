@@ -377,3 +377,147 @@ select planned_start, description
 from maintenances
 where status = 'expected'
 limit 1;
+
+-- name: GlobalStats :one
+select (select city from project_location group by city order by count(*) desc limit 1)                  as most_popular_city,
+       coalesce((select count(*) from project_location group by city order by count(*) desc limit 1),
+                0)                                                                                       as most_popular_city_projects_count,
+       (select count(*) from project_likes)                                                              as likes_count,
+       (select count(*)
+        from projects
+        where impl_link is not null
+          and status = 'implemented')                                                                    as implemented_count,
+       (select count(*) from projects)                                                                   as ideas_count;
+
+-- name: ProjectVotesGraph :many
+with period as (select case sqlc.arg(separator)::text
+                           when 'hourly' then date_trunc('hour', now()) - interval '23 hours'
+                           when 'weekly' then date_trunc('week', now() - interval '1 month')
+                           else date_trunc('day', now()) - interval '6 days'
+                           end as start_at,
+                       case sqlc.arg(separator)::text
+                           when 'hourly' then date_trunc('hour', now())
+                           when 'weekly' then date_trunc('week', now())
+                           else date_trunc('day', now())
+                           end as end_at,
+                       case sqlc.arg(separator)::text
+                           when 'hourly' then interval '1 hour'
+                           when 'weekly' then interval '1 week'
+                           else interval '1 day'
+                           end as bucket_interval),
+     series as (select generate_series(period.start_at, period.end_at, period.bucket_interval) as at,
+                       period.bucket_interval
+                from period),
+     events as (select project_likes.at
+                from project_likes
+                         join projects on projects.id = project_likes.project
+                         join project_location on project_location.id = projects.id
+                         cross join period
+                where project_likes.at >= period.start_at
+                  and project_likes.at < period.end_at + period.bucket_interval
+                  and (sqlc.narg(city)::text is null or project_location.city = sqlc.narg(city)::text))
+select series.at::timestamptz   as at,
+       count(events.at)::bigint as value
+from series
+         left join events on events.at >= series.at and events.at < series.at + series.bucket_interval
+group by series.at
+order by series.at;
+
+-- name: ProjectCreationGraph :many
+with period as (select case sqlc.arg(separator)::text
+                           when 'hourly' then date_trunc('hour', now()) - interval '23 hours'
+                           when 'weekly' then date_trunc('week', now() - interval '1 month')
+                           else date_trunc('day', now()) - interval '6 days'
+                           end as start_at,
+                       case sqlc.arg(separator)::text
+                           when 'hourly' then date_trunc('hour', now())
+                           when 'weekly' then date_trunc('week', now())
+                           else date_trunc('day', now())
+                           end as end_at,
+                       case sqlc.arg(separator)::text
+                           when 'hourly' then interval '1 hour'
+                           when 'weekly' then interval '1 week'
+                           else interval '1 day'
+                           end as bucket_interval),
+     series as (select generate_series(period.start_at, period.end_at, period.bucket_interval) as at,
+                       period.bucket_interval
+                from period),
+     events as (select projects.at
+                from projects
+                         join project_location on project_location.id = projects.id
+                         cross join period
+                where projects.at >= period.start_at
+                  and projects.at < period.end_at + period.bucket_interval
+                  and (sqlc.narg(city)::text is null or project_location.city = sqlc.narg(city)::text))
+select series.at::timestamptz   as at,
+       count(events.at)::bigint as value
+from series
+         left join events on events.at >= series.at and events.at < series.at + series.bucket_interval
+group by series.at
+order by series.at;
+
+-- name: QuestionsGraph :many
+with period as (select case sqlc.arg(separator)::text
+                           when 'hourly' then date_trunc('hour', now()) - interval '23 hours'
+                           when 'weekly' then date_trunc('week', now() - interval '1 month')
+                           else date_trunc('day', now()) - interval '6 days'
+                           end as start_at,
+                       case sqlc.arg(separator)::text
+                           when 'hourly' then date_trunc('hour', now())
+                           when 'weekly' then date_trunc('week', now())
+                           else date_trunc('day', now())
+                           end as end_at,
+                       case sqlc.arg(separator)::text
+                           when 'hourly' then interval '1 hour'
+                           when 'weekly' then interval '1 week'
+                           else interval '1 day'
+                           end as bucket_interval),
+     series as (select generate_series(period.start_at, period.end_at, period.bucket_interval) as at,
+                       period.bucket_interval
+                from period),
+     events as (select tickets.created as at
+                from tickets
+                         cross join period
+                where tickets.created >= period.start_at
+                  and tickets.created < period.end_at + period.bucket_interval)
+select series.at::timestamptz   as at,
+       count(events.at)::bigint as value
+from series
+         left join events on events.at >= series.at and events.at < series.at + series.bucket_interval
+group by series.at
+order by series.at;
+
+-- name: ProjectDiscussionGraph :many
+with period as (select case sqlc.arg(separator)::text
+                           when 'hourly' then date_trunc('hour', now()) - interval '23 hours'
+                           when 'weekly' then date_trunc('week', now() - interval '1 month')
+                           else date_trunc('day', now()) - interval '6 days'
+                           end as start_at,
+                       case sqlc.arg(separator)::text
+                           when 'hourly' then date_trunc('hour', now())
+                           when 'weekly' then date_trunc('week', now())
+                           else date_trunc('day', now())
+                           end as end_at,
+                       case sqlc.arg(separator)::text
+                           when 'hourly' then interval '1 hour'
+                           when 'weekly' then interval '1 week'
+                           else interval '1 day'
+                           end as bucket_interval),
+     series as (select generate_series(period.start_at, period.end_at, period.bucket_interval) as at,
+                       period.bucket_interval
+                from period),
+     events as (select project_messages.at
+                from project_messages
+                         join projects on projects.id = project_messages.linked
+                         join project_location on project_location.id = projects.id
+                         cross join period
+                where project_messages.deleted is null
+                  and project_messages.at >= period.start_at
+                  and project_messages.at < period.end_at + period.bucket_interval
+                  and (sqlc.narg(city)::text is null or project_location.city = sqlc.narg(city)::text))
+select series.at::timestamptz   as at,
+       count(events.at)::bigint as value
+from series
+         left join events on events.at >= series.at and events.at < series.at + series.bucket_interval
+group by series.at
+order by series.at;

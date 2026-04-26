@@ -187,7 +187,9 @@ func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (P
 }
 
 const CreateProjectLocation = `-- name: CreateProjectLocation :one
-insert into project_location (id, city, lat, lot) values ($1, $2, $3, $4) returning id, city, lat, lot
+insert into project_location (id, city, lat, lot)
+values ($1, $2, $3, $4)
+returning id, city, lat, lot
 `
 
 type CreateProjectLocationParams struct {
@@ -742,6 +744,31 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 	return items, nil
 }
 
+const GlobalStats = `-- name: GlobalStats :one
+select (select city from project_location group by city order by count(*) desc limit 1) as most_popular_city, coalesce((select count(*) from project_location group by city order by count(*) desc limit 1), 0) as most_popular_city_projects_count, (select count(*) from project_likes) as likes_count, (select count(*) from projects where impl_link is not null and status = 'implemented') as implemented_count, (select count(*) from projects) as ideas_count
+`
+
+type GlobalStatsRow struct {
+	MostPopularCity              string      `json:"most_popular_city"`
+	MostPopularCityProjectsCount interface{} `json:"most_popular_city_projects_count"`
+	LikesCount                   int64       `json:"likes_count"`
+	ImplementedCount             int64       `json:"implemented_count"`
+	IdeasCount                   int64       `json:"ideas_count"`
+}
+
+func (q *Queries) GlobalStats(ctx context.Context) (GlobalStatsRow, error) {
+	row := q.db.QueryRow(ctx, GlobalStats)
+	var i GlobalStatsRow
+	err := row.Scan(
+		&i.MostPopularCity,
+		&i.MostPopularCityProjectsCount,
+		&i.LikesCount,
+		&i.ImplementedCount,
+		&i.IdeasCount,
+	)
+	return i, err
+}
+
 const HasActiveMaintenance = `-- name: HasActiveMaintenance :one
 select exists (select 1
                from maintenances
@@ -789,7 +816,9 @@ func (q *Queries) IsSessionValid(ctx context.Context, arg IsSessionValidParams) 
 }
 
 const IsSubmissionReviewed = `-- name: IsSubmissionReviewed :one
-select approved <> false from submissions where linked = $1
+select approved <> false
+from submissions
+where linked = $1
 `
 
 func (q *Queries) IsSubmissionReviewed(ctx context.Context, linked pgtype.UUID) (bool, error) {
@@ -1028,8 +1057,165 @@ func (q *Queries) ProjectAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUI
 	return author, err
 }
 
+const ProjectCreationGraph = `-- name: ProjectCreationGraph :many
+with period as (
+         select case $1::text
+                    when 'hourly' then date_trunc('hour', now()) - interval '23 hours'
+                    when 'weekly' then date_trunc('week', now() - interval '1 month')
+                    else date_trunc('day', now()) - interval '6 days'
+                    end as start_at,
+                case $1::text
+                    when 'hourly' then date_trunc('hour', now())
+                    when 'weekly' then date_trunc('week', now())
+                    else date_trunc('day', now())
+                    end as end_at,
+                case $1::text
+                    when 'hourly' then interval '1 hour'
+                    when 'weekly' then interval '1 week'
+                    else interval '1 day'
+                    end as bucket_interval
+     ),
+     series as (
+         select generate_series(period.start_at, period.end_at, period.bucket_interval) as at,
+                period.bucket_interval
+         from period
+     ),
+     events as (
+         select projects.at
+         from projects
+                  join project_location on project_location.id = projects.id
+                  cross join period
+         where projects.at >= period.start_at
+           and projects.at < period.end_at + period.bucket_interval
+           and ($2::text is null or project_location.city = $2::text)
+     )
+select series.at::timestamptz as at,
+       count(events.at)::bigint as value
+from series
+         left join events on events.at >= series.at and events.at < series.at + series.bucket_interval
+group by series.at
+order by series.at
+`
+
+type ProjectCreationGraphParams struct {
+	Separator string      `json:"separator"`
+	City      pgtype.Text `json:"city"`
+}
+
+type ProjectCreationGraphRow struct {
+	At    pgtype.Timestamptz `json:"at"`
+	Value int64              `json:"value"`
+}
+
+func (q *Queries) ProjectCreationGraph(ctx context.Context, arg ProjectCreationGraphParams) ([]ProjectCreationGraphRow, error) {
+	rows, err := q.db.Query(ctx, ProjectCreationGraph, arg.Separator, arg.City)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ProjectCreationGraphRow
+	for rows.Next() {
+		var i ProjectCreationGraphRow
+		if err := rows.Scan(&i.At, &i.Value); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const ProjectDiscussionGraph = `-- name: ProjectDiscussionGraph :many
+with period as (
+         select case $1::text
+                    when 'hourly' then date_trunc('hour', now()) - interval '23 hours'
+                    when 'weekly' then date_trunc('week', now() - interval '1 month')
+                    else date_trunc('day', now()) - interval '6 days'
+                    end as start_at,
+                case $1::text
+                    when 'hourly' then date_trunc('hour', now())
+                    when 'weekly' then date_trunc('week', now())
+                    else date_trunc('day', now())
+                    end as end_at,
+                case $1::text
+                    when 'hourly' then interval '1 hour'
+                    when 'weekly' then interval '1 week'
+                    else interval '1 day'
+                    end as bucket_interval
+     ),
+     series as (
+         select generate_series(period.start_at, period.end_at, period.bucket_interval) as at,
+                period.bucket_interval
+         from period
+     ),
+     events as (
+         select project_messages.at
+         from project_messages
+                  join projects on projects.id = project_messages.linked
+                  join project_location on project_location.id = projects.id
+                  cross join period
+         where project_messages.deleted is null
+           and project_messages.at >= period.start_at
+           and project_messages.at < period.end_at + period.bucket_interval
+           and ($2::text is null or project_location.city = $2::text)
+     )
+select series.at::timestamptz as at,
+       count(events.at)::bigint as value
+from series
+         left join events on events.at >= series.at and events.at < series.at + series.bucket_interval
+group by series.at
+order by series.at
+`
+
+type ProjectDiscussionGraphParams struct {
+	Separator string      `json:"separator"`
+	City      pgtype.Text `json:"city"`
+}
+
+type ProjectDiscussionGraphRow struct {
+	At    pgtype.Timestamptz `json:"at"`
+	Value int64              `json:"value"`
+}
+
+func (q *Queries) ProjectDiscussionGraph(ctx context.Context, arg ProjectDiscussionGraphParams) ([]ProjectDiscussionGraphRow, error) {
+	rows, err := q.db.Query(ctx, ProjectDiscussionGraph, arg.Separator, arg.City)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ProjectDiscussionGraphRow
+	for rows.Next() {
+		var i ProjectDiscussionGraphRow
+		if err := rows.Scan(&i.At, &i.Value); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const ProjectInfo = `-- name: ProjectInfo :one
-select projects.id, projects.author, title, description, category, count(project_likes.project)::bigint as likes_count, status, impl_link, projects.at, updated, deleted from projects left join project_likes on project_likes.project = projects.id where projects.id = $1 group by projects.id, projects.author, title, description, category, status, impl_link, projects.at, updated, deleted limit 1
+select projects.id,
+       projects.author,
+       title,
+       description,
+       category,
+       count(project_likes.project)::bigint as likes_count,
+       status,
+       impl_link,
+       projects.at,
+       updated,
+       deleted
+from projects
+         left join project_likes on project_likes.project = projects.id
+where projects.id = $1
+group by projects.id, projects.author, title, description, category, status, impl_link, projects.at, updated, deleted
+limit 1
 `
 
 type ProjectInfoRow struct {
@@ -1066,7 +1252,9 @@ func (q *Queries) ProjectInfo(ctx context.Context, id pgtype.UUID) (ProjectInfoR
 }
 
 const ProjectLocationInfo = `-- name: ProjectLocationInfo :one
-select id, city, lat, lot from project_location where id = $1
+select id, city, lat, lot
+from project_location
+where id = $1
 `
 
 func (q *Queries) ProjectLocationInfo(ctx context.Context, id pgtype.UUID) (ProjectLocation, error) {
@@ -1081,34 +1269,104 @@ func (q *Queries) ProjectLocationInfo(ctx context.Context, id pgtype.UUID) (Proj
 	return i, err
 }
 
+const ProjectVotesGraph = `-- name: ProjectVotesGraph :many
+with period as (
+         select case $1::text
+                    when 'hourly' then date_trunc('hour', now()) - interval '23 hours'
+                    when 'weekly' then date_trunc('week', now() - interval '1 month')
+                    else date_trunc('day', now()) - interval '6 days'
+                    end as start_at,
+                case $1::text
+                    when 'hourly' then date_trunc('hour', now())
+                    when 'weekly' then date_trunc('week', now())
+                    else date_trunc('day', now())
+                    end as end_at,
+                case $1::text
+                    when 'hourly' then interval '1 hour'
+                    when 'weekly' then interval '1 week'
+                    else interval '1 day'
+                    end as bucket_interval
+     ),
+     series as (
+         select generate_series(period.start_at, period.end_at, period.bucket_interval) as at,
+                period.bucket_interval
+         from period
+     ),
+     events as (
+         select project_likes.at
+         from project_likes
+                  join projects on projects.id = project_likes.project
+                  join project_location on project_location.id = projects.id
+                  cross join period
+         where project_likes.at >= period.start_at
+           and project_likes.at < period.end_at + period.bucket_interval
+           and ($2::text is null or project_location.city = $2::text)
+     )
+select series.at::timestamptz as at,
+       count(events.at)::bigint as value
+from series
+         left join events on events.at >= series.at and events.at < series.at + series.bucket_interval
+group by series.at
+order by series.at
+`
+
+type ProjectVotesGraphParams struct {
+	Separator string      `json:"separator"`
+	City      pgtype.Text `json:"city"`
+}
+
+type ProjectVotesGraphRow struct {
+	At    pgtype.Timestamptz `json:"at"`
+	Value int64              `json:"value"`
+}
+
+func (q *Queries) ProjectVotesGraph(ctx context.Context, arg ProjectVotesGraphParams) ([]ProjectVotesGraphRow, error) {
+	rows, err := q.db.Query(ctx, ProjectVotesGraph, arg.Separator, arg.City)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ProjectVotesGraphRow
+	for rows.Next() {
+		var i ProjectVotesGraphRow
+		if err := rows.Scan(&i.At, &i.Value); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const ProjectsList = `-- name: ProjectsList :many
-select
-    projects.id,
-    projects.author,
-    title,
-    description,
-    category,
-    status,
-    impl_link,
-    count(project_likes.project)::bigint as likes_count,
-    projects.at,
-    updated,
-    deleted
+select projects.id,
+       projects.author,
+       title,
+       description,
+       category,
+       status,
+       impl_link,
+       count(project_likes.project)::bigint as likes_count,
+       projects.at,
+       updated,
+       deleted
 from projects
          left join project_likes
                    on project_likes.project = projects.id
-where status <> 'reviewing' and status <> 'cancelled'
-group by
-    projects.id,
-    projects.author,
-    title,
-    description,
-    category,
-    status,
-    impl_link,
-    projects.at,
-    updated,
-    deleted
+where status <> 'reviewing'
+  and status <> 'cancelled'
+group by projects.id,
+         projects.author,
+         title,
+         description,
+         category,
+         status,
+         impl_link,
+         projects.at,
+         updated,
+         deleted
 limit $1 offset $2
 `
 
@@ -1153,6 +1411,69 @@ func (q *Queries) ProjectsList(ctx context.Context, arg ProjectsListParams) ([]P
 			&i.Updated,
 			&i.Deleted,
 		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const QuestionsGraph = `-- name: QuestionsGraph :many
+with period as (
+         select case $1::text
+                    when 'hourly' then date_trunc('hour', now()) - interval '23 hours'
+                    when 'weekly' then date_trunc('week', now() - interval '1 month')
+                    else date_trunc('day', now()) - interval '6 days'
+                    end as start_at,
+                case $1::text
+                    when 'hourly' then date_trunc('hour', now())
+                    when 'weekly' then date_trunc('week', now())
+                    else date_trunc('day', now())
+                    end as end_at,
+                case $1::text
+                    when 'hourly' then interval '1 hour'
+                    when 'weekly' then interval '1 week'
+                    else interval '1 day'
+                    end as bucket_interval
+     ),
+     series as (
+         select generate_series(period.start_at, period.end_at, period.bucket_interval) as at,
+                period.bucket_interval
+         from period
+     ),
+     events as (
+         select tickets.created as at
+         from tickets
+                  cross join period
+         where tickets.created >= period.start_at
+           and tickets.created < period.end_at + period.bucket_interval
+     )
+select series.at::timestamptz as at,
+       count(events.at)::bigint as value
+from series
+         left join events on events.at >= series.at and events.at < series.at + series.bucket_interval
+group by series.at
+order by series.at
+`
+
+type QuestionsGraphRow struct {
+	At    pgtype.Timestamptz `json:"at"`
+	Value int64              `json:"value"`
+}
+
+func (q *Queries) QuestionsGraph(ctx context.Context, separator string) ([]QuestionsGraphRow, error) {
+	rows, err := q.db.Query(ctx, QuestionsGraph, separator)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []QuestionsGraphRow
+	for rows.Next() {
+		var i QuestionsGraphRow
+		if err := rows.Scan(&i.At, &i.Value); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

@@ -7,9 +7,9 @@ import "google/protobuf/timestamp.proto";
 option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/statistics/v1;v1";
 
 message Global {
-  int32 ideas = 1;
-  int32 implemented = 2;
-  int32 votes = 3;
+  int64 ideas = 1;
+  int64 implemented = 2;
+  int64 votes = 3;
   // contains the city with the maximum number of created projects.
   string city = 4;
 }
@@ -17,10 +17,6 @@ message Global {
 message GraphPoint {
   google.protobuf.Timestamp at = 1;
   int32 value = 2;
-}
-
-message ProjectCreation {
-  repeated GraphPoint list = 1;
 }
 
 message Graph {
@@ -41,5 +37,6 @@ message RequestByCity {
 enum Separator {
   SEPARATOR_UNSPECIFIED = 0;
   SEPARATOR_HOURLY = 1;
-  SEPARATOR_WEEKLY = 2;
+  SEPARATOR_DAILY = 2;
+  SEPARATOR_WEEKLY = 3;
 }

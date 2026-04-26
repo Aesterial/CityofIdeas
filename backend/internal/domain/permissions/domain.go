@@ -47,6 +47,11 @@ const (
 	ProjectMessageViewAll   Permission = "project.message.view.all"
 	ProjectMessageDeleteAll Permission = "project.message.delete.all"
 
+	StatisticsVotes      Permission = "statistics.votes"
+	StatisticsCreation   Permission = "statistics.creation"
+	StatisticsQuestions  Permission = "statistics.questions"
+	StatisticsDiscussion Permission = "statistics.discussion"
+
 	MaintenanceHistory Permission = "maintenance.history"
 	MaintenanceCreate  Permission = "maintenance.create"
 	MaintenanceStart   Permission = "maintenance.start"
@@ -100,6 +105,11 @@ var All = Permissions{
 	ProjectMessageCreate,
 	ProjectMessageViewAll,
 	ProjectMessageDeleteAll,
+
+	StatisticsVotes,
+	StatisticsCreation,
+	StatisticsQuestions,
+	StatisticsDiscussion,
 
 	MaintenanceHistory,
 	MaintenanceCreate,

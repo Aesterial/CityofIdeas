@@ -14,3 +14,7 @@ plugins:
     opt:
       - module=github.com/aesterial/cityideas/backend
       - require_unimplemented_servers=false
+  - remote: buf.build/bufbuild/es
+    out: ../frontend/gen
+    opt:
+      - target=ts

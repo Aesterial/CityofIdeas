@@ -1,4 +1,4 @@
-const DEV_API_BASE_URL = "http://127.0.0.1:8080/api";
+const DEV_API_BASE_URL = "http://127.0.0.1:8080/";
 
 export const stripTrailingSlash = (value: string) => value.replace(/\/$/, "");
 
