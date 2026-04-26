@@ -620,18 +620,19 @@ func (q *Queries) GetUserPreferences(ctx context.Context, owner pgtype.UUID) (Us
 }
 
 const GetUserRanks = `-- name: GetUserRanks :many
-select ranks.id, ranks.name, ranks.color, ranks.weight, users_ranks.expires
+select ranks.id, ranks.name, ranks.color, ranks.weight, ranks.permissions, users_ranks.expires
 from users_ranks
          join ranks on ranks.id = users_ranks.rank
 where users_ranks.owner = $1
 `
 
 type GetUserRanksRow struct {
-	ID      pgtype.UUID        `json:"id"`
-	Name    string             `json:"name"`
-	Color   int64              `json:"color"`
-	Weight  int32              `json:"weight"`
-	Expires pgtype.Timestamptz `json:"expires"`
+	ID          pgtype.UUID        `json:"id"`
+	Name        string             `json:"name"`
+	Color       int64              `json:"color"`
+	Weight      int32              `json:"weight"`
+	Permissions []byte             `json:"permissions"`
+	Expires     pgtype.Timestamptz `json:"expires"`
 }
 
 func (q *Queries) GetUserRanks(ctx context.Context, owner pgtype.UUID) ([]GetUserRanksRow, error) {
@@ -648,6 +649,7 @@ func (q *Queries) GetUserRanks(ctx context.Context, owner pgtype.UUID) ([]GetUse
 			&i.Name,
 			&i.Color,
 			&i.Weight,
+			&i.Permissions,
 			&i.Expires,
 		); err != nil {
 			return nil, err
@@ -745,7 +747,15 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 }
 
 const GlobalStats = `-- name: GlobalStats :one
-select (select city from project_location group by city order by count(*) desc limit 1) as most_popular_city, coalesce((select count(*) from project_location group by city order by count(*) desc limit 1), 0) as most_popular_city_projects_count, (select count(*) from project_likes) as likes_count, (select count(*) from projects where impl_link is not null and status = 'implemented') as implemented_count, (select count(*) from projects) as ideas_count
+select (select city from project_location group by city order by count(*) desc limit 1)                  as most_popular_city,
+       coalesce((select count(*) from project_location group by city order by count(*) desc limit 1),
+                0)                                                                                       as most_popular_city_projects_count,
+       (select count(*) from project_likes)                                                              as likes_count,
+       (select count(*)
+        from projects
+        where impl_link is not null
+          and status = 'implemented')                                                                    as implemented_count,
+       (select count(*) from projects)                                                                   as ideas_count
 `
 
 type GlobalStatsRow struct {
@@ -1058,38 +1068,32 @@ func (q *Queries) ProjectAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUI
 }
 
 const ProjectCreationGraph = `-- name: ProjectCreationGraph :many
-with period as (
-         select case $1::text
-                    when 'hourly' then date_trunc('hour', now()) - interval '23 hours'
-                    when 'weekly' then date_trunc('week', now() - interval '1 month')
-                    else date_trunc('day', now()) - interval '6 days'
-                    end as start_at,
-                case $1::text
-                    when 'hourly' then date_trunc('hour', now())
-                    when 'weekly' then date_trunc('week', now())
-                    else date_trunc('day', now())
-                    end as end_at,
-                case $1::text
-                    when 'hourly' then interval '1 hour'
-                    when 'weekly' then interval '1 week'
-                    else interval '1 day'
-                    end as bucket_interval
-     ),
-     series as (
-         select generate_series(period.start_at, period.end_at, period.bucket_interval) as at,
-                period.bucket_interval
-         from period
-     ),
-     events as (
-         select projects.at
-         from projects
-                  join project_location on project_location.id = projects.id
-                  cross join period
-         where projects.at >= period.start_at
-           and projects.at < period.end_at + period.bucket_interval
-           and ($2::text is null or project_location.city = $2::text)
-     )
-select series.at::timestamptz as at,
+with period as (select case $1::text
+                           when 'hourly' then date_trunc('hour', now()) - interval '23 hours'
+                           when 'weekly' then date_trunc('week', now() - interval '1 month')
+                           else date_trunc('day', now()) - interval '6 days'
+                           end as start_at,
+                       case $1::text
+                           when 'hourly' then date_trunc('hour', now())
+                           when 'weekly' then date_trunc('week', now())
+                           else date_trunc('day', now())
+                           end as end_at,
+                       case $1::text
+                           when 'hourly' then interval '1 hour'
+                           when 'weekly' then interval '1 week'
+                           else interval '1 day'
+                           end as bucket_interval),
+     series as (select generate_series(period.start_at, period.end_at, period.bucket_interval) as at,
+                       period.bucket_interval
+                from period),
+     events as (select projects.at
+                from projects
+                         join project_location on project_location.id = projects.id
+                         cross join period
+                where projects.at >= period.start_at
+                  and projects.at < period.end_at + period.bucket_interval
+                  and ($2::text is null or project_location.city = $2::text))
+select series.at::timestamptz   as at,
        count(events.at)::bigint as value
 from series
          left join events on events.at >= series.at and events.at < series.at + series.bucket_interval
@@ -1128,40 +1132,34 @@ func (q *Queries) ProjectCreationGraph(ctx context.Context, arg ProjectCreationG
 }
 
 const ProjectDiscussionGraph = `-- name: ProjectDiscussionGraph :many
-with period as (
-         select case $1::text
-                    when 'hourly' then date_trunc('hour', now()) - interval '23 hours'
-                    when 'weekly' then date_trunc('week', now() - interval '1 month')
-                    else date_trunc('day', now()) - interval '6 days'
-                    end as start_at,
-                case $1::text
-                    when 'hourly' then date_trunc('hour', now())
-                    when 'weekly' then date_trunc('week', now())
-                    else date_trunc('day', now())
-                    end as end_at,
-                case $1::text
-                    when 'hourly' then interval '1 hour'
-                    when 'weekly' then interval '1 week'
-                    else interval '1 day'
-                    end as bucket_interval
-     ),
-     series as (
-         select generate_series(period.start_at, period.end_at, period.bucket_interval) as at,
-                period.bucket_interval
-         from period
-     ),
-     events as (
-         select project_messages.at
-         from project_messages
-                  join projects on projects.id = project_messages.linked
-                  join project_location on project_location.id = projects.id
-                  cross join period
-         where project_messages.deleted is null
-           and project_messages.at >= period.start_at
-           and project_messages.at < period.end_at + period.bucket_interval
-           and ($2::text is null or project_location.city = $2::text)
-     )
-select series.at::timestamptz as at,
+with period as (select case $1::text
+                           when 'hourly' then date_trunc('hour', now()) - interval '23 hours'
+                           when 'weekly' then date_trunc('week', now() - interval '1 month')
+                           else date_trunc('day', now()) - interval '6 days'
+                           end as start_at,
+                       case $1::text
+                           when 'hourly' then date_trunc('hour', now())
+                           when 'weekly' then date_trunc('week', now())
+                           else date_trunc('day', now())
+                           end as end_at,
+                       case $1::text
+                           when 'hourly' then interval '1 hour'
+                           when 'weekly' then interval '1 week'
+                           else interval '1 day'
+                           end as bucket_interval),
+     series as (select generate_series(period.start_at, period.end_at, period.bucket_interval) as at,
+                       period.bucket_interval
+                from period),
+     events as (select project_messages.at
+                from project_messages
+                         join projects on projects.id = project_messages.linked
+                         join project_location on project_location.id = projects.id
+                         cross join period
+                where project_messages.deleted is null
+                  and project_messages.at >= period.start_at
+                  and project_messages.at < period.end_at + period.bucket_interval
+                  and ($2::text is null or project_location.city = $2::text))
+select series.at::timestamptz   as at,
        count(events.at)::bigint as value
 from series
          left join events on events.at >= series.at and events.at < series.at + series.bucket_interval
@@ -1270,39 +1268,33 @@ func (q *Queries) ProjectLocationInfo(ctx context.Context, id pgtype.UUID) (Proj
 }
 
 const ProjectVotesGraph = `-- name: ProjectVotesGraph :many
-with period as (
-         select case $1::text
-                    when 'hourly' then date_trunc('hour', now()) - interval '23 hours'
-                    when 'weekly' then date_trunc('week', now() - interval '1 month')
-                    else date_trunc('day', now()) - interval '6 days'
-                    end as start_at,
-                case $1::text
-                    when 'hourly' then date_trunc('hour', now())
-                    when 'weekly' then date_trunc('week', now())
-                    else date_trunc('day', now())
-                    end as end_at,
-                case $1::text
-                    when 'hourly' then interval '1 hour'
-                    when 'weekly' then interval '1 week'
-                    else interval '1 day'
-                    end as bucket_interval
-     ),
-     series as (
-         select generate_series(period.start_at, period.end_at, period.bucket_interval) as at,
-                period.bucket_interval
-         from period
-     ),
-     events as (
-         select project_likes.at
-         from project_likes
-                  join projects on projects.id = project_likes.project
-                  join project_location on project_location.id = projects.id
-                  cross join period
-         where project_likes.at >= period.start_at
-           and project_likes.at < period.end_at + period.bucket_interval
-           and ($2::text is null or project_location.city = $2::text)
-     )
-select series.at::timestamptz as at,
+with period as (select case $1::text
+                           when 'hourly' then date_trunc('hour', now()) - interval '23 hours'
+                           when 'weekly' then date_trunc('week', now() - interval '1 month')
+                           else date_trunc('day', now()) - interval '6 days'
+                           end as start_at,
+                       case $1::text
+                           when 'hourly' then date_trunc('hour', now())
+                           when 'weekly' then date_trunc('week', now())
+                           else date_trunc('day', now())
+                           end as end_at,
+                       case $1::text
+                           when 'hourly' then interval '1 hour'
+                           when 'weekly' then interval '1 week'
+                           else interval '1 day'
+                           end as bucket_interval),
+     series as (select generate_series(period.start_at, period.end_at, period.bucket_interval) as at,
+                       period.bucket_interval
+                from period),
+     events as (select project_likes.at
+                from project_likes
+                         join projects on projects.id = project_likes.project
+                         join project_location on project_location.id = projects.id
+                         cross join period
+                where project_likes.at >= period.start_at
+                  and project_likes.at < period.end_at + period.bucket_interval
+                  and ($2::text is null or project_location.city = $2::text))
+select series.at::timestamptz   as at,
        count(events.at)::bigint as value
 from series
          left join events on events.at >= series.at and events.at < series.at + series.bucket_interval
@@ -1422,36 +1414,30 @@ func (q *Queries) ProjectsList(ctx context.Context, arg ProjectsListParams) ([]P
 }
 
 const QuestionsGraph = `-- name: QuestionsGraph :many
-with period as (
-         select case $1::text
-                    when 'hourly' then date_trunc('hour', now()) - interval '23 hours'
-                    when 'weekly' then date_trunc('week', now() - interval '1 month')
-                    else date_trunc('day', now()) - interval '6 days'
-                    end as start_at,
-                case $1::text
-                    when 'hourly' then date_trunc('hour', now())
-                    when 'weekly' then date_trunc('week', now())
-                    else date_trunc('day', now())
-                    end as end_at,
-                case $1::text
-                    when 'hourly' then interval '1 hour'
-                    when 'weekly' then interval '1 week'
-                    else interval '1 day'
-                    end as bucket_interval
-     ),
-     series as (
-         select generate_series(period.start_at, period.end_at, period.bucket_interval) as at,
-                period.bucket_interval
-         from period
-     ),
-     events as (
-         select tickets.created as at
-         from tickets
-                  cross join period
-         where tickets.created >= period.start_at
-           and tickets.created < period.end_at + period.bucket_interval
-     )
-select series.at::timestamptz as at,
+with period as (select case $1::text
+                           when 'hourly' then date_trunc('hour', now()) - interval '23 hours'
+                           when 'weekly' then date_trunc('week', now() - interval '1 month')
+                           else date_trunc('day', now()) - interval '6 days'
+                           end as start_at,
+                       case $1::text
+                           when 'hourly' then date_trunc('hour', now())
+                           when 'weekly' then date_trunc('week', now())
+                           else date_trunc('day', now())
+                           end as end_at,
+                       case $1::text
+                           when 'hourly' then interval '1 hour'
+                           when 'weekly' then interval '1 week'
+                           else interval '1 day'
+                           end as bucket_interval),
+     series as (select generate_series(period.start_at, period.end_at, period.bucket_interval) as at,
+                       period.bucket_interval
+                from period),
+     events as (select tickets.created as at
+                from tickets
+                         cross join period
+                where tickets.created >= period.start_at
+                  and tickets.created < period.end_at + period.bucket_interval)
+select series.at::timestamptz   as at,
        count(events.at)::bigint as value
 from series
          left join events on events.at >= series.at and events.at < series.at + series.bucket_interval

@@ -41,14 +41,15 @@ func (o OauthService) String() string {
 }
 
 type User struct {
-	UID      domain.UUID
-	Username string
-	Email    string
-	Joined   time.Time
-	Prefs    *Preferences
-	Ranks    ranksdomain.UserRanks
-	Security *Security
-	OAuth    []*OAuth
+	UID         domain.UUID
+	Username    string
+	Email       string
+	Joined      time.Time
+	Prefs       *Preferences
+	Ranks       ranksdomain.UserRanks
+	Security    *Security
+	OAuth       []*OAuth
+	Permissions []string
 }
 
 func (u *User) PublicProtobuf() *userpb.PublicUser {
@@ -72,6 +73,7 @@ func (u *User) PrivateProtobuf() *userpb.PrivateUser {
 	usr.SetSessionLive(u.Prefs.SessionLiveTime)
 	usr.SetEmail(u.Email)
 	usr.SetPublic(u.PublicProtobuf())
+	usr.SetPermissions(u.Permissions)
 	return &usr
 }
 

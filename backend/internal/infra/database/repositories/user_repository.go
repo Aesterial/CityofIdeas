@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/aesterial/cityideas/backend/internal/domain"
+	permissionsdomain "github.com/aesterial/cityideas/backend/internal/domain/permissions"
 	ranksdomain "github.com/aesterial/cityideas/backend/internal/domain/ranks"
 	userdomain "github.com/aesterial/cityideas/backend/internal/domain/user"
 	"github.com/aesterial/cityideas/backend/internal/infra/database/sqlc"
@@ -80,24 +81,39 @@ func (u *UserRepository) getRanks(ctx context.Context, user *userdomain.User) (*
 	if user == nil {
 		return nil, errors.InvalidArguments
 	}
-	list, err := u.conn.GetUserRanks(ctx, user.UID.ToPG())
+	rows, err := u.conn.GetUserRanks(ctx, user.UID.ToPG())
 	if err != nil {
 		return nil, err
 	}
-	var out = make(ranksdomain.UserRanks, len(list))
-	for i, e := range list {
-		var expires *time.Time = nil
-		if e.Expires.Valid {
-			expires = &e.Expires.Time
+	ranks := make(ranksdomain.UserRanks, 0, len(rows))
+	maxIndex := -1
+
+	for i, row := range rows {
+		if maxIndex == -1 || row.Weight > rows[maxIndex].Weight {
+			maxIndex = i
 		}
-		out[i] = &ranksdomain.UserRank{
-			Name:    e.Name,
-			Color:   e.Color,
-			Weight:  e.Weight,
+		var expires *time.Time
+		if row.Expires.Valid {
+			t := row.Expires.Time
+			expires = &t
+		}
+		ranks = append(ranks, &ranksdomain.UserRank{
+			Name:    row.Name,
+			Color:   row.Color,
+			Weight:  row.Weight,
 			Expires: expires,
-		}
+		})
 	}
-	user.Ranks = out
+	user.Ranks = ranks
+	if maxIndex == -1 {
+		user.Permissions = nil
+		return user, nil
+	}
+	permissions, err := permissionsdomain.FromJson(rows[maxIndex].Permissions)
+	if err != nil {
+		return nil, err
+	}
+	user.Permissions = permissions.Strings()
 	return user, nil
 }
 

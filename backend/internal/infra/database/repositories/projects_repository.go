@@ -8,7 +8,6 @@ import (
 	"github.com/aesterial/cityideas/backend/internal/domain"
 	projectsdomain "github.com/aesterial/cityideas/backend/internal/domain/projects"
 	"github.com/aesterial/cityideas/backend/internal/infra/database/sqlc"
-	"github.com/aesterial/cityideas/backend/internal/infra/logger"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
 	"github.com/aesterial/cityideas/backend/internal/shared/safe"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -25,7 +24,6 @@ func NewProjectsRepository(conn sqlc.Querier) *ProjectRepository {
 var _ projectsdomain.Repository = (*ProjectRepository)(nil)
 
 func (p *ProjectRepository) parseProject(project sqlc.Project) *projectsdomain.Project {
-	logger.Info("projects", "trying to parse project")
 	return p.parseProjectRow(sqlc.ProjectInfoRow{
 		ID:          project.ID,
 		Author:      project.Author,
@@ -41,7 +39,6 @@ func (p *ProjectRepository) parseProject(project sqlc.Project) *projectsdomain.P
 }
 
 func (*ProjectRepository) parseProjectRow(project sqlc.ProjectInfoRow) *projectsdomain.Project {
-	logger.Info("projects", "trying to parse project row")
 	var link *url.URL
 	if project.ImplLink.Valid {
 		var err error
@@ -171,7 +168,6 @@ func (p *ProjectRepository) Projects(ctx context.Context, limit int32, offset in
 	if limit <= 0 {
 		limit = 10
 	}
-	logger.Info("projects", "trying to get list of projects")
 	listFn := func(context.Context, ...any) (projectsdomain.Projects, error) {
 		list, err := p.conn.ProjectsList(ctx, sqlc.ProjectsListParams{
 			Limit:  limit,
@@ -193,7 +189,6 @@ func (p *ProjectRepository) Projects(ctx context.Context, limit int32, offset in
 		proj.Location = p.parseLocation(loc)
 		return proj, nil
 	}
-	logger.Info("projects", "requesting list of projects")
 	list, err := safe.Hydration[projectsdomain.Projects, *projectsdomain.Project](
 		5*time.Second, listFn,
 		[]func(context.Context, *projectsdomain.Project) (*projectsdomain.Project, error){
@@ -201,7 +196,6 @@ func (p *ProjectRepository) Projects(ctx context.Context, limit int32, offset in
 		},
 		1,
 	)
-	logger.Info("projects", "count of projects", logger.F("count", len(list)))
 	if err != nil {
 		return nil, err
 	}
@@ -318,7 +312,6 @@ func (p *ProjectRepository) SetStatus(ctx context.Context, project domain.UUID, 
 			link = pgtype.Text{String: value[0], Valid: true}
 		}
 	}
-	logger.Info("projects", "setting status", logger.F("project", project.String()), logger.F("status", status.String()))
 	err := p.conn.SetProjectStatus(ctx, sqlc.SetProjectStatusParams{
 		Status:   sqlc.ProjectsStatus(status.String()),
 		ImplLink: link,

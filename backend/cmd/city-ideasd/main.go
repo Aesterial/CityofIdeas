@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -32,6 +33,10 @@ import (
 	"github.com/aesterial/cityideas/backend/internal/infra/logger"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
+	"github.com/improbable-eng/grpc-web/go/grpcweb"
+	"github.com/rs/cors"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -94,6 +99,33 @@ func main() {
 	maintenancepb.RegisterMaintenanceServiceServer(srv, maintenanceHandler)
 	statpb.RegisterStatisticServiceServer(srv, statisticsHandler)
 
+	wrappedSrv := grpcweb.WrapServer(srv,
+		grpcweb.WithOriginFunc(func(origin string) bool {
+			for _, allowed := range cfg.AllowedOrigins {
+				if allowed == "*" || allowed == origin {
+					return true
+				}
+			}
+			return false
+		}),
+	)
+
+	corsHandler := cors.New(cors.Options{
+		AllowedOrigins:   cfg.AllowedOrigins,
+		AllowedMethods:   []string{"GET", "POST", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
+		ExposedHeaders:   []string{"grpc-status", "grpc-message"},
+		AllowCredentials: true,
+	})
+
+	handler := corsHandler.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if wrappedSrv.IsGrpcWebRequest(r) {
+			wrappedSrv.ServeHTTP(w, r)
+			return
+		}
+		srv.ServeHTTP(w, r)
+	}))
+
 	logger.Info("main", "starting listener")
 	listener, err := net.Listen("tcp", cfg.Host+":"+cfg.Port)
 	if err != nil {
@@ -102,9 +134,14 @@ func main() {
 	}
 	serveErr := make(chan error, 1)
 
+	h2s := &http2.Server{}
+	httpSrv := &http.Server{
+		Handler: h2c.NewHandler(handler, h2s),
+	}
+
 	go func() {
-		logger.Info("main", "serving stared", logger.F("port", cfg.Port))
-		serveErr <- srv.Serve(listener)
+		logger.Info("main", "serving started", logger.F("port", cfg.Port))
+		serveErr <- httpSrv.Serve(listener)
 	}()
 
 	select {
@@ -113,6 +150,7 @@ func main() {
 
 		done := make(chan struct{})
 		go func() {
+			_ = httpSrv.Shutdown(context.Background())
 			srv.GracefulStop()
 			close(done)
 		}()

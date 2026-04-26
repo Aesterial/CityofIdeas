@@ -35,7 +35,7 @@ select uid, username, email, joined from users limit $1 offset $2;
 select owner, display_name, description, avatar_hash, session_live from users_preferences where owner = $1 limit 1;
 
 -- name: GetUserRanks :many
-select ranks.id, ranks.name, ranks.color, ranks.weight, users_ranks.expires
+select ranks.id, ranks.name, ranks.color, ranks.weight, ranks.permissions, users_ranks.expires
 from users_ranks
          join ranks on ranks.id = users_ranks.rank
 where users_ranks.owner = $1;

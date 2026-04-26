@@ -464,6 +464,7 @@ type PrivateUser struct {
 	xxx_hidden_Public      *PublicUser            `protobuf:"bytes,1,opt,name=public"`
 	xxx_hidden_SessionLive int32                  `protobuf:"varint,2,opt,name=session_live,json=sessionLive"`
 	xxx_hidden_Email       *string                `protobuf:"bytes,3,opt,name=email"`
+	xxx_hidden_Permissions []string               `protobuf:"bytes,4,rep,name=permissions"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
 	unknownFields          protoimpl.UnknownFields
@@ -519,18 +520,29 @@ func (x *PrivateUser) GetEmail() string {
 	return ""
 }
 
+func (x *PrivateUser) GetPermissions() []string {
+	if x != nil {
+		return x.xxx_hidden_Permissions
+	}
+	return nil
+}
+
 func (x *PrivateUser) SetPublic(v *PublicUser) {
 	x.xxx_hidden_Public = v
 }
 
 func (x *PrivateUser) SetSessionLive(v int32) {
 	x.xxx_hidden_SessionLive = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 3)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 4)
 }
 
 func (x *PrivateUser) SetEmail(v string) {
 	x.xxx_hidden_Email = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 4)
+}
+
+func (x *PrivateUser) SetPermissions(v []string) {
+	x.xxx_hidden_Permissions = v
 }
 
 func (x *PrivateUser) HasPublic() bool {
@@ -574,6 +586,7 @@ type PrivateUser_builder struct {
 	Public      *PublicUser
 	SessionLive *int32
 	Email       *string
+	Permissions []string
 }
 
 func (b0 PrivateUser_builder) Build() *PrivateUser {
@@ -582,13 +595,14 @@ func (b0 PrivateUser_builder) Build() *PrivateUser {
 	_, _ = b, x
 	x.xxx_hidden_Public = b.Public
 	if b.SessionLive != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 4)
 		x.xxx_hidden_SessionLive = *b.SessionLive
 	}
 	if b.Email != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 4)
 		x.xxx_hidden_Email = b.Email
 	}
+	x.xxx_hidden_Permissions = b.Permissions
 	return m0
 }
 
@@ -843,11 +857,12 @@ const file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc = "" +
 	"\busername\x18\x02 \x01(\tR\busername\x122\n" +
 	"\x06joined\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x06joined\x12@\n" +
 	"\x05prefs\x18\x04 \x01(\v2*.xyz.city_ideas.v1.user.v1.UserPreferencesR\x05prefs\x127\n" +
-	"\x04rank\x18\x05 \x01(\v2#.xyz.city_ideas.v1.user.v1.UserRankR\x04rank\"\x85\x01\n" +
+	"\x04rank\x18\x05 \x01(\v2#.xyz.city_ideas.v1.user.v1.UserRankR\x04rank\"\xa7\x01\n" +
 	"\vPrivateUser\x12=\n" +
 	"\x06public\x18\x01 \x01(\v2%.xyz.city_ideas.v1.user.v1.PublicUserR\x06public\x12!\n" +
 	"\fsession_live\x18\x02 \x01(\x05R\vsessionLive\x12\x14\n" +
-	"\x05email\x18\x03 \x01(\tR\x05email\"\xac\x01\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\x12 \n" +
+	"\vpermissions\x18\x04 \x03(\tR\vpermissions\"\xac\x01\n" +
 	"\x18UpdatePreferencesRequest\x12!\n" +
 	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1f\n" +
