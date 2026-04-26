@@ -360,9 +360,53 @@ export function Header() {
               </Sheet>
             </div>
 
-            <Link href="/" className="shrink-0">
-              <Logo className={compact ? "h-8 w-8" : "h-9 w-9"} showText />
-            </Link>
+            <div className="flex min-w-0 items-center gap-2.5">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <Link href="/" className="shrink-0">
+                <Logo className={compact ? "h-8 w-8" : "h-9 w-9"} showText />
+              </Link>
+
+              <div className="hidden lg:flex">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(shellClass, "h-11 rounded-full px-3.5")}
+                    >
+                      <MapPin className="h-4 w-4" />
+                      <span className="max-w-[132px] truncate">{city}</span>
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="start"
+                    className="w-[540px] rounded-[2rem] border-border/70 p-4"
+                  >
+                    <DropdownMenuLabel className="px-0 text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
+                      Города
+                    </DropdownMenuLabel>
+                    <div className="grid grid-cols-2 gap-2 pt-2 sm:grid-cols-3">
+                      {cities.map((cityName) => (
+                        <button
+                          key={cityName}
+                          type="button"
+                          onClick={() => setCity(cityName)}
+                          className={cn(
+                            "rounded-2xl px-3 py-2 text-left text-xs font-semibold transition sm:text-sm",
+                            cityName === city
+                              ? "bg-foreground text-background"
+                              : "bg-muted/70 text-foreground/75 hover:bg-foreground hover:text-background",
+                          )}
+                        >
+                          {cityName}
+                        </button>
+                      ))}
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+            </div>
 
             <div className="hidden xl:flex flex-1 justify-center">
               <motion.nav
@@ -391,7 +435,7 @@ export function Header() {
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
-                      className={cn(shellClass, "hidden h-11 rounded-full px-4 lg:inline-flex")}
+                      className="hidden"
                     >
                       <MapPin className="h-4 w-4" />
                       <span className="max-w-[140px] truncate">{city}</span>
