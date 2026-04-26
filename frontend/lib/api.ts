@@ -1,4 +1,19 @@
+import { create } from "@bufbuild/protobuf";
+import { Code, ConnectError } from "@connectrpc/connect";
+import { EmptySchema, timestampDate } from "@bufbuild/protobuf/wkt";
 import { buildApiUrl } from "@/lib/api-base";
+import { AuthorizeRequestSchema, RegisterRequestSchema } from "@/gen/xyz/city_ideas/v1/login/v1/domain_pb";
+import { CreateProjectRequestSchema, ProjectLocationSchema } from "@/gen/xyz/city_ideas/v1/projects/v1/domain_pb";
+import { RequestWithLimitAndOffsetSchema, RequestWithValueSchema } from "@/gen/xyz/city_ideas/v1/types_pb";
+import { UpdatePreferencesRequestSchema } from "@/gen/xyz/city_ideas/v1/user/v1/domain_pb";
+import {
+  loginClient,
+  maintenanceClient,
+  projectsClient,
+  rankClient,
+  sessionClient,
+  userClient,
+} from "@/lib/grpc-web";
 import { emitMfaRequired, isMfaRequiredMessage } from "@/lib/mfa-required";
 import { StatusCodes } from "http-status-codes";
 
@@ -54,7 +69,7 @@ type PresignResponse = {
 };
 
 export type AvatarUploadPayload = {
-  userId: number;
+  userId: number | string;
   file: File;
   contentType?: string;
   key?: string;
@@ -78,8 +93,8 @@ type ApiUserSettings = {
 };
 
 export type ApiUserPublic = {
-  uid?: number;
-  userID?: number;
+  uid?: number | string;
+  userID?: number | string;
   username?: string;
   settings?: ApiUserSettings | null;
   rank?: ApiRank | null;
@@ -278,7 +293,7 @@ type ApiBanInfoResponse = {
 };
 
 export type AuthUser = {
-  uid: number;
+  uid: number | string;
   username: string;
   email?: string;
   emailVerified?: boolean;
@@ -1018,6 +1033,57 @@ function toAuthUser(payload: ApiUser | ApiUserResponse): AuthUser {
   };
 }
 
+const toGrpcTimestamp = (value?: { seconds?: bigint | number | string | null; nanos?: number | null } | null) => {
+  if (!value) {
+    return undefined;
+  }
+  try {
+    return timestampDate(value as Parameters<typeof timestampDate>[0]).toISOString();
+  } catch {
+    return undefined;
+  }
+};
+
+const mapGrpcCodeToHttpStatus = (code: Code) => {
+  switch (code) {
+    case Code.InvalidArgument:
+      return StatusCodes.BAD_REQUEST;
+    case Code.Unauthenticated:
+      return StatusCodes.UNAUTHORIZED;
+    case Code.PermissionDenied:
+      return StatusCodes.FORBIDDEN;
+    case Code.NotFound:
+      return StatusCodes.NOT_FOUND;
+    case Code.AlreadyExists:
+      return StatusCodes.CONFLICT;
+    case Code.ResourceExhausted:
+      return StatusCodes.TOO_MANY_REQUESTS;
+    case Code.Unavailable:
+      return StatusCodes.SERVICE_UNAVAILABLE;
+    case Code.Unimplemented:
+      return StatusCodes.NOT_IMPLEMENTED;
+    default:
+      return StatusCodes.INTERNAL_SERVER_ERROR;
+  }
+};
+
+async function grpcRequest<T>(request: () => Promise<T>): Promise<T> {
+  try {
+    return await request();
+  } catch (error) {
+    if (!(error instanceof ConnectError)) {
+      throw error;
+    }
+    const status = mapGrpcCodeToHttpStatus(error.code);
+    const publicMessage = getPublicApiErrorMessage(status, error.message);
+    if (isMfaRequiredResponse(status, null, error.message)) {
+      emitMfaRequired({ reason: publicMessage });
+      throw new MfaRequiredError(publicMessage);
+    }
+    throw new ApiError(status, publicMessage);
+  }
+}
+
 const normalizeAuthChallengeType = (
   value?: string,
   destination?: string,
@@ -1292,20 +1358,29 @@ export async function handleBannedUser(options?: {
 }
 
 export async function registerUser(payload: RegisterPayload): Promise<void> {
-  await apiRequest("/api/login/register", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+  await grpcRequest(() =>
+    loginClient.register(
+      create(RegisterRequestSchema, {
+        username: payload.username.trim(),
+        email: payload.email.trim(),
+        password: payload.password,
+      }),
+    ),
+  );
 }
 
 export async function authorizeUser(
   payload: AuthorizationPayload,
 ): Promise<AuthResult> {
-  const response = await apiRequest<unknown>("/api/login/authorization", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-  return normalizeAuthResult(response);
+  await grpcRequest(() =>
+    loginClient.authorize(
+      create(AuthorizeRequestSchema, {
+        userMail: payload.usermail.trim(),
+        password: payload.password,
+      }),
+    ),
+  );
+  return { status: "ok" };
 }
 
 export async function requestPasswordReset(
@@ -1591,9 +1666,15 @@ export async function completeVkAuth(
 }
 
 function toUserListItem(payload: ApiUserPublic): UserListItem | null {
-  const userID = payload.userID ?? payload.uid;
+  const rawUserID = payload.userID ?? payload.uid;
+  const userID =
+    typeof rawUserID === "number"
+      ? rawUserID
+      : typeof rawUserID === "string" && rawUserID.trim()
+        ? Number(rawUserID)
+        : NaN;
   const username = payload.username;
-  if (userID == null || !username) {
+  if (!Number.isFinite(userID) || !username) {
     return null;
   }
 
@@ -1616,26 +1697,53 @@ function toUserListItem(payload: ApiUserPublic): UserListItem | null {
 }
 
 export async function logoutUser(): Promise<void> {
-  await apiRequest("/api/login/logout", {
-    method: "POST",
-  });
+  await grpcRequest(() => loginClient.logout(create(EmptySchema, {})));
 }
 
 export async function fetchCurrentUser(): Promise<AuthUser> {
-  const payload = await apiRequest<ApiUser | ApiUserResponse>("/api/user", {
-    method: "GET",
-  });
-  return toAuthUser(payload);
+  const payload = await grpcRequest(() =>
+    userClient.self(create(EmptySchema, {})),
+  );
+  const publicUser = payload.public;
+  if (!publicUser?.id || !publicUser.username) {
+    throw new Error("Missing user payload.");
+  }
+  return {
+    uid: publicUser.id,
+    username: publicUser.username,
+    email: payload.email || undefined,
+    emailVerified: false,
+    displayName: publicUser.prefs?.displayName || undefined,
+    description: publicUser.prefs?.description || undefined,
+    avatar: publicUser.prefs?.avatar ? { key: publicUser.prefs.avatar } : null,
+    rank: publicUser.rank?.name
+      ? {
+          name: publicUser.rank.name,
+        }
+      : null,
+    totpEnabled: false,
+    joined: toGrpcTimestamp(publicUser.joined),
+  };
 }
 
 export async function fetchUserSessions(options?: {
   signal?: AbortSignal;
 }): Promise<UserSession[]> {
-  const payload = await apiRequest<unknown>("/api/user/sessions", {
-    method: "GET",
-    signal: options?.signal,
-  });
-  return toUserSessions(payload);
+  const payload = await grpcRequest(() =>
+    sessionClient.list(
+      create(RequestWithLimitAndOffsetSchema, {
+        limit: 100,
+        offset: 0,
+      }),
+      { signal: options?.signal },
+    ),
+  );
+  return payload.list.map((session) => ({
+    id: session.id,
+    createdAt: toGrpcTimestamp(session.at),
+    lastSeenAt: toGrpcTimestamp(session.seen),
+    hash: session.hash || undefined,
+  }));
 }
 
 export async function revokeUserSession(id: string): Promise<void> {
@@ -1643,12 +1751,8 @@ export async function revokeUserSession(id: string): Promise<void> {
   if (!trimmedId) {
     throw new Error("Session id is required.");
   }
-  await apiRequest(
-    `/api/user/sessions/revoke/${encodeURIComponent(trimmedId)}`,
-    {
-      method: "POST",
-      body: JSON.stringify({ id: trimmedId }),
-    },
+  await grpcRequest(() =>
+    sessionClient.revoke(create(RequestWithValueSchema, { value: trimmedId })),
   );
 }
 
@@ -1674,7 +1778,7 @@ export async function fetchUserPublic(
 }
 
 export async function fetchUserPermissions(
-  userID: number,
+  userID: number | string,
   options?: { signal?: AbortSignal },
 ): Promise<ApiPermissions | null> {
   const payload = await apiRequest<ApiPermissions | ApiPermissionsResponse>(
@@ -1744,19 +1848,23 @@ export async function setUserRank(
 export async function fetchRanksList(options?: {
   signal?: AbortSignal;
 }): Promise<ApiRankListItem[]> {
-  const payload = await apiRequest<ApiRankListResponse | ApiRankListEntry[]>(
-    "/api/ranks/list",
-    {
-      method: "GET",
-      signal: options?.signal,
-    },
+  const payload = await grpcRequest(() =>
+    rankClient.list(
+      create(RequestWithLimitAndOffsetSchema, {
+        limit: 100,
+        offset: 0,
+      }),
+      { signal: options?.signal },
+    ),
   );
-  const records = Array.isArray(payload)
-    ? payload
-    : (payload?.ranks ?? payload?.data ?? payload?.items ?? []);
-  return records
-    .map(toRankListItem)
-    .filter((item): item is ApiRankListItem => Boolean(item));
+  return payload.list.map((rank) => ({
+    name: rank.name,
+    description: rank.description || undefined,
+    color:
+      typeof rank.color === "bigint" ? Number(rank.color) : Number(rank.color),
+    added: toGrpcTimestamp(rank.at),
+    weight: rank.weight,
+  }));
 }
 
 type RankCreatePayload = {
@@ -1967,20 +2075,26 @@ export async function unbanUser(userID: number): Promise<void> {
 }
 
 export async function updateDisplayName(name: string): Promise<AuthUser> {
-  const encoded = encodeURIComponent(name);
-  await apiRequest(`/api/user/change/name/${encoded}`, {
-    method: "PATCH",
-  });
+  await grpcRequest(() =>
+    userClient.updatePreferences(
+      create(UpdatePreferencesRequestSchema, {
+        displayName: name.trim(),
+      }),
+    ),
+  );
   return fetchCurrentUser();
 }
 
 export async function updateProfileDescription(
   description: string,
 ): Promise<AuthUser> {
-  const encoded = encodeURIComponent(description);
-  await apiRequest(`/api/user/change/description/${encoded}`, {
-    method: "PATCH",
-  });
+  await grpcRequest(() =>
+    userClient.updatePreferences(
+      create(UpdatePreferencesRequestSchema, {
+        description: description.trim(),
+      }),
+    ),
+  );
   return fetchCurrentUser();
 }
 
@@ -1990,14 +2104,21 @@ export async function updateAvatar(
   if (!payload?.file) {
     throw new Error("Avatar file is required.");
   }
-  if (!Number.isFinite(payload.userId) || payload.userId <= 0) {
+  const userId =
+    typeof payload.userId === "number"
+      ? payload.userId
+      : payload.userId.trim();
+  if (
+    (typeof userId === "number" && (!Number.isFinite(userId) || userId <= 0)) ||
+    (typeof userId === "string" && !userId)
+  ) {
     throw new Error("User id is required.");
   }
   const contentType =
     payload.contentType?.trim() ||
     payload.file.type ||
     "application/octet-stream";
-  const key = payload.key?.trim() || `avatars/${payload.userId}/current`;
+  const key = payload.key?.trim() || `avatars/${userId}/current`;
   const presignResponse = await apiRequest<PresignResponse>(
     `/api/storage/presign/put?key=${encodeURIComponent(key)}&contentType=${encodeURIComponent(contentType)}`,
     {
@@ -2169,15 +2290,21 @@ export type CreateProjectPayload = {
 export async function createProject(
   payload: CreateProjectPayload,
 ): Promise<{ id?: string; tracing?: string }> {
-  const response = await apiRequest<unknown>("/api/projects/create", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
-  const id = pickProjectId(response);
-  const record = toTicketRecord(response);
-  const tracing =
-    typeof record?.tracing === "string" ? record.tracing.trim() : undefined;
-  return { id: id ?? undefined, tracing };
+  const response = await grpcRequest(() =>
+    projectsClient.createProject(
+      create(CreateProjectRequestSchema, {
+        title: payload.title.trim(),
+        description: payload.description?.trim() || "",
+        category: payload.category.trim(),
+        location: create(ProjectLocationSchema, {
+          city: payload.location.city?.trim() || "",
+          lat: payload.location.latitude ?? payload.location.lat ?? 0,
+          lot: payload.location.longitude ?? payload.location.lng ?? 0,
+        }),
+      }),
+    ),
+  );
+  return { id: response.id || undefined };
 }
 
 export async function changeProjectTitle(
@@ -2277,11 +2404,19 @@ export async function fetchMaintenanceActive(options?: {
 export async function fetchMaintenancePlanned(options?: {
   signal?: AbortSignal;
 }): Promise<boolean> {
-  const payload = await apiRequest<unknown>("/api/maintenance/planned", {
-    method: "GET",
-    signal: options?.signal,
-  });
-  return readMaintenanceFlag(payload);
+  try {
+    const payload = await grpcRequest(() =>
+      maintenanceClient.isPlanned(create(EmptySchema, {}), {
+        signal: options?.signal,
+      }),
+    );
+    return Boolean(payload.at || payload.description.trim());
+  } catch (error) {
+    if (error instanceof ApiError && error.status === StatusCodes.NOT_FOUND) {
+      return false;
+    }
+    throw error;
+  }
 }
 
 export async function fetchMaintenanceData(options?: {

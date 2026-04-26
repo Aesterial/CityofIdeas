@@ -141,7 +141,7 @@ const applyCoordinateJitter = (center: [number, number], seed: string) => {
 };
 
 const surfaceClass =
-  "relative overflow-hidden border border-border/70 bg-card/82 shadow-[0_30px_80px_-48px_rgba(0,0,0,0.48)] backdrop-blur-xl";
+  "relative overflow-hidden border border-border/85 bg-card/88 shadow-[0_40px_110px_-72px_rgba(0,0,0,0.92)] backdrop-blur-2xl";
 
 export default function HomePage() {
   const [popularProjects, setPopularProjects] = useState<ApiProject[]>([]);
@@ -307,14 +307,15 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground">
       <Header />
 
       <main className="overflow-hidden pb-20">
         <section className="relative px-4 pb-18 pt-32 sm:px-6 sm:pb-20 sm:pt-36">
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute left-[8%] top-20 h-52 w-52 rounded-full bg-foreground/6 blur-3xl" />
-            <div className="absolute right-[8%] top-24 h-64 w-64 rounded-full bg-foreground/8 blur-3xl" />
+            <div className="absolute left-[8%] top-20 h-52 w-52 rounded-full bg-foreground/5 blur-3xl" />
+            <div className="absolute right-[8%] top-24 h-64 w-64 rounded-full bg-foreground/7 blur-3xl" />
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/18 to-transparent" />
           </div>
 
           <div className="container relative mx-auto">
@@ -347,7 +348,7 @@ export default function HomePage() {
                   >
                     <Link href={startHref}>
                       {t("suggestIdea")}
-                      <ArrowRight className="h-4 w-4" />
+                      <ArrowRight data-icon="inline-end" />
                     </Link>
                   </Button>
                   <Button asChild variant="outline" className="rounded-full px-6">
@@ -390,6 +391,7 @@ export default function HomePage() {
                 className="relative"
               >
                 <MapLibreMap
+                  className="grayscale contrast-[1.05] brightness-[0.96] saturate-0"
                   center={mapCenter}
                   zoom={12}
                   markers={mapMarkers}
@@ -414,10 +416,10 @@ export default function HomePage() {
                         <p className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
                           {t("mapProjectDetailsTitle")}
                         </p>
-                        <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/70 px-2 py-1 text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
-                          <TrendingUp className="h-3.5 w-3.5" />
+                        <Badge variant="outline" className="rounded-full border-border/70 bg-background/70 px-2 py-1 text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
+                          <TrendingUp className="opacity-70" />
                           {mapLoading ? t("mapProjectsLoading") : `${mapMarkers.length || MAP_LIMIT}`}
-                        </span>
+                        </Badge>
                       </div>
 
                       <div className="space-y-1.5">
@@ -451,14 +453,15 @@ export default function HomePage() {
                           </Button>
                         ) : null}
                         {selectedCoordinates ? (
-                          <a
-                            href={build2GisLink(selectedCoordinates)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border/70 bg-background/72 px-3 text-xs text-foreground transition hover:bg-muted"
-                          >
-                            {t("openIn2Gis")}
-                          </a>
+                          <Button asChild variant="outline" className="h-8 rounded-full px-3 text-xs">
+                            <a
+                              href={build2GisLink(selectedCoordinates)}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {t("openIn2Gis")}
+                            </a>
+                          </Button>
                         ) : null}
                       </div>
                     </div>
@@ -505,9 +508,9 @@ export default function HomePage() {
                         }
                         className="group/item flex items-start gap-4 rounded-[1.6rem] border border-border/70 bg-background/60 px-4 py-4 transition hover:bg-muted/80"
                       >
-                        <span className="min-w-9 text-2xl font-semibold tracking-[-0.05em] text-muted-foreground">
-                          0{index + 1}
-                        </span>
+                    <span className="min-w-9 text-2xl font-semibold tracking-[-0.05em] text-muted-foreground">
+                      0{index + 1}
+                    </span>
                         <span className="min-w-0 flex-1">
                           <span className="block text-base font-semibold">
                             {getProjectAddress(project)}
@@ -517,7 +520,7 @@ export default function HomePage() {
                               t("mapProjectNoDescription")}
                           </span>
                         </span>
-                        <ArrowRight className="mt-1 h-4 w-4 shrink-0 transition-transform group-hover/item:translate-x-1" />
+                        <ArrowRight className="mt-1 shrink-0 transition-transform group-hover/item:translate-x-1" />
                       </Link>
                     ))
                   ) : (
@@ -584,7 +587,7 @@ export default function HomePage() {
                   <Button asChild className="rounded-full px-6">
                     <Link href={startHref}>
                       {t("start")}
-                      <ArrowRight className="h-4 w-4" />
+                      <ArrowRight data-icon="inline-end" />
                     </Link>
                   </Button>
                   <Button asChild variant="outline" className="rounded-full px-6">

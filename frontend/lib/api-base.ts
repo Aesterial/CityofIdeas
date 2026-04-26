@@ -1,4 +1,4 @@
-const DEV_API_BASE_URL = "http://127.0.0.1:8080";
+const DEV_API_BASE_URL = "http://127.0.0.1:8080/api";
 
 export const stripTrailingSlash = (value: string) => value.replace(/\/$/, "");
 
@@ -63,6 +63,10 @@ export const getApiBaseUrl = (origin?: string) => {
 };
 
 export const API_BASE_URL = getApiBaseUrl();
+
+export const getGrpcBaseUrl = (origin?: string) => getApiBaseUrl(origin);
+
+export const GRPC_BASE_URL = getGrpcBaseUrl();
 
 export const buildApiUrl = (path: string, baseUrl = API_BASE_URL) => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
