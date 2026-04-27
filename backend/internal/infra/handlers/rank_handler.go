@@ -65,7 +65,7 @@ func (h *RankHandler) Rank(ctx context.Context, req *typespb.RequestWithValue) (
 	if err = h.auth.Permissions(ctx, *meta, permissionsdomain.RankInfo); err != nil {
 		return nil, err
 	}
-	out, err := h.rank.RankInfo(ctx, req.String())
+	out, err := h.rank.RankInfo(ctx, req.GetValue())
 	if err != nil {
 		return nil, err
 	}

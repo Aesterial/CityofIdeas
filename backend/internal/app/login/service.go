@@ -10,6 +10,7 @@ import (
 	userdomain "github.com/aesterial/cityideas/backend/internal/domain/user"
 	"github.com/aesterial/cityideas/backend/internal/infra/config"
 	"github.com/aesterial/cityideas/backend/internal/infra/logger"
+	"github.com/aesterial/cityideas/backend/internal/shared/cache"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc"
@@ -19,12 +20,18 @@ import (
 type Service struct {
 	usr userdomain.Repository
 	ses sessionsdomain.Repository
+	c   *cache.Store
 }
 
-func NewService(usr userdomain.Repository, ses sessionsdomain.Repository) *Service {
+func NewService(usr userdomain.Repository, ses sessionsdomain.Repository, store ...*cache.Store) *Service {
+	var c *cache.Store
+	if len(store) > 0 {
+		c = store[0]
+	}
 	return &Service{
 		usr: usr,
 		ses: ses,
+		c:   c,
 	}
 }
 
@@ -82,6 +89,9 @@ func (s *Service) Register(ctx context.Context, username string, email string, p
 	if err != nil {
 		logger.Error("login", "failed to create user", logger.F("error", err))
 		return nil, errors.Wrap(err)
+	}
+	if s.c != nil {
+		s.c.DeleteTags("users:list")
 	}
 	session, err := s.ses.Create(ctx, user.UID, time.Now().Add(7*24*time.Hour), device, hash)
 	if err != nil {

@@ -31,6 +31,7 @@ import (
 	"github.com/aesterial/cityideas/backend/internal/infra/handlers"
 	"github.com/aesterial/cityideas/backend/internal/infra/handlers/interceptors"
 	"github.com/aesterial/cityideas/backend/internal/infra/logger"
+	"github.com/aesterial/cityideas/backend/internal/shared/cache"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
@@ -66,14 +67,15 @@ func main() {
 	rankRepository := repositories.NewRankRepository(conn.Querier())
 	maintenanceRepository := repositories.NewMaintenanceRepository(conn.Querier())
 	statisticsRepository := repositories.NewStatisticsRepository(conn.Querier())
-	userService := userservice.NewService(userRepository)
+	appCache := cache.New(cache.DefaultMaxEntries)
+	userService := userservice.NewService(userRepository, appCache)
 	sessionService := sessionservice.NewService(sessionRepository)
-	loginService := loginservice.NewService(userRepository, sessionRepository)
-	projectService := projectservice.NewService(projectRepository)
-	ticketService := ticketservice.NewService(ticketRepository)
-	rankService := rankservice.NewService(rankRepository)
-	maintenanceService := maintenanceservice.NewService(maintenanceRepository)
-	statisticsService := statisticsservice.NewService(statisticsRepository)
+	loginService := loginservice.NewService(userRepository, sessionRepository, appCache)
+	projectService := projectservice.NewService(projectRepository, appCache)
+	ticketService := ticketservice.NewService(ticketRepository, appCache)
+	rankService := rankservice.NewService(rankRepository, appCache)
+	maintenanceService := maintenanceservice.NewService(maintenanceRepository, appCache)
+	statisticsService := statisticsservice.NewService(statisticsRepository, appCache)
 	interceptorService := interceptors.NewService(maintenanceService)
 
 	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptorService.CsrfCheck(), interceptorService.AvailabilityCheck(), interceptorService.FingerPrint(), interceptorService.Logging(), recovery.UnaryServerInterceptor(recovery.WithRecoveryHandlerContext(interceptorService.Recovery))))

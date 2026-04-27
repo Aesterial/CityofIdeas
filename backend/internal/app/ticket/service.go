@@ -2,20 +2,36 @@ package ticketservice
 
 import (
 	"context"
+	"time"
 
 	"github.com/aesterial/cityideas/backend/internal/domain"
 	ticketsdomain "github.com/aesterial/cityideas/backend/internal/domain/tickets"
 	"github.com/aesterial/cityideas/backend/internal/infra/logger"
+	"github.com/aesterial/cityideas/backend/internal/shared/cache"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
 )
 
 type Service struct {
 	ticket ticketsdomain.Repository
+	c      *cache.Store
 }
 
-func NewService(ticket ticketsdomain.Repository) *Service {
-	return &Service{ticket: ticket}
+func NewService(ticket ticketsdomain.Repository, store ...*cache.Store) *Service {
+	var c *cache.Store
+	if len(store) > 0 {
+		c = store[0]
+	}
+	if c == nil {
+		c = cache.New(cache.DefaultMaxEntries)
+	}
+	return &Service{ticket: ticket, c: c}
 }
+
+const (
+	ticketCacheTTL         = 10 * time.Second
+	ticketListCacheTag     = "tickets:list"
+	ticketMessagesCacheTag = "tickets:messages"
+)
 
 func (s *Service) CreateTicket(ctx context.Context, author domain.UUID, topic string, title string, message string) (*ticketsdomain.Ticket, error) {
 	if topic == "" || title == "" {
@@ -34,6 +50,7 @@ func (s *Service) CreateTicket(ctx context.Context, author domain.UUID, topic st
 		logger.Error("tickets", "failed to create message", logger.F("error", err))
 		return nil, errors.Wrap(err)
 	}
+	s.c.DeleteTags(ticketListCacheTag, ticketUserListCacheTag(author.String()), ticketMessagesByTicketCacheTag(ticket.ID.String()))
 	return ticket, nil
 }
 
@@ -41,16 +58,29 @@ func (s *Service) TicketsList(ctx context.Context, user *domain.UUID, limit int3
 	if limit <= 0 {
 		limit = 10
 	}
-	var out ticketsdomain.Tickets
-	var err error
+	userKey := ""
+	tags := []string{ticketListCacheTag}
 	if user != nil {
-		out, err = s.ticket.TicketsByUser(ctx, *user, limit, offset)
-	} else {
-		out, err = s.ticket.Tickets(ctx, limit, offset)
+		userKey = user.String()
+		tags = append(tags, ticketUserListCacheTag(userKey))
 	}
+	key := cache.Key("tickets.list", userKey, limit, offset)
+	out, err := cache.GetOrSet(ctx, s.c, key, ticketCacheTTL, tags, func(ctx context.Context) (ticketsdomain.Tickets, error) {
+		var out ticketsdomain.Tickets
+		var err error
+		if user != nil {
+			out, err = s.ticket.TicketsByUser(ctx, *user, limit, offset)
+		} else {
+			out, err = s.ticket.Tickets(ctx, limit, offset)
+		}
+		if err != nil {
+			logger.Error("tickets", "failed to get list of tickets", logger.F("error", err))
+			return nil, errors.Wrap(err)
+		}
+		return out, nil
+	})
 	if err != nil {
-		logger.Error("tickets", "failed to get list of tickets", logger.F("error", err))
-		return nil, errors.Wrap(err)
+		return nil, err
 	}
 	if out == nil {
 		return nil, errors.NotFound
@@ -73,12 +103,15 @@ func (s *Service) Ticket(ctx context.Context, ticket string, requestor *domain.U
 			return nil, errors.AccessDenied
 		}
 	}
-	out, err := s.ticket.Info(ctx, id)
-	if err != nil {
-		logger.Error("tickets", "failed to get info about ticket", logger.F("error", err))
-		return nil, errors.Wrap(err)
-	}
-	return out, nil
+	key := cache.Key("tickets.info", id.String())
+	return cache.GetOrSet(ctx, s.c, key, ticketCacheTTL, []string{ticketInfoCacheTag(id.String())}, func(ctx context.Context) (*ticketsdomain.Ticket, error) {
+		out, err := s.ticket.Info(ctx, id)
+		if err != nil {
+			logger.Error("tickets", "failed to get info about ticket", logger.F("error", err))
+			return nil, errors.Wrap(err)
+		}
+		return out, nil
+	})
 }
 
 func (s *Service) Accept(ctx context.Context, ticket string, by domain.UUID) error {
@@ -94,6 +127,7 @@ func (s *Service) Accept(ctx context.Context, ticket string, by domain.UUID) err
 		logger.Error("tickets", "failed to accept ticket", logger.F("error", err))
 		return errors.Wrap(err)
 	}
+	s.c.DeleteTags(ticketListCacheTag, ticketInfoCacheTag(id.String()))
 	return nil
 }
 
@@ -122,6 +156,7 @@ func (s *Service) Close(ctx context.Context, ticket string, by *domain.UUID, rea
 		logger.Error("tickets", "failed to close ticket", logger.F("error", err))
 		return errors.Wrap(err)
 	}
+	s.c.DeleteTags(ticketListCacheTag, ticketInfoCacheTag(id.String()))
 	return nil
 }
 
@@ -151,6 +186,7 @@ func (s *Service) CreateMessage(ctx context.Context, ticket string, content stri
 		logger.Error("tickets", "failed to create message for ticket", logger.F("error", err))
 		return nil, errors.Wrap(err)
 	}
+	s.c.DeleteTags(ticketMessagesCacheTag, ticketMessagesByTicketCacheTag(id.String()))
 	return message, nil
 }
 
@@ -168,10 +204,28 @@ func (s *Service) Messages(ctx context.Context, ticket string, caller *domain.UU
 			return nil, errors.AccessDenied
 		}
 	}
-	messages, err := s.ticket.MessagesList(ctx, id, limit, offset)
-	if err != nil {
-		logger.Error("tickets", "failed to get list of messages for ticket", logger.F("error", err))
-		return nil, errors.Wrap(err)
+	if limit <= 0 {
+		limit = 10
 	}
-	return messages, nil
+	key := cache.Key("tickets.messages", id.String(), limit, offset)
+	return cache.GetOrSet(ctx, s.c, key, ticketCacheTTL, []string{ticketMessagesCacheTag, ticketMessagesByTicketCacheTag(id.String())}, func(ctx context.Context) (ticketsdomain.Messages, error) {
+		messages, err := s.ticket.MessagesList(ctx, id, limit, offset)
+		if err != nil {
+			logger.Error("tickets", "failed to get list of messages for ticket", logger.F("error", err))
+			return nil, errors.Wrap(err)
+		}
+		return messages, nil
+	})
+}
+
+func ticketInfoCacheTag(id string) string {
+	return "tickets:item:" + id
+}
+
+func ticketUserListCacheTag(id string) string {
+	return "tickets:user:" + id
+}
+
+func ticketMessagesByTicketCacheTag(id string) string {
+	return "tickets:messages:" + id
 }
