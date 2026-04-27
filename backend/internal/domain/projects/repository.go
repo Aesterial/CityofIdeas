@@ -7,6 +7,7 @@ import (
 )
 
 type Repository interface {
+	ProjectsTop(ctx context.Context, city string, limit int32, offset int32) (Projects, error)
 	Projects(ctx context.Context, limit int32, offset int32) (Projects, error)
 	Submissions(ctx context.Context, limit int32, offset int32) (Submissions, error)
 	Submission(ctx context.Context, id domain.UUID) (*Submission, error)

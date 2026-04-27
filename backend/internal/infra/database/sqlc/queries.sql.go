@@ -1413,6 +1413,62 @@ func (q *Queries) ProjectsList(ctx context.Context, arg ProjectsListParams) ([]P
 	return items, nil
 }
 
+const ProjectsTop = `-- name: ProjectsTop :many
+select p.id, p.author, p.title, p.description, p.category, count(l.project)::bigint as likes_count, p.status, p.impl_link, p.at, p.updated, p.deleted from projects p join project_location pl on pl.id = p.id left join project_likes l on l.project = p.id where p.status not in ('reviewing', 'cancelled', 'implemented') and pl.city = $1 group by p.id order by count(l.project) desc, p.at desc limit $2 offset $3
+`
+
+type ProjectsTopParams struct {
+	City   string `json:"city"`
+	Limit  int32  `json:"limit"`
+	Offset int32  `json:"offset"`
+}
+
+type ProjectsTopRow struct {
+	ID          pgtype.UUID        `json:"id"`
+	Author      pgtype.UUID        `json:"author"`
+	Title       string             `json:"title"`
+	Description string             `json:"description"`
+	Category    string             `json:"category"`
+	LikesCount  int64              `json:"likes_count"`
+	Status      ProjectsStatus     `json:"status"`
+	ImplLink    pgtype.Text        `json:"impl_link"`
+	At          pgtype.Timestamptz `json:"at"`
+	Updated     pgtype.Timestamptz `json:"updated"`
+	Deleted     pgtype.Timestamptz `json:"deleted"`
+}
+
+func (q *Queries) ProjectsTop(ctx context.Context, arg ProjectsTopParams) ([]ProjectsTopRow, error) {
+	rows, err := q.db.Query(ctx, ProjectsTop, arg.City, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ProjectsTopRow
+	for rows.Next() {
+		var i ProjectsTopRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Author,
+			&i.Title,
+			&i.Description,
+			&i.Category,
+			&i.LikesCount,
+			&i.Status,
+			&i.ImplLink,
+			&i.At,
+			&i.Updated,
+			&i.Deleted,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const QuestionsGraph = `-- name: QuestionsGraph :many
 with period as (select case $1::text
                            when 'hourly' then date_trunc('hour', now()) - interval '23 hours'

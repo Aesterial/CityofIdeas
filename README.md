@@ -172,7 +172,8 @@ buf lint
 buf generate
 ```
 
-Generated Go outputs are written into `backend/internal/api/...`.
+Generated Go outputs are written into `backend/internal/api/...`; generated TypeScript outputs are written into
+`frontend/gen/...`.
 
 ## License
 

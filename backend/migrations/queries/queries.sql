@@ -224,6 +224,27 @@ group by projects.id,
          deleted
 limit $1 offset $2;
 
+-- name: ProjectsTop :many
+select p.id,
+       p.author,
+       p.title,
+       p.description,
+       p.category,
+       count(l.project)::bigint as likes_count,
+       p.status,
+       p.impl_link,
+       p.at,
+       p.updated,
+       p.deleted
+from projects p
+         join project_location pl on pl.id = p.id
+         left join project_likes l on l.project = p.id
+where p.status not in ('reviewing', 'cancelled', 'implemented')
+  and pl.city = $1
+group by p.id
+order by count(l.project) desc, p.at desc
+limit $2 offset $3;
+
 -- name: ProjectInfo :one
 select projects.id,
        projects.author,

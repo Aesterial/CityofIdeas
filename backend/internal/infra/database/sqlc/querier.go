@@ -68,6 +68,7 @@ type Querier interface {
 	ProjectLocationInfo(ctx context.Context, id pgtype.UUID) (ProjectLocation, error)
 	ProjectVotesGraph(ctx context.Context, arg ProjectVotesGraphParams) ([]ProjectVotesGraphRow, error)
 	ProjectsList(ctx context.Context, arg ProjectsListParams) ([]ProjectsListRow, error)
+	ProjectsTop(ctx context.Context, arg ProjectsTopParams) ([]ProjectsTopRow, error)
 	QuestionsGraph(ctx context.Context, separator string) ([]QuestionsGraphRow, error)
 	RankInfo(ctx context.Context, name string) (Rank, error)
 	RankInfoByID(ctx context.Context, id pgtype.UUID) (Rank, error)

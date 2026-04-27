@@ -11,6 +11,7 @@ option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/proj
 service ProjectsService {
   rpc CreateProject(xyz.city_ideas.v1.projects.v1.CreateProjectRequest) returns (xyz.city_ideas.v1.projects.v1.Project);
   rpc CreateMessage(xyz.city_ideas.v1.projects.v1.CreateMessageRequest) returns (xyz.city_ideas.v1.projects.v1.Message);
+  rpc ProjectsTop(xyz.city_ideas.v1.RequestWithLimitAndOffsetAndValue) returns (xyz.city_ideas.v1.projects.v1.ProjectsListResponse);
   rpc ProjectsList(xyz.city_ideas.v1.RequestWithLimitAndOffset) returns (xyz.city_ideas.v1.projects.v1.ProjectsListResponse);
   rpc SubmissionsList(xyz.city_ideas.v1.RequestWithLimitAndOffset) returns (xyz.city_ideas.v1.projects.v1.SubmissionsListResponse);
   rpc MessagesList(xyz.city_ideas.v1.RequestWithLimitAndOffsetAndValue) returns (xyz.city_ideas.v1.projects.v1.MessagesListResponse);

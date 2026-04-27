@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	ProjectsService_CreateProject_FullMethodName    = "/xyz.city_ideas.v1.projects.v1.ProjectsService/CreateProject"
 	ProjectsService_CreateMessage_FullMethodName    = "/xyz.city_ideas.v1.projects.v1.ProjectsService/CreateMessage"
+	ProjectsService_ProjectsTop_FullMethodName      = "/xyz.city_ideas.v1.projects.v1.ProjectsService/ProjectsTop"
 	ProjectsService_ProjectsList_FullMethodName     = "/xyz.city_ideas.v1.projects.v1.ProjectsService/ProjectsList"
 	ProjectsService_SubmissionsList_FullMethodName  = "/xyz.city_ideas.v1.projects.v1.ProjectsService/SubmissionsList"
 	ProjectsService_MessagesList_FullMethodName     = "/xyz.city_ideas.v1.projects.v1.ProjectsService/MessagesList"
@@ -40,6 +41,7 @@ const (
 type ProjectsServiceClient interface {
 	CreateProject(ctx context.Context, in *CreateProjectRequest, opts ...grpc.CallOption) (*Project, error)
 	CreateMessage(ctx context.Context, in *CreateMessageRequest, opts ...grpc.CallOption) (*Message, error)
+	ProjectsTop(ctx context.Context, in *v1.RequestWithLimitAndOffsetAndValue, opts ...grpc.CallOption) (*ProjectsListResponse, error)
 	ProjectsList(ctx context.Context, in *v1.RequestWithLimitAndOffset, opts ...grpc.CallOption) (*ProjectsListResponse, error)
 	SubmissionsList(ctx context.Context, in *v1.RequestWithLimitAndOffset, opts ...grpc.CallOption) (*SubmissionsListResponse, error)
 	MessagesList(ctx context.Context, in *v1.RequestWithLimitAndOffsetAndValue, opts ...grpc.CallOption) (*MessagesListResponse, error)
@@ -73,6 +75,16 @@ func (c *projectsServiceClient) CreateMessage(ctx context.Context, in *CreateMes
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Message)
 	err := c.cc.Invoke(ctx, ProjectsService_CreateMessage_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *projectsServiceClient) ProjectsTop(ctx context.Context, in *v1.RequestWithLimitAndOffsetAndValue, opts ...grpc.CallOption) (*ProjectsListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ProjectsListResponse)
+	err := c.cc.Invoke(ctx, ProjectsService_ProjectsTop_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -175,6 +187,7 @@ func (c *projectsServiceClient) DenySubmission(ctx context.Context, in *v1.Reque
 type ProjectsServiceServer interface {
 	CreateProject(context.Context, *CreateProjectRequest) (*Project, error)
 	CreateMessage(context.Context, *CreateMessageRequest) (*Message, error)
+	ProjectsTop(context.Context, *v1.RequestWithLimitAndOffsetAndValue) (*ProjectsListResponse, error)
 	ProjectsList(context.Context, *v1.RequestWithLimitAndOffset) (*ProjectsListResponse, error)
 	SubmissionsList(context.Context, *v1.RequestWithLimitAndOffset) (*SubmissionsListResponse, error)
 	MessagesList(context.Context, *v1.RequestWithLimitAndOffsetAndValue) (*MessagesListResponse, error)
@@ -198,6 +211,9 @@ func (UnimplementedProjectsServiceServer) CreateProject(context.Context, *Create
 }
 func (UnimplementedProjectsServiceServer) CreateMessage(context.Context, *CreateMessageRequest) (*Message, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateMessage not implemented")
+}
+func (UnimplementedProjectsServiceServer) ProjectsTop(context.Context, *v1.RequestWithLimitAndOffsetAndValue) (*ProjectsListResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ProjectsTop not implemented")
 }
 func (UnimplementedProjectsServiceServer) ProjectsList(context.Context, *v1.RequestWithLimitAndOffset) (*ProjectsListResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ProjectsList not implemented")
@@ -278,6 +294,24 @@ func _ProjectsService_CreateMessage_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProjectsServiceServer).CreateMessage(ctx, req.(*CreateMessageRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ProjectsService_ProjectsTop_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithLimitAndOffsetAndValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectsServiceServer).ProjectsTop(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProjectsService_ProjectsTop_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectsServiceServer).ProjectsTop(ctx, req.(*v1.RequestWithLimitAndOffsetAndValue))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -458,6 +492,10 @@ var ProjectsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateMessage",
 			Handler:    _ProjectsService_CreateMessage_Handler,
+		},
+		{
+			MethodName: "ProjectsTop",
+			Handler:    _ProjectsService_ProjectsTop_Handler,
 		},
 		{
 			MethodName: "ProjectsList",

@@ -159,7 +159,7 @@ create unique index if not exists project_location_idx on project_location (id);
 
 create table if not exists project_likes
 (
-    project uuid primary key references projects (id),
+    project uuid not null references projects (id),
     author  uuid        not null references users (uid),
     at      timestamptz not null default now(),
     unique (project, author)

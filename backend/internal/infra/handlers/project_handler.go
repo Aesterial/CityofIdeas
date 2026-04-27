@@ -89,6 +89,19 @@ func (h *ProjectHandler) ProjectsList(ctx context.Context, req *typespb.RequestW
 	return resp, nil
 }
 
+func (h *ProjectHandler) ProjectsTop(ctx context.Context, req *typespb.RequestWithLimitAndOffsetAndValue) (*projectpb.ProjectsListResponse, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
+	}
+	projects, err := h.proj.ProjectsTop(ctx, req.GetValue(), req.GetLimit(), req.GetOffset())
+	if err != nil {
+		return nil, err
+	}
+	var resp = &projectpb.ProjectsListResponse{}
+	resp.SetList(projects.Protobuf())
+	return resp, nil
+}
+
 func (h *ProjectHandler) DeleteProject(ctx context.Context, req *typespb.RequestWithValue) (*emptypb.Empty, error) {
 	if err := h.isRequestValid(req); err != nil {
 		return nil, err

@@ -66,6 +66,21 @@ func (s *Service) ProjectsList(ctx context.Context, limit int32, offset int32) (
 	return list, nil
 }
 
+func (s *Service) ProjectsTop(ctx context.Context, city string, limit int32, offset int32) (projectdomain.Projects, error) {
+	if city == "" {
+		return nil, errors.InvalidArguments
+	}
+	if limit <= 0 {
+		limit = 3
+	}
+	list, err := s.proj.ProjectsTop(ctx, city, limit, offset)
+	if err != nil {
+		logger.Error("projects", "failed to get lis of projects top", logger.F("error", err))
+		return nil, errors.Wrap(err)
+	}
+	return list, nil
+}
+
 func (s *Service) MessagesList(ctx context.Context, project string, limit int32, offset int32, showDeleted bool) (projectdomain.Messages, error) {
 	if limit <= 0 {
 		limit = 25

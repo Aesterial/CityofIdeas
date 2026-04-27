@@ -118,7 +118,7 @@ func (p *ProjectRepository) parseMessages(messages []sqlc.ProjectMessage) projec
 	return out
 }
 
-func (p *ProjectRepository) parseProjects(projects []sqlc.ProjectsListRow) projectsdomain.Projects {
+func (p *ProjectRepository) parseProjectsRow(projects []sqlc.ProjectsListRow) projectsdomain.Projects {
 	if projects == nil {
 		return nil
 	}
@@ -176,7 +176,7 @@ func (p *ProjectRepository) Projects(ctx context.Context, limit int32, offset in
 		if err != nil {
 			return nil, err
 		}
-		return p.parseProjects(list), nil
+		return p.parseProjectsRow(list), nil
 	}
 	locFn := func(_ context.Context, proj *projectsdomain.Project) (*projectsdomain.Project, error) {
 		if proj == nil {
@@ -200,6 +200,52 @@ func (p *ProjectRepository) Projects(ctx context.Context, limit int32, offset in
 		return nil, err
 	}
 	return list, nil
+}
+
+func (p *ProjectRepository) ProjectsTop(ctx context.Context, city string, limit int32, offset int32) (projectsdomain.Projects, error) {
+	if city == "" {
+		return nil, errors.InvalidArguments
+	}
+	if limit <= 0 {
+		limit = 10
+	}
+	projects, err := p.conn.ProjectsTop(ctx, sqlc.ProjectsTopParams{
+		City:   city,
+		Limit:  limit,
+		Offset: offset,
+	})
+	if err != nil {
+		return nil, err
+	}
+	var out = make(projectsdomain.Projects, len(projects))
+	for i, project := range projects {
+		var link *url.URL
+		var err error
+		if project.ImplLink.Valid {
+			link, err = url.Parse(project.ImplLink.String)
+			if err != nil {
+				continue
+			}
+		}
+		var cancelled *time.Time
+		if project.Deleted.Valid {
+			cancelled = &project.Deleted.Time
+		}
+		out[i] = &projectsdomain.Project{
+			ID:          domain.FromPG(project.ID),
+			Author:      domain.FromPG(project.Author),
+			Title:       project.Title,
+			Description: project.Description,
+			Category:    project.Category,
+			Status:      projectsdomain.ParseStatus(string(project.Status)),
+			Link:        link,
+			Likes:       project.LikesCount,
+			At:          project.At.Time,
+			Updated:     project.Updated.Time,
+			Cancelled:   cancelled,
+		}
+	}
+	return out, nil
 }
 
 func (p *ProjectRepository) Submissions(ctx context.Context, limit int32, offset int32) (projectsdomain.Submissions, error) {
