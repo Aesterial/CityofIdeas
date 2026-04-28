@@ -164,7 +164,7 @@ func main() {
 		}
 
 		err = <-serveErr
-		if err != nil && !errors.Is(err, grpc.ErrServerStopped) {
+		if err != nil && !errors.Is(err, grpc.ErrServerStopped) && !errors.Is(err, http.ErrServerClosed) {
 			logger.Warning("main", "serve returned after shutdown", logger.F("error", err))
 		}
 

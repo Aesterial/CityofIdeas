@@ -22,4 +22,7 @@ type Repository interface {
 	UpdateDescription(ctx context.Context, project domain.UUID, desc string) error
 	DeleteMessage(ctx context.Context, message domain.UUID) error
 	DeleteProject(ctx context.Context, project domain.UUID) error
+	IsProjectExists(ctx context.Context, project domain.UUID) error
+	CreateLike(ctx context.Context, project domain.UUID, user domain.UUID) error
+	RemoveLike(ctx context.Context, project domain.UUID, user domain.UUID) error
 }

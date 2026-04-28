@@ -542,3 +542,15 @@ from series
          left join events on events.at >= series.at and events.at < series.at + series.bucket_interval
 group by series.at
 order by series.at;
+
+-- name: IsProjectExists :one
+select exists (select 1 from projects where id = $1);
+
+-- name: IsProjectLikeExists :one
+select exists (select 1 from project_likes where project = $1 and author = $2);
+
+-- name: CreateProjectLike :exec
+insert into project_likes (project, author) values ($1, $2);
+
+-- name: RemoveProjectLike :exec
+delete from project_likes where project = $1 and author = $2;

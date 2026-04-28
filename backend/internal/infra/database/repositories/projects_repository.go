@@ -443,3 +443,53 @@ func (p *ProjectRepository) SubmissionReview(ctx context.Context, project domain
 	}
 	return nil
 }
+
+func (p *ProjectRepository) isLikeExists(ctx context.Context, project domain.UUID, user domain.UUID) error {
+	exists, err := p.conn.IsProjectLikeExists(ctx, sqlc.IsProjectLikeExistsParams{
+		Project: project.ToPG(),
+		Author:  user.ToPG(),
+	})
+	if err != nil {
+		return err
+	}
+	if exists {
+		return errors.Conflict
+	}
+	return nil
+}
+
+func (p *ProjectRepository) IsProjectExists(ctx context.Context, project domain.UUID) error {
+	exists, err := p.conn.IsProjectExists(ctx, project.ToPG())
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return errors.NotFound
+	}
+	return nil
+}
+
+func (p *ProjectRepository) CreateLike(ctx context.Context, project domain.UUID, user domain.UUID) error {
+	if err := p.isLikeExists(ctx, project, user); err != nil {
+		return err
+	}
+	err := p.conn.CreateProjectLike(ctx, sqlc.CreateProjectLikeParams{
+		Project: project.ToPG(),
+		Author:  user.ToPG(),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *ProjectRepository) RemoveLike(ctx context.Context, project domain.UUID, user domain.UUID) error {
+	err := p.conn.RemoveProjectLike(ctx, sqlc.RemoveProjectLikeParams{
+		Project: project.ToPG(),
+		Author:  user.ToPG(),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}

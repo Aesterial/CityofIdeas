@@ -18,6 +18,7 @@ type Querier interface {
 	CreateMaintenance(ctx context.Context, arg CreateMaintenanceParams) (Maintenance, error)
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (ProjectMessage, error)
 	CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error)
+	CreateProjectLike(ctx context.Context, arg CreateProjectLikeParams) error
 	CreateProjectLocation(ctx context.Context, arg CreateProjectLocationParams) (ProjectLocation, error)
 	CreateRank(ctx context.Context, arg CreateRankParams) (Rank, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
@@ -48,6 +49,8 @@ type Querier interface {
 	GlobalStats(ctx context.Context) (GlobalStatsRow, error)
 	HasActiveMaintenance(ctx context.Context) (bool, error)
 	InsertRecoveryCodes(ctx context.Context, arg []InsertRecoveryCodesParams) (int64, error)
+	IsProjectExists(ctx context.Context, id pgtype.UUID) (bool, error)
+	IsProjectLikeExists(ctx context.Context, arg IsProjectLikeExistsParams) (bool, error)
 	IsRankExists(ctx context.Context, name string) (bool, error)
 	IsSessionValid(ctx context.Context, arg IsSessionValidParams) (pgtype.Bool, error)
 	IsSubmissionReviewed(ctx context.Context, linked pgtype.UUID) (bool, error)
@@ -74,6 +77,7 @@ type Querier interface {
 	RankInfoByID(ctx context.Context, id pgtype.UUID) (Rank, error)
 	RankUsers(ctx context.Context, name string) ([]pgtype.UUID, error)
 	RanksList(ctx context.Context, arg RanksListParams) ([]Rank, error)
+	RemoveProjectLike(ctx context.Context, arg RemoveProjectLikeParams) error
 	RevokeRankFromUser(ctx context.Context, arg RevokeRankFromUserParams) error
 	RevokeSession(ctx context.Context, id pgtype.UUID) error
 	SessionInfo(ctx context.Context, id pgtype.UUID) (Session, error)

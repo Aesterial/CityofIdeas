@@ -33,6 +33,7 @@ const (
 	ProjectsService_DeleteMessage_FullMethodName    = "/xyz.city_ideas.v1.projects.v1.ProjectsService/DeleteMessage"
 	ProjectsService_AcceptSubmission_FullMethodName = "/xyz.city_ideas.v1.projects.v1.ProjectsService/AcceptSubmission"
 	ProjectsService_DenySubmission_FullMethodName   = "/xyz.city_ideas.v1.projects.v1.ProjectsService/DenySubmission"
+	ProjectsService_ProcessLikes_FullMethodName     = "/xyz.city_ideas.v1.projects.v1.ProjectsService/ProcessLikes"
 )
 
 // ProjectsServiceClient is the client API for ProjectsService service.
@@ -51,6 +52,7 @@ type ProjectsServiceClient interface {
 	DeleteMessage(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	AcceptSubmission(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	DenySubmission(ctx context.Context, in *v1.RequestWithValues, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ProcessLikes(ctx context.Context, in *v1.RequestWithValues, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type projectsServiceClient struct {
@@ -181,6 +183,16 @@ func (c *projectsServiceClient) DenySubmission(ctx context.Context, in *v1.Reque
 	return out, nil
 }
 
+func (c *projectsServiceClient) ProcessLikes(ctx context.Context, in *v1.RequestWithValues, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ProjectsService_ProcessLikes_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProjectsServiceServer is the server API for ProjectsService service.
 // All implementations should embed UnimplementedProjectsServiceServer
 // for forward compatibility.
@@ -197,6 +209,7 @@ type ProjectsServiceServer interface {
 	DeleteMessage(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error)
 	AcceptSubmission(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error)
 	DenySubmission(context.Context, *v1.RequestWithValues) (*emptypb.Empty, error)
+	ProcessLikes(context.Context, *v1.RequestWithValues) (*emptypb.Empty, error)
 }
 
 // UnimplementedProjectsServiceServer should be embedded to have
@@ -241,6 +254,9 @@ func (UnimplementedProjectsServiceServer) AcceptSubmission(context.Context, *v1.
 }
 func (UnimplementedProjectsServiceServer) DenySubmission(context.Context, *v1.RequestWithValues) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method DenySubmission not implemented")
+}
+func (UnimplementedProjectsServiceServer) ProcessLikes(context.Context, *v1.RequestWithValues) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method ProcessLikes not implemented")
 }
 func (UnimplementedProjectsServiceServer) testEmbeddedByValue() {}
 
@@ -478,6 +494,24 @@ func _ProjectsService_DenySubmission_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProjectsService_ProcessLikes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithValues)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectsServiceServer).ProcessLikes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProjectsService_ProcessLikes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectsServiceServer).ProcessLikes(ctx, req.(*v1.RequestWithValues))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProjectsService_ServiceDesc is the grpc.ServiceDesc for ProjectsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -532,6 +566,10 @@ var ProjectsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DenySubmission",
 			Handler:    _ProjectsService_DenySubmission_Handler,
+		},
+		{
+			MethodName: "ProcessLikes",
+			Handler:    _ProjectsService_ProcessLikes_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

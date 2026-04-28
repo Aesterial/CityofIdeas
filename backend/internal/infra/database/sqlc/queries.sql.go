@@ -186,6 +186,20 @@ func (q *Queries) CreateProject(ctx context.Context, arg CreateProjectParams) (P
 	return i, err
 }
 
+const CreateProjectLike = `-- name: CreateProjectLike :exec
+insert into project_likes (project, author) values ($1, $2)
+`
+
+type CreateProjectLikeParams struct {
+	Project pgtype.UUID `json:"project"`
+	Author  pgtype.UUID `json:"author"`
+}
+
+func (q *Queries) CreateProjectLike(ctx context.Context, arg CreateProjectLikeParams) error {
+	_, err := q.db.Exec(ctx, CreateProjectLike, arg.Project, arg.Author)
+	return err
+}
+
 const CreateProjectLocation = `-- name: CreateProjectLocation :one
 insert into project_location (id, city, lat, lot)
 values ($1, $2, $3, $4)
@@ -795,6 +809,33 @@ func (q *Queries) HasActiveMaintenance(ctx context.Context) (bool, error) {
 type InsertRecoveryCodesParams struct {
 	Owner pgtype.UUID `json:"owner"`
 	Hash  string      `json:"hash"`
+}
+
+const IsProjectExists = `-- name: IsProjectExists :one
+select exists (select 1 from projects where id = $1)
+`
+
+func (q *Queries) IsProjectExists(ctx context.Context, id pgtype.UUID) (bool, error) {
+	row := q.db.QueryRow(ctx, IsProjectExists, id)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const IsProjectLikeExists = `-- name: IsProjectLikeExists :one
+select exists (select 1 from project_likes where project = $1 and author = $2)
+`
+
+type IsProjectLikeExistsParams struct {
+	Project pgtype.UUID `json:"project"`
+	Author  pgtype.UUID `json:"author"`
+}
+
+func (q *Queries) IsProjectLikeExists(ctx context.Context, arg IsProjectLikeExistsParams) (bool, error) {
+	row := q.db.QueryRow(ctx, IsProjectLikeExists, arg.Project, arg.Author)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const IsRankExists = `-- name: IsRankExists :one
@@ -1414,7 +1455,25 @@ func (q *Queries) ProjectsList(ctx context.Context, arg ProjectsListParams) ([]P
 }
 
 const ProjectsTop = `-- name: ProjectsTop :many
-select p.id, p.author, p.title, p.description, p.category, count(l.project)::bigint as likes_count, p.status, p.impl_link, p.at, p.updated, p.deleted from projects p join project_location pl on pl.id = p.id left join project_likes l on l.project = p.id where p.status not in ('reviewing', 'cancelled', 'implemented') and pl.city = $1 group by p.id order by count(l.project) desc, p.at desc limit $2 offset $3
+select p.id,
+       p.author,
+       p.title,
+       p.description,
+       p.category,
+       count(l.project)::bigint as likes_count,
+       p.status,
+       p.impl_link,
+       p.at,
+       p.updated,
+       p.deleted
+from projects p
+         join project_location pl on pl.id = p.id
+         left join project_likes l on l.project = p.id
+where p.status not in ('reviewing', 'cancelled', 'implemented')
+  and pl.city = $1
+group by p.id
+order by count(l.project) desc, p.at desc
+limit $2 offset $3
 `
 
 type ProjectsTopParams struct {
@@ -1623,6 +1682,20 @@ func (q *Queries) RanksList(ctx context.Context, arg RanksListParams) ([]Rank, e
 		return nil, err
 	}
 	return items, nil
+}
+
+const RemoveProjectLike = `-- name: RemoveProjectLike :exec
+delete from project_likes where project = $1 and author = $2
+`
+
+type RemoveProjectLikeParams struct {
+	Project pgtype.UUID `json:"project"`
+	Author  pgtype.UUID `json:"author"`
+}
+
+func (q *Queries) RemoveProjectLike(ctx context.Context, arg RemoveProjectLikeParams) error {
+	_, err := q.db.Exec(ctx, RemoveProjectLike, arg.Project, arg.Author)
+	return err
 }
 
 const RevokeRankFromUser = `-- name: RevokeRankFromUser :exec

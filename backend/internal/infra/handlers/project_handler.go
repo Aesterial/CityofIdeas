@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"strconv"
 
 	typespb "github.com/aesterial/cityideas/backend/internal/api/v1"
 	projectpb "github.com/aesterial/cityideas/backend/internal/api/v1/projects/v1"
@@ -268,6 +269,27 @@ func (h *ProjectHandler) DenySubmission(ctx context.Context, req *typespb.Reques
 	err = h.proj.SubmissionReview(ctx, req.GetValues()[0], false, new(req.GetValues()[1]))
 	if err != nil {
 		return nil, errors.Wrap(err)
+	}
+	return &emptypb.Empty{}, nil
+}
+
+func (h *ProjectHandler) ProcessLikes(ctx context.Context, req *typespb.RequestWithValues) (*emptypb.Empty, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
+	}
+	if len(req.GetValues()) < 2 {
+		return nil, errors.InvalidArguments
+	}
+	meta, err := h.auth.User(ctx)
+	if err != nil {
+		return nil, err
+	}
+	value, err := strconv.ParseBool(req.GetValues()[1])
+	if err != nil {
+		return nil, errors.InvalidArguments
+	}
+	if err = h.proj.ProcessLikes(ctx, req.GetValues()[0], *meta.UserID, value); err != nil {
+		return nil, err
 	}
 	return &emptypb.Empty{}, nil
 }

@@ -180,6 +180,30 @@ func (s *Service) DeleteMessage(ctx context.Context, user domain.UUID, message s
 	return nil
 }
 
+func (s *Service) ProcessLikes(ctx context.Context, project string, user domain.UUID, set bool) error {
+	if project == "" {
+		return errors.InvalidArguments
+	}
+	id, err := domain.FromString(project)
+	if err != nil {
+		return err
+	}
+	if err := s.proj.IsProjectExists(ctx, id); err != nil {
+		return errors.Wrap(err)
+	}
+	if set {
+		err = s.proj.CreateLike(ctx, id, user)
+	} else {
+		err = s.proj.RemoveLike(ctx, id, user)
+	}
+	if err != nil {
+		logger.Error("projects", "failed to process like action", logger.F("error", err))
+		return errors.Wrap(err)
+	}
+	s.c.DeleteTags(projectCacheTag(id.String()), projectListCacheTag, projectTopCacheTag, statisticsCacheTag)
+	return nil
+}
+
 func (s *Service) SubmissionsList(ctx context.Context, limit int32, offset int32) (projectdomain.Submissions, error) {
 	if limit <= 0 {
 		limit = 10

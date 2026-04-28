@@ -12,26 +12,26 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file xyz/city_ideas/v1/statistics/v1/domain.proto.
  */
 export const file_xyz_city_ideas_v1_statistics_v1_domain: GenFile = /*@__PURE__*/
-  fileDesc("Cix4eXovY2l0eV9pZGVhcy92MS9zdGF0aXN0aWNzL3YxL2RvbWFpbi5wcm90bxIfeHl6LmNpdHlfaWRlYXMudjEuc3RhdGlzdGljcy52MSJJCgZHbG9iYWwSDQoFaWRlYXMYASABKAUSEwoLaW1wbGVtZW50ZWQYAiABKAUSDQoFdm90ZXMYAyABKAUSDAoEY2l0eRgEIAEoCSJDCgpHcmFwaFBvaW50EiYKAmF0GAEgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBINCgV2YWx1ZRgCIAEoBSJMCg9Qcm9qZWN0Q3JlYXRpb24SOQoEbGlzdBgBIAMoCzIrLnh5ei5jaXR5X2lkZWFzLnYxLnN0YXRpc3RpY3MudjEuR3JhcGhQb2ludCKBAQoFR3JhcGgSOQoEbGlzdBgBIAMoCzIrLnh5ei5jaXR5X2lkZWFzLnYxLnN0YXRpc3RpY3MudjEuR3JhcGhQb2ludBI9CglzZXBhcmF0b3IYAiABKA4yKi54eXouY2l0eV9pZGVhcy52MS5zdGF0aXN0aWNzLnYxLlNlcGFyYXRvciJLCg5TZXBhcmF0b3JWYWx1ZRI5CgV2YWx1ZRgBIAEoDjIqLnh5ei5jaXR5X2lkZWFzLnYxLnN0YXRpc3RpY3MudjEuU2VwYXJhdG9yIlwKDVJlcXVlc3RCeUNpdHkSPQoJc2VwYXJhdG9yGAEgASgOMioueHl6LmNpdHlfaWRlYXMudjEuc3RhdGlzdGljcy52MS5TZXBhcmF0b3ISDAoEY2l0eRgCIAEoCSpSCglTZXBhcmF0b3ISGQoVU0VQQVJBVE9SX1VOU1BFQ0lGSUVEEAASFAoQU0VQQVJBVE9SX0hPVVJMWRABEhQKEFNFUEFSQVRPUl9XRUVLTFkQAkJJWkdnaXRodWIuY29tL2Flc3RlcmlhbC9jaXR5aWRlYXMvYmFja2VuZC9pbnRlcm5hbC9hcGkvdjEvc3RhdGlzdGljcy92MTt2MWIIZWRpdGlvbnNw6Ac", [file_google_protobuf_timestamp]);
+  fileDesc("Cix4eXovY2l0eV9pZGVhcy92MS9zdGF0aXN0aWNzL3YxL2RvbWFpbi5wcm90bxIfeHl6LmNpdHlfaWRlYXMudjEuc3RhdGlzdGljcy52MSJJCgZHbG9iYWwSDQoFaWRlYXMYASABKAMSEwoLaW1wbGVtZW50ZWQYAiABKAMSDQoFdm90ZXMYAyABKAMSDAoEY2l0eRgEIAEoCSJDCgpHcmFwaFBvaW50EiYKAmF0GAEgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBINCgV2YWx1ZRgCIAEoBSKBAQoFR3JhcGgSOQoEbGlzdBgBIAMoCzIrLnh5ei5jaXR5X2lkZWFzLnYxLnN0YXRpc3RpY3MudjEuR3JhcGhQb2ludBI9CglzZXBhcmF0b3IYAiABKA4yKi54eXouY2l0eV9pZGVhcy52MS5zdGF0aXN0aWNzLnYxLlNlcGFyYXRvciJLCg5TZXBhcmF0b3JWYWx1ZRI5CgV2YWx1ZRgBIAEoDjIqLnh5ei5jaXR5X2lkZWFzLnYxLnN0YXRpc3RpY3MudjEuU2VwYXJhdG9yIlwKDVJlcXVlc3RCeUNpdHkSPQoJc2VwYXJhdG9yGAEgASgOMioueHl6LmNpdHlfaWRlYXMudjEuc3RhdGlzdGljcy52MS5TZXBhcmF0b3ISDAoEY2l0eRgCIAEoCSpnCglTZXBhcmF0b3ISGQoVU0VQQVJBVE9SX1VOU1BFQ0lGSUVEEAASFAoQU0VQQVJBVE9SX0hPVVJMWRABEhMKD1NFUEFSQVRPUl9EQUlMWRACEhQKEFNFUEFSQVRPUl9XRUVLTFkQA0JJWkdnaXRodWIuY29tL2Flc3RlcmlhbC9jaXR5aWRlYXMvYmFja2VuZC9pbnRlcm5hbC9hcGkvdjEvc3RhdGlzdGljcy92MTt2MWIIZWRpdGlvbnNw6Ac", [file_google_protobuf_timestamp]);
 
 /**
  * @generated from message xyz.city_ideas.v1.statistics.v1.Global
  */
 export type Global = Message<"xyz.city_ideas.v1.statistics.v1.Global"> & {
   /**
-   * @generated from field: int32 ideas = 1;
+   * @generated from field: int64 ideas = 1;
    */
-  ideas: number;
+  ideas: bigint;
 
   /**
-   * @generated from field: int32 implemented = 2;
+   * @generated from field: int64 implemented = 2;
    */
-  implemented: number;
+  implemented: bigint;
 
   /**
-   * @generated from field: int32 votes = 3;
+   * @generated from field: int64 votes = 3;
    */
-  votes: number;
+  votes: bigint;
 
   /**
    * contains the city with the maximum number of created projects.
@@ -71,23 +71,6 @@ export const GraphPointSchema: GenMessage<GraphPoint> = /*@__PURE__*/
   messageDesc(file_xyz_city_ideas_v1_statistics_v1_domain, 1);
 
 /**
- * @generated from message xyz.city_ideas.v1.statistics.v1.ProjectCreation
- */
-export type ProjectCreation = Message<"xyz.city_ideas.v1.statistics.v1.ProjectCreation"> & {
-  /**
-   * @generated from field: repeated xyz.city_ideas.v1.statistics.v1.GraphPoint list = 1;
-   */
-  list: GraphPoint[];
-};
-
-/**
- * Describes the message xyz.city_ideas.v1.statistics.v1.ProjectCreation.
- * Use `create(ProjectCreationSchema)` to create a new message.
- */
-export const ProjectCreationSchema: GenMessage<ProjectCreation> = /*@__PURE__*/
-  messageDesc(file_xyz_city_ideas_v1_statistics_v1_domain, 2);
-
-/**
  * @generated from message xyz.city_ideas.v1.statistics.v1.Graph
  */
 export type Graph = Message<"xyz.city_ideas.v1.statistics.v1.Graph"> & {
@@ -107,7 +90,7 @@ export type Graph = Message<"xyz.city_ideas.v1.statistics.v1.Graph"> & {
  * Use `create(GraphSchema)` to create a new message.
  */
 export const GraphSchema: GenMessage<Graph> = /*@__PURE__*/
-  messageDesc(file_xyz_city_ideas_v1_statistics_v1_domain, 3);
+  messageDesc(file_xyz_city_ideas_v1_statistics_v1_domain, 2);
 
 /**
  * @generated from message xyz.city_ideas.v1.statistics.v1.SeparatorValue
@@ -124,7 +107,7 @@ export type SeparatorValue = Message<"xyz.city_ideas.v1.statistics.v1.SeparatorV
  * Use `create(SeparatorValueSchema)` to create a new message.
  */
 export const SeparatorValueSchema: GenMessage<SeparatorValue> = /*@__PURE__*/
-  messageDesc(file_xyz_city_ideas_v1_statistics_v1_domain, 4);
+  messageDesc(file_xyz_city_ideas_v1_statistics_v1_domain, 3);
 
 /**
  * @generated from message xyz.city_ideas.v1.statistics.v1.RequestByCity
@@ -148,7 +131,7 @@ export type RequestByCity = Message<"xyz.city_ideas.v1.statistics.v1.RequestByCi
  * Use `create(RequestByCitySchema)` to create a new message.
  */
 export const RequestByCitySchema: GenMessage<RequestByCity> = /*@__PURE__*/
-  messageDesc(file_xyz_city_ideas_v1_statistics_v1_domain, 5);
+  messageDesc(file_xyz_city_ideas_v1_statistics_v1_domain, 4);
 
 /**
  * @generated from enum xyz.city_ideas.v1.statistics.v1.Separator
@@ -165,9 +148,14 @@ export enum Separator {
   HOURLY = 1,
 
   /**
-   * @generated from enum value: SEPARATOR_WEEKLY = 2;
+   * @generated from enum value: SEPARATOR_DAILY = 2;
    */
-  WEEKLY = 2,
+  DAILY = 2,
+
+  /**
+   * @generated from enum value: SEPARATOR_WEEKLY = 3;
+   */
+  WEEKLY = 3,
 }
 
 /**
