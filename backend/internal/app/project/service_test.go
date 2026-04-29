@@ -77,6 +77,10 @@ func (r *projectRepoStub) DeleteProject(context.Context, domain.UUID) error {
 	return nil
 }
 
+func (r *projectRepoStub) IsProjectExists(context.Context, domain.UUID) error {
+	return nil
+}
+
 func (r *projectRepoStub) CreateLike(context.Context, domain.UUID, domain.UUID) error {
 	r.likes++
 	return nil

@@ -16,7 +16,6 @@ var cfg configdomain.Config
 
 func parseType[T any](tag string, def T) T {
 	value := os.Getenv(tag)
-	value = strings.ToLower(value)
 	if value == "" {
 		return def
 	}
@@ -64,15 +63,22 @@ func Ensure() error {
 			Secret: parseType("COOKIE_SECRET", ""),
 			Issuer: parseType("COOKIE_ISSUER", "https://aesterial.xyz"),
 		},
+		Email: configdomain.Email{
+			API:    parseType("EMAIL_API_KEY", ""),
+			Name:   parseType("EMAIL_NAME", "Aesterial Support"),
+			Domain: parseType("EMAIL_DOMAIN", "support@aesterial.xyz"),
+		},
 		AllowedOrigins: parseType("ALLOWED_ORIGINS", []string{"https://aesterial.xyz"}),
+		Domain:         parseType("DOMAIN", "https://aesterial.xyz"),
 		Host:           parseType("HOST", "0.0.0.0"),
 		Debug:          parseType("DEBUG", false),
 		Port:           parseType("PORT", "8080"),
+		Loaded:         true,
 	}
 	if !cfg.Database.TlsMode.IsValid() || ((cfg.Database.TlsMode == configdomain.TlsDisable) && cfg.IsProduction()) {
 		return errors.InvalidArguments
 	}
-	if cfg.Cookie.Secret == "" {
+	if cfg.Cookie.Secret == "" || cfg.Email.API == "" {
 		return errors.InvalidArguments
 	}
 	return nil

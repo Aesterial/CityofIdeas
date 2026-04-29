@@ -5,7 +5,9 @@ import (
 	"net/http"
 	"time"
 
+	emailservice "github.com/aesterial/cityideas/backend/internal/app/email"
 	"github.com/aesterial/cityideas/backend/internal/domain"
+	emaildomain "github.com/aesterial/cityideas/backend/internal/domain/email"
 	sessionsdomain "github.com/aesterial/cityideas/backend/internal/domain/sessions"
 	userdomain "github.com/aesterial/cityideas/backend/internal/domain/user"
 	"github.com/aesterial/cityideas/backend/internal/infra/config"
@@ -18,20 +20,22 @@ import (
 )
 
 type Service struct {
-	usr userdomain.Repository
-	ses sessionsdomain.Repository
-	c   *cache.Store
+	usr   userdomain.Repository
+	ses   sessionsdomain.Repository
+	email *emailservice.Service
+	c     *cache.Store
 }
 
-func NewService(usr userdomain.Repository, ses sessionsdomain.Repository, store ...*cache.Store) *Service {
+func NewService(usr userdomain.Repository, ses sessionsdomain.Repository, email *emailservice.Service, store ...*cache.Store) *Service {
 	var c *cache.Store
 	if len(store) > 0 {
 		c = store[0]
 	}
 	return &Service{
-		usr: usr,
-		ses: ses,
-		c:   c,
+		usr:   usr,
+		ses:   ses,
+		c:     c,
+		email: email,
 	}
 }
 
@@ -57,6 +61,17 @@ func (s *Service) addCookie(ctx context.Context, username string, session domain
 
 func (*Service) addHeader(ctx context.Context, headerName string, value string) error {
 	return grpc.SendHeader(ctx, metadata.Pairs(headerName, value))
+}
+
+func loginNotificationData(ctx context.Context, username string, device domain.Device) emaildomain.LoginNotification {
+	ua := domain.UserAgentFromContext(ctx)
+	return emaildomain.LoginNotification{
+		UserName:  username,
+		LoginAt:   time.Now().Format(time.RFC1123),
+		IPAddress: domain.ClientIPFromContext(ctx),
+		Device:    domain.DeviceName(device, ua),
+		Browser:   domain.BrowserName(ua),
+	}
 }
 
 func (s *Service) Register(ctx context.Context, username string, email string, password string) (*userdomain.User, error) {
@@ -101,6 +116,12 @@ func (s *Service) Register(ctx context.Context, username string, email string, p
 		logger.Error("login", "failed to add cookie to context", logger.F("error", err))
 		return nil, errors.Wrap(err)
 	}
+	s.email.SendWelcomeEmail(emaildomain.UserInfo{
+		Username: username,
+		Address:  email,
+	}, emaildomain.Welcome{
+		UserName: username,
+	})
 	return user, nil
 }
 
@@ -143,6 +164,10 @@ func (s *Service) Authorize(ctx context.Context, userMail string, password strin
 		logger.Error("login", "failed to add cookie to context", logger.F("error", err))
 		return nil, errors.Wrap(err)
 	}
+	s.email.SendLoginNotificationEmail(emaildomain.UserInfo{
+		Username: user.Username,
+		Address:  user.Email,
+	}, loginNotificationData(ctx, user.Username, device))
 	return user, nil
 }
 

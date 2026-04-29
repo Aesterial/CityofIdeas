@@ -4,8 +4,11 @@ import (
 	"context"
 	"time"
 
+	emailservice "github.com/aesterial/cityideas/backend/internal/app/email"
 	"github.com/aesterial/cityideas/backend/internal/domain"
+	emaildomain "github.com/aesterial/cityideas/backend/internal/domain/email"
 	ticketsdomain "github.com/aesterial/cityideas/backend/internal/domain/tickets"
+	"github.com/aesterial/cityideas/backend/internal/infra/config"
 	"github.com/aesterial/cityideas/backend/internal/infra/logger"
 	"github.com/aesterial/cityideas/backend/internal/shared/cache"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
@@ -13,10 +16,11 @@ import (
 
 type Service struct {
 	ticket ticketsdomain.Repository
+	email  *emailservice.Service
 	c      *cache.Store
 }
 
-func NewService(ticket ticketsdomain.Repository, store ...*cache.Store) *Service {
+func NewService(ticket ticketsdomain.Repository, email *emailservice.Service, store ...*cache.Store) *Service {
 	var c *cache.Store
 	if len(store) > 0 {
 		c = store[0]
@@ -24,7 +28,7 @@ func NewService(ticket ticketsdomain.Repository, store ...*cache.Store) *Service
 	if c == nil {
 		c = cache.New(cache.DefaultMaxEntries)
 	}
-	return &Service{ticket: ticket, c: c}
+	return &Service{ticket: ticket, email: email, c: c}
 }
 
 const (
@@ -50,6 +54,11 @@ func (s *Service) CreateTicket(ctx context.Context, author domain.UUID, topic st
 		logger.Error("tickets", "failed to create message", logger.F("error", err))
 		return nil, errors.Wrap(err)
 	}
+	s.email.SendTicketCreateEmail(author, emaildomain.TicketCreation{
+		Date:      ticket.Created,
+		Topic:     ticket.Topic,
+		TicketURL: config.Get().Domain + "/support/tickets/" + ticket.ID.String(),
+	})
 	s.c.DeleteTags(ticketListCacheTag, ticketUserListCacheTag(author.String()), ticketMessagesByTicketCacheTag(ticket.ID.String()))
 	return ticket, nil
 }
@@ -168,15 +177,13 @@ func (s *Service) CreateMessage(ctx context.Context, ticket string, content stri
 	if err != nil {
 		return nil, err
 	}
-	if !access {
-		author, err := s.ticket.Owner(ctx, id)
-		if err != nil {
-			logger.Error("tickets", "failed to get owner of ticket", logger.F("error", err))
-			return nil, errors.Wrap(err)
-		}
-		if *author != by {
-			return nil, errors.AccessDenied
-		}
+	author, err := s.ticket.Owner(ctx, id)
+	if err != nil {
+		logger.Error("tickets", "failed to get owner of ticket", logger.F("error", err))
+		return nil, errors.Wrap(err)
+	}
+	if !access && *author != by {
+		return nil, errors.AccessDenied
 	}
 	message, err := s.ticket.CreateMessage(ctx, ticketsdomain.Target{
 		Ticket: id,
@@ -185,6 +192,14 @@ func (s *Service) CreateMessage(ctx context.Context, ticket string, content stri
 	if err != nil {
 		logger.Error("tickets", "failed to create message for ticket", logger.F("error", err))
 		return nil, errors.Wrap(err)
+	}
+	if access && by != *author {
+		s.email.SendTicketReplyEmail(by, *author, emaildomain.TicketReply{
+			TicketID:  ticket,
+			Message:   content,
+			Public:    emaildomain.Public{},
+			ThreadURL: config.Get().Domain + "/support/tickets/" + ticket,
+		})
 	}
 	s.c.DeleteTags(ticketMessagesCacheTag, ticketMessagesByTicketCacheTag(id.String()))
 	return message, nil

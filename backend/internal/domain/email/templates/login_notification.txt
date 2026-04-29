@@ -1,0 +1,15 @@
+New sign-in to your account
+
+Hi {{.UserName}}, your Aesterial account was just accessed.
+
+Time: {{.LoginAt}}
+IP address: {{.IPAddress}}
+{{if .Location}}Location: {{.Location}}
+{{end}}{{if .Device}}Device: {{.Device}}
+{{end}}{{if .Browser}}Browser: {{.Browser}}
+{{end}}
+If this was you, no action is needed. If this was not you, change your password and review active sessions.
+
+Review security: {{.SecurityURL}}
+Privacy Policy: {{.Public.PrivacyURL}}
+Support: {{.Public.SupportURL}}

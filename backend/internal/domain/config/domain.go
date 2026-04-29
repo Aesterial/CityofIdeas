@@ -55,10 +55,18 @@ type Cookie struct {
 	Issuer string
 }
 
+type Email struct {
+	API    string
+	Name   string
+	Domain string
+}
+
 type Config struct {
 	Database       Database
 	Cookie         Cookie
+	Email          Email
 	AllowedOrigins []string
+	Domain         string
 	Host           string
 	Port           string
 	Debug          bool

@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/mileusna/useragent"
+	"google.golang.org/grpc/metadata"
 )
 
 type UUID struct {
@@ -143,6 +144,52 @@ func UaFromContext(ctx context.Context) (Device, string) {
 		return DeviceUnknown, ""
 	}
 	return dev, hash
+}
+
+func IncomingMetadataValue(ctx context.Context, keys ...string) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ""
+	}
+	for _, key := range keys {
+		values := md.Get(key)
+		if len(values) > 0 && strings.TrimSpace(values[0]) != "" {
+			return strings.TrimSpace(values[0])
+		}
+	}
+	return ""
+}
+
+func UserAgentFromContext(ctx context.Context) useragent.UserAgent {
+	return useragent.Parse(IncomingMetadataValue(ctx, "user-agent"))
+}
+
+func ClientIPFromContext(ctx context.Context) string {
+	value := IncomingMetadataValue(ctx, "cf-connecting-ip", "x-real-ip", "x-forwarded-for", "x-client-ip")
+	if value == "" {
+		return "unknown"
+	}
+	if before, _, ok := strings.Cut(value, ","); ok {
+		value = before
+	}
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return "unknown"
+	}
+	return value
+}
+
+func BrowserName(ua useragent.UserAgent) string {
+	return strings.TrimSpace(strings.Join([]string{ua.Name, ua.Version}, " "))
+}
+
+func DeviceName(device Device, ua useragent.UserAgent) string {
+	parts := []string{device.String()}
+	os := strings.TrimSpace(strings.Join([]string{ua.OS, ua.OSVersion}, " "))
+	if os != "" {
+		parts = append(parts, os)
+	}
+	return strings.TrimSpace(strings.Join(parts, " / "))
 }
 
 type Metadata struct {

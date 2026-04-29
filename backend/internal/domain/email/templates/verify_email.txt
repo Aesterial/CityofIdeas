@@ -1,0 +1,11 @@
+Verify your account
+
+You requested email verification for your Aesterial account.
+
+Verification code: {{.VerificationCode}}
+Verify account: {{.VerifyURL}}
+
+This link will expire in the next 24 hours.
+
+Privacy Policy: {{.Public.PrivacyURL}}
+Support: {{.Public.SupportURL}}

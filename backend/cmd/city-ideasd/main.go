@@ -17,6 +17,7 @@ import (
 	statpb "github.com/aesterial/cityideas/backend/internal/api/v1/statistics/v1"
 	ticketpb "github.com/aesterial/cityideas/backend/internal/api/v1/tickets/v1"
 	userpb "github.com/aesterial/cityideas/backend/internal/api/v1/user/v1"
+	emailservice "github.com/aesterial/cityideas/backend/internal/app/email"
 	loginservice "github.com/aesterial/cityideas/backend/internal/app/login"
 	maintenanceservice "github.com/aesterial/cityideas/backend/internal/app/maintenance"
 	projectservice "github.com/aesterial/cityideas/backend/internal/app/project"
@@ -68,11 +69,12 @@ func main() {
 	maintenanceRepository := repositories.NewMaintenanceRepository(conn.Querier())
 	statisticsRepository := repositories.NewStatisticsRepository(conn.Querier())
 	appCache := cache.New(cache.DefaultMaxEntries)
+	emailService := emailservice.NewService(userRepository)
 	userService := userservice.NewService(userRepository, appCache)
 	sessionService := sessionservice.NewService(sessionRepository)
-	loginService := loginservice.NewService(userRepository, sessionRepository, appCache)
+	loginService := loginservice.NewService(userRepository, sessionRepository, emailService, appCache)
 	projectService := projectservice.NewService(projectRepository, appCache)
-	ticketService := ticketservice.NewService(ticketRepository, appCache)
+	ticketService := ticketservice.NewService(ticketRepository, emailService, appCache)
 	rankService := rankservice.NewService(rankRepository, appCache)
 	maintenanceService := maintenanceservice.NewService(maintenanceRepository, appCache)
 	statisticsService := statisticsservice.NewService(statisticsRepository, appCache)

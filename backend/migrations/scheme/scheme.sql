@@ -3,7 +3,7 @@ create extension if not exists citext;
 create table if not exists users
 (
     uid      uuid primary key     default gen_random_uuid(),
-    username varchar(16)            not null,
+    username varchar(32) not null,
     email    citext                 not null,
     joined   timestamptz not null default now()
 );

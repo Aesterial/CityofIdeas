@@ -1,0 +1,8 @@
+Welcome to Aesterial
+
+Hi {{.UserName}}, your account has been created successfully. You are ready to explore Aesterial and manage everything from your dashboard.
+
+Open profile: {{.ProfileSettingsURL}}
+
+Privacy Policy: {{.Public.PrivacyURL}}
+Support: {{.Public.SupportURL}}

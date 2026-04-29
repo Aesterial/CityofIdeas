@@ -1,0 +1,11 @@
+New message in your ticket
+
+{{.AdminName}} replied to your support ticket #{{.TicketID}}.
+
+Message preview:
+{{.Message}}
+
+View thread: {{.ThreadURL}}
+
+Privacy Policy: {{.Public.PrivacyURL}}
+Support: {{.Public.SupportURL}}

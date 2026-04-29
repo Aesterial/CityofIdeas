@@ -1,0 +1,12 @@
+Support ticket created
+
+Your support request has been created successfully. Our team will review it and reply in your ticket thread.
+
+Created on: {{.Date}}
+Ticket Topic:
+{{.Topic}}
+
+View ticket: {{.TicketURL}}
+
+Privacy Policy: {{.Public.PrivacyURL}}
+Support: {{.Public.SupportURL}}
