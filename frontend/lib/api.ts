@@ -1,10 +1,46 @@
 import { create } from "@bufbuild/protobuf";
 import { Code, ConnectError } from "@connectrpc/connect";
-import { EmptySchema, timestampDate } from "@bufbuild/protobuf/wkt";
+import {
+  EmptySchema,
+  timestampDate,
+  timestampFromDate,
+} from "@bufbuild/protobuf/wkt";
 import { buildApiUrl } from "@/lib/api-base";
 import { AuthorizeRequestSchema, RegisterRequestSchema } from "@/gen/xyz/city_ideas/v1/login/v1/domain_pb";
-import { CreateProjectRequestSchema, ProjectLocationSchema } from "@/gen/xyz/city_ideas/v1/projects/v1/domain_pb";
-import { RequestWithLimitAndOffsetSchema, RequestWithValueSchema } from "@/gen/xyz/city_ideas/v1/types_pb";
+import {
+  CreateMessageRequestSchema as ProjectCreateMessageRequestSchema,
+  CreateProjectRequestSchema,
+  ProjectLocationSchema,
+  type Message as GrpcProjectMessage,
+  type Project as GrpcProject,
+  type Submission as GrpcSubmission,
+} from "@/gen/xyz/city_ideas/v1/projects/v1/domain_pb";
+import {
+  CreateRequestSchema as RankCreateRequestSchema,
+  RankSchema,
+} from "@/gen/xyz/city_ideas/v1/ranks/v1/domain_pb";
+import {
+  CreateRequestSchema as MaintenanceCreateRequestSchema,
+  TimeRangeSchema,
+} from "@/gen/xyz/city_ideas/v1/maintenances/v1/domain_pb";
+import {
+  CreateTicketRequestSchema,
+  type Message as GrpcTicketMessage,
+  type Ticket as GrpcTicket,
+} from "@/gen/xyz/city_ideas/v1/tickets/v1/domain_pb";
+import {
+  RequestByCitySchema,
+  Separator,
+  SeparatorValueSchema,
+  type Graph as GrpcGraph,
+  type Global as GrpcGlobal,
+} from "@/gen/xyz/city_ideas/v1/statistics/v1/domain_pb";
+import {
+  RequestWithLimitAndOffsetAndValueSchema,
+  RequestWithLimitAndOffsetSchema,
+  RequestWithValueSchema,
+  RequestWithValuesSchema,
+} from "@/gen/xyz/city_ideas/v1/types_pb";
 import { UpdatePreferencesRequestSchema } from "@/gen/xyz/city_ideas/v1/user/v1/domain_pb";
 import {
   loginClient,
@@ -12,10 +48,14 @@ import {
   projectsClient,
   rankClient,
   sessionClient,
+  statisticClient,
+  ticketClient,
   userClient,
 } from "@/lib/grpc-web";
 import { emitMfaRequired, isMfaRequiredMessage } from "@/lib/mfa-required";
 import { StatusCodes } from "http-status-codes";
+
+export { Separator as StatisticsSeparator };
 
 export type RegisterPayload = {
   username: string;
@@ -229,47 +269,14 @@ type ApiRankListResponse = {
   tracing?: string;
 };
 
-type ApiUsersResponse = {
-  data?: ApiUserPublic[] | null;
-  tracing?: string;
-};
-
 type ApiRankUsersResponse = {
   len?: number;
   users?: ApiUserPublic[] | null;
   tracing?: string;
 };
 
-type ApiProjectsResponse = {
-  projects?: ApiProject[] | null;
-  tracing?: string;
-};
-
-type ApiProjectResponse = {
-  data?: ApiProject | null;
-  project?: ApiProject | null;
-  info?: ApiProject | null;
-  tracing?: string;
-};
-
-type ApiTopProjectsResponse = {
-  projects?: ApiProject[] | null;
-  data?: ApiProject[] | null;
-  items?: ApiProject[] | null;
-  tracing?: string;
-};
-
 type ApiProjectCategoriesResponse = {
   categories?: string[] | null;
-  tracing?: string;
-};
-type ApiSubmissionsResponse = {
-  data?: ApiSubmissionTarget[] | null;
-  tracing?: string;
-};
-
-type ApiSubmissionResponse = {
-  data?: ApiSubmissionTarget | null;
   tracing?: string;
 };
 
@@ -346,8 +353,10 @@ export type UserSession = {
   hash?: string;
 };
 
+export type UserID = number | string;
+
 export type UserListItem = {
-  userID: number;
+  userID: UserID;
   username: string;
   displayName?: string;
   avatar?: ApiAvatar | null;
@@ -562,27 +571,6 @@ const readMaintenanceFlag = (payload: unknown): boolean => {
     "maintenance",
   ]);
   return typeof numeric === "number" ? numeric > 0 : false;
-};
-
-const toMaintenanceData = (payload: unknown): ApiMaintenanceData | null => {
-  const root = toRecord(payload);
-  const source = toRecord(root?.data) ?? root;
-  if (!source) {
-    return null;
-  }
-  const id = pickString(source, ["id", "tracing"]);
-  const description = pickString(source, ["description"]);
-  const willEnd = toIsoTimestamp(
-    source.will_end ?? source.willEnd ?? source.willend ?? null,
-  );
-  if (!id && !description && !willEnd) {
-    return null;
-  }
-  return {
-    ...(id ? { id } : {}),
-    ...(description ? { description } : {}),
-    ...(willEnd ? { willEnd } : {}),
-  };
 };
 
 const toIsoInputDateTime = (value: string, fieldName: string): string => {
@@ -1043,6 +1031,208 @@ const toGrpcTimestamp = (value?: { seconds?: bigint | number | string | null; na
     return undefined;
   }
 };
+
+const toSafeNumber = (value: bigint | number | string | undefined | null) => {
+  if (typeof value === "bigint") {
+    return Number(value);
+  }
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : 0;
+  }
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
+};
+
+const toLimitOffsetRequest = (options?: {
+  limit?: number;
+  offset?: number;
+}) =>
+  create(RequestWithLimitAndOffsetSchema, {
+    limit:
+      typeof options?.limit === "number" && Number.isFinite(options.limit)
+        ? Math.max(0, Math.trunc(options.limit))
+        : 100,
+    offset:
+      typeof options?.offset === "number" && Number.isFinite(options.offset)
+        ? Math.max(0, Math.trunc(options.offset))
+        : 0,
+  });
+
+const toProjectStatus = (status: GrpcProject["status"]) => {
+  switch (status) {
+    case 1:
+      return "declined";
+    case 2:
+    case 4:
+      return "approved";
+    case 3:
+      return "pending";
+    default:
+      return "unknown";
+  }
+};
+
+const toApiProject = (project: GrpcProject): ApiProject => {
+  const createdAt = toGrpcTimestamp(project.at);
+  const location = project.location
+    ? {
+        city: project.location.city || undefined,
+        latitude: project.location.lat,
+        longitude: project.location.lot,
+        lat: project.location.lat,
+        lng: project.location.lot,
+      }
+    : null;
+  const info: ApiProjectInfo = {
+    title: project.title,
+    description: project.description,
+    category: project.category,
+    location,
+  };
+  const likes = toSafeNumber(project.likes);
+  return {
+    id: project.id,
+    author: project.author
+      ? { uid: project.author, userID: project.author, username: project.author }
+      : null,
+    info,
+    details: info,
+    likesCount: likes,
+    likes_count: likes,
+    createdAt,
+    created_at: createdAt,
+    status: toProjectStatus(project.status),
+  };
+};
+
+const toApiSubmission = (
+  submission: GrpcSubmission,
+  project?: ApiProject | null,
+): ApiSubmissionTarget => ({
+  id: submission.id,
+  info: project ?? (submission.project ? { id: submission.project } : null),
+  state: submission.approved
+    ? "approved"
+    : submission.reason.trim()
+      ? "declined"
+      : "pending",
+  reason: submission.reason || null,
+});
+
+const toTicketStatus = (status: GrpcTicket["status"]) => {
+  switch (status) {
+    case 1:
+      return "closed";
+    case 4:
+      return "in_progress";
+    case 2:
+    case 3:
+    default:
+      return "new";
+  }
+};
+
+const toApiTicket = (ticket: GrpcTicket): ApiTicket => ({
+  id: ticket.id,
+  authorId: ticket.authorId,
+  author_id: ticket.authorId,
+  acceptor: ticket.acceptor,
+  assignee: ticket.acceptor ? { id: ticket.acceptor } : undefined,
+  status: toTicketStatus(ticket.status),
+  topic: ticket.topic,
+  title: ticket.title,
+  subject: ticket.title || ticket.topic,
+  createdAt: toGrpcTimestamp(ticket.created),
+  acceptedAt: toGrpcTimestamp(ticket.accepted),
+  closedAt: toGrpcTimestamp(ticket.closed),
+  caller: ticket.caller,
+  closer: ticket.closer,
+  reason: ticket.reason,
+});
+
+const toApiTicketMessage = (message: GrpcTicketMessage): ApiTicketMessage => ({
+  id: message.id,
+  ticket: message.ticket,
+  authorId: message.author,
+  author: message.author ? { id: message.author } : undefined,
+  content: message.content,
+  message: message.content,
+  createdAt: toGrpcTimestamp(message.created),
+});
+
+const toApiProjectMessage = (
+  message: GrpcProjectMessage,
+): ApiTicketMessage => ({
+  id: message.id,
+  authorId: message.author,
+  author: message.author ? { id: message.author } : undefined,
+  parentId: message.parent || undefined,
+  parent_id: message.parent || undefined,
+  content: message.content,
+  message: message.content,
+  createdAt: toGrpcTimestamp(message.at),
+  deletedAt: toGrpcTimestamp(message.deleted),
+});
+
+const flattenPermissions = (permissions?: ApiPermissions): string[] => {
+  if (!permissions) {
+    return [];
+  }
+  const output = new Set<string>();
+  const walk = (value: unknown, path: string[]) => {
+    if (typeof value === "boolean") {
+      if (value && path.length > 0) {
+        output.add(path.join("."));
+      }
+      return;
+    }
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return;
+    }
+    for (const [key, child] of Object.entries(value)) {
+      walk(child, [...path, key]);
+    }
+  };
+  walk(permissions, []);
+  return [...output];
+};
+
+export type StatisticsGraphPoint = {
+  at: string;
+  value: number;
+};
+
+export type StatisticsGraph = {
+  list: StatisticsGraphPoint[];
+  separator: Separator;
+};
+
+export type StatisticsGlobal = {
+  ideas: number;
+  implemented: number;
+  votes: number;
+  city?: string;
+};
+
+const toStatisticsGraph = (graph: GrpcGraph): StatisticsGraph => ({
+  separator: graph.separator,
+  list: graph.list
+    .map((point) => {
+      const at = toGrpcTimestamp(point.at);
+      return at ? { at, value: point.value } : null;
+    })
+    .filter((point): point is StatisticsGraphPoint => point !== null),
+});
+
+const toStatisticsGlobal = (global: GrpcGlobal): StatisticsGlobal => ({
+  ideas: toSafeNumber(global.ideas),
+  implemented: toSafeNumber(global.implemented),
+  votes: toSafeNumber(global.votes),
+  city: global.city || undefined,
+});
 
 const mapGrpcCodeToHttpStatus = (code: Code) => {
   switch (code) {
@@ -1671,10 +1861,10 @@ function toUserListItem(payload: ApiUserPublic): UserListItem | null {
     typeof rawUserID === "number"
       ? rawUserID
       : typeof rawUserID === "string" && rawUserID.trim()
-        ? Number(rawUserID)
-        : NaN;
+        ? rawUserID.trim()
+        : null;
   const username = payload.username;
-  if (!Number.isFinite(userID) || !username) {
+  if (userID === null || !username) {
     return null;
   }
 
@@ -1726,6 +1916,20 @@ export async function fetchCurrentUser(): Promise<AuthUser> {
   };
 }
 
+const normalizeUserID = (userID: UserID): string => {
+  if (typeof userID === "number") {
+    if (!Number.isFinite(userID) || userID <= 0) {
+      throw new Error("User id is required.");
+    }
+    return String(userID);
+  }
+  const trimmed = userID.trim();
+  if (!trimmed) {
+    throw new Error("User id is required.");
+  }
+  return trimmed;
+};
+
 export async function fetchUserSessions(options?: {
   signal?: AbortSignal;
 }): Promise<UserSession[]> {
@@ -1757,14 +1961,12 @@ export async function revokeUserSession(id: string): Promise<void> {
 }
 
 export async function fetchUserPublic(
-  userID: number,
+  userID: UserID,
   options?: { signal?: AbortSignal },
 ): Promise<ApiUserPublic> {
-  if (!Number.isFinite(userID) || userID <= 0) {
-    throw new Error("User id is required.");
-  }
+  const normalizedUserID = normalizeUserID(userID);
   const payload = await apiRequest<ApiUserPublic | ApiUserPublicResponse>(
-    `/api/user/${userID}`,
+    `/api/user/${encodeURIComponent(normalizedUserID)}`,
     {
       method: "GET",
       signal: options?.signal,
@@ -1778,11 +1980,12 @@ export async function fetchUserPublic(
 }
 
 export async function fetchUserPermissions(
-  userID: number | string,
+  userID: UserID,
   options?: { signal?: AbortSignal },
 ): Promise<ApiPermissions | null> {
+  const normalizedUserID = normalizeUserID(userID);
   const payload = await apiRequest<ApiPermissions | ApiPermissionsResponse>(
-    `/api/user/${userID}/permissions`,
+    `/api/user/${encodeURIComponent(normalizedUserID)}/permissions`,
     {
       method: "GET",
       signal: options?.signal,
@@ -1795,19 +1998,17 @@ export async function fetchUserPermissions(
 }
 
 export async function updateUserPermission(
-  userID: number,
+  userID: UserID,
   permission: string,
   state: boolean,
 ): Promise<void> {
   const trimmed = permission.trim();
-  if (!Number.isFinite(userID) || userID <= 0) {
-    throw new Error("User id is required.");
-  }
+  const normalizedUserID = normalizeUserID(userID);
   if (!trimmed) {
     throw new Error("Permission is required.");
   }
   await apiRequest(
-    `/api/user/${userID}/permissions/patch/${encodeURIComponent(trimmed)}`,
+    `/api/user/${encodeURIComponent(normalizedUserID)}/permissions/patch/${encodeURIComponent(trimmed)}`,
     {
       method: "POST",
       body: JSON.stringify({ state }),
@@ -1816,19 +2017,17 @@ export async function updateUserPermission(
 }
 
 export async function setUserRank(
-  userID: number,
+  userID: UserID,
   rank: string,
   expiresAt?: Date | string | null,
 ): Promise<void> {
-  if (!Number.isFinite(userID) || userID <= 0) {
-    throw new Error("User id is required.");
-  }
+  const normalizedUserID = normalizeUserID(userID);
   const trimmedRank = rank.trim();
   if (!trimmedRank) {
     throw new Error("Rank is required.");
   }
   const body: Record<string, unknown> = {
-    userID,
+    userID: normalizedUserID,
     rank: trimmedRank,
   };
   if (expiresAt) {
@@ -1839,7 +2038,7 @@ export async function setUserRank(
     }
     body.expires = dateValue.toISOString();
   }
-  await apiRequest(`/api/user/${userID}/rank/set`, {
+  await apiRequest(`/api/user/${encodeURIComponent(normalizedUserID)}/rank/set`, {
     method: "POST",
     body: JSON.stringify(body),
   });
@@ -1886,16 +2085,30 @@ export async function createRank(payload: RankCreatePayload): Promise<void> {
   if (!Number.isFinite(payload.color) || payload.color <= 0) {
     throw new Error("Rank color is required.");
   }
-  await apiRequest("/api/ranks/create", {
-    method: "POST",
-    body: JSON.stringify({
-      name,
-      description,
-      color: Math.floor(payload.color),
-      permissions: payload.permissions,
-    }),
-  });
+  await grpcRequest(() =>
+    rankClient.create(
+      create(RankCreateRequestSchema, {
+        name,
+        description,
+        color: BigInt(Math.floor(payload.color)),
+        weight: 0,
+        perms: flattenPermissions(payload.permissions),
+      }),
+    ),
+  );
 }
+
+const fetchRankByName = async (name: string, signal?: AbortSignal) => {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    throw new Error("Rank name is required.");
+  }
+  return grpcRequest(() =>
+    rankClient.rank(create(RequestWithValueSchema, { value: trimmed }), {
+      signal,
+    }),
+  );
+};
 
 export async function updateRank(
   name: string,
@@ -1906,12 +2119,31 @@ export async function updateRank(
   if (!trimmed) {
     throw new Error("Rank name is required.");
   }
-  const encodedName = encodeURIComponent(trimmed);
-  const encodedTarget = encodeURIComponent(target);
-  await apiRequest(`/api/ranks/${encodedName}/patch/${encodedTarget}`, {
-    method: "PATCH",
-    body: JSON.stringify({ name: trimmed, target, value }),
-  });
+  if (target === "name") {
+    const encodedName = encodeURIComponent(trimmed);
+    await apiRequest(`/api/ranks/${encodedName}/patch/name`, {
+      method: "PATCH",
+      body: JSON.stringify({ name: trimmed, target, value }),
+    });
+    return;
+  }
+  const current = await fetchRankByName(trimmed);
+  await grpcRequest(() =>
+    rankClient.edit(
+      create(RankSchema, {
+        id: current.id,
+        name: current.name,
+        description:
+          target === "description" ? String(value).trim() : current.description,
+        color:
+          target === "color"
+            ? BigInt(Math.floor(Number(value)))
+            : current.color,
+        weight: current.weight,
+        permissions: current.permissions,
+      }),
+    ),
+  );
 }
 
 export async function deleteRank(name: string): Promise<void> {
@@ -1919,10 +2151,10 @@ export async function deleteRank(name: string): Promise<void> {
   if (!trimmed) {
     throw new Error("Rank name is required.");
   }
-  const encoded = encodeURIComponent(trimmed);
-  await apiRequest(`/api/ranks/${encoded}/delete`, {
-    method: "DELETE",
-  });
+  const current = await fetchRankByName(trimmed);
+  await grpcRequest(() =>
+    rankClient.delete(create(RequestWithValueSchema, { value: current.id })),
+  );
 }
 
 export async function fetchRankPermissions(
@@ -1933,18 +2165,22 @@ export async function fetchRankPermissions(
   if (!trimmed) {
     throw new Error("Rank name is required.");
   }
-  const encoded = encodeURIComponent(trimmed);
-  const payload = await apiRequest<ApiPermissions | ApiPermissionsResponse>(
-    `/api/ranks/${encoded}/perms`,
-    {
-      method: "GET",
+  const payload = await fetchRankByName(trimmed, options?.signal);
+  return payload.permissions.reduce<ApiPermissions>((acc, permission) => {
+    acc[permission] = true;
+    return acc;
+  }, {});
+}
+
+export async function fetchRankPermissionNames(
+  options?: { signal?: AbortSignal },
+): Promise<string[]> {
+  const payload = await grpcRequest(() =>
+    rankClient.permissions(create(EmptySchema, {}), {
       signal: options?.signal,
-    },
+    }),
   );
-  if (!payload) {
-    return null;
-  }
-  return isPermissionsResponse(payload) ? (payload.data ?? null) : payload;
+  return payload.perms;
 }
 
 export async function updateRankPermission(
@@ -1960,16 +2196,25 @@ export async function updateRankPermission(
   if (!trimmedPerm) {
     throw new Error("Permission is required.");
   }
-  const encodedName = encodeURIComponent(trimmedName);
-  const encodedPerm = encodeURIComponent(trimmedPerm);
-  await apiRequest(`/api/ranks/${encodedName}/perms/${encodedPerm}`, {
-    method: "PATCH",
-    body: JSON.stringify({
-      name: trimmedName,
-      perm: trimmedPerm,
-      state,
-    }),
-  });
+  const current = await fetchRankByName(trimmedName);
+  const permissions = new Set(current.permissions);
+  if (state) {
+    permissions.add(trimmedPerm);
+  } else {
+    permissions.delete(trimmedPerm);
+  }
+  await grpcRequest(() =>
+    rankClient.edit(
+      create(RankSchema, {
+        id: current.id,
+        name: current.name,
+        description: current.description,
+        color: current.color,
+        weight: current.weight,
+        permissions: [...permissions],
+      }),
+    ),
+  );
 }
 
 export async function fetchRankUsers(
@@ -2002,21 +2247,32 @@ export async function fetchRankUsers(
 export async function fetchUsers(options?: {
   signal?: AbortSignal;
 }): Promise<UserListItem[]> {
-  const payload = await apiRequest<ApiUsersResponse | ApiUserPublic[]>(
-    "/api/user/list",
-    {
-      method: "GET",
-      signal: options?.signal,
-    },
+  const payload = await grpcRequest(() =>
+    userClient.list(
+      create(RequestWithLimitAndOffsetSchema, {
+        limit: 500,
+        offset: 0,
+      }),
+      { signal: options?.signal },
+    ),
   );
-  const records = Array.isArray(payload) ? payload : (payload.data ?? []);
-  return records
-    .map(toUserListItem)
-    .filter((item): item is UserListItem => Boolean(item));
+  return payload.list.map((user) => ({
+    userID: user.id,
+    username: user.username,
+    displayName: user.prefs?.displayName || undefined,
+    avatar: user.prefs?.avatar ? { key: user.prefs.avatar } : null,
+    banned: false,
+    rank: user.rank?.name
+      ? {
+          name: user.rank.name,
+        }
+      : null,
+    joined: toGrpcTimestamp(user.joined),
+  }));
 }
 
 export async function fetchUserBanInfo(
-  userID: number,
+  userID: UserID,
   banned?: boolean,
   options?: { signal?: AbortSignal },
 ): Promise<BanInfo | null> {
@@ -2024,8 +2280,9 @@ export async function fetchUserBanInfo(
     return null;
   }
   try {
+    const normalizedUserID = normalizeUserID(userID);
     const payload = await apiRequest<ApiBanInfoResponse>(
-      `/api/user/${userID}/ban/info`,
+      `/api/user/${encodeURIComponent(normalizedUserID)}/ban/info`,
       {
         method: "GET",
         signal: options?.signal,
@@ -2052,7 +2309,7 @@ export async function fetchUserBanInfo(
 }
 
 export async function banUser(
-  userID: number,
+  userID: UserID,
   reason: string,
   durationSeconds = 0,
 ): Promise<void> {
@@ -2061,14 +2318,16 @@ export async function banUser(
     throw new Error("Ban reason is required.");
   }
   const duration = `${Math.max(0, Math.floor(durationSeconds))}s`;
-  await apiRequest(`/api/user/${userID}/ban`, {
+  const normalizedUserID = normalizeUserID(userID);
+  await apiRequest(`/api/user/${encodeURIComponent(normalizedUserID)}/ban`, {
     method: "POST",
     body: JSON.stringify({ reason: trimmed, duration }),
   });
 }
 
-export async function unbanUser(userID: number): Promise<void> {
-  await apiRequest(`/api/user/${userID}/unban`, {
+export async function unbanUser(userID: UserID): Promise<void> {
+  const normalizedUserID = normalizeUserID(userID);
+  await apiRequest(`/api/user/${encodeURIComponent(normalizedUserID)}/unban`, {
     method: "POST",
     body: JSON.stringify({}),
   });
@@ -2152,8 +2411,9 @@ export async function deleteAvatar(): Promise<AuthUser> {
   return fetchCurrentUser();
 }
 
-export async function deleteUserAvatar(userID: number): Promise<void> {
-  await apiRequest(`/api/user/${userID}/delete/avatar`, {
+export async function deleteUserAvatar(userID: UserID): Promise<void> {
+  const normalizedUserID = normalizeUserID(userID);
+  await apiRequest(`/api/user/${encodeURIComponent(normalizedUserID)}/delete/avatar`, {
     method: "DELETE",
   });
 }
@@ -2164,14 +2424,16 @@ export async function deleteProfile(): Promise<void> {
   });
 }
 
-export async function deleteUserDescription(userID: number): Promise<void> {
-  await apiRequest(`/api/user/${userID}/delete/description`, {
+export async function deleteUserDescription(userID: UserID): Promise<void> {
+  const normalizedUserID = normalizeUserID(userID);
+  await apiRequest(`/api/user/${encodeURIComponent(normalizedUserID)}/delete/description`, {
     method: "POST",
   });
 }
 
-export async function deleteUserProfile(userID: number): Promise<void> {
-  await apiRequest(`/api/user/${userID}/delete/profile`, {
+export async function deleteUserProfile(userID: UserID): Promise<void> {
+  const normalizedUserID = normalizeUserID(userID);
+  await apiRequest(`/api/user/${encodeURIComponent(normalizedUserID)}/delete/profile`, {
     method: "POST",
   });
 }
@@ -2181,51 +2443,28 @@ export async function fetchProjects(options?: {
   offset?: number;
   signal?: AbortSignal;
 }): Promise<ApiProject[]> {
-  const params = new URLSearchParams();
-  if (typeof options?.limit === "number") {
-    params.set("limit", String(options.limit));
-  }
-  if (typeof options?.offset === "number") {
-    params.set("offset", String(options.offset));
-  }
-  const query = params.toString() ? `?${params.toString()}` : "";
-  const payload = await apiRequest<ApiProjectsResponse>(
-    `/api/projects${query}`,
-    {
-      method: "GET",
+  const payload = await grpcRequest(() =>
+    projectsClient.projectsList(toLimitOffsetRequest(options), {
       signal: options?.signal,
-    },
+    }),
   );
-  const records = payload?.projects ?? [];
-  return Array.isArray(records) ? records : [];
+  return payload.list.map(toApiProject);
 }
 
 export async function fetchProjectById(
   projectID: string,
   options?: { signal?: AbortSignal },
 ): Promise<ApiProject | null> {
-  const encodedId = encodeURIComponent(projectID.trim());
-  if (!encodedId) {
+  const trimmedId = projectID.trim();
+  if (!trimmedId) {
     throw new Error("Project id is required.");
   }
-  const payload = await apiRequest<ApiProjectResponse | ApiProject>(
-    `/api/projects/${encodedId}`,
-    {
-      method: "GET",
+  const payload = await grpcRequest(() =>
+    projectsClient.project(create(RequestWithValueSchema, { value: trimmedId }), {
       signal: options?.signal,
-    },
+    }),
   );
-
-  if (!payload || typeof payload !== "object") {
-    return null;
-  }
-
-  if ("id" in payload || "info" in payload || "details" in payload) {
-    return payload as ApiProject;
-  }
-
-  const wrapped = payload as ApiProjectResponse;
-  return wrapped.data ?? wrapped.project ?? wrapped.info ?? null;
+  return toApiProject(payload);
 }
 
 export async function fetchTopProjects(options?: {
@@ -2233,26 +2472,22 @@ export async function fetchTopProjects(options?: {
   city?: string;
   signal?: AbortSignal;
 }): Promise<ApiProject[]> {
-  const params = new URLSearchParams();
-  if (typeof options?.limit === "number") {
-    params.set("limit", String(options.limit));
-  }
-  if (options?.city) {
-    params.set("city", options.city);
-  }
-  const query = params.toString() ? `?${params.toString()}` : "";
-  const payload = await apiRequest<ApiTopProjectsResponse | ApiProject[]>(
-    `/api/projects/top${query}`,
-    {
-      method: "GET",
-      signal: options?.signal,
-    },
+  const payload = await grpcRequest(() =>
+    projectsClient.projectsTop(
+      create(RequestWithLimitAndOffsetAndValueSchema, {
+        limit:
+          typeof options?.limit === "number" && Number.isFinite(options.limit)
+            ? Math.max(0, Math.trunc(options.limit))
+            : 10,
+        offset: 0,
+        value: options?.city?.trim() || "",
+      }),
+      {
+        signal: options?.signal,
+      },
+    ),
   );
-  if (Array.isArray(payload)) {
-    return payload;
-  }
-  const records = payload?.projects ?? payload?.data ?? payload?.items ?? [];
-  return Array.isArray(records) ? records : [];
+  return payload.list.map(toApiProject);
 }
 
 export async function fetchArchivedProjects(options?: {
@@ -2260,23 +2495,8 @@ export async function fetchArchivedProjects(options?: {
   offset?: number;
   signal?: AbortSignal;
 }): Promise<ApiProject[]> {
-  const params = new URLSearchParams();
-  if (typeof options?.limit === "number") {
-    params.set("limit", String(options.limit));
-  }
-  if (typeof options?.offset === "number") {
-    params.set("offset", String(options.offset));
-  }
-  const query = params.toString() ? `?${params.toString()}` : "";
-  const payload = await apiRequest<ApiProjectsResponse>(
-    `/api/projects/archived${query}`,
-    {
-      method: "GET",
-      signal: options?.signal,
-    },
-  );
-  const records = payload?.projects ?? [];
-  return Array.isArray(records) ? records : [];
+  const projects = await fetchProjects(options);
+  return projects.filter((project) => project.status === "declined");
 }
 
 export type CreateProjectPayload = {
@@ -2333,10 +2553,15 @@ export async function changeProjectDescription(
 }
 
 export async function deleteProject(projectID: string): Promise<void> {
-  const encodedId = encodeURIComponent(projectID);
-  await apiRequest(`/api/projects/${encodedId}/delete`, {
-    method: "DELETE",
-  });
+  const trimmedId = projectID.trim();
+  if (!trimmedId) {
+    throw new Error("Project id is required.");
+  }
+  await grpcRequest(() =>
+    projectsClient.deleteProject(
+      create(RequestWithValueSchema, { value: trimmedId }),
+    ),
+  );
 }
 
 export async function fetchProjectCategories(options?: {
@@ -2356,15 +2581,32 @@ export async function fetchProjectCategories(options?: {
 export async function fetchSubmissions(options?: {
   signal?: AbortSignal;
 }): Promise<ApiSubmissionTarget[]> {
-  const payload = await apiRequest<ApiSubmissionsResponse>(
-    "/api/submissions/list",
-    {
-      method: "GET",
+  const payload = await grpcRequest(() =>
+    projectsClient.submissionsList(
+      create(RequestWithLimitAndOffsetSchema, {
+        limit: 200,
+        offset: 0,
+      }),
+      {
       signal: options?.signal,
-    },
+      },
+    ),
   );
-  const records = payload?.data ?? [];
-  return Array.isArray(records) ? records : [];
+  const hydrated = await Promise.allSettled(
+    payload.list.map(async (submission) => {
+      const project = submission.project
+        ? await fetchProjectById(submission.project, {
+            signal: options?.signal,
+          })
+        : null;
+      return toApiSubmission(submission, project);
+    }),
+  );
+  return hydrated.map((result, index) =>
+    result.status === "fulfilled"
+      ? result.value
+      : toApiSubmission(payload.list[index]),
+  );
 }
 
 export async function fetchSubmissionById(
@@ -2374,21 +2616,18 @@ export async function fetchSubmissionById(
   if (!Number.isFinite(id) || id <= 0) {
     throw new Error("Submission id is required.");
   }
-  const payload = await apiRequest<ApiSubmissionResponse | ApiSubmissionTarget>(
-    `/api/submissions/info/${id}`,
-    {
-      method: "GET",
-      signal: options?.signal,
-    },
+  const payload = await grpcRequest(() =>
+    projectsClient.submission(
+      create(RequestWithValueSchema, { value: String(id) }),
+      {
+        signal: options?.signal,
+      },
+    ),
   );
-  if (
-    payload &&
-    typeof payload === "object" &&
-    "data" in (payload as Record<string, unknown>)
-  ) {
-    return (payload as ApiSubmissionResponse).data ?? null;
-  }
-  return payload as ApiSubmissionTarget;
+  const project = payload.project
+    ? await fetchProjectById(payload.project, { signal: options?.signal })
+    : null;
+  return toApiSubmission(payload, project);
 }
 
 export async function fetchMaintenanceActive(options?: {
@@ -2422,11 +2661,26 @@ export async function fetchMaintenancePlanned(options?: {
 export async function fetchMaintenanceData(options?: {
   signal?: AbortSignal;
 }): Promise<ApiMaintenanceData | null> {
-  const payload = await apiRequest<unknown>("/api/maintenance/data", {
-    method: "GET",
-    signal: options?.signal,
-  });
-  return toMaintenanceData(payload);
+  try {
+    const payload = await grpcRequest(() =>
+      maintenanceClient.isPlanned(create(EmptySchema, {}), {
+        signal: options?.signal,
+      }),
+    );
+    const willEnd = toGrpcTimestamp(payload.at);
+    if (!payload.description.trim() && !willEnd) {
+      return null;
+    }
+    return {
+      description: payload.description || undefined,
+      willEnd,
+    };
+  } catch (error) {
+    if (error instanceof ApiError && error.status === StatusCodes.NOT_FOUND) {
+      return null;
+    }
+    throw error;
+  }
 }
 
 export type StartMaintenancePayload = {
@@ -2443,15 +2697,24 @@ export async function startMaintenance(
     throw new Error("Maintenance description is required.");
   }
   const willEnd = toIsoInputDateTime(payload.willEnd, "Maintenance end date");
-  const scope = normalizeMaintenanceScope(payload.scope);
-  await apiRequest("/api/maintenance/create", {
-    method: "POST",
-    body: JSON.stringify({
-      description,
-      ...(scope ? { scope } : {}),
-      willEnd,
-    }),
-  });
+  const created = await grpcRequest(() =>
+    maintenanceClient.create(
+      create(MaintenanceCreateRequestSchema, {
+        description,
+        time: create(TimeRangeSchema, {
+          start: timestampFromDate(new Date()),
+          end: timestampFromDate(new Date(willEnd)),
+        }),
+      }),
+    ),
+  );
+  if (created.id) {
+    await grpcRequest(() =>
+      maintenanceClient.start(
+        create(RequestWithValueSchema, { value: created.id }),
+      ),
+    );
+  }
 }
 
 export type ScheduleMaintenancePayload = {
@@ -2476,16 +2739,17 @@ export async function scheduleMaintenance(
   if (new Date(willStart).getTime() >= new Date(willEnd).getTime()) {
     throw new Error("Maintenance end date must be after start date.");
   }
-  const scope = normalizeMaintenanceScope(payload.scope);
-  await apiRequest(`/api/maintenance/create/${encodeURIComponent(willStart)}`, {
-    method: "POST",
-    body: JSON.stringify({
-      description,
-      ...(scope ? { scope } : {}),
-      willStart,
-      willEnd,
-    }),
-  });
+  await grpcRequest(() =>
+    maintenanceClient.create(
+      create(MaintenanceCreateRequestSchema, {
+        description,
+        time: create(TimeRangeSchema, {
+          start: timestampFromDate(new Date(willStart)),
+          end: timestampFromDate(new Date(willEnd)),
+        }),
+      }),
+    ),
+  );
 }
 
 export type EditMaintenancePayload = {
@@ -2544,11 +2808,89 @@ export async function markNotificationAsRead(id: string): Promise<void> {
   });
 }
 
+export async function fetchStatisticsGlobal(options?: {
+  signal?: AbortSignal;
+}): Promise<StatisticsGlobal> {
+  const payload = await grpcRequest(() =>
+    statisticClient.global(create(EmptySchema, {}), {
+      signal: options?.signal,
+    }),
+  );
+  return toStatisticsGlobal(payload);
+}
+
+export async function fetchStatisticsProjectVotes(options?: {
+  city?: string;
+  separator?: Separator;
+  signal?: AbortSignal;
+}): Promise<StatisticsGraph> {
+  const payload = await grpcRequest(() =>
+    statisticClient.projectVotes(
+      create(RequestByCitySchema, {
+        city: options?.city?.trim() || "",
+        separator: options?.separator ?? Separator.DAILY,
+      }),
+      { signal: options?.signal },
+    ),
+  );
+  return toStatisticsGraph(payload);
+}
+
+export async function fetchStatisticsProjectCreation(options?: {
+  city?: string;
+  separator?: Separator;
+  signal?: AbortSignal;
+}): Promise<StatisticsGraph> {
+  const payload = await grpcRequest(() =>
+    statisticClient.projectCreation(
+      create(RequestByCitySchema, {
+        city: options?.city?.trim() || "",
+        separator: options?.separator ?? Separator.DAILY,
+      }),
+      { signal: options?.signal },
+    ),
+  );
+  return toStatisticsGraph(payload);
+}
+
+export async function fetchStatisticsProjectDiscussion(options?: {
+  city?: string;
+  separator?: Separator;
+  signal?: AbortSignal;
+}): Promise<StatisticsGraph> {
+  const payload = await grpcRequest(() =>
+    statisticClient.projectDiscussion(
+      create(RequestByCitySchema, {
+        city: options?.city?.trim() || "",
+        separator: options?.separator ?? Separator.DAILY,
+      }),
+      { signal: options?.signal },
+    ),
+  );
+  return toStatisticsGraph(payload);
+}
+
+export async function fetchStatisticsQuestionsActivity(options?: {
+  separator?: Separator;
+  signal?: AbortSignal;
+}): Promise<StatisticsGraph> {
+  const payload = await grpcRequest(() =>
+    statisticClient.questionsActivity(
+      create(SeparatorValueSchema, {
+        value: options?.separator ?? Separator.DAILY,
+      }),
+      { signal: options?.signal },
+    ),
+  );
+  return toStatisticsGraph(payload);
+}
+
 export async function approveSubmission(id: number): Promise<void> {
-  await apiRequest(`/api/submissions/${id}/approve`, {
-    method: "POST",
-    body: JSON.stringify({}),
-  });
+  await grpcRequest(() =>
+    projectsClient.acceptSubmission(
+      create(RequestWithValueSchema, { value: String(id) }),
+    ),
+  );
 }
 
 export async function declineSubmission(
@@ -2559,100 +2901,32 @@ export async function declineSubmission(
   if (!trimmed) {
     throw new Error("Decline reason is required.");
   }
-  await apiRequest(`/api/submissions/${id}/decline`, {
-    method: "POST",
-    body: JSON.stringify({ reason: trimmed }),
-  });
+  await grpcRequest(() =>
+    projectsClient.denySubmission(
+      create(RequestWithValuesSchema, { values: [String(id), trimmed] }),
+    ),
+  );
 }
 
 export async function toggleProjectLike(projectID: string): Promise<void> {
-  const encoded = encodeURIComponent(projectID);
-  await apiRequest(`/api/projects/like/${encoded}`, {
-    method: "POST",
-    body: JSON.stringify({}),
-  });
+  const trimmed = projectID.trim();
+  if (!trimmed) {
+    throw new Error("Project id is required.");
+  }
+  await grpcRequest(() =>
+    projectsClient.processLikes(
+      create(RequestWithValuesSchema, { values: [trimmed, "true"] }),
+    ),
+  );
 }
 
 export async function voteForProject(projectID: string): Promise<void> {
-  const encoded = encodeURIComponent(projectID);
-  await apiRequest(`/api/projects/${encoded}/vote`, {
-    method: "POST",
-    body: JSON.stringify({}),
-  });
+  await toggleProjectLike(projectID);
 }
-
-const toTicketRecord = (payload: unknown): Record<string, unknown> | null => {
-  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-    return null;
-  }
-  return payload as Record<string, unknown>;
-};
-
-const pickTicketId = (payload: unknown): string | null => {
-  if (typeof payload === "string" && payload.trim()) {
-    return payload.trim();
-  }
-  if (typeof payload === "number" && Number.isFinite(payload)) {
-    return String(payload);
-  }
-  const record = toTicketRecord(payload);
-  if (!record) {
-    return null;
-  }
-  const candidates = ["id", "ticketId", "ticket_id", "ticketID"];
-  for (const key of candidates) {
-    const value = record[key];
-    if (typeof value === "string" && value.trim()) {
-      return value.trim();
-    }
-    if (typeof value === "number" && Number.isFinite(value)) {
-      return String(value);
-    }
-  }
-  const nested = toTicketRecord(record.data ?? record.ticket ?? record.info);
-  if (!nested) {
-    return null;
-  }
-  for (const key of candidates) {
-    const value = nested[key];
-    if (typeof value === "string" && value.trim()) {
-      return value.trim();
-    }
-    if (typeof value === "number" && Number.isFinite(value)) {
-      return String(value);
-    }
-  }
-  return null;
-};
 
 type TicketCreateResult = {
   id: string;
   token?: string;
-};
-
-const pickTicketToken = (payload: unknown): string | null => {
-  const record = toTicketRecord(payload);
-  if (!record) {
-    return null;
-  }
-  const candidates = ["token", "requestorToken", "requestor_token"];
-  for (const key of candidates) {
-    const value = record[key];
-    if (typeof value === "string" && value.trim()) {
-      return value.trim();
-    }
-  }
-  const nested = toTicketRecord(record.data ?? record.ticket ?? record.info);
-  if (!nested) {
-    return null;
-  }
-  for (const key of candidates) {
-    const value = nested[key];
-    if (typeof value === "string" && value.trim()) {
-      return value.trim();
-    }
-  }
-  return null;
 };
 
 export async function createTicket(
@@ -2660,7 +2934,7 @@ export async function createTicket(
 ): Promise<TicketCreateResult> {
   const topic = payload.topic.trim();
   const brief = payload.brief.trim();
-  const content = payload.brief.trim();
+  const content = payload.content.trim();
   if (!topic) {
     throw new Error("Ticket topic is required.");
   }
@@ -2670,64 +2944,21 @@ export async function createTicket(
   if (!content) {
     throw new Error("Ticket content is required");
   }
-  const body: Record<string, unknown> = { topic, brief, content };
-  const name = payload.name?.trim();
-  const email = payload.email?.trim();
-  if (name) {
-    body.name = name;
-  }
-  if (email) {
-    body.email = email;
-  }
-
-  const response = await apiRequest<unknown>("/api/tickets/create", {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
-  const id = pickTicketId(response);
+  const response = await grpcRequest(() =>
+    ticketClient.createTicket(
+      create(CreateTicketRequestSchema, {
+        topic,
+        title: brief,
+        message: content,
+      }),
+    ),
+  );
+  const id = response.id.trim();
   if (!id) {
     throw new Error("Ticket id is missing.");
   }
-  const token = pickTicketToken(response) ?? undefined;
-  return { id, token };
+  return { id };
 }
-
-const pickProjectId = (payload: unknown): string | null => {
-  if (typeof payload === "string" && payload.trim()) {
-    return payload.trim();
-  }
-  if (typeof payload === "number" && Number.isFinite(payload)) {
-    return String(payload);
-  }
-  const record = toTicketRecord(payload);
-  if (!record) {
-    return null;
-  }
-  const candidates = ["id", "projectId", "project_id", "projectID"];
-  for (const key of candidates) {
-    const value = record[key];
-    if (typeof value === "string" && value.trim()) {
-      return value.trim();
-    }
-    if (typeof value === "number" && Number.isFinite(value)) {
-      return String(value);
-    }
-  }
-  const nested = toTicketRecord(record.data ?? record.project ?? record.info);
-  if (!nested) {
-    return null;
-  }
-  for (const key of candidates) {
-    const value = nested[key];
-    if (typeof value === "string" && value.trim()) {
-      return value.trim();
-    }
-    if (typeof value === "number" && Number.isFinite(value)) {
-      return String(value);
-    }
-  }
-  return null;
-};
 
 const buildProjectPhotoKey = (projectId: string, photoId: string) =>
   `photos/${projectId}/${photoId}`;
@@ -2820,24 +3051,16 @@ export async function fetchTicketInfo(
   id: string,
   options?: { signal?: AbortSignal; token?: string },
 ): Promise<ApiTicket | null> {
-  const encoded = encodeURIComponent(id);
-  const query = options?.token
-    ? `?token=${encodeURIComponent(options.token)}`
-    : "";
-  const payload = await apiRequest<unknown>(
-    `/api/tickets/${encoded}/info${query}`,
-    {
-      method: "GET",
-      signal: options?.signal,
-    },
-  );
-  const record = toTicketRecord(payload);
-  if (!record) {
-    return null;
+  const trimmed = id.trim();
+  if (!trimmed) {
+    throw new Error("Ticket id is required.");
   }
-  const ticket =
-    toTicketRecord(record.data ?? record.ticket ?? record.info) ?? record;
-  return ticket as ApiTicket;
+  const payload = await grpcRequest(() =>
+    ticketClient.info(create(RequestWithValueSchema, { value: trimmed }), {
+      signal: options?.signal,
+    }),
+  );
+  return toApiTicket(payload);
 }
 
 export async function fetchTicketMessages(
@@ -2848,63 +3071,22 @@ export async function fetchTicketMessages(
     includeDeleted?: boolean;
   },
 ): Promise<ApiTicketMessage[]> {
-  const encoded = encodeURIComponent(id);
-  const query = options?.token
-    ? `?token=${encodeURIComponent(options.token)}`
-    : "";
-  const listPath = options?.includeDeleted
-    ? `/api/tickets/${encoded}/messages/list/all${query}`
-    : `/api/tickets/${encoded}/messages/list${query}`;
-  const payload = await apiRequest<unknown>(listPath, {
-    method: "GET",
-    signal: options?.signal,
-  });
-  const record = toTicketRecord(payload);
-  const resolveList = (value: unknown): ApiTicketMessage[] | null => {
-    if (Array.isArray(value)) {
-      return value as ApiTicketMessage[];
-    }
-    if (!value || typeof value !== "object") {
-      return null;
-    }
-    const nested = value as Record<string, unknown>;
-    const candidate =
-      nested.list ??
-      nested.messages ??
-      nested.items ??
-      nested.message_list ??
-      nested.data;
-    return Array.isArray(candidate) ? (candidate as ApiTicketMessage[]) : null;
-  };
-
-  const messages =
-    resolveList(payload) ??
-    resolveList(record?.data) ??
-    resolveList(record) ??
-    [];
-
-  return messages;
+  const trimmed = id.trim();
+  if (!trimmed) {
+    throw new Error("Ticket id is required.");
+  }
+  const payload = await grpcRequest(() =>
+    ticketClient.messages(
+      create(RequestWithLimitAndOffsetAndValueSchema, {
+        limit: 500,
+        offset: 0,
+        value: trimmed,
+      }),
+      { signal: options?.signal },
+    ),
+  );
+  return payload.list.map(toApiTicketMessage);
 }
-
-const resolveDiscussionList = (value: unknown): ApiTicketMessage[] | null => {
-  if (Array.isArray(value)) {
-    return value as ApiTicketMessage[];
-  }
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-  const nested = value as Record<string, unknown>;
-  const candidate =
-    nested.list ??
-    nested.messages ??
-    nested.comments ??
-    nested.items ??
-    nested.message_list ??
-    nested.comment_list ??
-    nested.discussion ??
-    nested.data;
-  return Array.isArray(candidate) ? (candidate as ApiTicketMessage[]) : null;
-};
 
 export async function fetchProjectDiscussionMessages(
   projectID: string,
@@ -2918,22 +3100,19 @@ export async function fetchProjectDiscussionMessages(
     throw new Error("Project id is required.");
   }
 
-  const encodedProjectID = encodeURIComponent(trimmedID);
-  const payload = await apiRequest<unknown>(
-    `/api/projects/${encodedProjectID}/discussion/list`,
-    {
-      method: "GET",
-      signal: options?.signal,
-    },
+  const payload = await grpcRequest(() =>
+    projectsClient.messagesList(
+      create(RequestWithLimitAndOffsetAndValueSchema, {
+        limit: 500,
+        offset: 0,
+        value: trimmedID,
+      }),
+      {
+        signal: options?.signal,
+      },
+    ),
   );
-  const record = toTicketRecord(payload);
-  return (
-    resolveDiscussionList(payload) ??
-    resolveDiscussionList(record?.data) ??
-    resolveDiscussionList(record?.discussion) ??
-    resolveDiscussionList(record) ??
-    []
-  );
+  return payload.list.map(toApiProjectMessage);
 }
 
 export async function createProjectDiscussionMessage(
@@ -2951,7 +3130,6 @@ export async function createProjectDiscussionMessage(
     throw new Error("Project message is required.");
   }
 
-  const encodedProjectID = encodeURIComponent(trimmedProjectID);
   const replyRaw = options?.replyToId;
   const replyToId =
     typeof replyRaw === "number" && Number.isFinite(replyRaw)
@@ -2966,17 +3144,15 @@ export async function createProjectDiscussionMessage(
     throw new Error("Reply message id is invalid.");
   }
 
-  const body = JSON.stringify({
-    content: trimmedMessage,
-    comment: trimmedMessage,
-    message: trimmedMessage,
-    text: trimmedMessage,
-    ...(typeof replyToId === "number" ? { replyToId } : {}),
-  });
-  await apiRequest(`/api/projects/${encodedProjectID}/discussion/create`, {
-    method: "POST",
-    body,
-  });
+  await grpcRequest(() =>
+    projectsClient.createMessage(
+      create(ProjectCreateMessageRequestSchema, {
+        project: trimmedProjectID,
+        parent: typeof replyToId === "number" ? String(replyToId) : "",
+        content: trimmedMessage,
+      }),
+    ),
+  );
 }
 
 export async function updateTicketMessage(
@@ -3032,67 +3208,59 @@ export async function createTicketMessage(
   if (!trimmed) {
     throw new Error("Ticket message is required.");
   }
-  const encoded = encodeURIComponent(id);
-  const body: Record<string, unknown> = { content: trimmed };
-  if (options?.token) {
-    body.token = options.token;
+  const ticketId = id.trim();
+  if (!ticketId) {
+    throw new Error("Ticket id is required.");
   }
-  await apiRequest(`/api/tickets/${encoded}/messages/create`, {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  await grpcRequest(() =>
+    ticketClient.createMessage(
+      create(RequestWithValuesSchema, { values: [ticketId, trimmed] }),
+    ),
+  );
 }
 
 export async function closeTicket(id: string): Promise<void> {
-  const encoded = encodeURIComponent(id);
-  await apiRequest(`/api/tickets/${encoded}/close`, {
-    method: "POST",
-    body: JSON.stringify({}),
-  });
+  const trimmed = id.trim();
+  if (!trimmed) {
+    throw new Error("Ticket id is required.");
+  }
+  await grpcRequest(() =>
+    ticketClient.close(
+      create(RequestWithValuesSchema, { values: [trimmed, "closed"] }),
+    ),
+  );
 }
 
 export async function acceptTicket(id: string): Promise<void> {
-  const encoded = encodeURIComponent(id);
-  await apiRequest(`/api/tickets/${encoded}/accept`, {
-    method: "POST",
-    body: JSON.stringify({}),
-  });
+  const trimmed = id.trim();
+  if (!trimmed) {
+    throw new Error("Ticket id is required.");
+  }
+  await grpcRequest(() =>
+    ticketClient.accept(create(RequestWithValueSchema, { value: trimmed })),
+  );
 }
 
 export async function fetchTicketsALL(options?: {
   signal?: AbortSignal;
 }): Promise<ApiTicket[]> {
-  const payload = await apiRequest<unknown>("/api/tickets/list", {
-    method: "GET",
-    signal: options?.signal,
-  });
-  const record = toTicketRecord(payload);
-  const tickets = Array.isArray(payload)
-    ? payload
-    : (record?.data ??
-      record?.tickets ??
-      record?.list ??
-      record?.items ??
-      record?.ticket_list ??
-      []);
-  return Array.isArray(tickets) ? (tickets as ApiTicket[]) : [];
+  const payload = await grpcRequest(() =>
+    ticketClient.ticketsList(
+      create(RequestWithLimitAndOffsetSchema, { limit: 500, offset: 0 }),
+      { signal: options?.signal },
+    ),
+  );
+  return payload.list.map(toApiTicket);
 }
 
 export async function fetchTicketsSelf(options?: {
   signal?: AbortSignal;
 }): Promise<ApiTicket[]> {
-  const payload = await apiRequest<unknown>("/api/tickets/self", {
-    method: "GET",
-    signal: options?.signal,
-  });
-  const record = toTicketRecord(payload);
-  const tickets = Array.isArray(payload)
-    ? payload
-    : (record?.data ??
-      record?.tickets ??
-      record?.list ??
-      record?.items ??
-      record?.ticket_list ??
-      []);
-  return Array.isArray(tickets) ? (tickets as ApiTicket[]) : [];
+  const payload = await grpcRequest(() =>
+    ticketClient.selfTickets(
+      create(RequestWithLimitAndOffsetSchema, { limit: 500, offset: 0 }),
+      { signal: options?.signal },
+    ),
+  );
+  return payload.list.map(toApiTicket);
 }

@@ -64,7 +64,15 @@ export const getApiBaseUrl = (origin?: string) => {
 
 export const API_BASE_URL = getApiBaseUrl();
 
-export const getGrpcBaseUrl = (origin?: string) => getApiBaseUrl(origin);
+export const getGrpcBaseUrl = (origin?: string) => {
+  const envBase = (process.env.NEXT_PUBLIC_GRPC_BASE_URL || "").trim();
+  if (envBase) {
+    return stripTrailingSlash(
+      process.env.NODE_ENV === "production" ? ensureHttps(envBase) : envBase,
+    );
+  }
+  return getApiBaseUrl(origin);
+};
 
 export const GRPC_BASE_URL = getGrpcBaseUrl();
 

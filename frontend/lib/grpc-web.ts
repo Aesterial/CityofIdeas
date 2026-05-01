@@ -6,6 +6,8 @@ import { MaintenanceService } from "@/gen/xyz/city_ideas/v1/maintenances/v1/serv
 import { ProjectsService } from "@/gen/xyz/city_ideas/v1/projects/v1/service_pb";
 import { RankService } from "@/gen/xyz/city_ideas/v1/ranks/v1/service_pb";
 import { SessionService } from "@/gen/xyz/city_ideas/v1/sessions/v1/service_pb";
+import { StatisticService } from "@/gen/xyz/city_ideas/v1/statistics/v1/service_pb";
+import { TicketService } from "@/gen/xyz/city_ideas/v1/tickets/v1/service_pb";
 import { UserService } from "@/gen/xyz/city_ideas/v1/user/v1/service_pb";
 
 const transport = createGrpcWebTransport({
@@ -23,4 +25,6 @@ export const maintenanceClient = createClient(MaintenanceService, transport);
 export const projectsClient = createClient(ProjectsService, transport);
 export const rankClient = createClient(RankService, transport);
 export const sessionClient = createClient(SessionService, transport);
+export const statisticClient = createClient(StatisticService, transport);
+export const ticketClient = createClient(TicketService, transport);
 export const userClient = createClient(UserService, transport);

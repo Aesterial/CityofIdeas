@@ -46,6 +46,7 @@ import {
   deleteUserAvatar,
   deleteUserDescription,
   deleteUserProfile,
+  fetchStatisticsGlobal,
   fetchUserBanInfo,
   fetchUsers,
   getPublicApiErrorMessage,
@@ -53,6 +54,7 @@ import {
   unbanUser,
   type BanInfo,
   type ApiAvatar,
+  type UserID,
 } from "@/lib/api";
 import { buildApiUrl } from "@/lib/api-base";
 import { emitMfaRequired, isMfaRequiredMessage } from "@/lib/mfa-required";
@@ -227,7 +229,7 @@ type UserStatus = "active" | "banned";
 
 type User = {
   id: string;
-  userID: number;
+  userID: UserID;
   name: string;
   username: string;
   email: string;
@@ -966,6 +968,9 @@ export default function AdminPage() {
       const activityLimit = activityRangeDays;
 
       const load = async () => {
+        const globalStatsPromise = fetchStatisticsGlobal({
+          signal: controller.signal,
+        });
         const [
           votesDayResult,
           ideasDayResult,
@@ -977,14 +982,8 @@ export default function AdminPage() {
           qualityRecapResult,
           mediaCoverageResult,
         ] = await Promise.allSettled([
-          requestJson<CountResponse>(
-            "/api/statistics/votes",
-            controller.signal,
-          ),
-          requestJson<CountResponse>(
-            "/api/statistics/ideas",
-            controller.signal,
-          ),
+          globalStatsPromise.then((stats) => ({ count: stats.votes })),
+          globalStatsPromise.then((stats) => ({ count: stats.ideas })),
           requestJson<CountResponse>(
             `/api/statistics/users/active/${sinceParam}`,
             controller.signal,
@@ -1382,7 +1381,7 @@ export default function AdminPage() {
     };
   }, [language]);
 
-  const updateUserStatus = (userID: number, status: UserStatus) => {
+  const updateUserStatus = (userID: UserID, status: UserStatus) => {
     setUsers((prev) =>
       prev.map((item) => (item.userID === userID ? { ...item, status } : item)),
     );
@@ -1555,7 +1554,7 @@ export default function AdminPage() {
     });
   };
 
-  const handleRoleUpdated = (userID: number, role: string) => {
+  const handleRoleUpdated = (userID: UserID, role: string) => {
     setUsers((prev) =>
       prev.map((item) => (item.userID === userID ? { ...item, role } : item)),
     );

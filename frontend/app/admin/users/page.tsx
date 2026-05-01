@@ -25,6 +25,7 @@ import {
   unbanUser,
   type BanInfo,
   type ApiAvatar,
+  type UserID,
 } from "@/lib/api";
 import {
   DropdownMenu,
@@ -70,7 +71,7 @@ type UserStatus = "active" | "banned";
 
 type User = {
   id: string;
-  userID: number;
+  userID: UserID;
   name: string;
   username: string;
   email: string;
@@ -464,7 +465,7 @@ export default function AdminUsersPage() {
     });
   };
 
-  const updateUserStatus = (userID: number, status: UserStatus) => {
+  const updateUserStatus = (userID: UserID, status: UserStatus) => {
     setUsers((prev) =>
       prev.map((item) => (item.userID === userID ? { ...item, status } : item)),
     );
@@ -636,7 +637,7 @@ export default function AdminUsersPage() {
     });
   };
 
-  const handleRoleUpdated = (userID: number, role: string) => {
+  const handleRoleUpdated = (userID: UserID, role: string) => {
     setUsers((prev) =>
       prev.map((item) => (item.userID === userID ? { ...item, role } : item)),
     );

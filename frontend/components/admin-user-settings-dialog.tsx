@@ -31,12 +31,13 @@ import {
   setUserRank,
   updateUserPermission,
   type ApiRankListItem,
+  type UserID,
 } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { getRankGlowStyle } from "@/lib/rank-colors";
 
 export type AdminUserSettingsTarget = {
-  userID: number;
+  userID: UserID;
   name: string;
   username?: string;
   role?: string;
@@ -56,7 +57,7 @@ type AdminUserSettingsDialogProps = {
   onOpenChange: (open: boolean) => void;
   onAction?: (action: SettingsAction, user: AdminUserSettingsTarget) => void;
   onOpenRanksDialog?: () => void;
-  onRoleUpdated?: (userID: number, role: string) => void;
+  onRoleUpdated?: (userID: UserID, role: string) => void;
 };
 
 type PermissionEntry = {
