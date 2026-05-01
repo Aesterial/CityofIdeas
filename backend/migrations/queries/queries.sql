@@ -5,7 +5,9 @@ insert into users (username, email) VALUES ($1, $2) returning uid, username, ema
 insert into users_security (owner, password) VALUES ($1, $2) returning owner, password, email_verified, totp_enabled, totp_secret, totp_confirmed, totp_pending, totp_pending_created, totp_last_step;
 
 -- name: CreateUserPreferences :one
-insert into users_preferences (owner) VALUES ($1) returning owner, display_name, description, avatar_hash, session_live;
+insert into users_preferences (owner)
+VALUES ($1)
+returning owner, display_name, description, avatar_hash, session_live, language;
 
 -- name: CreateUserDefaultRank :one
 insert into users_ranks (owner, rank, expires) values ($1, (select id from ranks where name = 'user'), null) returning (select name from ranks where id = users_ranks.rank), (select color from ranks where id = users_ranks.rank), (select weight from ranks where id = users_ranks.rank), expires;
@@ -32,7 +34,10 @@ select password from users_security where owner = $1 limit 1;
 select uid, username, email, joined from users limit $1 offset $2;
 
 -- name: GetUserPreferences :one
-select owner, display_name, description, avatar_hash, session_live from users_preferences where owner = $1 limit 1;
+select owner, display_name, description, avatar_hash, session_live, language
+from users_preferences
+where owner = $1
+limit 1;
 
 -- name: GetUserRanks :many
 select ranks.id, ranks.name, ranks.color, ranks.weight, ranks.permissions, users_ranks.expires
@@ -44,13 +49,45 @@ where users_ranks.owner = $1;
 select owner, password, email_verified, totp_enabled, totp_secret, totp_confirmed, totp_pending, totp_pending_created, totp_last_step from users_security where owner = $1 limit 1;
 
 -- name: GetUserRecoveryCodes :many
-select owner, hash, used, created from users_security_codes where owner = $1;
+select owner, selector, hash, used, created
+from users_security_codes
+where owner = $1;
+
+-- name: GetUserRecoveryCodesWithSelector :one
+select owner, selector, hash, used, created
+from users_security_codes
+where owner = $1
+  and selector = $2
+limit 1;
 
 -- name: UseRecoveryCode :exec
-update users_security_codes set used = now() where hash = $1;
+update users_security_codes
+set used = now()
+where selector = $1;
 
 -- name: InsertRecoveryCodes :copyfrom
-insert into users_security_codes (owner, hash) values ($1, $2);
+insert into users_security_codes (owner, selector, hash)
+values ($1, $2, $3);
+
+-- name: SetTotpLastSeen :exec
+update users_security
+set totp_last_step = $1
+where owner = $2;
+
+-- name: ResetTotp :exec
+update users_security
+set totp_enabled         = false,
+    totp_pending         = null,
+    totp_confirmed       = null,
+    totp_secret          = null,
+    totp_last_step       = null,
+    totp_pending_created = null
+where owner = $1;
+
+-- name: ResetTotpCodes :exec
+delete
+from users_security_codes
+where owner = $1;
 
 -- name: UpdateUserDisplayName :exec
 update users_preferences set display_name = $1 where owner = $2;
@@ -63,6 +100,11 @@ update users_preferences set avatar_hash = $1 where owner = $2;
 
 -- name: UpdateUserSessionLive :exec
 update users_preferences set session_live = $1 where owner = $2;
+
+-- name: UpdateUserLanguage :exec
+update users_preferences
+set language = $1
+where owner = $2;
 
 -- name: UpdateUserPassword :exec
 update users_security set password = $1 where owner = $2;

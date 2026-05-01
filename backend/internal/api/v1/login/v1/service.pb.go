@@ -7,6 +7,7 @@
 package v1
 
 import (
+	v1 "github.com/aesterial/cityideas/backend/internal/api/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -25,27 +26,44 @@ var File_xyz_city_ideas_v1_login_v1_service_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_login_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"(xyz/city_ideas/v1/login/v1/service.proto\x12\x1axyz.city_ideas.v1.login.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a'xyz/city_ideas/v1/login/v1/domain.proto2\x92\x02\n" +
+	"(xyz/city_ideas/v1/login/v1/service.proto\x12\x1axyz.city_ideas.v1.login.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a'xyz/city_ideas/v1/login/v1/domain.proto\x1a\x1dxyz/city_ideas/v1/types.proto2\xea\x04\n" +
 	"\fLoginService\x12b\n" +
 	"\bRegister\x12+.xyz.city_ideas.v1.login.v1.RegisterRequest\x1a).xyz.city_ideas.v1.login.v1.LoginResponse\x12d\n" +
 	"\tAuthorize\x12,.xyz.city_ideas.v1.login.v1.AuthorizeRequest\x1a).xyz.city_ideas.v1.login.v1.LoginResponse\x128\n" +
-	"\x06Logout\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.EmptyBDZBgithub.com/aesterial/cityideas/backend/internal/api/v1/login/v1;v1b\beditionsp\xe8\a"
+	"\x06Logout\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\x12T\n" +
+	"\n" +
+	"CreateTotp\x12\x16.google.protobuf.Empty\x1a..xyz.city_ideas.v1.login.v1.CreateTotpResponse\x12c\n" +
+	"\vConfirmTotp\x12#.xyz.city_ideas.v1.RequestWithValue\x1a/.xyz.city_ideas.v1.login.v1.ConfirmTotpResponse\x12H\n" +
+	"\tCheckTotp\x12#.xyz.city_ideas.v1.RequestWithValue\x1a\x16.google.protobuf.Empty\x12Q\n" +
+	"\tResetTotp\x12,.xyz.city_ideas.v1.login.v1.ResetTotpRequest\x1a\x16.google.protobuf.EmptyBDZBgithub.com/aesterial/cityideas/backend/internal/api/v1/login/v1;v1b\beditionsp\xe8\a"
 
 var file_xyz_city_ideas_v1_login_v1_service_proto_goTypes = []any{
-	(*RegisterRequest)(nil),  // 0: xyz.city_ideas.v1.login.v1.RegisterRequest
-	(*AuthorizeRequest)(nil), // 1: xyz.city_ideas.v1.login.v1.AuthorizeRequest
-	(*emptypb.Empty)(nil),    // 2: google.protobuf.Empty
-	(*LoginResponse)(nil),    // 3: xyz.city_ideas.v1.login.v1.LoginResponse
+	(*RegisterRequest)(nil),     // 0: xyz.city_ideas.v1.login.v1.RegisterRequest
+	(*AuthorizeRequest)(nil),    // 1: xyz.city_ideas.v1.login.v1.AuthorizeRequest
+	(*emptypb.Empty)(nil),       // 2: google.protobuf.Empty
+	(*v1.RequestWithValue)(nil), // 3: xyz.city_ideas.v1.RequestWithValue
+	(*ResetTotpRequest)(nil),    // 4: xyz.city_ideas.v1.login.v1.ResetTotpRequest
+	(*LoginResponse)(nil),       // 5: xyz.city_ideas.v1.login.v1.LoginResponse
+	(*CreateTotpResponse)(nil),  // 6: xyz.city_ideas.v1.login.v1.CreateTotpResponse
+	(*ConfirmTotpResponse)(nil), // 7: xyz.city_ideas.v1.login.v1.ConfirmTotpResponse
 }
 var file_xyz_city_ideas_v1_login_v1_service_proto_depIdxs = []int32{
 	0, // 0: xyz.city_ideas.v1.login.v1.LoginService.Register:input_type -> xyz.city_ideas.v1.login.v1.RegisterRequest
 	1, // 1: xyz.city_ideas.v1.login.v1.LoginService.Authorize:input_type -> xyz.city_ideas.v1.login.v1.AuthorizeRequest
 	2, // 2: xyz.city_ideas.v1.login.v1.LoginService.Logout:input_type -> google.protobuf.Empty
-	3, // 3: xyz.city_ideas.v1.login.v1.LoginService.Register:output_type -> xyz.city_ideas.v1.login.v1.LoginResponse
-	3, // 4: xyz.city_ideas.v1.login.v1.LoginService.Authorize:output_type -> xyz.city_ideas.v1.login.v1.LoginResponse
-	2, // 5: xyz.city_ideas.v1.login.v1.LoginService.Logout:output_type -> google.protobuf.Empty
-	3, // [3:6] is the sub-list for method output_type
-	0, // [0:3] is the sub-list for method input_type
+	2, // 3: xyz.city_ideas.v1.login.v1.LoginService.CreateTotp:input_type -> google.protobuf.Empty
+	3, // 4: xyz.city_ideas.v1.login.v1.LoginService.ConfirmTotp:input_type -> xyz.city_ideas.v1.RequestWithValue
+	3, // 5: xyz.city_ideas.v1.login.v1.LoginService.CheckTotp:input_type -> xyz.city_ideas.v1.RequestWithValue
+	4, // 6: xyz.city_ideas.v1.login.v1.LoginService.ResetTotp:input_type -> xyz.city_ideas.v1.login.v1.ResetTotpRequest
+	5, // 7: xyz.city_ideas.v1.login.v1.LoginService.Register:output_type -> xyz.city_ideas.v1.login.v1.LoginResponse
+	5, // 8: xyz.city_ideas.v1.login.v1.LoginService.Authorize:output_type -> xyz.city_ideas.v1.login.v1.LoginResponse
+	2, // 9: xyz.city_ideas.v1.login.v1.LoginService.Logout:output_type -> google.protobuf.Empty
+	6, // 10: xyz.city_ideas.v1.login.v1.LoginService.CreateTotp:output_type -> xyz.city_ideas.v1.login.v1.CreateTotpResponse
+	7, // 11: xyz.city_ideas.v1.login.v1.LoginService.ConfirmTotp:output_type -> xyz.city_ideas.v1.login.v1.ConfirmTotpResponse
+	2, // 12: xyz.city_ideas.v1.login.v1.LoginService.CheckTotp:output_type -> google.protobuf.Empty
+	2, // 13: xyz.city_ideas.v1.login.v1.LoginService.ResetTotp:output_type -> google.protobuf.Empty
+	7, // [7:14] is the sub-list for method output_type
+	0, // [0:7] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name

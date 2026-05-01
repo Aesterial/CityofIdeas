@@ -4,6 +4,7 @@ package xyz.city_ideas.v1.login.v1;
 
 import "google/protobuf/empty.proto";
 import "xyz/city_ideas/v1/login/v1/domain.proto";
+import "xyz/city_ideas/v1/types.proto";
 
 option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/login/v1;v1";
 
@@ -11,4 +12,8 @@ service LoginService {
   rpc Register(xyz.city_ideas.v1.login.v1.RegisterRequest) returns (xyz.city_ideas.v1.login.v1.LoginResponse);
   rpc Authorize(xyz.city_ideas.v1.login.v1.AuthorizeRequest) returns (xyz.city_ideas.v1.login.v1.LoginResponse);
   rpc Logout(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc CreateTotp(google.protobuf.Empty) returns (xyz.city_ideas.v1.login.v1.CreateTotpResponse);
+  rpc ConfirmTotp(xyz.city_ideas.v1.RequestWithValue) returns (xyz.city_ideas.v1.login.v1.ConfirmTotpResponse);
+  rpc CheckTotp(xyz.city_ideas.v1.RequestWithValue) returns (google.protobuf.Empty);
+  rpc ResetTotp(xyz.city_ideas.v1.login.v1.ResetTotpRequest) returns (google.protobuf.Empty);
 }

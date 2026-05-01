@@ -1,0 +1,11 @@
+Project declined
+
+Your project was declined in City of Ideas.
+
+Project ID: {{.ProjectID}}
+Declined on: {{.Date}}
+Reason:
+{{.Reason}}
+
+Privacy Policy: {{.Public.PrivacyURL}}
+Support: {{.Public.SupportURL}}

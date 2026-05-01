@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="x-apple-disable-message-reformatting">
-    <title>New sign-in to your account</title>
+    <title>New message in your ticket</title>
     <style>
         body, table, td, a {
             -webkit-text-size-adjust: 100%;
@@ -108,18 +108,6 @@
                 padding-right: 18px !important;
             }
 
-            .detail-label {
-                display: block !important;
-                width: 100% !important;
-                padding-bottom: 4px !important;
-            }
-
-            .detail-value {
-                display: block !important;
-                width: 100% !important;
-                text-align: left !important;
-            }
-
             .footer-line {
                 width: 84% !important;
                 max-width: 84% !important;
@@ -128,7 +116,7 @@
     </style>
 </head>
 <body style="margin:0; padding:0; background:#f5f5f2; font-family:Arial, Helvetica, sans-serif; color:#191919;">
-<div class="preheader">A new sign-in was detected for your Aesterial account.</div>
+<div class="preheader">There is a new reply in your support ticket.</div>
 <table role="presentation" cellpadding="0" cellspacing="0" width="100%"
        style="background:#f5f5f2; margin:0; padding:0;">
     <tr>
@@ -145,7 +133,7 @@
                                 </td>
                                 <td align="center" class="brand-text"
                                     style="padding:0 16px; font-size:25px; line-height:28px; letter-spacing:7px; font-weight:800; color:#151515;">
-                                    AESTERIAL
+                                    CITY OF IDEAS
                                 </td>
                                 <td class="brand-line"
                                     style="width:136px; border-top:2px solid #1e1e1e; font-size:0; line-height:0;">
@@ -169,7 +157,7 @@
                                             </td>
                                             <td align="center" style="width:76px;">
                                                 <img src="https://avatars.githubusercontent.com/u/209988021?s=96&amp;v=4"
-                                                     width="64" height="64" alt="Aesterial"
+                                                     width="64" height="64" alt="City of Ideas"
                                                      style="width:64px; height:64px; border-radius:50%; border:6px solid #f1f0ec;">
                                             </td>
                                             <td style="border-top:1px solid #d8d5cf; font-size:0; line-height:0;">
@@ -183,17 +171,17 @@
                             <tr>
                                 <td align="center" class="px" style="padding:26px 46px 4px;">
                                     <div class="title"
-                                         style="font-size:34px; line-height:42px; font-weight:800; letter-spacing:0; color:#151515;">
-                                        New sign-in detected
+                                         style="font-size:33px; line-height:41px; font-weight:800; letter-spacing:0; color:#151515;">
+                                        New message in your ticket
                                     </div>
                                 </td>
                             </tr>
 
                             <tr>
                                 <td align="center" class="px" style="padding:16px 52px 0;">
-                                    <div class="copy" style="font-size:17px; line-height:28px; color:#55524d;">Hi
-                                        {{.UserName}}, your Aesterial account was just accessed. Review the details
-                                        below and secure your account if this was not you.
+                                    <div class="copy" style="font-size:17px; line-height:28px; color:#55524d;">
+                                        {{.AdminName}} replied to your support ticket #{{.TicketID}}. Open the thread to
+                                        view the full conversation and respond.
                                     </div>
                                 </td>
                             </tr>
@@ -203,65 +191,15 @@
                                     <table role="presentation" cellpadding="0" cellspacing="0" width="100%"
                                            style="background:#fafaf8; border:1px solid #e4e1db; border-radius:18px;">
                                         <tr>
-                                            <td class="details-cell" style="padding:20px 22px 0;">
-                                                <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
-                                                    <tr>
-                                                        <td class="detail-label"
-                                                            style="padding:0 0 14px; width:36%; font-size:13px; line-height:20px; color:#8a867f; text-transform:uppercase; letter-spacing:1.2px; font-weight:800;">
-                                                            Time
-                                                        </td>
-                                                        <td class="detail-value"
-                                                            style="padding:0 0 14px; font-size:16px; line-height:24px; color:#191919; font-weight:700; text-align:right; overflow-wrap:break-word; word-break:break-word;">
-                                                            {{.LoginAt}}
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="detail-label"
-                                                            style="padding:0 0 14px; width:36%; font-size:13px; line-height:20px; color:#8a867f; text-transform:uppercase; letter-spacing:1.2px; font-weight:800;">
-                                                            IP address
-                                                        </td>
-                                                        <td class="detail-value"
-                                                            style="padding:0 0 14px; font-size:16px; line-height:24px; color:#191919; font-weight:700; text-align:right; overflow-wrap:break-word; word-break:break-word;">
-                                                            {{.IPAddress}}
-                                                        </td>
-                                                    </tr>
-                                                    {{if .Location}}
-                                                    <tr>
-                                                        <td class="detail-label"
-                                                            style="padding:0 0 14px; width:36%; font-size:13px; line-height:20px; color:#8a867f; text-transform:uppercase; letter-spacing:1.2px; font-weight:800;">
-                                                            Location
-                                                        </td>
-                                                        <td class="detail-value"
-                                                            style="padding:0 0 14px; font-size:16px; line-height:24px; color:#191919; font-weight:700; text-align:right; overflow-wrap:break-word; word-break:break-word;">
-                                                            {{.Location}}
-                                                        </td>
-                                                    </tr>
-                                                    {{end}}
-                                                    {{if .Device}}
-                                                    <tr>
-                                                        <td class="detail-label"
-                                                            style="padding:0 0 14px; width:36%; font-size:13px; line-height:20px; color:#8a867f; text-transform:uppercase; letter-spacing:1.2px; font-weight:800;">
-                                                            Device
-                                                        </td>
-                                                        <td class="detail-value"
-                                                            style="padding:0 0 14px; font-size:16px; line-height:24px; color:#191919; font-weight:700; text-align:right; overflow-wrap:break-word; word-break:break-word;">
-                                                            {{.Device}}
-                                                        </td>
-                                                    </tr>
-                                                    {{end}}
-                                                    {{if .Browser}}
-                                                    <tr>
-                                                        <td class="detail-label"
-                                                            style="padding:0 0 14px; width:36%; font-size:13px; line-height:20px; color:#8a867f; text-transform:uppercase; letter-spacing:1.2px; font-weight:800;">
-                                                            Browser
-                                                        </td>
-                                                        <td class="detail-value"
-                                                            style="padding:0 0 14px; font-size:16px; line-height:24px; color:#191919; font-weight:700; text-align:right; overflow-wrap:break-word; word-break:break-word;">
-                                                            {{.Browser}}
-                                                        </td>
-                                                    </tr>
-                                                    {{end}}
-                                                </table>
+                                            <td class="details-cell"
+                                                style="padding:20px 22px 8px; font-size:13px; line-height:20px; color:#8a867f; text-transform:uppercase; letter-spacing:1.2px; font-weight:800;">
+                                                Message preview
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="details-cell"
+                                                style="padding:0 22px 22px; font-size:17px; line-height:29px; color:#2e2c29; font-weight:600; overflow-wrap:break-word; word-break:break-word;">
+                                                {{.Message}}
                                             </td>
                                         </tr>
                                     </table>
@@ -270,24 +208,17 @@
 
                             <tr>
                                 <td align="center" class="button-wrap" style="padding:28px 48px 0;">
-                                    <a href="{{.SecurityURL}}" class="button"
-                                       style="display:inline-block; width:310px; max-width:310px; padding:17px 0; background:#191919; border-radius:14px; color:#ffffff; text-decoration:none; font-size:15px; line-height:18px; font-weight:800; letter-spacing:.8px; text-transform:uppercase;">Review
-                                        security</a>
+                                    <a href="{{.ThreadURL}}" class="button"
+                                       style="display:inline-block; width:310px; max-width:310px; padding:17px 0; background:#191919; border-radius:14px; color:#ffffff; text-decoration:none; font-size:15px; line-height:18px; font-weight:800; letter-spacing:.8px; text-transform:uppercase;">View
+                                        thread</a>
                                 </td>
                             </tr>
 
                             <tr>
-                                <td class="px" style="padding:26px 52px 32px;">
-                                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%"
-                                           style="border-top:1px solid #ece9e4;">
-                                        <tr>
-                                            <td align="center"
-                                                style="padding-top:22px; font-size:15px; line-height:24px; color:#69655f;">
-                                                If this was you, no action is needed. If this was not you, change your
-                                                password and review active sessions.
-                                            </td>
-                                        </tr>
-                                    </table>
+                                <td class="px" align="center"
+                                    style="padding:26px 52px 32px; font-size:15px; line-height:24px; color:#69655f;">
+                                    This notification was sent because there is a new reply in your active support
+                                    request.
                                 </td>
                             </tr>
                         </table>
@@ -297,10 +228,7 @@
                 <tr>
                     <td align="center" style="padding:26px 20px 0;">
                         <img src="https://avatars.githubusercontent.com/u/209988021?s=96&amp;v=4" width="44" height="44"
-                             alt="Aesterial" style="width:44px; height:44px; border-radius:50%;">
-                        <div style="padding-top:16px; font-size:14px; line-height:23px; color:#8a867f;">This security
-                            notification was sent to help protect your account.
-                        </div>
+                             alt="City of Ideas" style="width:44px; height:44px; border-radius:50%;">
                         <div class="footer-line"
                              style="padding-top:14px; border-top:1px solid #ddd9d2; margin-top:20px; width:420px; max-width:80%; font-size:14px; line-height:23px; color:#8a867f;">
                             Copyright &copy; 2026 <a href="https://aesterial.xyz"

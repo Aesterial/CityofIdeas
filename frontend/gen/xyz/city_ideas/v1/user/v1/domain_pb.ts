@@ -2,17 +2,17 @@
 // @generated from file xyz/city_ideas/v1/user/v1/domain.proto (package xyz.city_ideas.v1.user.v1, edition 2023)
 /* eslint-disable */
 
-import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
-import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
-import type { Timestamp } from "@bufbuild/protobuf/wkt";
-import { file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
-import type { Message } from "@bufbuild/protobuf";
+import type {GenEnum, GenFile, GenMessage} from "@bufbuild/protobuf/codegenv2";
+import {enumDesc, fileDesc, messageDesc} from "@bufbuild/protobuf/codegenv2";
+import type {Timestamp} from "@bufbuild/protobuf/wkt";
+import {file_google_protobuf_timestamp} from "@bufbuild/protobuf/wkt";
+import type {Message} from "@bufbuild/protobuf";
 
 /**
  * Describes the file xyz/city_ideas/v1/user/v1/domain.proto.
  */
 export const file_xyz_city_ideas_v1_user_v1_domain: GenFile = /*@__PURE__*/
-  fileDesc("CiZ4eXovY2l0eV9pZGVhcy92MS91c2VyL3YxL2RvbWFpbi5wcm90bxIZeHl6LmNpdHlfaWRlYXMudjEudXNlci52MSJMCg9Vc2VyUHJlZmVyZW5jZXMSEwoLZGVzY3JpcHRpb24YASABKAkSFAoMZGlzcGxheV9uYW1lGAIgASgJEg4KBmF2YXRhchgDIAEoCSInCghVc2VyUmFuaxIMCgRuYW1lGAEgASgJEg0KBWNvbG9yGAIgASgDIsQBCgpQdWJsaWNVc2VyEgoKAmlkGAEgASgJEhAKCHVzZXJuYW1lGAIgASgJEioKBmpvaW5lZBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASOQoFcHJlZnMYBCABKAsyKi54eXouY2l0eV9pZGVhcy52MS51c2VyLnYxLlVzZXJQcmVmZXJlbmNlcxIxCgRyYW5rGAUgASgLMiMueHl6LmNpdHlfaWRlYXMudjEudXNlci52MS5Vc2VyUmFuayJ+CgtQcml2YXRlVXNlchI1CgZwdWJsaWMYASABKAsyJS54eXouY2l0eV9pZGVhcy52MS51c2VyLnYxLlB1YmxpY1VzZXISFAoMc2Vzc2lvbl9saXZlGAIgASgFEg0KBWVtYWlsGAMgASgJEhMKC3Blcm1pc3Npb25zGAQgAygJInUKGFVwZGF0ZVByZWZlcmVuY2VzUmVxdWVzdBIUCgxkaXNwbGF5X25hbWUYASABKAkSEwoLZGVzY3JpcHRpb24YAiABKAkSEwoLYXZhdGFyX2hhc2gYAyABKAkSGQoRc2Vzc2lvbl9saXZlX3RpbWUYBCABKAUiQwoMTGlzdFJlc3BvbnNlEjMKBGxpc3QYASADKAsyJS54eXouY2l0eV9pZGVhcy52MS51c2VyLnYxLlB1YmxpY1VzZXJCQ1pBZ2l0aHViLmNvbS9hZXN0ZXJpYWwvY2l0eWlkZWFzL2JhY2tlbmQvaW50ZXJuYWwvYXBpL3YxL3VzZXIvdjE7djFiCGVkaXRpb25zcOgH", [file_google_protobuf_timestamp]);
+    fileDesc("CiZ4eXovY2l0eV9pZGVhcy92MS91c2VyL3YxL2RvbWFpbi5wcm90bxIZeHl6LmNpdHlfaWRlYXMudjEudXNlci52MSKAAQoPVXNlclByZWZlcmVuY2VzEhMKC2Rlc2NyaXB0aW9uGAEgASgJEhQKDGRpc3BsYXlfbmFtZRgCIAEoCRIOCgZhdmF0YXIYAyABKAkSMgoEbGFuZxgEIAEoDjIkLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuTGFuZ3VhZ2VzIicKCFVzZXJSYW5rEgwKBG5hbWUYASABKAkSDQoFY29sb3IYAiABKAMixAEKClB1YmxpY1VzZXISCgoCaWQYASABKAkSEAoIdXNlcm5hbWUYAiABKAkSKgoGam9pbmVkGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI5CgVwcmVmcxgEIAEoCzIqLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuVXNlclByZWZlcmVuY2VzEjEKBHJhbmsYBSABKAsyIy54eXouY2l0eV9pZGVhcy52MS51c2VyLnYxLlVzZXJSYW5rIn4KC1ByaXZhdGVVc2VyEjUKBnB1YmxpYxgBIAEoCzIlLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuUHVibGljVXNlchIUCgxzZXNzaW9uX2xpdmUYAiABKAUSDQoFZW1haWwYAyABKAkSEwoLcGVybWlzc2lvbnMYBCADKAkidQoYVXBkYXRlUHJlZmVyZW5jZXNSZXF1ZXN0EhQKDGRpc3BsYXlfbmFtZRgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCRITCgthdmF0YXJfaGFzaBgDIAEoCRIZChFzZXNzaW9uX2xpdmVfdGltZRgEIAEoBSJDCgxMaXN0UmVzcG9uc2USMwoEbGlzdBgBIAMoCzIlLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuUHVibGljVXNlcipUCglMYW5ndWFnZXMSGQoVTEFOR1VBR0VTX1VOU1BFQ0lGSUVEEAASFQoRTEFOR1VBR0VTX1JVU1NJQU4QARIVChFMQU5HVUFHRVNfRU5HTElTSBACQkNaQWdpdGh1Yi5jb20vYWVzdGVyaWFsL2NpdHlpZGVhcy9iYWNrZW5kL2ludGVybmFsL2FwaS92MS91c2VyL3YxO3YxYghlZGl0aW9uc3DoBw", [file_google_protobuf_timestamp]);
 
 /**
  * @generated from message xyz.city_ideas.v1.user.v1.UserPreferences
@@ -32,6 +32,11 @@ export type UserPreferences = Message<"xyz.city_ideas.v1.user.v1.UserPreferences
    * @generated from field: string avatar = 3;
    */
   avatar: string;
+
+    /**
+     * @generated from field: xyz.city_ideas.v1.user.v1.Languages lang = 4;
+     */
+    lang: Languages;
 };
 
 /**
@@ -180,4 +185,30 @@ export type ListResponse = Message<"xyz.city_ideas.v1.user.v1.ListResponse"> & {
  */
 export const ListResponseSchema: GenMessage<ListResponse> = /*@__PURE__*/
   messageDesc(file_xyz_city_ideas_v1_user_v1_domain, 5);
+
+/**
+ * @generated from enum xyz.city_ideas.v1.user.v1.Languages
+ */
+export enum Languages {
+    /**
+     * @generated from enum value: LANGUAGES_UNSPECIFIED = 0;
+     */
+    UNSPECIFIED = 0,
+
+    /**
+     * @generated from enum value: LANGUAGES_RUSSIAN = 1;
+     */
+    RUSSIAN = 1,
+
+    /**
+     * @generated from enum value: LANGUAGES_ENGLISH = 2;
+     */
+    ENGLISH = 2,
+}
+
+/**
+ * Describes the enum xyz.city_ideas.v1.user.v1.Languages.
+ */
+export const LanguagesSchema: GenEnum<Languages> = /*@__PURE__*/
+    enumDesc(file_xyz_city_ideas_v1_user_v1_domain, 0);
 

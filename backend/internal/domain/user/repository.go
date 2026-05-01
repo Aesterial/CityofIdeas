@@ -20,8 +20,11 @@ type Repository interface {
 	VerifyEmail(ctx context.Context, user domain.UUID) error
 	StartTotp(ctx context.Context, user domain.UUID, secret string) error
 	ConfirmTotp(ctx context.Context, user domain.UUID) error
+	SetTotpLastStep(ctx context.Context, user domain.UUID, step int64) error
+	ResetTotp(ctx context.Context, user domain.UUID) error
 	Security(ctx context.Context, user domain.UUID) (*Security, error)
 	RecoveryCodes(ctx context.Context, user domain.UUID) ([]*RecoveryCode, error)
-	UseRecovery(ctx context.Context, hash string) error
-	InsertRecovery(ctx context.Context, user domain.UUID, hashes []string) error
+	RecoveryCodesWithSelector(ctx context.Context, user domain.UUID, selector string) (*RecoveryCode, error)
+	UseRecovery(ctx context.Context, selector string) error
+	InsertRecovery(ctx context.Context, user domain.UUID, hashes []RecoveryCode) error
 }

@@ -21,6 +21,50 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type Reset int32
+
+const (
+	Reset_RESET_UNSPECIFIED Reset = 0
+	Reset_RESET_EMAIL       Reset = 1
+	Reset_RESET_RECOVERY    Reset = 2
+)
+
+// Enum value maps for Reset.
+var (
+	Reset_name = map[int32]string{
+		0: "RESET_UNSPECIFIED",
+		1: "RESET_EMAIL",
+		2: "RESET_RECOVERY",
+	}
+	Reset_value = map[string]int32{
+		"RESET_UNSPECIFIED": 0,
+		"RESET_EMAIL":       1,
+		"RESET_RECOVERY":    2,
+	}
+)
+
+func (x Reset) Enum() *Reset {
+	p := new(Reset)
+	*p = x
+	return p
+}
+
+func (x Reset) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Reset) Descriptor() protoreflect.EnumDescriptor {
+	return file_xyz_city_ideas_v1_login_v1_domain_proto_enumTypes[0].Descriptor()
+}
+
+func (Reset) Type() protoreflect.EnumType {
+	return &file_xyz_city_ideas_v1_login_v1_domain_proto_enumTypes[0]
+}
+
+func (x Reset) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 type RegisterRequest struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Username    *string                `protobuf:"bytes,1,opt,name=username"`
@@ -344,6 +388,284 @@ func (b0 LoginResponse_builder) Build() *LoginResponse {
 	return m0
 }
 
+type CreateTotpResponse struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Qr          *string                `protobuf:"bytes,1,opt,name=qr"`
+	xxx_hidden_Url         *string                `protobuf:"bytes,2,opt,name=url"`
+	XXX_raceDetectHookData protoimpl.RaceDetectHookData
+	XXX_presence           [1]uint32
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *CreateTotpResponse) Reset() {
+	*x = CreateTotpResponse{}
+	mi := &file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateTotpResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateTotpResponse) ProtoMessage() {}
+
+func (x *CreateTotpResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *CreateTotpResponse) GetQr() string {
+	if x != nil {
+		if x.xxx_hidden_Qr != nil {
+			return *x.xxx_hidden_Qr
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *CreateTotpResponse) GetUrl() string {
+	if x != nil {
+		if x.xxx_hidden_Url != nil {
+			return *x.xxx_hidden_Url
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *CreateTotpResponse) SetQr(v string) {
+	x.xxx_hidden_Qr = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
+}
+
+func (x *CreateTotpResponse) SetUrl(v string) {
+	x.xxx_hidden_Url = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 2)
+}
+
+func (x *CreateTotpResponse) HasQr() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *CreateTotpResponse) HasUrl() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *CreateTotpResponse) ClearQr() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_Qr = nil
+}
+
+func (x *CreateTotpResponse) ClearUrl() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_Url = nil
+}
+
+type CreateTotpResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	Qr  *string
+	Url *string
+}
+
+func (b0 CreateTotpResponse_builder) Build() *CreateTotpResponse {
+	m0 := &CreateTotpResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Qr != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 2)
+		x.xxx_hidden_Qr = b.Qr
+	}
+	if b.Url != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 2)
+		x.xxx_hidden_Url = b.Url
+	}
+	return m0
+}
+
+type ConfirmTotpResponse struct {
+	state            protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Codes []string               `protobuf:"bytes,1,rep,name=codes"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *ConfirmTotpResponse) Reset() {
+	*x = ConfirmTotpResponse{}
+	mi := &file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ConfirmTotpResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ConfirmTotpResponse) ProtoMessage() {}
+
+func (x *ConfirmTotpResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ConfirmTotpResponse) GetCodes() []string {
+	if x != nil {
+		return x.xxx_hidden_Codes
+	}
+	return nil
+}
+
+func (x *ConfirmTotpResponse) SetCodes(v []string) {
+	x.xxx_hidden_Codes = v
+}
+
+type ConfirmTotpResponse_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	Codes []string
+}
+
+func (b0 ConfirmTotpResponse_builder) Build() *ConfirmTotpResponse {
+	m0 := &ConfirmTotpResponse{}
+	b, x := &b0, m0
+	_, _ = b, x
+	x.xxx_hidden_Codes = b.Codes
+	return m0
+}
+
+type ResetTotpRequest struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Kind        Reset                  `protobuf:"varint,1,opt,name=kind,enum=xyz.city_ideas.v1.login.v1.Reset"`
+	xxx_hidden_Code        *string                `protobuf:"bytes,2,opt,name=code"`
+	XXX_raceDetectHookData protoimpl.RaceDetectHookData
+	XXX_presence           [1]uint32
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *ResetTotpRequest) Reset() {
+	*x = ResetTotpRequest{}
+	mi := &file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResetTotpRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResetTotpRequest) ProtoMessage() {}
+
+func (x *ResetTotpRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ResetTotpRequest) GetKind() Reset {
+	if x != nil {
+		if protoimpl.X.Present(&(x.XXX_presence[0]), 0) {
+			return x.xxx_hidden_Kind
+		}
+	}
+	return Reset_RESET_UNSPECIFIED
+}
+
+func (x *ResetTotpRequest) GetCode() string {
+	if x != nil {
+		if x.xxx_hidden_Code != nil {
+			return *x.xxx_hidden_Code
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ResetTotpRequest) SetKind(v Reset) {
+	x.xxx_hidden_Kind = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
+}
+
+func (x *ResetTotpRequest) SetCode(v string) {
+	x.xxx_hidden_Code = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 2)
+}
+
+func (x *ResetTotpRequest) HasKind() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *ResetTotpRequest) HasCode() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *ResetTotpRequest) ClearKind() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_Kind = Reset_RESET_UNSPECIFIED
+}
+
+func (x *ResetTotpRequest) ClearCode() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_Code = nil
+}
+
+type ResetTotpRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	Kind *Reset
+	Code *string
+}
+
+func (b0 ResetTotpRequest_builder) Build() *ResetTotpRequest {
+	m0 := &ResetTotpRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Kind != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 2)
+		x.xxx_hidden_Kind = *b.Kind
+	}
+	if b.Code != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 2)
+		x.xxx_hidden_Code = b.Code
+	}
+	return m0
+}
+
 var File_xyz_city_ideas_v1_login_v1_domain_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_login_v1_domain_proto_rawDesc = "" +
@@ -357,22 +679,40 @@ const file_xyz_city_ideas_v1_login_v1_domain_proto_rawDesc = "" +
 	"\tuser_mail\x18\x01 \x01(\tR\buserMail\x12\x1a\n" +
 	"\bpassword\x18\x02 \x01(\tR\bpassword\"K\n" +
 	"\rLoginResponse\x12:\n" +
-	"\x04info\x18\x01 \x01(\v2&.xyz.city_ideas.v1.user.v1.PrivateUserR\x04infoBDZBgithub.com/aesterial/cityideas/backend/internal/api/v1/login/v1;v1b\beditionsp\xe8\a"
+	"\x04info\x18\x01 \x01(\v2&.xyz.city_ideas.v1.user.v1.PrivateUserR\x04info\"6\n" +
+	"\x12CreateTotpResponse\x12\x0e\n" +
+	"\x02qr\x18\x01 \x01(\tR\x02qr\x12\x10\n" +
+	"\x03url\x18\x02 \x01(\tR\x03url\"+\n" +
+	"\x13ConfirmTotpResponse\x12\x14\n" +
+	"\x05codes\x18\x01 \x03(\tR\x05codes\"]\n" +
+	"\x10ResetTotpRequest\x125\n" +
+	"\x04kind\x18\x01 \x01(\x0e2!.xyz.city_ideas.v1.login.v1.ResetR\x04kind\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code*C\n" +
+	"\x05Reset\x12\x15\n" +
+	"\x11RESET_UNSPECIFIED\x10\x00\x12\x0f\n" +
+	"\vRESET_EMAIL\x10\x01\x12\x12\n" +
+	"\x0eRESET_RECOVERY\x10\x02BDZBgithub.com/aesterial/cityideas/backend/internal/api/v1/login/v1;v1b\beditionsp\xe8\a"
 
-var file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_xyz_city_ideas_v1_login_v1_domain_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_xyz_city_ideas_v1_login_v1_domain_proto_goTypes = []any{
-	(*RegisterRequest)(nil),  // 0: xyz.city_ideas.v1.login.v1.RegisterRequest
-	(*AuthorizeRequest)(nil), // 1: xyz.city_ideas.v1.login.v1.AuthorizeRequest
-	(*LoginResponse)(nil),    // 2: xyz.city_ideas.v1.login.v1.LoginResponse
-	(*v1.PrivateUser)(nil),   // 3: xyz.city_ideas.v1.user.v1.PrivateUser
+	(Reset)(0),                  // 0: xyz.city_ideas.v1.login.v1.Reset
+	(*RegisterRequest)(nil),     // 1: xyz.city_ideas.v1.login.v1.RegisterRequest
+	(*AuthorizeRequest)(nil),    // 2: xyz.city_ideas.v1.login.v1.AuthorizeRequest
+	(*LoginResponse)(nil),       // 3: xyz.city_ideas.v1.login.v1.LoginResponse
+	(*CreateTotpResponse)(nil),  // 4: xyz.city_ideas.v1.login.v1.CreateTotpResponse
+	(*ConfirmTotpResponse)(nil), // 5: xyz.city_ideas.v1.login.v1.ConfirmTotpResponse
+	(*ResetTotpRequest)(nil),    // 6: xyz.city_ideas.v1.login.v1.ResetTotpRequest
+	(*v1.PrivateUser)(nil),      // 7: xyz.city_ideas.v1.user.v1.PrivateUser
 }
 var file_xyz_city_ideas_v1_login_v1_domain_proto_depIdxs = []int32{
-	3, // 0: xyz.city_ideas.v1.login.v1.LoginResponse.info:type_name -> xyz.city_ideas.v1.user.v1.PrivateUser
-	1, // [1:1] is the sub-list for method output_type
-	1, // [1:1] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	7, // 0: xyz.city_ideas.v1.login.v1.LoginResponse.info:type_name -> xyz.city_ideas.v1.user.v1.PrivateUser
+	0, // 1: xyz.city_ideas.v1.login.v1.ResetTotpRequest.kind:type_name -> xyz.city_ideas.v1.login.v1.Reset
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_xyz_city_ideas_v1_login_v1_domain_proto_init() }
@@ -385,13 +725,14 @@ func file_xyz_city_ideas_v1_login_v1_domain_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_xyz_city_ideas_v1_login_v1_domain_proto_rawDesc), len(file_xyz_city_ideas_v1_login_v1_domain_proto_rawDesc)),
-			NumEnums:      0,
-			NumMessages:   3,
+			NumEnums:      1,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_xyz_city_ideas_v1_login_v1_domain_proto_goTypes,
 		DependencyIndexes: file_xyz_city_ideas_v1_login_v1_domain_proto_depIdxs,
+		EnumInfos:         file_xyz_city_ideas_v1_login_v1_domain_proto_enumTypes,
 		MessageInfos:      file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes,
 	}.Build()
 	File_xyz_city_ideas_v1_login_v1_domain_proto = out.File

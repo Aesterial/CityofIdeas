@@ -1,0 +1,8 @@
+Welcome to City of Ideas
+
+Hi {{.UserName}}, your account has been created successfully. City of Ideas helps citizens propose initiatives, support useful ideas, and move local improvements forward.
+
+Open City of Ideas: {{.ProfileSettingsURL}}
+
+Privacy Policy: {{.Public.PrivacyURL}}
+Support: {{.Public.SupportURL}}

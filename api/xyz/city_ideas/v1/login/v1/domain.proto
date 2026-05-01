@@ -6,6 +6,12 @@ import "xyz/city_ideas/v1/user/v1/domain.proto";
 
 option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/login/v1;v1";
 
+enum Reset {
+  RESET_UNSPECIFIED = 0;
+  RESET_EMAIL = 1;
+  RESET_RECOVERY = 2;
+}
+
 message RegisterRequest {
   string username = 1;
   string email = 2;
@@ -19,4 +25,18 @@ message AuthorizeRequest {
 
 message LoginResponse {
   xyz.city_ideas.v1.user.v1.PrivateUser info = 1;
+}
+
+message CreateTotpResponse {
+  string qr = 1;
+  string url = 2;
+}
+
+message ConfirmTotpResponse {
+  repeated string codes = 1;
+}
+
+message ResetTotpRequest {
+  Reset kind = 1;
+  string code = 2;
 }

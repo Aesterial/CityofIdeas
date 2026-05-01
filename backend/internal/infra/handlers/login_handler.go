@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 
+	typespb "github.com/aesterial/cityideas/backend/internal/api/v1"
 	loginpb "github.com/aesterial/cityideas/backend/internal/api/v1/login/v1"
 	loginservice "github.com/aesterial/cityideas/backend/internal/app/login"
 	userdomain "github.com/aesterial/cityideas/backend/internal/domain/user"
@@ -30,12 +31,19 @@ func (h *LoginHandler) response(usr *userdomain.User) *loginpb.LoginResponse {
 	return resp
 }
 
-func (h *LoginHandler) Register(ctx context.Context, req *loginpb.RegisterRequest) (*loginpb.LoginResponse, error) {
-	if h == nil || h.srv == nil {
-		return nil, errors.ServerError
+func (h *LoginHandler) isRequestValid(req any) error {
+	if h == nil || h.auth == nil || h.srv == nil {
+		return errors.ServerError
 	}
 	if req == nil {
-		return nil, errors.InvalidArguments
+		return errors.InvalidArguments
+	}
+	return nil
+}
+
+func (h *LoginHandler) Register(ctx context.Context, req *loginpb.RegisterRequest) (*loginpb.LoginResponse, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
 	}
 	usr, err := h.srv.Register(ctx, req.GetUsername(), req.GetEmail(), req.GetPassword())
 	if err != nil {
@@ -46,11 +54,8 @@ func (h *LoginHandler) Register(ctx context.Context, req *loginpb.RegisterReques
 }
 
 func (h *LoginHandler) Authorize(ctx context.Context, req *loginpb.AuthorizeRequest) (*loginpb.LoginResponse, error) {
-	if h == nil || h.srv == nil {
-		return nil, errors.ServerError
-	}
-	if req == nil {
-		return nil, errors.InvalidArguments
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
 	}
 	usr, err := h.srv.Authorize(ctx, req.GetUserMail(), req.GetPassword())
 	if err != nil {
@@ -61,20 +66,78 @@ func (h *LoginHandler) Authorize(ctx context.Context, req *loginpb.AuthorizeRequ
 }
 
 func (h *LoginHandler) Logout(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
-	if h == nil || h.auth == nil || h.srv == nil {
-		return nil, errors.ServerError
+	if err := h.isRequestValid("{}"); err != nil {
+		return nil, err
 	}
 	meta, err := h.auth.User(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err)
-	}
-	if meta.IsEmpty() {
-		return nil, errors.Unauthenticated
+		return nil, err
 	}
 	err = h.srv.Logout(ctx, *meta.SessionID)
 	if err != nil {
 		logger.Error("login", "failed to logout user", logger.F("error", err))
 		return nil, errors.Wrap(err)
+	}
+	return &emptypb.Empty{}, nil
+}
+
+func (h *LoginHandler) CreateTotp(ctx context.Context, _ *emptypb.Empty) (*loginpb.CreateTotpResponse, error) {
+	if err := h.isRequestValid("{}"); err != nil {
+		return nil, err
+	}
+	meta, err := h.auth.User(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out, err := h.srv.SetupTotp(ctx, *meta.UserID)
+	if err != nil {
+		return nil, err
+	}
+	return out.Protobuf(), nil
+}
+
+func (h *LoginHandler) ConfirmTotp(ctx context.Context, req *typespb.RequestWithValue) (*loginpb.ConfirmTotpResponse, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
+	}
+	meta, err := h.auth.User(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out, err := h.srv.ConfirmTotp(ctx, *meta.UserID, req.GetValue())
+	if err != nil {
+		return nil, err
+	}
+	var resp = &loginpb.ConfirmTotpResponse{}
+	resp.SetCodes(out)
+	return resp, nil
+}
+
+func (h *LoginHandler) CheckTotp(ctx context.Context, req *typespb.RequestWithValue) (*emptypb.Empty, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
+	}
+	meta, err := h.auth.User(ctx)
+	if err != nil {
+		return nil, err
+	}
+	err = h.srv.CheckTotp(ctx, *meta.UserID, req.GetValue())
+	if err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, nil
+}
+
+func (h *LoginHandler) ResetTotp(ctx context.Context, req *loginpb.ResetTotpRequest) (*emptypb.Empty, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
+	}
+	meta, err := h.auth.User(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = h.srv.ResetTotp(ctx, *meta.UserID, req.GetCode(), userdomain.ParseResetKind(req.GetKind())); err != nil {
+		return nil, err
 	}
 	return &emptypb.Empty{}, nil
 }

@@ -62,6 +62,7 @@ func (*UserRepository) parsePreferences(prefs sqlc.UsersPreference) *userdomain.
 		Description:     prefs.Description,
 		Avatar:          &prefs.AvatarHash.String,
 		SessionLiveTime: prefs.SessionLive,
+		Language:        userdomain.ParseLanguage(string(prefs.Language)),
 	}
 }
 
@@ -71,6 +72,18 @@ func (u *UserRepository) getPreferences(ctx context.Context, user *userdomain.Us
 	}
 	var err error
 	user.Prefs, err = u.Preferences(ctx, user.UID)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (u *UserRepository) getSecurity(ctx context.Context, user *userdomain.User) (*userdomain.User, error) {
+	if user == nil {
+		return nil, errors.InvalidArguments
+	}
+	var err error
+	user.Security, err = u.Security(ctx, user.UID)
 	if err != nil {
 		return nil, err
 	}
@@ -127,6 +140,10 @@ func (u *UserRepository) completeUser(ctx context.Context, user *userdomain.User
 		return nil, err
 	}
 	user, err = u.getRanks(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	user, err = u.getSecurity(ctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -320,6 +337,16 @@ func (u *UserRepository) UpdatePreferences(ctx context.Context, user domain.UUID
 		}
 		ps.SessionLiveTime = prefs.SessionLiveTime
 	}
+	if isChanged(ps.Language, prefs.Language) {
+		err = u.conn.UpdateUserLanguage(ctx, sqlc.UpdateUserLanguageParams{
+			Language: sqlc.PreferencesLanguages(prefs.Language.String()),
+			Owner:    user.ToPG(),
+		})
+		if err != nil {
+			return nil, err
+		}
+		ps.Language = prefs.Language
+	}
 	return ps, nil
 
 }
@@ -385,16 +412,28 @@ func (u *UserRepository) RecoveryCodes(ctx context.Context, user domain.UUID) ([
 	return u.parseSecurityCodes(codes), nil
 }
 
-func (u *UserRepository) UseRecovery(ctx context.Context, hash string) error {
-	return u.conn.UseRecoveryCode(ctx, hash)
+func (u *UserRepository) RecoveryCodesWithSelector(ctx context.Context, user domain.UUID, selector string) (*userdomain.RecoveryCode, error) {
+	codes, err := u.conn.GetUserRecoveryCodesWithSelector(ctx, sqlc.GetUserRecoveryCodesWithSelectorParams{
+		Owner:    user.ToPG(),
+		Selector: selector,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return u.parseSecurityCode(codes), nil
 }
 
-func (u *UserRepository) InsertRecovery(ctx context.Context, user domain.UUID, hashes []string) error {
+func (u *UserRepository) UseRecovery(ctx context.Context, selector string) error {
+	return u.conn.UseRecoveryCode(ctx, selector)
+}
+
+func (u *UserRepository) InsertRecovery(ctx context.Context, user domain.UUID, hashes []userdomain.RecoveryCode) error {
 	var req = make([]sqlc.InsertRecoveryCodesParams, len(hashes))
 	for i, hash := range hashes {
 		req[i] = sqlc.InsertRecoveryCodesParams{
-			Owner: user.ToPG(),
-			Hash:  hash,
+			Owner:    user.ToPG(),
+			Hash:     hash.Hash,
+			Selector: hash.Selector,
 		}
 	}
 	count, err := u.conn.InsertRecoveryCodes(ctx, req)
@@ -427,4 +466,30 @@ func (u *UserRepository) IsBanned(ctx context.Context, user domain.UUID) (bool, 
 		return false, err
 	}
 	return banned, nil
+}
+
+func (u *UserRepository) SetTotpLastStep(ctx context.Context, user domain.UUID, step int64) error {
+	err := u.conn.SetTotpLastSeen(ctx, sqlc.SetTotpLastSeenParams{
+		TotpLastStep: pgtype.Int8{
+			Int64: step,
+			Valid: true,
+		},
+		Owner: user.ToPG(),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *UserRepository) ResetTotp(ctx context.Context, user domain.UUID) error {
+	err := u.conn.ResetTotp(ctx, user.ToPG())
+	if err != nil {
+		return err
+	}
+	err = u.conn.ResetTotpCodes(ctx, user.ToPG())
+	if err != nil {
+		return err
+	}
+	return nil
 }

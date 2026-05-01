@@ -4,12 +4,14 @@ import (
 	"bytes"
 	htmltpl "html/template"
 	texttpl "text/template"
-	"time"
+
+	userdomain "github.com/aesterial/cityideas/backend/internal/domain/user"
 )
 
 type UserInfo struct {
 	Username string
 	Address  string
+	Language userdomain.Languages
 }
 
 type Public struct {
@@ -53,7 +55,7 @@ type PasswordReset struct {
 }
 
 type TicketCreation struct {
-	Date      time.Time
+	Date      string
 	Topic     string
 	TicketURL string
 	Public    Public
@@ -67,8 +69,21 @@ type TicketReply struct {
 	Public    Public
 }
 
-func RenderHTMLTemplate(template string, data any) (string, error) {
-	tpl, err := htmltpl.ParseFS(templateFS, "templates/"+template+".html")
+type ProjectAccepted struct {
+	ProjectID string
+	Date      string
+	Public    Public
+}
+
+type ProjectDeclined struct {
+	ProjectID string
+	Date      string
+	Reason    string
+	Public    Public
+}
+
+func RenderHTMLTemplate(template string, data any, lang string) (string, error) {
+	tpl, err := htmltpl.ParseFS(templateFS, "templates/"+template+"_"+lang+".html")
 	if err != nil {
 		return "", err
 	}
@@ -79,8 +94,8 @@ func RenderHTMLTemplate(template string, data any) (string, error) {
 	return buf.String(), nil
 }
 
-func RenderTEXTTemplate(template string, data any) (string, error) {
-	tpl, err := texttpl.ParseFS(templateFS, "templates/"+template+".txt")
+func RenderTEXTTemplate(template string, data any, lang string) (string, error) {
+	tpl, err := texttpl.ParseFS(templateFS, "templates/"+template+"_"+lang+".txt")
 	if err != nil {
 		return "", err
 	}
@@ -91,12 +106,12 @@ func RenderTEXTTemplate(template string, data any) (string, error) {
 	return buf.String(), nil
 }
 
-func RenderTemplates(template string, data any) (string, string, error) {
-	html, err := RenderHTMLTemplate(template, data)
+func RenderTemplates(template string, data any, language userdomain.Languages) (string, string, error) {
+	html, err := RenderHTMLTemplate(template, data, language.String())
 	if err != nil {
 		return "", "", err
 	}
-	text, err := RenderTEXTTemplate(template, data)
+	text, err := RenderTEXTTemplate(template, data, language.String())
 	if err != nil {
 		return "", "", err
 	}

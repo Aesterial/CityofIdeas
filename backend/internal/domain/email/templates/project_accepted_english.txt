@@ -1,0 +1,9 @@
+Project accepted
+
+Your project has been accepted and is now ready for the next stage in City of Ideas.
+
+Project ID: {{.ProjectID}}
+Accepted on: {{.Date}}
+
+Privacy Policy: {{.Public.PrivacyURL}}
+Support: {{.Public.SupportURL}}

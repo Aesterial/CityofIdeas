@@ -10,6 +10,8 @@ create table if not exists users
 
 create unique index if not exists users_idx on users (uid);
 
+create type preferences_languages as enum ('russian', 'english');
+
 create table if not exists users_preferences
 (
     owner        uuid not null references users (uid) on delete cascade,
@@ -17,6 +19,7 @@ create table if not exists users_preferences
     description  varchar(256)    not null default '',
     avatar_hash  text,
     session_live int             not null default 7,
+    language preferences_languages not null default 'russian',
     unique (owner)
 );
 
@@ -41,10 +44,12 @@ create unique index if not exists users_security_owner_idx on users_security (ow
 create table if not exists users_security_codes
 (
     owner   uuid        not null references users (uid) on delete cascade,
+    selector text not null,
     hash    text                   not null,
     used    timestamptz,
     created timestamptz not null default now(),
-    unique (owner, hash)
+    unique (owner, hash),
+    unique (owner, selector)
 );
 
 create index if not exists users_security_codes_owner_idx on users_security_codes (owner);

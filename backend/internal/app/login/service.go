@@ -119,6 +119,7 @@ func (s *Service) Register(ctx context.Context, username string, email string, p
 	s.email.SendWelcomeEmail(emaildomain.UserInfo{
 		Username: username,
 		Address:  email,
+		Language: user.Prefs.Language,
 	}, emaildomain.Welcome{
 		UserName: username,
 	})
@@ -167,6 +168,7 @@ func (s *Service) Authorize(ctx context.Context, userMail string, password strin
 	s.email.SendLoginNotificationEmail(emaildomain.UserInfo{
 		Username: user.Username,
 		Address:  user.Email,
+		Language: user.Prefs.Language,
 	}, loginNotificationData(ctx, user.Username, device))
 	return user, nil
 }

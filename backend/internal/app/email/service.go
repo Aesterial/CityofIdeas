@@ -81,18 +81,26 @@ func (s *Service) userInfo(ctx context.Context, id domain.UUID) (emaildomain.Use
 	return emaildomain.UserInfo{
 		Username: user.Username,
 		Address:  user.Email,
+		Language: user.Prefs.Language,
 	}, nil
+}
+
+func subject(language userdomain.Languages, english string, russian string) string {
+	if language == userdomain.EnglishLang {
+		return english
+	}
+	return russian
 }
 
 func (s *Service) sendWelcomeEmail(ctx context.Context, user emaildomain.UserInfo, data emaildomain.Welcome) error {
 	var d = config.Get().Domain
 	data.ProfileSettingsURL = d + "/profile"
 	data.Public = emaildomain.FillPublic(d)
-	html, text, err := emaildomain.RenderTemplates("welcome", data)
+	html, text, err := emaildomain.RenderTemplates("welcome", data, user.Language)
 	if err != nil {
 		return err
 	}
-	_, err = s.send(ctx, user.Username, user.Address, "Welcome to city ideas", text, html)
+	_, err = s.send(ctx, user.Username, user.Address, subject(user.Language, "Welcome to City of Ideas", "Добро пожаловать в Город Идей"), text, html)
 	if err != nil {
 		return err
 	}
@@ -105,15 +113,15 @@ func (s *Service) SendWelcomeEmail(user emaildomain.UserInfo, data emaildomain.W
 	})
 }
 
-func (s *Service) sendLoginNotificationEmail(ctx context.Context, user emaildomain.UserInfo, data emaildomain.LoginNotification) error {
+func (s *Service) sendLoginNotificationEmail(ctx context.Context, user emaildomain.UserInfo, data emaildomain.LoginNotification, language userdomain.Languages) error {
 	var d = config.Get().Domain
 	data.SecurityURL = d + "/profile"
 	data.Public = emaildomain.FillPublic(d)
-	html, text, err := emaildomain.RenderTemplates("login_notification", data)
+	html, text, err := emaildomain.RenderTemplates("login_notification", data, language)
 	if err != nil {
 		return err
 	}
-	_, err = s.send(ctx, user.Username, user.Address, "New sign-in to your account", text, html)
+	_, err = s.send(ctx, user.Username, user.Address, subject(language, "New sign-in to your account", "Новый вход в аккаунт"), text, html)
 	if err != nil {
 		return err
 	}
@@ -122,18 +130,18 @@ func (s *Service) sendLoginNotificationEmail(ctx context.Context, user emaildoma
 
 func (s *Service) SendLoginNotificationEmail(user emaildomain.UserInfo, data emaildomain.LoginNotification) {
 	s.sendInBackground("login_notification", user, func(ctx context.Context) error {
-		return s.sendLoginNotificationEmail(ctx, user, data)
+		return s.sendLoginNotificationEmail(ctx, user, data, user.Language)
 	})
 }
 
-func (s *Service) sendTicketCreateEmail(ctx context.Context, user emaildomain.UserInfo, data emaildomain.TicketCreation) error {
+func (s *Service) sendTicketCreateEmail(ctx context.Context, user emaildomain.UserInfo, data emaildomain.TicketCreation, language userdomain.Languages) error {
 	var d = config.Get().Domain
 	data.Public = emaildomain.FillPublic(d)
-	html, text, err := emaildomain.RenderTemplates("support_ticket_created", data)
+	html, text, err := emaildomain.RenderTemplates("support_ticket_created", data, language)
 	if err != nil {
 		return err
 	}
-	_, err = s.send(ctx, user.Username, user.Address, "Ticket Creation", text, html)
+	_, err = s.send(ctx, user.Username, user.Address, subject(language, "Support ticket created", "Обращение в поддержку создано"), text, html)
 	if err != nil {
 		return err
 	}
@@ -146,18 +154,18 @@ func (s *Service) SendTicketCreateEmail(author domain.UUID, data emaildomain.Tic
 		if err != nil {
 			return err
 		}
-		return s.sendTicketCreateEmail(ctx, user, data)
+		return s.sendTicketCreateEmail(ctx, user, data, user.Language)
 	})
 }
 
 func (s *Service) sendTicketReplyEmail(ctx context.Context, user emaildomain.UserInfo, data emaildomain.TicketReply) error {
 	var d = config.Get().Domain
 	data.Public = emaildomain.FillPublic(d)
-	html, text, err := emaildomain.RenderTemplates("support_ticket_reply", data)
+	html, text, err := emaildomain.RenderTemplates("support_ticket_reply", data, user.Language)
 	if err != nil {
 		return err
 	}
-	_, err = s.send(ctx, user.Username, user.Address, "Ticket Reply", text, html)
+	_, err = s.send(ctx, user.Username, user.Address, subject(user.Language, "New message in your ticket", "Новое сообщение в обращении"), text, html)
 	if err != nil {
 		return err
 	}

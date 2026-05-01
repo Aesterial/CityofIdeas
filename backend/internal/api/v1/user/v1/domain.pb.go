@@ -21,11 +21,56 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type Languages int32
+
+const (
+	Languages_LANGUAGES_UNSPECIFIED Languages = 0
+	Languages_LANGUAGES_RUSSIAN     Languages = 1
+	Languages_LANGUAGES_ENGLISH     Languages = 2
+)
+
+// Enum value maps for Languages.
+var (
+	Languages_name = map[int32]string{
+		0: "LANGUAGES_UNSPECIFIED",
+		1: "LANGUAGES_RUSSIAN",
+		2: "LANGUAGES_ENGLISH",
+	}
+	Languages_value = map[string]int32{
+		"LANGUAGES_UNSPECIFIED": 0,
+		"LANGUAGES_RUSSIAN":     1,
+		"LANGUAGES_ENGLISH":     2,
+	}
+)
+
+func (x Languages) Enum() *Languages {
+	p := new(Languages)
+	*p = x
+	return p
+}
+
+func (x Languages) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (Languages) Descriptor() protoreflect.EnumDescriptor {
+	return file_xyz_city_ideas_v1_user_v1_domain_proto_enumTypes[0].Descriptor()
+}
+
+func (Languages) Type() protoreflect.EnumType {
+	return &file_xyz_city_ideas_v1_user_v1_domain_proto_enumTypes[0]
+}
+
+func (x Languages) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
 type UserPreferences struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Description *string                `protobuf:"bytes,1,opt,name=description"`
 	xxx_hidden_DisplayName *string                `protobuf:"bytes,2,opt,name=display_name,json=displayName"`
 	xxx_hidden_Avatar      *string                `protobuf:"bytes,3,opt,name=avatar"`
+	xxx_hidden_Lang        Languages              `protobuf:"varint,4,opt,name=lang,enum=xyz.city_ideas.v1.user.v1.Languages"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
 	unknownFields          protoimpl.UnknownFields
@@ -87,19 +132,33 @@ func (x *UserPreferences) GetAvatar() string {
 	return ""
 }
 
+func (x *UserPreferences) GetLang() Languages {
+	if x != nil {
+		if protoimpl.X.Present(&(x.XXX_presence[0]), 3) {
+			return x.xxx_hidden_Lang
+		}
+	}
+	return Languages_LANGUAGES_UNSPECIFIED
+}
+
 func (x *UserPreferences) SetDescription(v string) {
 	x.xxx_hidden_Description = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 3)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 4)
 }
 
 func (x *UserPreferences) SetDisplayName(v string) {
 	x.xxx_hidden_DisplayName = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 3)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 4)
 }
 
 func (x *UserPreferences) SetAvatar(v string) {
 	x.xxx_hidden_Avatar = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 4)
+}
+
+func (x *UserPreferences) SetLang(v Languages) {
+	x.xxx_hidden_Lang = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 4)
 }
 
 func (x *UserPreferences) HasDescription() bool {
@@ -123,6 +182,13 @@ func (x *UserPreferences) HasAvatar() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
 }
 
+func (x *UserPreferences) HasLang() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
+}
+
 func (x *UserPreferences) ClearDescription() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
 	x.xxx_hidden_Description = nil
@@ -138,12 +204,18 @@ func (x *UserPreferences) ClearAvatar() {
 	x.xxx_hidden_Avatar = nil
 }
 
+func (x *UserPreferences) ClearLang() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
+	x.xxx_hidden_Lang = Languages_LANGUAGES_UNSPECIFIED
+}
+
 type UserPreferences_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
 	Description *string
 	DisplayName *string
 	Avatar      *string
+	Lang        *Languages
 }
 
 func (b0 UserPreferences_builder) Build() *UserPreferences {
@@ -151,16 +223,20 @@ func (b0 UserPreferences_builder) Build() *UserPreferences {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Description != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 3)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 4)
 		x.xxx_hidden_Description = b.Description
 	}
 	if b.DisplayName != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 4)
 		x.xxx_hidden_DisplayName = b.DisplayName
 	}
 	if b.Avatar != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 4)
 		x.xxx_hidden_Avatar = b.Avatar
+	}
+	if b.Lang != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 4)
+		x.xxx_hidden_Lang = *b.Lang
 	}
 	return m0
 }
@@ -843,11 +919,12 @@ var File_xyz_city_ideas_v1_user_v1_domain_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc = "" +
 	"\n" +
-	"&xyz/city_ideas/v1/user/v1/domain.proto\x12\x19xyz.city_ideas.v1.user.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"n\n" +
+	"&xyz/city_ideas/v1/user/v1/domain.proto\x12\x19xyz.city_ideas.v1.user.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa8\x01\n" +
 	"\x0fUserPreferences\x12 \n" +
 	"\vdescription\x18\x01 \x01(\tR\vdescription\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x16\n" +
-	"\x06avatar\x18\x03 \x01(\tR\x06avatar\"4\n" +
+	"\x06avatar\x18\x03 \x01(\tR\x06avatar\x128\n" +
+	"\x04lang\x18\x04 \x01(\x0e2$.xyz.city_ideas.v1.user.v1.LanguagesR\x04lang\"4\n" +
 	"\bUserRank\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05color\x18\x02 \x01(\x03R\x05color\"\xe7\x01\n" +
@@ -870,29 +947,36 @@ const file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc = "" +
 	"avatarHash\x12*\n" +
 	"\x11session_live_time\x18\x04 \x01(\x05R\x0fsessionLiveTime\"I\n" +
 	"\fListResponse\x129\n" +
-	"\x04list\x18\x01 \x03(\v2%.xyz.city_ideas.v1.user.v1.PublicUserR\x04listBCZAgithub.com/aesterial/cityideas/backend/internal/api/v1/user/v1;v1b\beditionsp\xe8\a"
+	"\x04list\x18\x01 \x03(\v2%.xyz.city_ideas.v1.user.v1.PublicUserR\x04list*T\n" +
+	"\tLanguages\x12\x19\n" +
+	"\x15LANGUAGES_UNSPECIFIED\x10\x00\x12\x15\n" +
+	"\x11LANGUAGES_RUSSIAN\x10\x01\x12\x15\n" +
+	"\x11LANGUAGES_ENGLISH\x10\x02BCZAgithub.com/aesterial/cityideas/backend/internal/api/v1/user/v1;v1b\beditionsp\xe8\a"
 
+var file_xyz_city_ideas_v1_user_v1_domain_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_xyz_city_ideas_v1_user_v1_domain_proto_goTypes = []any{
-	(*UserPreferences)(nil),          // 0: xyz.city_ideas.v1.user.v1.UserPreferences
-	(*UserRank)(nil),                 // 1: xyz.city_ideas.v1.user.v1.UserRank
-	(*PublicUser)(nil),               // 2: xyz.city_ideas.v1.user.v1.PublicUser
-	(*PrivateUser)(nil),              // 3: xyz.city_ideas.v1.user.v1.PrivateUser
-	(*UpdatePreferencesRequest)(nil), // 4: xyz.city_ideas.v1.user.v1.UpdatePreferencesRequest
-	(*ListResponse)(nil),             // 5: xyz.city_ideas.v1.user.v1.ListResponse
-	(*timestamppb.Timestamp)(nil),    // 6: google.protobuf.Timestamp
+	(Languages)(0),                   // 0: xyz.city_ideas.v1.user.v1.Languages
+	(*UserPreferences)(nil),          // 1: xyz.city_ideas.v1.user.v1.UserPreferences
+	(*UserRank)(nil),                 // 2: xyz.city_ideas.v1.user.v1.UserRank
+	(*PublicUser)(nil),               // 3: xyz.city_ideas.v1.user.v1.PublicUser
+	(*PrivateUser)(nil),              // 4: xyz.city_ideas.v1.user.v1.PrivateUser
+	(*UpdatePreferencesRequest)(nil), // 5: xyz.city_ideas.v1.user.v1.UpdatePreferencesRequest
+	(*ListResponse)(nil),             // 6: xyz.city_ideas.v1.user.v1.ListResponse
+	(*timestamppb.Timestamp)(nil),    // 7: google.protobuf.Timestamp
 }
 var file_xyz_city_ideas_v1_user_v1_domain_proto_depIdxs = []int32{
-	6, // 0: xyz.city_ideas.v1.user.v1.PublicUser.joined:type_name -> google.protobuf.Timestamp
-	0, // 1: xyz.city_ideas.v1.user.v1.PublicUser.prefs:type_name -> xyz.city_ideas.v1.user.v1.UserPreferences
-	1, // 2: xyz.city_ideas.v1.user.v1.PublicUser.rank:type_name -> xyz.city_ideas.v1.user.v1.UserRank
-	2, // 3: xyz.city_ideas.v1.user.v1.PrivateUser.public:type_name -> xyz.city_ideas.v1.user.v1.PublicUser
-	2, // 4: xyz.city_ideas.v1.user.v1.ListResponse.list:type_name -> xyz.city_ideas.v1.user.v1.PublicUser
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	0, // 0: xyz.city_ideas.v1.user.v1.UserPreferences.lang:type_name -> xyz.city_ideas.v1.user.v1.Languages
+	7, // 1: xyz.city_ideas.v1.user.v1.PublicUser.joined:type_name -> google.protobuf.Timestamp
+	1, // 2: xyz.city_ideas.v1.user.v1.PublicUser.prefs:type_name -> xyz.city_ideas.v1.user.v1.UserPreferences
+	2, // 3: xyz.city_ideas.v1.user.v1.PublicUser.rank:type_name -> xyz.city_ideas.v1.user.v1.UserRank
+	3, // 4: xyz.city_ideas.v1.user.v1.PrivateUser.public:type_name -> xyz.city_ideas.v1.user.v1.PublicUser
+	3, // 5: xyz.city_ideas.v1.user.v1.ListResponse.list:type_name -> xyz.city_ideas.v1.user.v1.PublicUser
+	6, // [6:6] is the sub-list for method output_type
+	6, // [6:6] is the sub-list for method input_type
+	6, // [6:6] is the sub-list for extension type_name
+	6, // [6:6] is the sub-list for extension extendee
+	0, // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_xyz_city_ideas_v1_user_v1_domain_proto_init() }
@@ -905,13 +989,14 @@ func file_xyz_city_ideas_v1_user_v1_domain_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc), len(file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
 		GoTypes:           file_xyz_city_ideas_v1_user_v1_domain_proto_goTypes,
 		DependencyIndexes: file_xyz_city_ideas_v1_user_v1_domain_proto_depIdxs,
+		EnumInfos:         file_xyz_city_ideas_v1_user_v1_domain_proto_enumTypes,
 		MessageInfos:      file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes,
 	}.Build()
 	File_xyz_city_ideas_v1_user_v1_domain_proto = out.File

@@ -30,6 +30,7 @@ func (r *iteratorForInsertRecoveryCodes) Next() bool {
 func (r iteratorForInsertRecoveryCodes) Values() ([]interface{}, error) {
 	return []interface{}{
 		r.rows[0].Owner,
+		r.rows[0].Selector,
 		r.rows[0].Hash,
 	}, nil
 }
@@ -39,5 +40,5 @@ func (r iteratorForInsertRecoveryCodes) Err() error {
 }
 
 func (q *Queries) InsertRecoveryCodes(ctx context.Context, arg []InsertRecoveryCodesParams) (int64, error) {
-	return q.db.CopyFrom(ctx, []string{"users_security_codes"}, []string{"owner", "hash"}, &iteratorForInsertRecoveryCodes{rows: arg})
+	return q.db.CopyFrom(ctx, []string{"users_security_codes"}, []string{"owner", "selector", "hash"}, &iteratorForInsertRecoveryCodes{rows: arg})
 }

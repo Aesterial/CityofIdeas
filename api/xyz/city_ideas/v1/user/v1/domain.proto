@@ -6,10 +6,17 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/user/v1;v1";
 
+enum Languages {
+  LANGUAGES_UNSPECIFIED = 0;
+  LANGUAGES_RUSSIAN = 1;
+  LANGUAGES_ENGLISH = 2;
+}
+
 message UserPreferences {
   string description = 1;
   string display_name = 2;
   string avatar = 3;
+  Languages lang = 4;
 }
 
 message UserRank {

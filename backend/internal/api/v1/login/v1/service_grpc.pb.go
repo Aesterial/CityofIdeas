@@ -8,6 +8,7 @@ package v1
 
 import (
 	context "context"
+	v1 "github.com/aesterial/cityideas/backend/internal/api/v1"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -20,9 +21,13 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	LoginService_Register_FullMethodName  = "/xyz.city_ideas.v1.login.v1.LoginService/Register"
-	LoginService_Authorize_FullMethodName = "/xyz.city_ideas.v1.login.v1.LoginService/Authorize"
-	LoginService_Logout_FullMethodName    = "/xyz.city_ideas.v1.login.v1.LoginService/Logout"
+	LoginService_Register_FullMethodName    = "/xyz.city_ideas.v1.login.v1.LoginService/Register"
+	LoginService_Authorize_FullMethodName   = "/xyz.city_ideas.v1.login.v1.LoginService/Authorize"
+	LoginService_Logout_FullMethodName      = "/xyz.city_ideas.v1.login.v1.LoginService/Logout"
+	LoginService_CreateTotp_FullMethodName  = "/xyz.city_ideas.v1.login.v1.LoginService/CreateTotp"
+	LoginService_ConfirmTotp_FullMethodName = "/xyz.city_ideas.v1.login.v1.LoginService/ConfirmTotp"
+	LoginService_CheckTotp_FullMethodName   = "/xyz.city_ideas.v1.login.v1.LoginService/CheckTotp"
+	LoginService_ResetTotp_FullMethodName   = "/xyz.city_ideas.v1.login.v1.LoginService/ResetTotp"
 )
 
 // LoginServiceClient is the client API for LoginService service.
@@ -32,6 +37,10 @@ type LoginServiceClient interface {
 	Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	Authorize(ctx context.Context, in *AuthorizeRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	Logout(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	CreateTotp(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CreateTotpResponse, error)
+	ConfirmTotp(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*ConfirmTotpResponse, error)
+	CheckTotp(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	ResetTotp(ctx context.Context, in *ResetTotpRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type loginServiceClient struct {
@@ -72,6 +81,46 @@ func (c *loginServiceClient) Logout(ctx context.Context, in *emptypb.Empty, opts
 	return out, nil
 }
 
+func (c *loginServiceClient) CreateTotp(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*CreateTotpResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateTotpResponse)
+	err := c.cc.Invoke(ctx, LoginService_CreateTotp_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *loginServiceClient) ConfirmTotp(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*ConfirmTotpResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ConfirmTotpResponse)
+	err := c.cc.Invoke(ctx, LoginService_ConfirmTotp_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *loginServiceClient) CheckTotp(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, LoginService_CheckTotp_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *loginServiceClient) ResetTotp(ctx context.Context, in *ResetTotpRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, LoginService_ResetTotp_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LoginServiceServer is the server API for LoginService service.
 // All implementations should embed UnimplementedLoginServiceServer
 // for forward compatibility.
@@ -79,6 +128,10 @@ type LoginServiceServer interface {
 	Register(context.Context, *RegisterRequest) (*LoginResponse, error)
 	Authorize(context.Context, *AuthorizeRequest) (*LoginResponse, error)
 	Logout(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
+	CreateTotp(context.Context, *emptypb.Empty) (*CreateTotpResponse, error)
+	ConfirmTotp(context.Context, *v1.RequestWithValue) (*ConfirmTotpResponse, error)
+	CheckTotp(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error)
+	ResetTotp(context.Context, *ResetTotpRequest) (*emptypb.Empty, error)
 }
 
 // UnimplementedLoginServiceServer should be embedded to have
@@ -96,6 +149,18 @@ func (UnimplementedLoginServiceServer) Authorize(context.Context, *AuthorizeRequ
 }
 func (UnimplementedLoginServiceServer) Logout(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method Logout not implemented")
+}
+func (UnimplementedLoginServiceServer) CreateTotp(context.Context, *emptypb.Empty) (*CreateTotpResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateTotp not implemented")
+}
+func (UnimplementedLoginServiceServer) ConfirmTotp(context.Context, *v1.RequestWithValue) (*ConfirmTotpResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ConfirmTotp not implemented")
+}
+func (UnimplementedLoginServiceServer) CheckTotp(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method CheckTotp not implemented")
+}
+func (UnimplementedLoginServiceServer) ResetTotp(context.Context, *ResetTotpRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method ResetTotp not implemented")
 }
 func (UnimplementedLoginServiceServer) testEmbeddedByValue() {}
 
@@ -171,6 +236,78 @@ func _LoginService_Logout_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LoginService_CreateTotp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoginServiceServer).CreateTotp(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LoginService_CreateTotp_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoginServiceServer).CreateTotp(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LoginService_ConfirmTotp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoginServiceServer).ConfirmTotp(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LoginService_ConfirmTotp_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoginServiceServer).ConfirmTotp(ctx, req.(*v1.RequestWithValue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LoginService_CheckTotp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoginServiceServer).CheckTotp(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LoginService_CheckTotp_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoginServiceServer).CheckTotp(ctx, req.(*v1.RequestWithValue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LoginService_ResetTotp_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ResetTotpRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoginServiceServer).ResetTotp(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LoginService_ResetTotp_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoginServiceServer).ResetTotp(ctx, req.(*ResetTotpRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LoginService_ServiceDesc is the grpc.ServiceDesc for LoginService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -189,6 +326,22 @@ var LoginService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Logout",
 			Handler:    _LoginService_Logout_Handler,
+		},
+		{
+			MethodName: "CreateTotp",
+			Handler:    _LoginService_CreateTotp_Handler,
+		},
+		{
+			MethodName: "ConfirmTotp",
+			Handler:    _LoginService_ConfirmTotp_Handler,
+		},
+		{
+			MethodName: "CheckTotp",
+			Handler:    _LoginService_CheckTotp_Handler,
+		},
+		{
+			MethodName: "ResetTotp",
+			Handler:    _LoginService_ResetTotp_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

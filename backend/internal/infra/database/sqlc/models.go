@@ -249,6 +249,64 @@ func AllOauthServiceValues() []OauthService {
 	}
 }
 
+type PreferencesLanguages string
+
+const (
+	PreferencesLanguagesRussian PreferencesLanguages = "russian"
+	PreferencesLanguagesEnglish PreferencesLanguages = "english"
+)
+
+func (e *PreferencesLanguages) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PreferencesLanguages(s)
+	case string:
+		*e = PreferencesLanguages(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PreferencesLanguages: %T", src)
+	}
+	return nil
+}
+
+type NullPreferencesLanguages struct {
+	PreferencesLanguages PreferencesLanguages `json:"preferences_languages"`
+	Valid                bool                 `json:"valid"` // Valid is true if PreferencesLanguages is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPreferencesLanguages) Scan(value interface{}) error {
+	if value == nil {
+		ns.PreferencesLanguages, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PreferencesLanguages.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPreferencesLanguages) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PreferencesLanguages), nil
+}
+
+func (e PreferencesLanguages) Valid() bool {
+	switch e {
+	case PreferencesLanguagesRussian,
+		PreferencesLanguagesEnglish:
+		return true
+	}
+	return false
+}
+
+func AllPreferencesLanguagesValues() []PreferencesLanguages {
+	return []PreferencesLanguages{
+		PreferencesLanguagesRussian,
+		PreferencesLanguagesEnglish,
+	}
+}
+
 type ProjectsStatus string
 
 const (
@@ -568,11 +626,12 @@ type UsersOauth struct {
 }
 
 type UsersPreference struct {
-	Owner       pgtype.UUID `json:"owner"`
-	DisplayName string      `json:"display_name"`
-	Description string      `json:"description"`
-	AvatarHash  pgtype.Text `json:"avatar_hash"`
-	SessionLive int32       `json:"session_live"`
+	Owner       pgtype.UUID          `json:"owner"`
+	DisplayName string               `json:"display_name"`
+	Description string               `json:"description"`
+	AvatarHash  pgtype.Text          `json:"avatar_hash"`
+	SessionLive int32                `json:"session_live"`
+	Language    PreferencesLanguages `json:"language"`
 }
 
 type UsersRank struct {
@@ -595,8 +654,9 @@ type UsersSecurity struct {
 }
 
 type UsersSecurityCode struct {
-	Owner   pgtype.UUID        `json:"owner"`
-	Hash    string             `json:"hash"`
-	Used    pgtype.Timestamptz `json:"used"`
-	Created pgtype.Timestamptz `json:"created"`
+	Owner    pgtype.UUID        `json:"owner"`
+	Selector string             `json:"selector"`
+	Hash     string             `json:"hash"`
+	Used     pgtype.Timestamptz `json:"used"`
+	Created  pgtype.Timestamptz `json:"created"`
 }

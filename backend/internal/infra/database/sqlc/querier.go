@@ -44,6 +44,7 @@ type Querier interface {
 	GetUserPreferences(ctx context.Context, owner pgtype.UUID) (UsersPreference, error)
 	GetUserRanks(ctx context.Context, owner pgtype.UUID) ([]GetUserRanksRow, error)
 	GetUserRecoveryCodes(ctx context.Context, owner pgtype.UUID) ([]UsersSecurityCode, error)
+	GetUserRecoveryCodesWithSelector(ctx context.Context, arg GetUserRecoveryCodesWithSelectorParams) (UsersSecurityCode, error)
 	GetUserSecurity(ctx context.Context, owner pgtype.UUID) (UsersSecurity, error)
 	GetUsers(ctx context.Context, arg GetUsersParams) ([]User, error)
 	GlobalStats(ctx context.Context) (GlobalStatsRow, error)
@@ -78,12 +79,15 @@ type Querier interface {
 	RankUsers(ctx context.Context, name string) ([]pgtype.UUID, error)
 	RanksList(ctx context.Context, arg RanksListParams) ([]Rank, error)
 	RemoveProjectLike(ctx context.Context, arg RemoveProjectLikeParams) error
+	ResetTotp(ctx context.Context, owner pgtype.UUID) error
+	ResetTotpCodes(ctx context.Context, owner pgtype.UUID) error
 	RevokeRankFromUser(ctx context.Context, arg RevokeRankFromUserParams) error
 	RevokeSession(ctx context.Context, id pgtype.UUID) error
 	SessionInfo(ctx context.Context, id pgtype.UUID) (Session, error)
 	SessionsByOwner(ctx context.Context, arg SessionsByOwnerParams) ([]Session, error)
 	SetProjectStatus(ctx context.Context, arg SetProjectStatusParams) error
 	SetSessionLastSeen(ctx context.Context, id pgtype.UUID) error
+	SetTotpLastSeen(ctx context.Context, arg SetTotpLastSeenParams) error
 	SetUserSecurityEmailVerified(ctx context.Context, owner pgtype.UUID) error
 	StartMaintenance(ctx context.Context, id pgtype.UUID) error
 	StartUserSecurityTotp(ctx context.Context, arg StartUserSecurityTotpParams) error
@@ -103,9 +107,10 @@ type Querier interface {
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error
 	UpdateUserDescription(ctx context.Context, arg UpdateUserDescriptionParams) error
 	UpdateUserDisplayName(ctx context.Context, arg UpdateUserDisplayNameParams) error
+	UpdateUserLanguage(ctx context.Context, arg UpdateUserLanguageParams) error
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
 	UpdateUserSessionLive(ctx context.Context, arg UpdateUserSessionLiveParams) error
-	UseRecoveryCode(ctx context.Context, hash string) error
+	UseRecoveryCode(ctx context.Context, selector string) error
 }
 
 var _ Querier = (*Queries)(nil)

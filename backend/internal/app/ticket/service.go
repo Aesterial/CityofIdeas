@@ -55,7 +55,7 @@ func (s *Service) CreateTicket(ctx context.Context, author domain.UUID, topic st
 		return nil, errors.Wrap(err)
 	}
 	s.email.SendTicketCreateEmail(author, emaildomain.TicketCreation{
-		Date:      ticket.Created,
+		Date:      ticket.Created.Format(time.RFC1123),
 		Topic:     ticket.Topic,
 		TicketURL: config.Get().Domain + "/support/tickets/" + ticket.ID.String(),
 	})

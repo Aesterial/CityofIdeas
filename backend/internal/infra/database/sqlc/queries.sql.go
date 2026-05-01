@@ -418,7 +418,7 @@ func (q *Queries) CreateUserDefaultRank(ctx context.Context, owner pgtype.UUID) 
 }
 
 const CreateUserPreferences = `-- name: CreateUserPreferences :one
-insert into users_preferences (owner) VALUES ($1) returning owner, display_name, description, avatar_hash, session_live
+insert into users_preferences (owner) VALUES ($1) returning owner, display_name, description, avatar_hash, session_live, language
 `
 
 func (q *Queries) CreateUserPreferences(ctx context.Context, owner pgtype.UUID) (UsersPreference, error) {
@@ -430,6 +430,7 @@ func (q *Queries) CreateUserPreferences(ctx context.Context, owner pgtype.UUID) 
 		&i.Description,
 		&i.AvatarHash,
 		&i.SessionLive,
+		&i.Language,
 	)
 	return i, err
 }
@@ -617,7 +618,7 @@ func (q *Queries) GetUserPassword(ctx context.Context, owner pgtype.UUID) (strin
 }
 
 const GetUserPreferences = `-- name: GetUserPreferences :one
-select owner, display_name, description, avatar_hash, session_live from users_preferences where owner = $1 limit 1
+select owner, display_name, description, avatar_hash, session_live, language from users_preferences where owner = $1 limit 1
 `
 
 func (q *Queries) GetUserPreferences(ctx context.Context, owner pgtype.UUID) (UsersPreference, error) {
@@ -629,6 +630,7 @@ func (q *Queries) GetUserPreferences(ctx context.Context, owner pgtype.UUID) (Us
 		&i.Description,
 		&i.AvatarHash,
 		&i.SessionLive,
+		&i.Language,
 	)
 	return i, err
 }
@@ -677,7 +679,7 @@ func (q *Queries) GetUserRanks(ctx context.Context, owner pgtype.UUID) ([]GetUse
 }
 
 const GetUserRecoveryCodes = `-- name: GetUserRecoveryCodes :many
-select owner, hash, used, created from users_security_codes where owner = $1
+select owner, selector, hash, used, created from users_security_codes where owner = $1
 `
 
 func (q *Queries) GetUserRecoveryCodes(ctx context.Context, owner pgtype.UUID) ([]UsersSecurityCode, error) {
@@ -691,6 +693,7 @@ func (q *Queries) GetUserRecoveryCodes(ctx context.Context, owner pgtype.UUID) (
 		var i UsersSecurityCode
 		if err := rows.Scan(
 			&i.Owner,
+			&i.Selector,
 			&i.Hash,
 			&i.Used,
 			&i.Created,
@@ -703,6 +706,28 @@ func (q *Queries) GetUserRecoveryCodes(ctx context.Context, owner pgtype.UUID) (
 		return nil, err
 	}
 	return items, nil
+}
+
+const GetUserRecoveryCodesWithSelector = `-- name: GetUserRecoveryCodesWithSelector :one
+select owner, selector, hash, used, created from users_security_codes where owner = $1 and selector = $2 limit 1
+`
+
+type GetUserRecoveryCodesWithSelectorParams struct {
+	Owner    pgtype.UUID `json:"owner"`
+	Selector string      `json:"selector"`
+}
+
+func (q *Queries) GetUserRecoveryCodesWithSelector(ctx context.Context, arg GetUserRecoveryCodesWithSelectorParams) (UsersSecurityCode, error) {
+	row := q.db.QueryRow(ctx, GetUserRecoveryCodesWithSelector, arg.Owner, arg.Selector)
+	var i UsersSecurityCode
+	err := row.Scan(
+		&i.Owner,
+		&i.Selector,
+		&i.Hash,
+		&i.Used,
+		&i.Created,
+	)
+	return i, err
 }
 
 const GetUserSecurity = `-- name: GetUserSecurity :one
@@ -807,8 +832,9 @@ func (q *Queries) HasActiveMaintenance(ctx context.Context) (bool, error) {
 }
 
 type InsertRecoveryCodesParams struct {
-	Owner pgtype.UUID `json:"owner"`
-	Hash  string      `json:"hash"`
+	Owner    pgtype.UUID `json:"owner"`
+	Selector string      `json:"selector"`
+	Hash     string      `json:"hash"`
 }
 
 const IsProjectExists = `-- name: IsProjectExists :one
@@ -1698,6 +1724,24 @@ func (q *Queries) RemoveProjectLike(ctx context.Context, arg RemoveProjectLikePa
 	return err
 }
 
+const ResetTotp = `-- name: ResetTotp :exec
+update users_security set totp_enabled = false, totp_pending = null, totp_confirmed = null, totp_secret = null, totp_last_step = null, totp_pending_created = null where owner = $1
+`
+
+func (q *Queries) ResetTotp(ctx context.Context, owner pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, ResetTotp, owner)
+	return err
+}
+
+const ResetTotpCodes = `-- name: ResetTotpCodes :exec
+delete from users_security_codes where owner = $1
+`
+
+func (q *Queries) ResetTotpCodes(ctx context.Context, owner pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, ResetTotpCodes, owner)
+	return err
+}
+
 const RevokeRankFromUser = `-- name: RevokeRankFromUser :exec
 update users_ranks set expires = now() from ranks where users_ranks.rank = ranks.id and ranks.name = $1 and users_ranks.owner = $2
 `
@@ -1801,6 +1845,20 @@ update sessions set seen_at = now() where id = $1
 
 func (q *Queries) SetSessionLastSeen(ctx context.Context, id pgtype.UUID) error {
 	_, err := q.db.Exec(ctx, SetSessionLastSeen, id)
+	return err
+}
+
+const SetTotpLastSeen = `-- name: SetTotpLastSeen :exec
+update users_security set totp_last_step = $1 where owner = $2
+`
+
+type SetTotpLastSeenParams struct {
+	TotpLastStep pgtype.Int8 `json:"totp_last_step"`
+	Owner        pgtype.UUID `json:"owner"`
+}
+
+func (q *Queries) SetTotpLastSeen(ctx context.Context, arg SetTotpLastSeenParams) error {
+	_, err := q.db.Exec(ctx, SetTotpLastSeen, arg.TotpLastStep, arg.Owner)
 	return err
 }
 
@@ -2212,6 +2270,20 @@ func (q *Queries) UpdateUserDisplayName(ctx context.Context, arg UpdateUserDispl
 	return err
 }
 
+const UpdateUserLanguage = `-- name: UpdateUserLanguage :exec
+update users_preferences set language = $1 where owner = $2
+`
+
+type UpdateUserLanguageParams struct {
+	Language PreferencesLanguages `json:"language"`
+	Owner    pgtype.UUID          `json:"owner"`
+}
+
+func (q *Queries) UpdateUserLanguage(ctx context.Context, arg UpdateUserLanguageParams) error {
+	_, err := q.db.Exec(ctx, UpdateUserLanguage, arg.Language, arg.Owner)
+	return err
+}
+
 const UpdateUserPassword = `-- name: UpdateUserPassword :exec
 update users_security set password = $1 where owner = $2
 `
@@ -2241,10 +2313,10 @@ func (q *Queries) UpdateUserSessionLive(ctx context.Context, arg UpdateUserSessi
 }
 
 const UseRecoveryCode = `-- name: UseRecoveryCode :exec
-update users_security_codes set used = now() where hash = $1
+update users_security_codes set used = now() where selector = $1
 `
 
-func (q *Queries) UseRecoveryCode(ctx context.Context, hash string) error {
-	_, err := q.db.Exec(ctx, UseRecoveryCode, hash)
+func (q *Queries) UseRecoveryCode(ctx context.Context, selector string) error {
+	_, err := q.db.Exec(ctx, UseRecoveryCode, selector)
 	return err
 }

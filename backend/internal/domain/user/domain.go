@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	loginpb "github.com/aesterial/cityideas/backend/internal/api/v1/login/v1"
 	userpb "github.com/aesterial/cityideas/backend/internal/api/v1/user/v1"
 	"github.com/aesterial/cityideas/backend/internal/domain"
 	ranksdomain "github.com/aesterial/cityideas/backend/internal/domain/ranks"
@@ -17,6 +18,46 @@ const (
 	ServiceVkontakte
 	ServiceTelegram
 )
+
+type Languages int
+
+const (
+	RussianLang Languages = 0
+	EnglishLang Languages = 1
+)
+
+func (l Languages) Protobuf() userpb.Languages {
+	switch l {
+	case RussianLang:
+		return userpb.Languages_LANGUAGES_RUSSIAN
+	case EnglishLang:
+		return userpb.Languages_LANGUAGES_ENGLISH
+	default:
+		return userpb.Languages_LANGUAGES_UNSPECIFIED
+	}
+}
+
+func (l Languages) String() string {
+	switch l {
+	case RussianLang:
+		return "russian"
+	case EnglishLang:
+		return "english"
+	default:
+		return "russian"
+	}
+}
+
+func ParseLanguage(str string) Languages {
+	switch strings.ToLower(str) {
+	case "russian":
+		return RussianLang
+	case "english":
+		return EnglishLang
+	default:
+		return RussianLang
+	}
+}
 
 func ParseOauthService(str string) OauthService {
 	switch strings.ToLower(str) {
@@ -38,6 +79,32 @@ func (o OauthService) String() string {
 	default:
 		return "unknown"
 	}
+}
+
+type ResetKind int
+
+const (
+	EmailReset ResetKind = iota
+	RecoveryReset
+)
+
+func ParseResetKind(kind loginpb.Reset) ResetKind {
+	switch kind {
+	case loginpb.Reset_RESET_EMAIL:
+		return EmailReset
+	case loginpb.Reset_RESET_RECOVERY:
+		return RecoveryReset
+	default:
+		return RecoveryReset
+	}
+}
+
+func (r ResetKind) IsEmail() bool {
+	return r == EmailReset
+}
+
+func (r ResetKind) IsRecovery() bool {
+	return r == RecoveryReset
 }
 
 type User struct {
@@ -92,6 +159,7 @@ type Preferences struct {
 	Description     string
 	Avatar          *string
 	SessionLiveTime int32
+	Language        Languages
 }
 
 func ParsePreferences(prefs *userpb.UpdatePreferencesRequest) *Preferences {
@@ -121,6 +189,22 @@ func (p *Preferences) Protobuf() *userpb.UserPreferences {
 	return &prefs
 }
 
+type TotpData struct {
+	QR     string
+	URL    string
+	Secret string
+}
+
+func (t *TotpData) Protobuf() *loginpb.CreateTotpResponse {
+	if t == nil {
+		return nil
+	}
+	var out = &loginpb.CreateTotpResponse{}
+	out.SetQr(t.QR)
+	out.SetUrl(t.URL)
+	return out
+}
+
 type SecurityTotp struct {
 	TotpSecret    *string
 	TotpConfirmed *time.Time
@@ -136,9 +220,10 @@ type Security struct {
 }
 
 type RecoveryCode struct {
-	Hash    string
-	Used    *time.Time
-	Created time.Time
+	Selector string
+	Hash     string
+	Used     *time.Time
+	Created  time.Time
 }
 
 type OAuth struct {

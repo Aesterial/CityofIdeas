@@ -1,6 +1,6 @@
 New sign-in to your account
 
-Hi {{.UserName}}, your Aesterial account was just accessed.
+Hi {{.UserName}}, your City of Ideas account was just accessed.
 
 Time: {{.LoginAt}}
 IP address: {{.IPAddress}}
