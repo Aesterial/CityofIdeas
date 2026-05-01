@@ -535,11 +535,149 @@ func (b0 PublicUser_builder) Build() *PublicUser {
 	return m0
 }
 
+type Security struct {
+	state                    protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Email         *string                `protobuf:"bytes,1,opt,name=email"`
+	xxx_hidden_EmailVerified bool                   `protobuf:"varint,2,opt,name=email_verified,json=emailVerified"`
+	xxx_hidden_TotpEnabled   bool                   `protobuf:"varint,3,opt,name=totp_enabled,json=totpEnabled"`
+	XXX_raceDetectHookData   protoimpl.RaceDetectHookData
+	XXX_presence             [1]uint32
+	unknownFields            protoimpl.UnknownFields
+	sizeCache                protoimpl.SizeCache
+}
+
+func (x *Security) Reset() {
+	*x = Security{}
+	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Security) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Security) ProtoMessage() {}
+
+func (x *Security) ProtoReflect() protoreflect.Message {
+	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *Security) GetEmail() string {
+	if x != nil {
+		if x.xxx_hidden_Email != nil {
+			return *x.xxx_hidden_Email
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *Security) GetEmailVerified() bool {
+	if x != nil {
+		return x.xxx_hidden_EmailVerified
+	}
+	return false
+}
+
+func (x *Security) GetTotpEnabled() bool {
+	if x != nil {
+		return x.xxx_hidden_TotpEnabled
+	}
+	return false
+}
+
+func (x *Security) SetEmail(v string) {
+	x.xxx_hidden_Email = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 3)
+}
+
+func (x *Security) SetEmailVerified(v bool) {
+	x.xxx_hidden_EmailVerified = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 3)
+}
+
+func (x *Security) SetTotpEnabled(v bool) {
+	x.xxx_hidden_TotpEnabled = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
+}
+
+func (x *Security) HasEmail() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *Security) HasEmailVerified() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *Security) HasTotpEnabled() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+}
+
+func (x *Security) ClearEmail() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_Email = nil
+}
+
+func (x *Security) ClearEmailVerified() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_EmailVerified = false
+}
+
+func (x *Security) ClearTotpEnabled() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	x.xxx_hidden_TotpEnabled = false
+}
+
+type Security_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	Email         *string
+	EmailVerified *bool
+	TotpEnabled   *bool
+}
+
+func (b0 Security_builder) Build() *Security {
+	m0 := &Security{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Email != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 3)
+		x.xxx_hidden_Email = b.Email
+	}
+	if b.EmailVerified != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
+		x.xxx_hidden_EmailVerified = *b.EmailVerified
+	}
+	if b.TotpEnabled != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
+		x.xxx_hidden_TotpEnabled = *b.TotpEnabled
+	}
+	return m0
+}
+
 type PrivateUser struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Public      *PublicUser            `protobuf:"bytes,1,opt,name=public"`
 	xxx_hidden_SessionLive int32                  `protobuf:"varint,2,opt,name=session_live,json=sessionLive"`
-	xxx_hidden_Email       *string                `protobuf:"bytes,3,opt,name=email"`
+	xxx_hidden_Security    *Security              `protobuf:"bytes,3,opt,name=security"`
 	xxx_hidden_Permissions []string               `protobuf:"bytes,4,rep,name=permissions"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
@@ -549,7 +687,7 @@ type PrivateUser struct {
 
 func (x *PrivateUser) Reset() {
 	*x = PrivateUser{}
-	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[3]
+	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -561,7 +699,7 @@ func (x *PrivateUser) String() string {
 func (*PrivateUser) ProtoMessage() {}
 
 func (x *PrivateUser) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[3]
+	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -586,14 +724,11 @@ func (x *PrivateUser) GetSessionLive() int32 {
 	return 0
 }
 
-func (x *PrivateUser) GetEmail() string {
+func (x *PrivateUser) GetSecurity() *Security {
 	if x != nil {
-		if x.xxx_hidden_Email != nil {
-			return *x.xxx_hidden_Email
-		}
-		return ""
+		return x.xxx_hidden_Security
 	}
-	return ""
+	return nil
 }
 
 func (x *PrivateUser) GetPermissions() []string {
@@ -612,9 +747,8 @@ func (x *PrivateUser) SetSessionLive(v int32) {
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 4)
 }
 
-func (x *PrivateUser) SetEmail(v string) {
-	x.xxx_hidden_Email = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 4)
+func (x *PrivateUser) SetSecurity(v *Security) {
+	x.xxx_hidden_Security = v
 }
 
 func (x *PrivateUser) SetPermissions(v []string) {
@@ -635,11 +769,11 @@ func (x *PrivateUser) HasSessionLive() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
 }
 
-func (x *PrivateUser) HasEmail() bool {
+func (x *PrivateUser) HasSecurity() bool {
 	if x == nil {
 		return false
 	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+	return x.xxx_hidden_Security != nil
 }
 
 func (x *PrivateUser) ClearPublic() {
@@ -651,9 +785,8 @@ func (x *PrivateUser) ClearSessionLive() {
 	x.xxx_hidden_SessionLive = 0
 }
 
-func (x *PrivateUser) ClearEmail() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
-	x.xxx_hidden_Email = nil
+func (x *PrivateUser) ClearSecurity() {
+	x.xxx_hidden_Security = nil
 }
 
 type PrivateUser_builder struct {
@@ -661,7 +794,7 @@ type PrivateUser_builder struct {
 
 	Public      *PublicUser
 	SessionLive *int32
-	Email       *string
+	Security    *Security
 	Permissions []string
 }
 
@@ -674,10 +807,7 @@ func (b0 PrivateUser_builder) Build() *PrivateUser {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 4)
 		x.xxx_hidden_SessionLive = *b.SessionLive
 	}
-	if b.Email != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 4)
-		x.xxx_hidden_Email = b.Email
-	}
+	x.xxx_hidden_Security = b.Security
 	x.xxx_hidden_Permissions = b.Permissions
 	return m0
 }
@@ -696,7 +826,7 @@ type UpdatePreferencesRequest struct {
 
 func (x *UpdatePreferencesRequest) Reset() {
 	*x = UpdatePreferencesRequest{}
-	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[4]
+	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -708,7 +838,7 @@ func (x *UpdatePreferencesRequest) String() string {
 func (*UpdatePreferencesRequest) ProtoMessage() {}
 
 func (x *UpdatePreferencesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[4]
+	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -865,7 +995,7 @@ type ListResponse struct {
 
 func (x *ListResponse) Reset() {
 	*x = ListResponse{}
-	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[5]
+	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -877,7 +1007,7 @@ func (x *ListResponse) String() string {
 func (*ListResponse) ProtoMessage() {}
 
 func (x *ListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[5]
+	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -934,11 +1064,15 @@ const file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc = "" +
 	"\busername\x18\x02 \x01(\tR\busername\x122\n" +
 	"\x06joined\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x06joined\x12@\n" +
 	"\x05prefs\x18\x04 \x01(\v2*.xyz.city_ideas.v1.user.v1.UserPreferencesR\x05prefs\x127\n" +
-	"\x04rank\x18\x05 \x01(\v2#.xyz.city_ideas.v1.user.v1.UserRankR\x04rank\"\xa7\x01\n" +
+	"\x04rank\x18\x05 \x01(\v2#.xyz.city_ideas.v1.user.v1.UserRankR\x04rank\"j\n" +
+	"\bSecurity\x12\x14\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\x12%\n" +
+	"\x0eemail_verified\x18\x02 \x01(\bR\remailVerified\x12!\n" +
+	"\ftotp_enabled\x18\x03 \x01(\bR\vtotpEnabled\"\xd2\x01\n" +
 	"\vPrivateUser\x12=\n" +
 	"\x06public\x18\x01 \x01(\v2%.xyz.city_ideas.v1.user.v1.PublicUserR\x06public\x12!\n" +
-	"\fsession_live\x18\x02 \x01(\x05R\vsessionLive\x12\x14\n" +
-	"\x05email\x18\x03 \x01(\tR\x05email\x12 \n" +
+	"\fsession_live\x18\x02 \x01(\x05R\vsessionLive\x12?\n" +
+	"\bsecurity\x18\x03 \x01(\v2#.xyz.city_ideas.v1.user.v1.SecurityR\bsecurity\x12 \n" +
 	"\vpermissions\x18\x04 \x03(\tR\vpermissions\"\xac\x01\n" +
 	"\x18UpdatePreferencesRequest\x12!\n" +
 	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12 \n" +
@@ -954,29 +1088,31 @@ const file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc = "" +
 	"\x11LANGUAGES_ENGLISH\x10\x02BCZAgithub.com/aesterial/cityideas/backend/internal/api/v1/user/v1;v1b\beditionsp\xe8\a"
 
 var file_xyz_city_ideas_v1_user_v1_domain_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_xyz_city_ideas_v1_user_v1_domain_proto_goTypes = []any{
 	(Languages)(0),                   // 0: xyz.city_ideas.v1.user.v1.Languages
 	(*UserPreferences)(nil),          // 1: xyz.city_ideas.v1.user.v1.UserPreferences
 	(*UserRank)(nil),                 // 2: xyz.city_ideas.v1.user.v1.UserRank
 	(*PublicUser)(nil),               // 3: xyz.city_ideas.v1.user.v1.PublicUser
-	(*PrivateUser)(nil),              // 4: xyz.city_ideas.v1.user.v1.PrivateUser
-	(*UpdatePreferencesRequest)(nil), // 5: xyz.city_ideas.v1.user.v1.UpdatePreferencesRequest
-	(*ListResponse)(nil),             // 6: xyz.city_ideas.v1.user.v1.ListResponse
-	(*timestamppb.Timestamp)(nil),    // 7: google.protobuf.Timestamp
+	(*Security)(nil),                 // 4: xyz.city_ideas.v1.user.v1.Security
+	(*PrivateUser)(nil),              // 5: xyz.city_ideas.v1.user.v1.PrivateUser
+	(*UpdatePreferencesRequest)(nil), // 6: xyz.city_ideas.v1.user.v1.UpdatePreferencesRequest
+	(*ListResponse)(nil),             // 7: xyz.city_ideas.v1.user.v1.ListResponse
+	(*timestamppb.Timestamp)(nil),    // 8: google.protobuf.Timestamp
 }
 var file_xyz_city_ideas_v1_user_v1_domain_proto_depIdxs = []int32{
 	0, // 0: xyz.city_ideas.v1.user.v1.UserPreferences.lang:type_name -> xyz.city_ideas.v1.user.v1.Languages
-	7, // 1: xyz.city_ideas.v1.user.v1.PublicUser.joined:type_name -> google.protobuf.Timestamp
+	8, // 1: xyz.city_ideas.v1.user.v1.PublicUser.joined:type_name -> google.protobuf.Timestamp
 	1, // 2: xyz.city_ideas.v1.user.v1.PublicUser.prefs:type_name -> xyz.city_ideas.v1.user.v1.UserPreferences
 	2, // 3: xyz.city_ideas.v1.user.v1.PublicUser.rank:type_name -> xyz.city_ideas.v1.user.v1.UserRank
 	3, // 4: xyz.city_ideas.v1.user.v1.PrivateUser.public:type_name -> xyz.city_ideas.v1.user.v1.PublicUser
-	3, // 5: xyz.city_ideas.v1.user.v1.ListResponse.list:type_name -> xyz.city_ideas.v1.user.v1.PublicUser
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	4, // 5: xyz.city_ideas.v1.user.v1.PrivateUser.security:type_name -> xyz.city_ideas.v1.user.v1.Security
+	3, // 6: xyz.city_ideas.v1.user.v1.ListResponse.list:type_name -> xyz.city_ideas.v1.user.v1.PublicUser
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_xyz_city_ideas_v1_user_v1_domain_proto_init() }
@@ -990,7 +1126,7 @@ func file_xyz_city_ideas_v1_user_v1_domain_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc), len(file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   6,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

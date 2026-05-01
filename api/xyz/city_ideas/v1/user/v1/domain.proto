@@ -32,10 +32,16 @@ message PublicUser {
   UserRank rank = 5;
 }
 
+message Security {
+  string email = 1;
+  bool email_verified = 2;
+  bool totp_enabled = 3;
+}
+
 message PrivateUser {
   PublicUser public = 1;
   int32 session_live = 2;
-  string email = 3;
+  Security security = 3;
   repeated string permissions = 4;
 }
 

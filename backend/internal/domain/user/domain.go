@@ -138,7 +138,7 @@ func (u *User) PrivateProtobuf() *userpb.PrivateUser {
 	}
 	var usr = userpb.PrivateUser{}
 	usr.SetSessionLive(u.Prefs.SessionLiveTime)
-	usr.SetEmail(u.Email)
+	usr.SetSecurity(u.Security.Protobuf(u.Email))
 	usr.SetPublic(u.PublicProtobuf())
 	usr.SetPermissions(u.Permissions)
 	return &usr
@@ -217,6 +217,17 @@ type Security struct {
 	EmailVerified bool
 	TotpEnabled   bool
 	Totp          *SecurityTotp
+}
+
+func (s *Security) Protobuf(email string) *userpb.Security {
+	if s == nil {
+		return nil
+	}
+	var out = &userpb.Security{}
+	out.SetEmail(email)
+	out.SetEmailVerified(s.EmailVerified)
+	out.SetTotpEnabled(s.TotpEnabled)
+	return out
 }
 
 type RecoveryCode struct {

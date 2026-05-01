@@ -12,7 +12,7 @@ import type {Message} from "@bufbuild/protobuf";
  * Describes the file xyz/city_ideas/v1/user/v1/domain.proto.
  */
 export const file_xyz_city_ideas_v1_user_v1_domain: GenFile = /*@__PURE__*/
-    fileDesc("CiZ4eXovY2l0eV9pZGVhcy92MS91c2VyL3YxL2RvbWFpbi5wcm90bxIZeHl6LmNpdHlfaWRlYXMudjEudXNlci52MSKAAQoPVXNlclByZWZlcmVuY2VzEhMKC2Rlc2NyaXB0aW9uGAEgASgJEhQKDGRpc3BsYXlfbmFtZRgCIAEoCRIOCgZhdmF0YXIYAyABKAkSMgoEbGFuZxgEIAEoDjIkLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuTGFuZ3VhZ2VzIicKCFVzZXJSYW5rEgwKBG5hbWUYASABKAkSDQoFY29sb3IYAiABKAMixAEKClB1YmxpY1VzZXISCgoCaWQYASABKAkSEAoIdXNlcm5hbWUYAiABKAkSKgoGam9pbmVkGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI5CgVwcmVmcxgEIAEoCzIqLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuVXNlclByZWZlcmVuY2VzEjEKBHJhbmsYBSABKAsyIy54eXouY2l0eV9pZGVhcy52MS51c2VyLnYxLlVzZXJSYW5rIn4KC1ByaXZhdGVVc2VyEjUKBnB1YmxpYxgBIAEoCzIlLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuUHVibGljVXNlchIUCgxzZXNzaW9uX2xpdmUYAiABKAUSDQoFZW1haWwYAyABKAkSEwoLcGVybWlzc2lvbnMYBCADKAkidQoYVXBkYXRlUHJlZmVyZW5jZXNSZXF1ZXN0EhQKDGRpc3BsYXlfbmFtZRgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCRITCgthdmF0YXJfaGFzaBgDIAEoCRIZChFzZXNzaW9uX2xpdmVfdGltZRgEIAEoBSJDCgxMaXN0UmVzcG9uc2USMwoEbGlzdBgBIAMoCzIlLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuUHVibGljVXNlcipUCglMYW5ndWFnZXMSGQoVTEFOR1VBR0VTX1VOU1BFQ0lGSUVEEAASFQoRTEFOR1VBR0VTX1JVU1NJQU4QARIVChFMQU5HVUFHRVNfRU5HTElTSBACQkNaQWdpdGh1Yi5jb20vYWVzdGVyaWFsL2NpdHlpZGVhcy9iYWNrZW5kL2ludGVybmFsL2FwaS92MS91c2VyL3YxO3YxYghlZGl0aW9uc3DoBw", [file_google_protobuf_timestamp]);
+    fileDesc("CiZ4eXovY2l0eV9pZGVhcy92MS91c2VyL3YxL2RvbWFpbi5wcm90bxIZeHl6LmNpdHlfaWRlYXMudjEudXNlci52MSKAAQoPVXNlclByZWZlcmVuY2VzEhMKC2Rlc2NyaXB0aW9uGAEgASgJEhQKDGRpc3BsYXlfbmFtZRgCIAEoCRIOCgZhdmF0YXIYAyABKAkSMgoEbGFuZxgEIAEoDjIkLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuTGFuZ3VhZ2VzIicKCFVzZXJSYW5rEgwKBG5hbWUYASABKAkSDQoFY29sb3IYAiABKAMixAEKClB1YmxpY1VzZXISCgoCaWQYASABKAkSEAoIdXNlcm5hbWUYAiABKAkSKgoGam9pbmVkGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI5CgVwcmVmcxgEIAEoCzIqLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuVXNlclByZWZlcmVuY2VzEjEKBHJhbmsYBSABKAsyIy54eXouY2l0eV9pZGVhcy52MS51c2VyLnYxLlVzZXJSYW5rIkcKCFNlY3VyaXR5Eg0KBWVtYWlsGAEgASgJEhYKDmVtYWlsX3ZlcmlmaWVkGAIgASgIEhQKDHRvdHBfZW5hYmxlZBgDIAEoCCKmAQoLUHJpdmF0ZVVzZXISNQoGcHVibGljGAEgASgLMiUueHl6LmNpdHlfaWRlYXMudjEudXNlci52MS5QdWJsaWNVc2VyEhQKDHNlc3Npb25fbGl2ZRgCIAEoBRI1CghzZWN1cml0eRgDIAEoCzIjLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuU2VjdXJpdHkSEwoLcGVybWlzc2lvbnMYBCADKAkidQoYVXBkYXRlUHJlZmVyZW5jZXNSZXF1ZXN0EhQKDGRpc3BsYXlfbmFtZRgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCRITCgthdmF0YXJfaGFzaBgDIAEoCRIZChFzZXNzaW9uX2xpdmVfdGltZRgEIAEoBSJDCgxMaXN0UmVzcG9uc2USMwoEbGlzdBgBIAMoCzIlLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuUHVibGljVXNlcipUCglMYW5ndWFnZXMSGQoVTEFOR1VBR0VTX1VOU1BFQ0lGSUVEEAASFQoRTEFOR1VBR0VTX1JVU1NJQU4QARIVChFMQU5HVUFHRVNfRU5HTElTSBACQkNaQWdpdGh1Yi5jb20vYWVzdGVyaWFsL2NpdHlpZGVhcy9iYWNrZW5kL2ludGVybmFsL2FwaS92MS91c2VyL3YxO3YxYghlZGl0aW9uc3DoBw", [file_google_protobuf_timestamp]);
 
 /**
  * @generated from message xyz.city_ideas.v1.user.v1.UserPreferences
@@ -106,6 +106,33 @@ export const PublicUserSchema: GenMessage<PublicUser> = /*@__PURE__*/
   messageDesc(file_xyz_city_ideas_v1_user_v1_domain, 2);
 
 /**
+ * @generated from message xyz.city_ideas.v1.user.v1.Security
+ */
+export type Security = Message<"xyz.city_ideas.v1.user.v1.Security"> & {
+    /**
+     * @generated from field: string email = 1;
+     */
+    email: string;
+
+    /**
+     * @generated from field: bool email_verified = 2;
+     */
+    emailVerified: boolean;
+
+    /**
+     * @generated from field: bool totp_enabled = 3;
+     */
+    totpEnabled: boolean;
+};
+
+/**
+ * Describes the message xyz.city_ideas.v1.user.v1.Security.
+ * Use `create(SecuritySchema)` to create a new message.
+ */
+export const SecuritySchema: GenMessage<Security> = /*@__PURE__*/
+    messageDesc(file_xyz_city_ideas_v1_user_v1_domain, 3);
+
+/**
  * @generated from message xyz.city_ideas.v1.user.v1.PrivateUser
  */
 export type PrivateUser = Message<"xyz.city_ideas.v1.user.v1.PrivateUser"> & {
@@ -120,9 +147,9 @@ export type PrivateUser = Message<"xyz.city_ideas.v1.user.v1.PrivateUser"> & {
   sessionLive: number;
 
   /**
-   * @generated from field: string email = 3;
+   * @generated from field: xyz.city_ideas.v1.user.v1.Security security = 3;
    */
-  email: string;
+  security?: Security | undefined;
 
   /**
    * @generated from field: repeated string permissions = 4;
@@ -135,7 +162,7 @@ export type PrivateUser = Message<"xyz.city_ideas.v1.user.v1.PrivateUser"> & {
  * Use `create(PrivateUserSchema)` to create a new message.
  */
 export const PrivateUserSchema: GenMessage<PrivateUser> = /*@__PURE__*/
-  messageDesc(file_xyz_city_ideas_v1_user_v1_domain, 3);
+    messageDesc(file_xyz_city_ideas_v1_user_v1_domain, 4);
 
 /**
  * @generated from message xyz.city_ideas.v1.user.v1.UpdatePreferencesRequest
@@ -167,7 +194,7 @@ export type UpdatePreferencesRequest = Message<"xyz.city_ideas.v1.user.v1.Update
  * Use `create(UpdatePreferencesRequestSchema)` to create a new message.
  */
 export const UpdatePreferencesRequestSchema: GenMessage<UpdatePreferencesRequest> = /*@__PURE__*/
-  messageDesc(file_xyz_city_ideas_v1_user_v1_domain, 4);
+    messageDesc(file_xyz_city_ideas_v1_user_v1_domain, 5);
 
 /**
  * @generated from message xyz.city_ideas.v1.user.v1.ListResponse
@@ -184,7 +211,7 @@ export type ListResponse = Message<"xyz.city_ideas.v1.user.v1.ListResponse"> & {
  * Use `create(ListResponseSchema)` to create a new message.
  */
 export const ListResponseSchema: GenMessage<ListResponse> = /*@__PURE__*/
-  messageDesc(file_xyz_city_ideas_v1_user_v1_domain, 5);
+    messageDesc(file_xyz_city_ideas_v1_user_v1_domain, 6);
 
 /**
  * @generated from enum xyz.city_ideas.v1.user.v1.Languages
