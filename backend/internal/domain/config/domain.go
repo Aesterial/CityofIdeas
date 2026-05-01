@@ -56,9 +56,10 @@ type Cookie struct {
 }
 
 type Email struct {
-	API    string
-	Name   string
-	Domain string
+	Enabled bool
+	API     string
+	Name    string
+	Domain  string
 }
 
 type Config struct {

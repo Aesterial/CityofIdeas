@@ -56,7 +56,7 @@ func (*Logger) shouldSkip(fields loggerdomain.Fields, ignored ...loggerdomain.Fi
 }
 
 func (l *Logger) log(level loggerdomain.Level, service string, content string, fields loggerdomain.Fields) {
-	if l.shouldSkip(fields, F("error", errors.NotFound), F("error", pgx.ErrNoRows)) {
+	if l.shouldSkip(fields, F("error", errors.NotFound), F("error", pgx.ErrNoRows), F("error", errors.Conflict)) {
 		return
 	}
 	l.logger.Println(loggerdomain.NewEntry(service, content, level, time.Now(), fields).Render())

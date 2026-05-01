@@ -108,6 +108,9 @@ func (s *Service) sendWelcomeEmail(ctx context.Context, user emaildomain.UserInf
 }
 
 func (s *Service) SendWelcomeEmail(user emaildomain.UserInfo, data emaildomain.Welcome) {
+	if !config.Get().Email.Enabled {
+		return
+	}
 	s.sendInBackground("welcome", user, func(ctx context.Context) error {
 		return s.sendWelcomeEmail(ctx, user, data)
 	})
@@ -129,6 +132,9 @@ func (s *Service) sendLoginNotificationEmail(ctx context.Context, user emaildoma
 }
 
 func (s *Service) SendLoginNotificationEmail(user emaildomain.UserInfo, data emaildomain.LoginNotification) {
+	if !config.Get().Email.Enabled {
+		return
+	}
 	s.sendInBackground("login_notification", user, func(ctx context.Context) error {
 		return s.sendLoginNotificationEmail(ctx, user, data, user.Language)
 	})
@@ -149,6 +155,9 @@ func (s *Service) sendTicketCreateEmail(ctx context.Context, user emaildomain.Us
 }
 
 func (s *Service) SendTicketCreateEmail(author domain.UUID, data emaildomain.TicketCreation) {
+	if !config.Get().Email.Enabled {
+		return
+	}
 	s.sendInBackground("ticket_creation", emaildomain.UserInfo{}, func(ctx context.Context) error {
 		user, err := s.userInfo(ctx, author)
 		if err != nil {
@@ -173,6 +182,9 @@ func (s *Service) sendTicketReplyEmail(ctx context.Context, user emaildomain.Use
 }
 
 func (s *Service) SendTicketReplyEmail(admin domain.UUID, user domain.UUID, data emaildomain.TicketReply) {
+	if !config.Get().Email.Enabled {
+		return
+	}
 	s.sendInBackground("ticket_reply", emaildomain.UserInfo{}, func(ctx context.Context) error {
 		adm, err := s.userInfo(ctx, admin)
 		if err != nil {
