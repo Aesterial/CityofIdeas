@@ -62,7 +62,7 @@ export const translations: Translations = {
     KZ: "Ең танымал идеялар",
   },
   vote: {
-    RU: "Голосовать",
+    RU: "Голосов",
     EN: "Vote",
     KZ: "Дауыс беру",
   },
