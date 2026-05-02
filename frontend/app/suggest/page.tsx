@@ -355,20 +355,8 @@ export default function SuggestPage() {
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(580px_circle_at_10%_0%,hsl(var(--foreground)/0.12),transparent_48%)]" />
             <div className="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
               <div className="max-w-4xl">
-                <Badge
-                  variant="outline"
-                  className="rounded-full bg-card/70 px-3 py-1 text-[10px] uppercase tracking-[0.24em]"
-                >
-                  <MapPin className="h-3.5 w-3.5" />
-                  {selectedCity}
-                </Badge>
                 <h1 className="mt-4 max-w-4xl text-[clamp(2.75rem,5vw,5.6rem)] font-semibold leading-[0.92] tracking-[-0.055em]">
                   {heroLead[language]}{" "}
-                  <span
-                    className="mx-2 inline-block h-[0.52em] w-[1.2em] rounded-full align-middle bg-cover bg-center grayscale contrast-125"
-                    style={{ backgroundImage: "url(https://picsum.photos/seed/city-idea-form/320/180)" }}
-                    aria-hidden="true"
-                  />
                   <TextMorph
                     words={heroWords[language]}
                     className="inline-flex text-foreground"
