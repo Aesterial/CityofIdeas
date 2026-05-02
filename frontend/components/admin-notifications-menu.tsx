@@ -72,24 +72,6 @@ export function AdminNotificationsMenu({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className={cn(
-            "relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background text-foreground transition-all duration-300 hover:bg-foreground hover:text-background",
-            className,
-          )}
-          aria-label={t("notificationsTitle")}
-          title={t("notificationsTitle")}
-        >
-          <Bell className="h-4 w-4" />
-          {unreadCount > 0 ? (
-            <span className="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-foreground px-1.5 py-0.5 text-[10px] font-semibold text-background">
-              {unreadBadge}
-            </span>
-          ) : null}
-        </button>
-      </DropdownMenuTrigger>
       <DropdownMenuContent
         align={align}
         className="w-80 overflow-hidden p-0 shadow-none"
