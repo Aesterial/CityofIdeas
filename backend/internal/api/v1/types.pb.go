@@ -145,6 +145,84 @@ func (b0 RequestWithValue_builder) Build() *RequestWithValue {
 	return m0
 }
 
+type ResponseWithValue struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Value       *string                `protobuf:"bytes,1,opt,name=value"`
+	XXX_raceDetectHookData protoimpl.RaceDetectHookData
+	XXX_presence           [1]uint32
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *ResponseWithValue) Reset() {
+	*x = ResponseWithValue{}
+	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResponseWithValue) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResponseWithValue) ProtoMessage() {}
+
+func (x *ResponseWithValue) ProtoReflect() protoreflect.Message {
+	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *ResponseWithValue) GetValue() string {
+	if x != nil {
+		if x.xxx_hidden_Value != nil {
+			return *x.xxx_hidden_Value
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *ResponseWithValue) SetValue(v string) {
+	x.xxx_hidden_Value = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 1)
+}
+
+func (x *ResponseWithValue) HasValue() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *ResponseWithValue) ClearValue() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_Value = nil
+}
+
+type ResponseWithValue_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	Value *string
+}
+
+func (b0 ResponseWithValue_builder) Build() *ResponseWithValue {
+	m0 := &ResponseWithValue{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Value != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 1)
+		x.xxx_hidden_Value = b.Value
+	}
+	return m0
+}
+
 type RequestWithValues struct {
 	state             protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Values []string               `protobuf:"bytes,1,rep,name=values"`
@@ -154,7 +232,7 @@ type RequestWithValues struct {
 
 func (x *RequestWithValues) Reset() {
 	*x = RequestWithValues{}
-	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[1]
+	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -166,7 +244,7 @@ func (x *RequestWithValues) String() string {
 func (*RequestWithValues) ProtoMessage() {}
 
 func (x *RequestWithValues) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[1]
+	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -214,7 +292,7 @@ type RequestWithLimitAndOffset struct {
 
 func (x *RequestWithLimitAndOffset) Reset() {
 	*x = RequestWithLimitAndOffset{}
-	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[2]
+	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -226,7 +304,7 @@ func (x *RequestWithLimitAndOffset) String() string {
 func (*RequestWithLimitAndOffset) ProtoMessage() {}
 
 func (x *RequestWithLimitAndOffset) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[2]
+	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -320,7 +398,7 @@ type RequestWithLimitAndOffsetAndValue struct {
 
 func (x *RequestWithLimitAndOffsetAndValue) Reset() {
 	*x = RequestWithLimitAndOffsetAndValue{}
-	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[3]
+	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -332,7 +410,7 @@ func (x *RequestWithLimitAndOffsetAndValue) String() string {
 func (*RequestWithLimitAndOffsetAndValue) ProtoMessage() {}
 
 func (x *RequestWithLimitAndOffsetAndValue) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[3]
+	mi := &file_xyz_city_ideas_v1_types_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -451,6 +529,8 @@ const file_xyz_city_ideas_v1_types_proto_rawDesc = "" +
 	"\n" +
 	"\x1dxyz/city_ideas/v1/types.proto\x12\x11xyz.city_ideas.v1\"(\n" +
 	"\x10RequestWithValue\x12\x14\n" +
+	"\x05value\x18\x01 \x01(\tR\x05value\")\n" +
+	"\x11ResponseWithValue\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\tR\x05value\"+\n" +
 	"\x11RequestWithValues\x12\x16\n" +
 	"\x06values\x18\x01 \x03(\tR\x06values\"I\n" +
@@ -468,13 +548,14 @@ const file_xyz_city_ideas_v1_types_proto_rawDesc = "" +
 	"\rDEVICE_TABLET\x10\x03B;Z9github.com/aesterial/cityideas/backend/internal/api/v1;v1b\beditionsp\xe8\a"
 
 var file_xyz_city_ideas_v1_types_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_xyz_city_ideas_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_xyz_city_ideas_v1_types_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_xyz_city_ideas_v1_types_proto_goTypes = []any{
 	(Device)(0),                               // 0: xyz.city_ideas.v1.Device
 	(*RequestWithValue)(nil),                  // 1: xyz.city_ideas.v1.RequestWithValue
-	(*RequestWithValues)(nil),                 // 2: xyz.city_ideas.v1.RequestWithValues
-	(*RequestWithLimitAndOffset)(nil),         // 3: xyz.city_ideas.v1.RequestWithLimitAndOffset
-	(*RequestWithLimitAndOffsetAndValue)(nil), // 4: xyz.city_ideas.v1.RequestWithLimitAndOffsetAndValue
+	(*ResponseWithValue)(nil),                 // 2: xyz.city_ideas.v1.ResponseWithValue
+	(*RequestWithValues)(nil),                 // 3: xyz.city_ideas.v1.RequestWithValues
+	(*RequestWithLimitAndOffset)(nil),         // 4: xyz.city_ideas.v1.RequestWithLimitAndOffset
+	(*RequestWithLimitAndOffsetAndValue)(nil), // 5: xyz.city_ideas.v1.RequestWithLimitAndOffsetAndValue
 }
 var file_xyz_city_ideas_v1_types_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -495,7 +576,7 @@ func file_xyz_city_ideas_v1_types_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_xyz_city_ideas_v1_types_proto_rawDesc), len(file_xyz_city_ideas_v1_types_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   4,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

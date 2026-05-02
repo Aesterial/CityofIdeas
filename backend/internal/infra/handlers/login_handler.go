@@ -117,7 +117,7 @@ func (h *LoginHandler) CheckTotp(ctx context.Context, req *typespb.RequestWithVa
 	if err := h.isRequestValid(req); err != nil {
 		return nil, err
 	}
-	meta, err := h.auth.User(ctx)
+	meta, err := h.auth.User(ctx, true)
 	if err != nil {
 		return nil, err
 	}

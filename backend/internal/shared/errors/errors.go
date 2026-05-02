@@ -104,12 +104,10 @@ var (
 	InvalidArguments = T{st: status.New(codes.InvalidArgument, "invalid arguments"), content: "some argument missing"}
 	Conflict         = T{st: status.New(codes.AlreadyExists, "data collides with exists one"), content: "conflict error"}
 	ServerError      = T{st: status.New(codes.Internal, "server error while progress"), content: "server error appeared"}
-	NotConfigured    = T{st: status.New(codes.Unimplemented, "server error while progress"), content: "service not configured"}
 	AccessDenied     = T{st: status.New(codes.PermissionDenied, "denied"), content: "permissions denied"}
 	Unauthenticated  = T{st: status.New(codes.Unauthenticated, "failed to authorize"), content: "user unauthenticated"}
 	DataExpired      = T{st: status.New(codes.DeadlineExceeded, "passed data expired"), content: "accepted data expired"}
-	NotImplemented   = T{st: status.New(codes.Unimplemented, "not implemented"), content: "not implemented"}
 	Unavailable      = T{st: status.New(codes.Unavailable, "unavailable"), content: "service unavailable"}
 	Banned           = T{st: status.New(codes.PermissionDenied, "user is banned"), content: "user is banned"}
-	NeedVerify       = T{st: status.New(codes.PermissionDenied, "mfa required"), content: "mfa required"}
+	NeedVerify       = T{st: status.New(codes.Unauthenticated, "mfa required"), content: "mfa required"}
 )

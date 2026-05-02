@@ -53,6 +53,7 @@ type Querier interface {
 	IsProjectExists(ctx context.Context, id pgtype.UUID) (bool, error)
 	IsProjectLikeExists(ctx context.Context, arg IsProjectLikeExistsParams) (bool, error)
 	IsRankExists(ctx context.Context, name string) (bool, error)
+	IsSessionCompleteMFA(ctx context.Context, id pgtype.UUID) (pgtype.Bool, error)
 	IsSessionValid(ctx context.Context, arg IsSessionValidParams) (pgtype.Bool, error)
 	IsSubmissionReviewed(ctx context.Context, linked pgtype.UUID) (bool, error)
 	IsTicketAccepted(ctx context.Context, id pgtype.UUID) (bool, error)

@@ -16,21 +16,32 @@ import (
 )
 
 type Service struct {
-	from   *gridmail.Email
-	client *sendgrid.Client
-	users  userdomain.Repository
-	mu     sync.Mutex
+	from    *gridmail.Email
+	client  *sendgrid.Client
+	users   userdomain.Repository
+	enabled bool
+	mu      sync.Mutex
 }
 
 func NewService(users userdomain.Repository) *Service {
-	return &Service{
-		client: sendgrid.NewSendClient(config.Get().Email.API),
-		from:   gridmail.NewEmail(config.Get().Email.Name, config.Get().Email.Domain),
-		users:  users,
+	cfg := config.Get()
+	service := &Service{
+		users:   users,
+		enabled: cfg.Email.Enabled,
 	}
+	if !service.enabled {
+		return service
+	}
+	service.client = sendgrid.NewSendClient(cfg.Email.API)
+	service.from = gridmail.NewEmail(cfg.Email.Name, cfg.Email.Domain)
+	return service
 }
 
 func (s *Service) send(ctx context.Context, userName string, userAddress string, subject string, plainText string, htmlText string) (int, error) {
+	if s == nil || !s.enabled || s.client == nil || s.from == nil {
+		return 0, fmt.Errorf("email service is not configured")
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -45,6 +56,10 @@ func (s *Service) send(ctx context.Context, userName string, userAddress string,
 		return resp.StatusCode, fmt.Errorf("sendgrid rejected email: status=%d body=%s", resp.StatusCode, resp.Body)
 	}
 	return resp.StatusCode, nil
+}
+
+func (s *Service) isEnabled() bool {
+	return s != nil && s.enabled
 }
 
 func (s *Service) sendInBackground(kind string, user emaildomain.UserInfo, fn func(context.Context) error) {
@@ -108,7 +123,7 @@ func (s *Service) sendWelcomeEmail(ctx context.Context, user emaildomain.UserInf
 }
 
 func (s *Service) SendWelcomeEmail(user emaildomain.UserInfo, data emaildomain.Welcome) {
-	if !config.Get().Email.Enabled {
+	if !s.isEnabled() {
 		return
 	}
 	s.sendInBackground("welcome", user, func(ctx context.Context) error {
@@ -132,7 +147,7 @@ func (s *Service) sendLoginNotificationEmail(ctx context.Context, user emaildoma
 }
 
 func (s *Service) SendLoginNotificationEmail(user emaildomain.UserInfo, data emaildomain.LoginNotification) {
-	if !config.Get().Email.Enabled {
+	if !s.isEnabled() {
 		return
 	}
 	s.sendInBackground("login_notification", user, func(ctx context.Context) error {
@@ -155,7 +170,7 @@ func (s *Service) sendTicketCreateEmail(ctx context.Context, user emaildomain.Us
 }
 
 func (s *Service) SendTicketCreateEmail(author domain.UUID, data emaildomain.TicketCreation) {
-	if !config.Get().Email.Enabled {
+	if !s.isEnabled() {
 		return
 	}
 	s.sendInBackground("ticket_creation", emaildomain.UserInfo{}, func(ctx context.Context) error {
@@ -182,7 +197,7 @@ func (s *Service) sendTicketReplyEmail(ctx context.Context, user emaildomain.Use
 }
 
 func (s *Service) SendTicketReplyEmail(admin domain.UUID, user domain.UUID, data emaildomain.TicketReply) {
-	if !config.Get().Email.Enabled {
+	if !s.isEnabled() {
 		return
 	}
 	s.sendInBackground("ticket_reply", emaildomain.UserInfo{}, func(ctx context.Context) error {

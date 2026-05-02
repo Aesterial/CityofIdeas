@@ -2,27 +2,20 @@
 // @generated from file xyz/city_ideas/v1/login/v1/service.proto (package xyz.city_ideas.v1.login.v1, edition 2023)
 /* eslint-disable */
 
-import type {GenFile, GenService} from "@bufbuild/protobuf/codegenv2";
-import {fileDesc, serviceDesc} from "@bufbuild/protobuf/codegenv2";
-import type {EmptySchema} from "@bufbuild/protobuf/wkt";
-import {file_google_protobuf_empty} from "@bufbuild/protobuf/wkt";
-import type {
-    AuthorizeRequestSchema,
-    ConfirmTotpResponseSchema,
-    CreateTotpResponseSchema,
-    LoginResponseSchema,
-    RegisterRequestSchema,
-    ResetTotpRequestSchema
-} from "./domain_pb";
-import {file_xyz_city_ideas_v1_login_v1_domain} from "./domain_pb";
-import type {RequestWithValueSchema} from "../../types_pb";
-import {file_xyz_city_ideas_v1_types} from "../../types_pb";
+import type { GenFile, GenService } from "@bufbuild/protobuf/codegenv2";
+import { fileDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { EmptySchema } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_empty } from "@bufbuild/protobuf/wkt";
+import type { AuthorizeRequestSchema, ConfirmTotpResponseSchema, CreateTotpResponseSchema, LoginResponseSchema, RegisterRequestSchema, ResetTotpRequestSchema } from "./domain_pb";
+import { file_xyz_city_ideas_v1_login_v1_domain } from "./domain_pb";
+import type { RequestWithValueSchema } from "../../types_pb";
+import { file_xyz_city_ideas_v1_types } from "../../types_pb";
 
 /**
  * Describes the file xyz/city_ideas/v1/login/v1/service.proto.
  */
 export const file_xyz_city_ideas_v1_login_v1_service: GenFile = /*@__PURE__*/
-    fileDesc("Cih4eXovY2l0eV9pZGVhcy92MS9sb2dpbi92MS9zZXJ2aWNlLnByb3RvEhp4eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MTLqBAoMTG9naW5TZXJ2aWNlEmIKCFJlZ2lzdGVyEisueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuUmVnaXN0ZXJSZXF1ZXN0GikueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuTG9naW5SZXNwb25zZRJkCglBdXRob3JpemUSLC54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5BdXRob3JpemVSZXF1ZXN0GikueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuTG9naW5SZXNwb25zZRI4CgZMb2dvdXQSFi5nb29nbGUucHJvdG9idWYuRW1wdHkaFi5nb29nbGUucHJvdG9idWYuRW1wdHkSVAoKQ3JlYXRlVG90cBIWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eRouLnh5ei5jaXR5X2lkZWFzLnYxLmxvZ2luLnYxLkNyZWF0ZVRvdHBSZXNwb25zZRJjCgtDb25maXJtVG90cBIjLnh5ei5jaXR5X2lkZWFzLnYxLlJlcXVlc3RXaXRoVmFsdWUaLy54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5Db25maXJtVG90cFJlc3BvbnNlEkgKCUNoZWNrVG90cBIjLnh5ei5jaXR5X2lkZWFzLnYxLlJlcXVlc3RXaXRoVmFsdWUaFi5nb29nbGUucHJvdG9idWYuRW1wdHkSUQoJUmVzZXRUb3RwEiwueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuUmVzZXRUb3RwUmVxdWVzdBoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eUJEWkJnaXRodWIuY29tL2Flc3RlcmlhbC9jaXR5aWRlYXMvYmFja2VuZC9pbnRlcm5hbC9hcGkvdjEvbG9naW4vdjE7djFiCGVkaXRpb25zcOgH", [file_google_protobuf_empty, file_xyz_city_ideas_v1_login_v1_domain, file_xyz_city_ideas_v1_types]);
+  fileDesc("Cih4eXovY2l0eV9pZGVhcy92MS9sb2dpbi92MS9zZXJ2aWNlLnByb3RvEhp4eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MTLqBAoMTG9naW5TZXJ2aWNlEmIKCFJlZ2lzdGVyEisueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuUmVnaXN0ZXJSZXF1ZXN0GikueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuTG9naW5SZXNwb25zZRJkCglBdXRob3JpemUSLC54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5BdXRob3JpemVSZXF1ZXN0GikueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuTG9naW5SZXNwb25zZRI4CgZMb2dvdXQSFi5nb29nbGUucHJvdG9idWYuRW1wdHkaFi5nb29nbGUucHJvdG9idWYuRW1wdHkSVAoKQ3JlYXRlVG90cBIWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eRouLnh5ei5jaXR5X2lkZWFzLnYxLmxvZ2luLnYxLkNyZWF0ZVRvdHBSZXNwb25zZRJjCgtDb25maXJtVG90cBIjLnh5ei5jaXR5X2lkZWFzLnYxLlJlcXVlc3RXaXRoVmFsdWUaLy54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5Db25maXJtVG90cFJlc3BvbnNlEkgKCUNoZWNrVG90cBIjLnh5ei5jaXR5X2lkZWFzLnYxLlJlcXVlc3RXaXRoVmFsdWUaFi5nb29nbGUucHJvdG9idWYuRW1wdHkSUQoJUmVzZXRUb3RwEiwueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuUmVzZXRUb3RwUmVxdWVzdBoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eUJEWkJnaXRodWIuY29tL2Flc3RlcmlhbC9jaXR5aWRlYXMvYmFja2VuZC9pbnRlcm5hbC9hcGkvdjEvbG9naW4vdjE7djFiCGVkaXRpb25zcOgH", [file_google_protobuf_empty, file_xyz_city_ideas_v1_login_v1_domain, file_xyz_city_ideas_v1_types]);
 
 /**
  * @generated from service xyz.city_ideas.v1.login.v1.LoginService
@@ -52,37 +45,37 @@ export const LoginService: GenService<{
     input: typeof EmptySchema;
     output: typeof EmptySchema;
   },
-    /**
-     * @generated from rpc xyz.city_ideas.v1.login.v1.LoginService.CreateTotp
-     */
-    createTotp: {
-        methodKind: "unary";
-        input: typeof EmptySchema;
-        output: typeof CreateTotpResponseSchema;
-    },
-    /**
-     * @generated from rpc xyz.city_ideas.v1.login.v1.LoginService.ConfirmTotp
-     */
-    confirmTotp: {
-        methodKind: "unary";
-        input: typeof RequestWithValueSchema;
-        output: typeof ConfirmTotpResponseSchema;
-    },
-    /**
-     * @generated from rpc xyz.city_ideas.v1.login.v1.LoginService.CheckTotp
-     */
-    checkTotp: {
-        methodKind: "unary";
-        input: typeof RequestWithValueSchema;
-        output: typeof EmptySchema;
-    },
-    /**
-     * @generated from rpc xyz.city_ideas.v1.login.v1.LoginService.ResetTotp
-     */
-    resetTotp: {
-        methodKind: "unary";
-        input: typeof ResetTotpRequestSchema;
-        output: typeof EmptySchema;
+  /**
+   * @generated from rpc xyz.city_ideas.v1.login.v1.LoginService.CreateTotp
+   */
+  createTotp: {
+    methodKind: "unary";
+    input: typeof EmptySchema;
+    output: typeof CreateTotpResponseSchema;
+  },
+  /**
+   * @generated from rpc xyz.city_ideas.v1.login.v1.LoginService.ConfirmTotp
+   */
+  confirmTotp: {
+    methodKind: "unary";
+    input: typeof RequestWithValueSchema;
+    output: typeof ConfirmTotpResponseSchema;
+  },
+  /**
+   * @generated from rpc xyz.city_ideas.v1.login.v1.LoginService.CheckTotp
+   */
+  checkTotp: {
+    methodKind: "unary";
+    input: typeof RequestWithValueSchema;
+    output: typeof EmptySchema;
+  },
+  /**
+   * @generated from rpc xyz.city_ideas.v1.login.v1.LoginService.ResetTotp
+   */
+  resetTotp: {
+    methodKind: "unary";
+    input: typeof ResetTotpRequestSchema;
+    output: typeof EmptySchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_xyz_city_ideas_v1_login_v1_service, 0);

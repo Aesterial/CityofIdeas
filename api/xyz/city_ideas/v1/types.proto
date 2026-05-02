@@ -8,6 +8,10 @@ message RequestWithValue {
   string value = 1;
 }
 
+message ResponseWithValue {
+  string value = 1;
+}
+
 message RequestWithValues {
   repeated string values = 1;
 }

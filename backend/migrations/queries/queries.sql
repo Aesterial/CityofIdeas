@@ -127,6 +127,9 @@ update sessions set expires = now() where id = $1;
 -- name: IsSessionValid :one
 select expires > now() and device = $1 and hash = $2 from sessions where id = $3;
 
+-- name: IsSessionCompleteMFA :one
+select not (users_security.totp_enabled is true and sessions.mfa is not true) from sessions join users_security on users_security.owner = sessions.owner where sessions.id = $1;
+
 -- name: ExtendSession :exec
 update sessions set expires = expires + $1 where id = $2;
 

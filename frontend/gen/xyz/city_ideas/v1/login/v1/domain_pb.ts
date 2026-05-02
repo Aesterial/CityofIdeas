@@ -2,17 +2,17 @@
 // @generated from file xyz/city_ideas/v1/login/v1/domain.proto (package xyz.city_ideas.v1.login.v1, edition 2023)
 /* eslint-disable */
 
-import type {GenEnum, GenFile, GenMessage} from "@bufbuild/protobuf/codegenv2";
-import {enumDesc, fileDesc, messageDesc} from "@bufbuild/protobuf/codegenv2";
-import type {PrivateUser} from "../../user/v1/domain_pb";
-import {file_xyz_city_ideas_v1_user_v1_domain} from "../../user/v1/domain_pb";
-import type {Message} from "@bufbuild/protobuf";
+import type { GenEnum, GenFile, GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { enumDesc, fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv2";
+import type { PrivateUser } from "../../user/v1/domain_pb";
+import { file_xyz_city_ideas_v1_user_v1_domain } from "../../user/v1/domain_pb";
+import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file xyz/city_ideas/v1/login/v1/domain.proto.
  */
 export const file_xyz_city_ideas_v1_login_v1_domain: GenFile = /*@__PURE__*/
-    fileDesc("Cid4eXovY2l0eV9pZGVhcy92MS9sb2dpbi92MS9kb21haW4ucHJvdG8SGnh5ei5jaXR5X2lkZWFzLnYxLmxvZ2luLnYxIkQKD1JlZ2lzdGVyUmVxdWVzdBIQCgh1c2VybmFtZRgBIAEoCRINCgVlbWFpbBgCIAEoCRIQCghwYXNzd29yZBgDIAEoCSI3ChBBdXRob3JpemVSZXF1ZXN0EhEKCXVzZXJfbWFpbBgBIAEoCRIQCghwYXNzd29yZBgCIAEoCSJFCg1Mb2dpblJlc3BvbnNlEjQKBGluZm8YASABKAsyJi54eXouY2l0eV9pZGVhcy52MS51c2VyLnYxLlByaXZhdGVVc2VyIi0KEkNyZWF0ZVRvdHBSZXNwb25zZRIKCgJxchgBIAEoCRILCgN1cmwYAiABKAkiJAoTQ29uZmlybVRvdHBSZXNwb25zZRINCgVjb2RlcxgBIAMoCSJRChBSZXNldFRvdHBSZXF1ZXN0Ei8KBGtpbmQYASABKA4yIS54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5SZXNldBIMCgRjb2RlGAIgASgJKkMKBVJlc2V0EhUKEVJFU0VUX1VOU1BFQ0lGSUVEEAASDwoLUkVTRVRfRU1BSUwQARISCg5SRVNFVF9SRUNPVkVSWRACQkRaQmdpdGh1Yi5jb20vYWVzdGVyaWFsL2NpdHlpZGVhcy9iYWNrZW5kL2ludGVybmFsL2FwaS92MS9sb2dpbi92MTt2MWIIZWRpdGlvbnNw6Ac", [file_xyz_city_ideas_v1_user_v1_domain]);
+  fileDesc("Cid4eXovY2l0eV9pZGVhcy92MS9sb2dpbi92MS9kb21haW4ucHJvdG8SGnh5ei5jaXR5X2lkZWFzLnYxLmxvZ2luLnYxIkQKD1JlZ2lzdGVyUmVxdWVzdBIQCgh1c2VybmFtZRgBIAEoCRINCgVlbWFpbBgCIAEoCRIQCghwYXNzd29yZBgDIAEoCSI3ChBBdXRob3JpemVSZXF1ZXN0EhEKCXVzZXJfbWFpbBgBIAEoCRIQCghwYXNzd29yZBgCIAEoCSJFCg1Mb2dpblJlc3BvbnNlEjQKBGluZm8YASABKAsyJi54eXouY2l0eV9pZGVhcy52MS51c2VyLnYxLlByaXZhdGVVc2VyIi0KEkNyZWF0ZVRvdHBSZXNwb25zZRIKCgJxchgBIAEoCRILCgN1cmwYAiABKAkiJAoTQ29uZmlybVRvdHBSZXNwb25zZRINCgVjb2RlcxgBIAMoCSJRChBSZXNldFRvdHBSZXF1ZXN0Ei8KBGtpbmQYASABKA4yIS54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5SZXNldBIMCgRjb2RlGAIgASgJKkMKBVJlc2V0EhUKEVJFU0VUX1VOU1BFQ0lGSUVEEAASDwoLUkVTRVRfRU1BSUwQARISCg5SRVNFVF9SRUNPVkVSWRACQkRaQmdpdGh1Yi5jb20vYWVzdGVyaWFsL2NpdHlpZGVhcy9iYWNrZW5kL2ludGVybmFsL2FwaS92MS9sb2dpbi92MTt2MWIIZWRpdGlvbnNw6Ac", [file_xyz_city_ideas_v1_user_v1_domain]);
 
 /**
  * @generated from message xyz.city_ideas.v1.login.v1.RegisterRequest
@@ -84,15 +84,15 @@ export const LoginResponseSchema: GenMessage<LoginResponse> = /*@__PURE__*/
  * @generated from message xyz.city_ideas.v1.login.v1.CreateTotpResponse
  */
 export type CreateTotpResponse = Message<"xyz.city_ideas.v1.login.v1.CreateTotpResponse"> & {
-    /**
-     * @generated from field: string qr = 1;
-     */
-    qr: string;
+  /**
+   * @generated from field: string qr = 1;
+   */
+  qr: string;
 
-    /**
-     * @generated from field: string url = 2;
-     */
-    url: string;
+  /**
+   * @generated from field: string url = 2;
+   */
+  url: string;
 };
 
 /**
@@ -100,16 +100,16 @@ export type CreateTotpResponse = Message<"xyz.city_ideas.v1.login.v1.CreateTotpR
  * Use `create(CreateTotpResponseSchema)` to create a new message.
  */
 export const CreateTotpResponseSchema: GenMessage<CreateTotpResponse> = /*@__PURE__*/
-    messageDesc(file_xyz_city_ideas_v1_login_v1_domain, 3);
+  messageDesc(file_xyz_city_ideas_v1_login_v1_domain, 3);
 
 /**
  * @generated from message xyz.city_ideas.v1.login.v1.ConfirmTotpResponse
  */
 export type ConfirmTotpResponse = Message<"xyz.city_ideas.v1.login.v1.ConfirmTotpResponse"> & {
-    /**
-     * @generated from field: repeated string codes = 1;
-     */
-    codes: string[];
+  /**
+   * @generated from field: repeated string codes = 1;
+   */
+  codes: string[];
 };
 
 /**
@@ -117,21 +117,21 @@ export type ConfirmTotpResponse = Message<"xyz.city_ideas.v1.login.v1.ConfirmTot
  * Use `create(ConfirmTotpResponseSchema)` to create a new message.
  */
 export const ConfirmTotpResponseSchema: GenMessage<ConfirmTotpResponse> = /*@__PURE__*/
-    messageDesc(file_xyz_city_ideas_v1_login_v1_domain, 4);
+  messageDesc(file_xyz_city_ideas_v1_login_v1_domain, 4);
 
 /**
  * @generated from message xyz.city_ideas.v1.login.v1.ResetTotpRequest
  */
 export type ResetTotpRequest = Message<"xyz.city_ideas.v1.login.v1.ResetTotpRequest"> & {
-    /**
-     * @generated from field: xyz.city_ideas.v1.login.v1.Reset kind = 1;
-     */
-    kind: Reset;
+  /**
+   * @generated from field: xyz.city_ideas.v1.login.v1.Reset kind = 1;
+   */
+  kind: Reset;
 
-    /**
-     * @generated from field: string code = 2;
-     */
-    code: string;
+  /**
+   * @generated from field: string code = 2;
+   */
+  code: string;
 };
 
 /**
@@ -139,31 +139,31 @@ export type ResetTotpRequest = Message<"xyz.city_ideas.v1.login.v1.ResetTotpRequ
  * Use `create(ResetTotpRequestSchema)` to create a new message.
  */
 export const ResetTotpRequestSchema: GenMessage<ResetTotpRequest> = /*@__PURE__*/
-    messageDesc(file_xyz_city_ideas_v1_login_v1_domain, 5);
+  messageDesc(file_xyz_city_ideas_v1_login_v1_domain, 5);
 
 /**
  * @generated from enum xyz.city_ideas.v1.login.v1.Reset
  */
 export enum Reset {
-    /**
-     * @generated from enum value: RESET_UNSPECIFIED = 0;
-     */
-    UNSPECIFIED = 0,
+  /**
+   * @generated from enum value: RESET_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
 
-    /**
-     * @generated from enum value: RESET_EMAIL = 1;
-     */
-    EMAIL = 1,
+  /**
+   * @generated from enum value: RESET_EMAIL = 1;
+   */
+  EMAIL = 1,
 
-    /**
-     * @generated from enum value: RESET_RECOVERY = 2;
-     */
-    RECOVERY = 2,
+  /**
+   * @generated from enum value: RESET_RECOVERY = 2;
+   */
+  RECOVERY = 2,
 }
 
 /**
  * Describes the enum xyz.city_ideas.v1.login.v1.Reset.
  */
 export const ResetSchema: GenEnum<Reset> = /*@__PURE__*/
-    enumDesc(file_xyz_city_ideas_v1_login_v1_domain, 0);
+  enumDesc(file_xyz_city_ideas_v1_login_v1_domain, 0);
 

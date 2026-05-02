@@ -418,7 +418,9 @@ func (q *Queries) CreateUserDefaultRank(ctx context.Context, owner pgtype.UUID) 
 }
 
 const CreateUserPreferences = `-- name: CreateUserPreferences :one
-insert into users_preferences (owner) VALUES ($1) returning owner, display_name, description, avatar_hash, session_live, language
+insert into users_preferences (owner)
+VALUES ($1)
+returning owner, display_name, description, avatar_hash, session_live, language
 `
 
 func (q *Queries) CreateUserPreferences(ctx context.Context, owner pgtype.UUID) (UsersPreference, error) {
@@ -618,7 +620,10 @@ func (q *Queries) GetUserPassword(ctx context.Context, owner pgtype.UUID) (strin
 }
 
 const GetUserPreferences = `-- name: GetUserPreferences :one
-select owner, display_name, description, avatar_hash, session_live, language from users_preferences where owner = $1 limit 1
+select owner, display_name, description, avatar_hash, session_live, language
+from users_preferences
+where owner = $1
+limit 1
 `
 
 func (q *Queries) GetUserPreferences(ctx context.Context, owner pgtype.UUID) (UsersPreference, error) {
@@ -679,7 +684,9 @@ func (q *Queries) GetUserRanks(ctx context.Context, owner pgtype.UUID) ([]GetUse
 }
 
 const GetUserRecoveryCodes = `-- name: GetUserRecoveryCodes :many
-select owner, selector, hash, used, created from users_security_codes where owner = $1
+select owner, selector, hash, used, created
+from users_security_codes
+where owner = $1
 `
 
 func (q *Queries) GetUserRecoveryCodes(ctx context.Context, owner pgtype.UUID) ([]UsersSecurityCode, error) {
@@ -709,7 +716,11 @@ func (q *Queries) GetUserRecoveryCodes(ctx context.Context, owner pgtype.UUID) (
 }
 
 const GetUserRecoveryCodesWithSelector = `-- name: GetUserRecoveryCodesWithSelector :one
-select owner, selector, hash, used, created from users_security_codes where owner = $1 and selector = $2 limit 1
+select owner, selector, hash, used, created
+from users_security_codes
+where owner = $1
+  and selector = $2
+limit 1
 `
 
 type GetUserRecoveryCodesWithSelectorParams struct {
@@ -873,6 +884,17 @@ func (q *Queries) IsRankExists(ctx context.Context, name string) (bool, error) {
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const IsSessionCompleteMFA = `-- name: IsSessionCompleteMFA :one
+select not (users_security.totp_enabled is true and sessions.mfa is not true) from sessions join users_security on users_security.owner = sessions.owner where sessions.id = $1
+`
+
+func (q *Queries) IsSessionCompleteMFA(ctx context.Context, id pgtype.UUID) (pgtype.Bool, error) {
+	row := q.db.QueryRow(ctx, IsSessionCompleteMFA, id)
+	var column_1 pgtype.Bool
+	err := row.Scan(&column_1)
+	return column_1, err
 }
 
 const IsSessionValid = `-- name: IsSessionValid :one
@@ -1725,7 +1747,14 @@ func (q *Queries) RemoveProjectLike(ctx context.Context, arg RemoveProjectLikePa
 }
 
 const ResetTotp = `-- name: ResetTotp :exec
-update users_security set totp_enabled = false, totp_pending = null, totp_confirmed = null, totp_secret = null, totp_last_step = null, totp_pending_created = null where owner = $1
+update users_security
+set totp_enabled         = false,
+    totp_pending         = null,
+    totp_confirmed       = null,
+    totp_secret          = null,
+    totp_last_step       = null,
+    totp_pending_created = null
+where owner = $1
 `
 
 func (q *Queries) ResetTotp(ctx context.Context, owner pgtype.UUID) error {
@@ -1734,7 +1763,9 @@ func (q *Queries) ResetTotp(ctx context.Context, owner pgtype.UUID) error {
 }
 
 const ResetTotpCodes = `-- name: ResetTotpCodes :exec
-delete from users_security_codes where owner = $1
+delete
+from users_security_codes
+where owner = $1
 `
 
 func (q *Queries) ResetTotpCodes(ctx context.Context, owner pgtype.UUID) error {
@@ -1849,7 +1880,9 @@ func (q *Queries) SetSessionLastSeen(ctx context.Context, id pgtype.UUID) error 
 }
 
 const SetTotpLastSeen = `-- name: SetTotpLastSeen :exec
-update users_security set totp_last_step = $1 where owner = $2
+update users_security
+set totp_last_step = $1
+where owner = $2
 `
 
 type SetTotpLastSeenParams struct {
@@ -2271,7 +2304,9 @@ func (q *Queries) UpdateUserDisplayName(ctx context.Context, arg UpdateUserDispl
 }
 
 const UpdateUserLanguage = `-- name: UpdateUserLanguage :exec
-update users_preferences set language = $1 where owner = $2
+update users_preferences
+set language = $1
+where owner = $2
 `
 
 type UpdateUserLanguageParams struct {
@@ -2313,7 +2348,9 @@ func (q *Queries) UpdateUserSessionLive(ctx context.Context, arg UpdateUserSessi
 }
 
 const UseRecoveryCode = `-- name: UseRecoveryCode :exec
-update users_security_codes set used = now() where selector = $1
+update users_security_codes
+set used = now()
+where selector = $1
 `
 
 func (q *Queries) UseRecoveryCode(ctx context.Context, selector string) error {

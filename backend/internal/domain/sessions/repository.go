@@ -13,6 +13,6 @@ type Repository interface {
 	Revoke(ctx context.Context, session domain.UUID) error
 	Extend(ctx context.Context, session domain.UUID, duration time.Duration) error
 	LastSeen(ctx context.Context, session domain.UUID) error
-	IsValid(ctx context.Context, session domain.UUID, device domain.Device, hash string) (bool, error)
+	IsValid(ctx context.Context, session domain.UUID, device domain.Device, hash string, skipMFA bool) (bool, error)
 	Info(ctx context.Context, session domain.UUID) (*Session, error)
 }

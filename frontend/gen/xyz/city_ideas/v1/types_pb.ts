@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file xyz/city_ideas/v1/types.proto.
  */
 export const file_xyz_city_ideas_v1_types: GenFile = /*@__PURE__*/
-  fileDesc("Ch14eXovY2l0eV9pZGVhcy92MS90eXBlcy5wcm90bxIReHl6LmNpdHlfaWRlYXMudjEiIQoQUmVxdWVzdFdpdGhWYWx1ZRINCgV2YWx1ZRgBIAEoCSIjChFSZXF1ZXN0V2l0aFZhbHVlcxIOCgZ2YWx1ZXMYASADKAkiOgoZUmVxdWVzdFdpdGhMaW1pdEFuZE9mZnNldBINCgVsaW1pdBgBIAEoBRIOCgZvZmZzZXQYAiABKAUiUQohUmVxdWVzdFdpdGhMaW1pdEFuZE9mZnNldEFuZFZhbHVlEg0KBWxpbWl0GAEgASgFEg4KBm9mZnNldBgCIAEoBRINCgV2YWx1ZRgDIAEoCSpaCgZEZXZpY2USFgoSREVWSUNFX1VOU1BFQ0lGSUVEEAASEgoOREVWSUNFX0RFU0tUT1AQARIRCg1ERVZJQ0VfTU9CSUxFEAISEQoNREVWSUNFX1RBQkxFVBADQjtaOWdpdGh1Yi5jb20vYWVzdGVyaWFsL2NpdHlpZGVhcy9iYWNrZW5kL2ludGVybmFsL2FwaS92MTt2MWIIZWRpdGlvbnNw6Ac");
+  fileDesc("Ch14eXovY2l0eV9pZGVhcy92MS90eXBlcy5wcm90bxIReHl6LmNpdHlfaWRlYXMudjEiIQoQUmVxdWVzdFdpdGhWYWx1ZRINCgV2YWx1ZRgBIAEoCSIiChFSZXNwb25zZVdpdGhWYWx1ZRINCgV2YWx1ZRgBIAEoCSIjChFSZXF1ZXN0V2l0aFZhbHVlcxIOCgZ2YWx1ZXMYASADKAkiOgoZUmVxdWVzdFdpdGhMaW1pdEFuZE9mZnNldBINCgVsaW1pdBgBIAEoBRIOCgZvZmZzZXQYAiABKAUiUQohUmVxdWVzdFdpdGhMaW1pdEFuZE9mZnNldEFuZFZhbHVlEg0KBWxpbWl0GAEgASgFEg4KBm9mZnNldBgCIAEoBRINCgV2YWx1ZRgDIAEoCSpaCgZEZXZpY2USFgoSREVWSUNFX1VOU1BFQ0lGSUVEEAASEgoOREVWSUNFX0RFU0tUT1AQARIRCg1ERVZJQ0VfTU9CSUxFEAISEQoNREVWSUNFX1RBQkxFVBADQjtaOWdpdGh1Yi5jb20vYWVzdGVyaWFsL2NpdHlpZGVhcy9iYWNrZW5kL2ludGVybmFsL2FwaS92MTt2MWIIZWRpdGlvbnNw6Ac");
 
 /**
  * @generated from message xyz.city_ideas.v1.RequestWithValue
@@ -30,6 +30,23 @@ export const RequestWithValueSchema: GenMessage<RequestWithValue> = /*@__PURE__*
   messageDesc(file_xyz_city_ideas_v1_types, 0);
 
 /**
+ * @generated from message xyz.city_ideas.v1.ResponseWithValue
+ */
+export type ResponseWithValue = Message<"xyz.city_ideas.v1.ResponseWithValue"> & {
+  /**
+   * @generated from field: string value = 1;
+   */
+  value: string;
+};
+
+/**
+ * Describes the message xyz.city_ideas.v1.ResponseWithValue.
+ * Use `create(ResponseWithValueSchema)` to create a new message.
+ */
+export const ResponseWithValueSchema: GenMessage<ResponseWithValue> = /*@__PURE__*/
+  messageDesc(file_xyz_city_ideas_v1_types, 1);
+
+/**
  * @generated from message xyz.city_ideas.v1.RequestWithValues
  */
 export type RequestWithValues = Message<"xyz.city_ideas.v1.RequestWithValues"> & {
@@ -44,7 +61,7 @@ export type RequestWithValues = Message<"xyz.city_ideas.v1.RequestWithValues"> &
  * Use `create(RequestWithValuesSchema)` to create a new message.
  */
 export const RequestWithValuesSchema: GenMessage<RequestWithValues> = /*@__PURE__*/
-  messageDesc(file_xyz_city_ideas_v1_types, 1);
+  messageDesc(file_xyz_city_ideas_v1_types, 2);
 
 /**
  * @generated from message xyz.city_ideas.v1.RequestWithLimitAndOffset
@@ -66,7 +83,7 @@ export type RequestWithLimitAndOffset = Message<"xyz.city_ideas.v1.RequestWithLi
  * Use `create(RequestWithLimitAndOffsetSchema)` to create a new message.
  */
 export const RequestWithLimitAndOffsetSchema: GenMessage<RequestWithLimitAndOffset> = /*@__PURE__*/
-  messageDesc(file_xyz_city_ideas_v1_types, 2);
+  messageDesc(file_xyz_city_ideas_v1_types, 3);
 
 /**
  * @generated from message xyz.city_ideas.v1.RequestWithLimitAndOffsetAndValue
@@ -93,7 +110,7 @@ export type RequestWithLimitAndOffsetAndValue = Message<"xyz.city_ideas.v1.Reque
  * Use `create(RequestWithLimitAndOffsetAndValueSchema)` to create a new message.
  */
 export const RequestWithLimitAndOffsetAndValueSchema: GenMessage<RequestWithLimitAndOffsetAndValue> = /*@__PURE__*/
-  messageDesc(file_xyz_city_ideas_v1_types, 3);
+  messageDesc(file_xyz_city_ideas_v1_types, 4);
 
 /**
  * @generated from enum xyz.city_ideas.v1.Device

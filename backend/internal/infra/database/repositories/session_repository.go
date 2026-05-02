@@ -94,7 +94,7 @@ func (s *SessionsRepository) Extend(ctx context.Context, session domain.UUID, du
 	})
 }
 
-func (s *SessionsRepository) IsValid(ctx context.Context, session domain.UUID, device domain.Device, hash string) (bool, error) {
+func (s *SessionsRepository) IsValid(ctx context.Context, session domain.UUID, device domain.Device, hash string, skipMFA bool) (bool, error) {
 	if !device.IsValid() || hash == "" {
 		return false, errors.InvalidArguments
 	}
@@ -105,6 +105,15 @@ func (s *SessionsRepository) IsValid(ctx context.Context, session domain.UUID, d
 	})
 	if err != nil {
 		return false, err
+	}
+	if skipMFa {
+		v, err := s.conn.IsSessionCompleteMFA(ctx, session.ToPG())
+		if err != nil {
+			return false, err
+		}
+		if !v.Bool {
+			return false, errors.NeedVerify
+		}
 	}
 	return b.Bool, nil
 }

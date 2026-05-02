@@ -61,9 +61,12 @@ func (s *Service) Extend(ctx context.Context, session domain.UUID, duration time
 	return nil
 }
 
-func (s *Service) IsValid(ctx context.Context, session domain.UUID, device domain.Device, hash string) (bool, error) {
-	valid, err := s.ses.IsValid(ctx, session, device, hash)
+func (s *Service) IsValid(ctx context.Context, session domain.UUID, device domain.Device, hash string, skipMFA bool) (bool, error) {
+	valid, err := s.ses.IsValid(ctx, session, device, hash, skipMFA)
 	if err != nil {
+		if errors.Is(err, errors.NeedVerify) {
+			return false, err
+		}
 		logger.Error("sessions", "failed to check is session valid", logger.F("error", err))
 		return false, errors.Wrap(err)
 	}

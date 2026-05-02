@@ -50,7 +50,11 @@ func (*Authenticator) getToken(md metadata.MD, name string) string {
 	return ""
 }
 
-func (a *Authenticator) User(ctx context.Context) (*domain.Metadata, error) {
+func (a *Authenticator) User(ctx context.Context, skip ...bool) (*domain.Metadata, error) {
+	var skipMFa = false
+	if len(skip) >= 1 {
+		skipMFa = skip[0]
+	}
 	var meta domain.Metadata
 	device, hash := domain.UaFromContext(ctx)
 	if !device.IsValid() || hash == "" {
@@ -74,7 +78,7 @@ func (a *Authenticator) User(ctx context.Context) (*domain.Metadata, error) {
 		return nil, errors.InvalidArguments
 	}
 	meta.SessionID = &domain.UUID{UUID: sid}
-	valid, err := a.ses.IsValid(ctx, *meta.SessionID, device, hash)
+	valid, err := a.ses.IsValid(ctx, *meta.SessionID, device, hash, skipMFa)
 	if err != nil {
 		if errors.Is(err, errors.NotFound) {
 			return nil, errors.Unauthenticated
