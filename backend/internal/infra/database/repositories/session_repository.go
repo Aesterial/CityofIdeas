@@ -106,7 +106,7 @@ func (s *SessionsRepository) IsValid(ctx context.Context, session domain.UUID, d
 	if err != nil {
 		return false, err
 	}
-	if skipMFa {
+	if skipMFA {
 		v, err := s.conn.IsSessionCompleteMFA(ctx, session.ToPG())
 		if err != nil {
 			return false, err

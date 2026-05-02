@@ -1,24 +1,17 @@
-import { create } from "@bufbuild/protobuf";
-import { Code, ConnectError } from "@connectrpc/connect";
-import {
-  EmptySchema,
-  timestampDate,
-  timestampFromDate,
-} from "@bufbuild/protobuf/wkt";
-import { buildApiUrl } from "@/lib/api-base";
-import { AuthorizeRequestSchema, RegisterRequestSchema } from "@/gen/xyz/city_ideas/v1/login/v1/domain_pb";
+import {create} from "@bufbuild/protobuf";
+import {Code, ConnectError} from "@connectrpc/connect";
+import {EmptySchema, timestampDate, timestampFromDate,} from "@bufbuild/protobuf/wkt";
+import {buildApiUrl} from "@/lib/api-base";
+import {AuthorizeRequestSchema, RegisterRequestSchema} from "@/gen/xyz/city_ideas/v1/login/v1/domain_pb";
 import {
   CreateMessageRequestSchema as ProjectCreateMessageRequestSchema,
   CreateProjectRequestSchema,
-  ProjectLocationSchema,
   type Message as GrpcProjectMessage,
   type Project as GrpcProject,
+  ProjectLocationSchema,
   type Submission as GrpcSubmission,
 } from "@/gen/xyz/city_ideas/v1/projects/v1/domain_pb";
-import {
-  CreateRequestSchema as RankCreateRequestSchema,
-  RankSchema,
-} from "@/gen/xyz/city_ideas/v1/ranks/v1/domain_pb";
+import {CreateRequestSchema as RankCreateRequestSchema, RankSchema,} from "@/gen/xyz/city_ideas/v1/ranks/v1/domain_pb";
 import {
   CreateRequestSchema as MaintenanceCreateRequestSchema,
   TimeRangeSchema,
@@ -29,11 +22,11 @@ import {
   type Ticket as GrpcTicket,
 } from "@/gen/xyz/city_ideas/v1/tickets/v1/domain_pb";
 import {
+  type Global as GrpcGlobal,
+  type Graph as GrpcGraph,
   RequestByCitySchema,
   Separator,
   SeparatorValueSchema,
-  type Graph as GrpcGraph,
-  type Global as GrpcGlobal,
 } from "@/gen/xyz/city_ideas/v1/statistics/v1/domain_pb";
 import {
   RequestWithLimitAndOffsetAndValueSchema,
@@ -41,7 +34,7 @@ import {
   RequestWithValueSchema,
   RequestWithValuesSchema,
 } from "@/gen/xyz/city_ideas/v1/types_pb";
-import { UpdatePreferencesRequestSchema } from "@/gen/xyz/city_ideas/v1/user/v1/domain_pb";
+import {UpdatePreferencesRequestSchema} from "@/gen/xyz/city_ideas/v1/user/v1/domain_pb";
 import {
   loginClient,
   maintenanceClient,
@@ -52,8 +45,8 @@ import {
   ticketClient,
   userClient,
 } from "@/lib/grpc-web";
-import { emitMfaRequired, isMfaRequiredMessage } from "@/lib/mfa-required";
-import { StatusCodes } from "http-status-codes";
+import {emitMfaRequired, isMfaRequiredMessage} from "@/lib/mfa-required";
+import {StatusCodes} from "http-status-codes";
 
 export { Separator as StatisticsSeparator };
 
@@ -1901,8 +1894,8 @@ export async function fetchCurrentUser(): Promise<AuthUser> {
   return {
     uid: publicUser.id,
     username: publicUser.username,
-    email: payload.email || undefined,
-    emailVerified: false,
+    email: payload.security?.email || undefined,
+    emailVerified: payload.security?.emailVerified || false,
     displayName: publicUser.prefs?.displayName || undefined,
     description: publicUser.prefs?.description || undefined,
     avatar: publicUser.prefs?.avatar ? { key: publicUser.prefs.avatar } : null,
