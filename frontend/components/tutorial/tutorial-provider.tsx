@@ -169,12 +169,14 @@ export function TutorialProvider({
     portalTarget && isActive && step && targetRect && viewport.width > 0 ? (
       <AnimatePresence>
         <TutorialOverlay
+          key="tutorial-overlay"
           targetRect={targetRect}
           viewport={viewport}
           padding={padding}
           borderRadius={targetBorderRadius}
         />
         <TutorialTooltip
+          key={`tutorial-tooltip-${currentStep}`}
           step={step}
           stepIndex={currentStep}
           stepsCount={steps.length}

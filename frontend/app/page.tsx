@@ -27,10 +27,15 @@ import { MapLibreMap, type MapMarker } from "@/components/maplibre-map";
 import { useAuth } from "@/components/auth-provider";
 import { useLanguage } from "@/components/language-provider";
 import { useReverseGeocode } from "@/hooks/use-reverse-geocode";
-import { fetchTopProjects, type ApiProject } from "@/lib/api";
+import {
+  fetchStatisticsGlobal,
+  fetchTopProjects,
+  type ApiProject,
+} from "@/lib/api";
 import {
   CITY_CHANGE_EVENT,
   CITY_STORAGE_KEY,
+  cities,
   getStoredCity,
   resolveCity,
   resolveCityCenter,
@@ -143,16 +148,24 @@ const applyCoordinateJitter = (center: [number, number], seed: string) => {
 const surfaceClass =
   "relative overflow-hidden border border-border/85 bg-card/88 shadow-[0_40px_110px_-72px_rgba(0,0,0,0.92)] backdrop-blur-2xl";
 
+const formatMetricNumber = (value: number) => {
+  if (!Number.isFinite(value) || value <= 0) return "0";
+  if (value < 1000) return String(Math.trunc(value));
+  const compact = Math.round((value / 1000) * 10) / 10;
+  return `${compact % 1 === 0 ? compact.toFixed(0) : compact.toFixed(1)}k`;
+};
+
 export default function HomePage() {
   const [popularProjects, setPopularProjects] = useState<ApiProject[]>([]);
   const [mapMarkers, setMapMarkers] = useState<MapMarker[]>([]);
+  const [votesCount, setVotesCount] = useState(0);
   const [popularLoading, setPopularLoading] = useState(true);
   const [mapLoading, setMapLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState<ApiProject | null>(null);
   const [selectedCoordinates, setSelectedCoordinates] = useState<
     [number, number] | null
   >(null);
-  const [selectedCity, setSelectedCity] = useState<City>(getStoredCity());
+  const [selectedCity, setSelectedCity] = useState<City>(cities[0]);
   const cacheRef = useRef(new Map<string, ApiProject>());
   const { language, t } = useLanguage();
   const { status } = useAuth();
@@ -166,6 +179,28 @@ export default function HomePage() {
 
   useEffect(() => {
     setSelectedCity(getStoredCity());
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadStatistics = async () => {
+      try {
+        const statistics = await fetchStatisticsGlobal({
+          signal: controller.signal,
+        });
+        if (!controller.signal.aborted) {
+          setVotesCount(statistics.votes);
+        }
+      } catch {
+        if (!controller.signal.aborted) {
+          setVotesCount(0);
+        }
+      }
+    };
+
+    void loadStatistics();
+    return () => controller.abort();
   }, []);
 
   useEffect(() => {
@@ -284,7 +319,7 @@ export default function HomePage() {
 
   const metricItems = [
     { label: t("ideas"), value: mapMarkers.length || MAP_LIMIT },
-    { label: t("vote"), value: "2.1k" },
+    { label: t("vote"), value: formatMetricNumber(votesCount) },
     { label: t("mapProjectDetailsTitle"), value: selectedCity },
   ];
 

@@ -13,6 +13,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,
   Check,
+  ClipboardPaste,
+  Copy,
   Eye,
   EyeOff,
   Lock,
@@ -238,6 +240,24 @@ export default function AuthPage() {
     }
   };
 
+  const copyPassword = async () => {
+    if (mode !== "register" || !formData.password || !navigator.clipboard) {
+      return;
+    }
+    await navigator.clipboard.writeText(formData.password);
+  };
+
+  const pasteConfirmPassword = async () => {
+    if (mode !== "register" || !navigator.clipboard) {
+      return;
+    }
+    const password = await navigator.clipboard.readText();
+    setFormData((current) => ({
+      ...current,
+      confirmPassword: password,
+    }));
+  };
+
   const inputVariants = {
     hidden: { opacity: 0, x: -20 },
     visible: { opacity: 1, x: 0 },
@@ -357,6 +377,7 @@ export default function AuthPage() {
                         setFormData({ ...formData, name: e.target.value })
                       }
                       placeholder={t("name")}
+                      autoComplete="name"
                       className="w-full bg-card border border-border rounded-2xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all duration-300 sm:py-4"
                     />
                   </div>
@@ -409,8 +430,22 @@ export default function AuthPage() {
                         setFormData({ ...formData, password: e.target.value })
                       }
                       placeholder="••••••••"
-                      className="w-full bg-card border border-border rounded-2xl py-3 pl-12 pr-12 focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all duration-300 sm:py-4"
+                      autoComplete={
+                        mode === "register" ? "new-password" : "current-password"
+                      }
+                      className="w-full bg-card border border-border rounded-2xl py-3 pl-12 pr-24 focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all duration-300 sm:py-4"
                     />
+                    {mode === "register" ? (
+                      <button
+                        type="button"
+                        onClick={() => void copyPassword()}
+                        disabled={!formData.password}
+                        className="absolute right-12 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors duration-300 hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+                        aria-label="Copy password"
+                      >
+                        <Copy className="w-5 h-5" />
+                      </button>
+                    ) : null}
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
@@ -546,8 +581,17 @@ export default function AuthPage() {
                         })
                       }
                       placeholder="••••••••"
-                      className="w-full bg-card border border-border rounded-2xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all duration-300 sm:py-4"
+                      autoComplete="new-password"
+                      className="w-full bg-card border border-border rounded-2xl py-3 pl-12 pr-12 focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-all duration-300 sm:py-4"
                     />
+                    <button
+                      type="button"
+                      onClick={() => void pasteConfirmPassword()}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors duration-300 hover:text-foreground"
+                      aria-label="Paste password"
+                    >
+                      <ClipboardPaste className="w-5 h-5" />
+                    </button>
                   </div>
                 </motion.div>
               )}

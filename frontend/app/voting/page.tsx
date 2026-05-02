@@ -834,13 +834,12 @@ export default function VotingPage() {
       steps={votingTutorialSteps}
       storageKey="voting-tutorial-v1"
     >
-      <div className="relative min-h-screen bg-background">
+      <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_18%_12%,hsl(var(--foreground)/0.08),transparent_28%),radial-gradient(circle_at_86%_8%,hsl(var(--foreground)/0.06),transparent_24%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--muted)/0.28)_48%,hsl(var(--background)))]">
         <Header />
 
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -top-24 right-[-10%] h-72 w-72 rounded-full bg-foreground/5 blur-3xl" />
-          <div className="absolute top-40 left-[-8%] h-64 w-64 rounded-full bg-foreground/10 blur-3xl" />
-          <div className="absolute bottom-0 right-8 h-72 w-72 rounded-full bg-foreground/5 blur-3xl" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.18)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.14)_1px,transparent_1px)] bg-[size:72px_72px] opacity-40 [mask-image:radial-gradient(ellipse_at_top,black,transparent_70%)]" />
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
         </div>
 
         <main className="relative pt-24 pb-16 px-4 sm:pt-28 sm:pb-20 sm:px-6">
@@ -848,37 +847,38 @@ export default function VotingPage() {
             <div className="lg:pl-[320px]">
               <div className="container mx-auto max-w-6xl">
                 <motion.div
-                  className="flex flex-col gap-6"
+                  className="relative overflow-hidden rounded-[2.5rem] border border-border/70 bg-background/76 p-6 shadow-[0_36px_110px_-78px_rgba(0,0,0,0.92)] backdrop-blur-xl sm:p-8"
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
                   data-tutorial="voting-hero"
                 >
-                  <div className="flex flex-wrap items-center gap-3 text-xs">
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(560px_circle_at_18%_0%,hsl(var(--foreground)/0.12),transparent_46%)]" />
+                  <div className="relative flex flex-wrap items-center gap-3 text-xs">
                     <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-card/80 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
                       <Sparkles className="h-3.5 w-3.5" />
                       Открытое голосование
                     </span>
                   </div>
 
-                  <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                  <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                     <div className="max-w-3xl space-y-3">
-                      <h1 className="text-3xl font-bold sm:text-4xl lg:text-5xl">
+                      <h1 className="max-w-2xl text-5xl font-semibold leading-[0.9] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
                         {t("voting")}
                       </h1>
-                      <p className="text-sm text-muted-foreground sm:text-base">
+                      <p className="max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
                         Выбирай идеи для своего города и голосуй за лучшие.
                       </p>
                     </div>
 
                     <div className="grid w-full max-w-md grid-cols-1 gap-3 sm:max-w-none sm:grid-cols-2">
-                      <div className="rounded-2xl border border-border/60 bg-card/80 p-3 text-center shadow-[0_16px_36px_-28px_rgba(0,0,0,0.5)]">
+                      <div className="rounded-[1.4rem] border border-border/60 bg-card/72 p-4 text-center shadow-[0_18px_48px_-34px_rgba(0,0,0,0.65)] backdrop-blur">
                         <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
                           Идей
                         </p>
                         <p className="text-2xl font-semibold">{ideas.length}</p>
                       </div>
-                      <div className="rounded-2xl border border-border/60 bg-card/80 p-3 text-center shadow-[0_16px_36px_-28px_rgba(0,0,0,0.5)]">
+                      <div className="rounded-[1.4rem] border border-border/60 bg-card/72 p-4 text-center shadow-[0_18px_48px_-34px_rgba(0,0,0,0.65)] backdrop-blur">
                         <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
                           Голосов
                         </p>
@@ -887,11 +887,11 @@ export default function VotingPage() {
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-3">
+                  <div className="relative flex flex-wrap items-center gap-3">
                     <Link href={`/users/${user.uid}`} className="inline-flex">
                       <button
                         type="button"
-                        className="rounded-full border border-border/70 bg-background/80 px-5 py-2 text-sm font-semibold text-foreground transition-all duration-300 hover:border-foreground hover:bg-foreground hover:text-background"
+                        className="rounded-full border border-border/70 bg-background/80 px-5 py-2 text-sm font-semibold text-foreground shadow-[0_12px_28px_-24px_rgba(0,0,0,0.8)] transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground hover:bg-foreground hover:text-background"
                       >
                         Мои проекты
                       </button>
@@ -900,7 +900,7 @@ export default function VotingPage() {
                       <Link href="/admin/submissions" className="inline-flex">
                         <button
                           type="button"
-                          className="rounded-full border border-foreground/30 bg-foreground/10 px-5 py-2 text-sm font-semibold text-foreground transition-all duration-300 hover:border-foreground hover:bg-foreground hover:text-background"
+                          className="rounded-full border border-foreground/30 bg-foreground/10 px-5 py-2 text-sm font-semibold text-foreground shadow-[0_12px_28px_-24px_rgba(0,0,0,0.8)] transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground hover:bg-foreground hover:text-background"
                         >
                           Проекты на модерации
                         </button>
@@ -911,7 +911,7 @@ export default function VotingPage() {
 
                 <div className="mt-10 flex flex-col gap-8">
                   <motion.aside
-                    className="flex flex-col gap-6 lg:fixed lg:left-6 lg:top-28 lg:h-[calc(100vh-7rem)] lg:w-[280px] lg:overflow-y-auto lg:rounded-3xl lg:border lg:border-border/70 lg:bg-background/90 lg:p-5 lg:shadow-[0_16px_40px_-30px_rgba(0,0,0,0.6)] lg:backdrop-blur"
+                    className="flex flex-col gap-6 lg:fixed lg:left-6 lg:top-28 lg:h-[calc(100vh-7rem)] lg:w-[280px] lg:overflow-y-auto lg:rounded-[2rem] lg:border lg:border-border/70 lg:bg-background/78 lg:p-5 lg:shadow-[0_28px_90px_-62px_rgba(0,0,0,0.92)] lg:backdrop-blur-xl"
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4 }}
@@ -922,7 +922,7 @@ export default function VotingPage() {
 
                   <section className="space-y-6">
                     <motion.div
-                      className="rounded-[2rem] border border-border/60 bg-card/90 px-5 py-4 shadow-[0_18px_40px_-32px_rgba(0,0,0,0.55)]"
+                      className="rounded-[2rem] border border-border/60 bg-card/78 px-5 py-4 shadow-[0_26px_70px_-52px_rgba(0,0,0,0.82)] backdrop-blur-xl"
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.4 }}
@@ -1063,7 +1063,7 @@ export default function VotingPage() {
                                 key={idea.id}
                                 variants={cardVariants}
                                 layout
-                                className="group relative overflow-hidden rounded-[2.5rem] border border-border/60 bg-card/90 p-6 shadow-[0_20px_50px_-34px_rgba(0,0,0,0.5)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_28px_60px_-36px_rgba(0,0,0,0.6)]"
+                                className="group relative overflow-hidden rounded-[2.35rem] border border-border/60 bg-card/82 p-6 shadow-[0_30px_80px_-58px_rgba(0,0,0,0.9)] backdrop-blur-xl transition-all duration-500 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(520px_circle_at_0%_0%,hsl(var(--foreground)/0.1),transparent_44%)] before:opacity-0 before:transition-opacity before:duration-500 hover:-translate-y-1 hover:border-foreground/20 hover:shadow-[0_38px_100px_-62px_rgba(0,0,0,0.95)] hover:before:opacity-100"
                               >
                                 <div className="relative flex flex-col gap-6 xl:flex-row">
                                   <div className="flex-1 space-y-4">
@@ -1090,7 +1090,7 @@ export default function VotingPage() {
                                       </span>
                                     </div>
                                     <div>
-                                      <h3 className="text-xl font-bold sm:text-2xl">
+                                      <h3 className="text-2xl font-semibold leading-tight tracking-[-0.035em] sm:text-3xl">
                                         {idea.title}
                                       </h3>
                                       <p className="mt-2 text-sm text-muted-foreground">
@@ -1106,9 +1106,9 @@ export default function VotingPage() {
                                         <span>{idea.votes} голосов</span>
                                         <span>Нужно: {neededVotes}</span>
                                       </div>
-                                      <div className="h-2 w-full rounded-full bg-muted/60">
+                                      <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted/60">
                                         <div
-                                          className="h-full rounded-full bg-foreground"
+                                          className="h-full rounded-full bg-gradient-to-r from-foreground via-foreground/80 to-foreground/45 shadow-[0_0_24px_hsl(var(--foreground)/0.18)] transition-all duration-700"
                                           style={{ width: `${voteShare}%` }}
                                         />
                                       </div>

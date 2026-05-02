@@ -13,7 +13,6 @@ import {
 import { motion } from "motion/react";
 import {
   Camera,
-  CheckCircle2,
   FileText,
   ListFilter,
   MapPin,
@@ -34,9 +33,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -51,6 +47,7 @@ import { createProject, uploadProjectPhotos } from "@/lib/api";
 import {
   CITY_CHANGE_EVENT,
   CITY_STORAGE_KEY,
+  cities,
   getStoredCity,
   resolveCity,
   resolveCityCenter,
@@ -118,7 +115,7 @@ export default function SuggestPage() {
   const [images, setImages] = useState<SelectedImage[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [mapSelection, setMapSelection] = useState<[number, number] | null>(null);
-  const [selectedCity, setSelectedCity] = useState<City>(getStoredCity());
+  const [selectedCity, setSelectedCity] = useState<City>(cities[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const imagesRef = useRef<SelectedImage[]>([]);
@@ -340,112 +337,92 @@ export default function SuggestPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_12%_10%,hsl(var(--foreground)/0.08),transparent_28%),radial-gradient(circle_at_88%_12%,hsl(var(--foreground)/0.06),transparent_26%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--muted)/0.22)_48%,hsl(var(--background)))]">
       <Header />
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.14)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.1)_1px,transparent_1px)] bg-[size:80px_80px] opacity-45 [mask-image:radial-gradient(ellipse_at_top,black,transparent_72%)]" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
+      </div>
 
-      <main className="overflow-hidden px-4 pb-16 pt-28 sm:px-6 sm:pt-32">
-        <div className="container mx-auto">
-          <div className="grid gap-8 xl:grid-cols-[0.88fr_1.12fr]">
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45 }}
-            >
-              <Badge
-                variant="outline"
-                className="rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.24em]"
-              >
-                <MapPin className="h-3.5 w-3.5" />
-                {selectedCity}
-              </Badge>
-
-              <h1 className="mt-6 text-5xl font-semibold leading-[0.95] tracking-[-0.05em] sm:text-6xl">
-                <span className="block">{heroLead[language]}</span>
-                <span className="mt-2 block">
+      <main className="relative w-full max-w-full overflow-x-hidden px-4 pb-14 pt-24 sm:px-6 sm:pb-16 sm:pt-28">
+        <div className="container mx-auto max-w-7xl">
+          <motion.section
+            className="relative overflow-hidden rounded-[2rem] border border-border/70 bg-background/78 p-5 shadow-[0_32px_100px_-72px_rgba(0,0,0,0.92)] backdrop-blur-xl sm:p-6"
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.48, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(580px_circle_at_10%_0%,hsl(var(--foreground)/0.12),transparent_48%)]" />
+            <div className="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+              <div className="max-w-4xl">
+                <Badge
+                  variant="outline"
+                  className="rounded-full bg-card/70 px-3 py-1 text-[10px] uppercase tracking-[0.24em]"
+                >
+                  <MapPin className="h-3.5 w-3.5" />
+                  {selectedCity}
+                </Badge>
+                <h1 className="mt-4 max-w-4xl text-[clamp(2.75rem,5vw,5.6rem)] font-semibold leading-[0.92] tracking-[-0.055em]">
+                  {heroLead[language]}{" "}
+                  <span
+                    className="mx-2 inline-block h-[0.52em] w-[1.2em] rounded-full align-middle bg-cover bg-center grayscale contrast-125"
+                    style={{ backgroundImage: "url(https://picsum.photos/seed/city-idea-form/320/180)" }}
+                    aria-hidden="true"
+                  />
                   <TextMorph
                     words={heroWords[language]}
                     className="inline-flex text-foreground"
-                    charClassName="tracking-[-0.05em]"
+                    charClassName="tracking-[-0.055em]"
                   />
-                </span>
-              </h1>
-
-              <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground sm:text-lg">
-                {t("describeIssue")}
-              </p>
-
-              <div className="mt-8 grid gap-4 md:grid-cols-3 xl:grid-cols-1">
+                </h1>
+                <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+                  {t("describeIssue")}
+                </p>
+              </div>
+              <div className="grid w-full gap-2 sm:grid-cols-3 xl:w-[28rem]">
                 {[
-                  t("projectTitleLabel"),
-                  t("photos"),
-                  t("markOnMap"),
-                ].map((item, index) => (
-                  <motion.div
-                    key={item}
-                    style={glowStyle}
-                    onMouseMove={updateGlow}
-                    onMouseLeave={resetGlow}
-                    whileHover={{ y: -8 }}
-                    className="group relative"
+                  { label: t("projectCityLabel"), value: selectedCity },
+                  { label: t("photos"), value: String(images.length) },
+                  {
+                    label: t("markOnMap"),
+                    value: mapSelection ? "OK" : "—",
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-[1.1rem] border border-border/60 bg-card/70 px-3 py-3 shadow-[0_16px_42px_-34px_rgba(0,0,0,0.7)]"
                   >
-                    <Card className="rounded-[1.75rem] border-border/70 bg-card/86 before:pointer-events-none before:absolute before:inset-0 before:rounded-[1.75rem] before:bg-[radial-gradient(260px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.18),transparent_42%)] before:opacity-0 before:transition-opacity before:duration-300 group-hover:before:opacity-100 dark:before:bg-[radial-gradient(260px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.1),transparent_42%)]">
-                      <CardContent className="relative flex items-center gap-3 px-5 py-5">
-                        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-foreground text-background">
-                          {index === 0 ? (
-                            <Type className="h-4 w-4" />
-                          ) : index === 1 ? (
-                            <Camera className="h-4 w-4" />
-                          ) : (
-                            <CheckCircle2 className="h-4 w-4" />
-                          )}
-                        </span>
-                        <div>
-                          <p className="text-sm font-semibold">{item}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {index === 0
-                              ? t("projectTitlePlaceholder")
-                              : index === 1
-                                ? t("dragImagesOrSelect")
-                                : t("clickMapToMark")}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
+                    <p className="text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
+                      {item.label}
+                    </p>
+                    <p className="mt-1 truncate text-lg font-semibold">
+                      {item.value}
+                    </p>
+                  </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
+          </motion.section>
 
-            <motion.form
-              onSubmit={handleSubmit}
-              className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]"
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.08 }}
+          <motion.form
+            onSubmit={handleSubmit}
+            className="mt-5 grid grid-flow-dense gap-4 xl:grid-cols-12"
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.48, delay: 0.06, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <motion.section
+              style={glowStyle}
+              onMouseMove={updateGlow}
+              onMouseLeave={resetGlow}
+              className="group relative xl:col-span-5"
             >
-              <motion.div
-                style={glowStyle}
-                onMouseMove={updateGlow}
-                onMouseLeave={resetGlow}
-                whileHover={{ y: -6 }}
-                className="group relative"
-              >
-                <Card className="rounded-[2rem] border-border/70 bg-card/88 before:pointer-events-none before:absolute before:inset-0 before:rounded-[2rem] before:bg-[radial-gradient(340px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.18),transparent_42%)] before:opacity-0 before:transition-opacity before:duration-300 group-hover:before:opacity-100 dark:before:bg-[radial-gradient(340px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.1),transparent_44%)]">
-                  <CardHeader className="relative px-6 pt-6">
-                    <CardTitle className="text-2xl font-semibold tracking-[-0.03em]">
-                      {t("suggestIdea")}
-                    </CardTitle>
-                    <CardDescription>{t("projectCityHint")}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="relative space-y-5 px-6 pb-6">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">{t("projectCityLabel")}</label>
-                      <Input value={selectedCity} readOnly className="h-12 rounded-2xl px-4" />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="flex items-center gap-2 text-sm font-medium">
-                        <Type className="h-4 w-4" />
+              <Card className="h-full rounded-[1.8rem] border-border/70 bg-card/84 shadow-[0_28px_86px_-62px_rgba(0,0,0,0.9)] backdrop-blur-xl before:pointer-events-none before:absolute before:inset-0 before:rounded-[1.8rem] before:bg-[radial-gradient(360px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.16),transparent_44%)] before:opacity-0 before:transition-opacity before:duration-300 group-hover:before:opacity-100">
+                <CardContent className="relative space-y-4 p-4 sm:p-5">
+                  <div className="grid gap-3 sm:grid-cols-[1fr_0.72fr]">
+                    <div className="space-y-1.5">
+                      <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                        <Type className="h-3.5 w-3.5" />
                         {t("projectTitleLabel")}
                       </label>
                       <Input
@@ -453,20 +430,20 @@ export default function SuggestPage() {
                         onChange={(event) => setTitle(event.target.value)}
                         placeholder={t("projectTitlePlaceholder")}
                         maxLength={80}
-                        className="h-12 rounded-2xl px-4"
+                        className="h-11 rounded-2xl border-border/70 bg-background/76 px-4 shadow-inner"
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="flex items-center gap-2 text-sm font-medium">
-                        <ListFilter className="h-4 w-4" />
+                    <div className="space-y-1.5">
+                      <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                        <ListFilter className="h-3.5 w-3.5" />
                         {t("category")}
                       </label>
                       <Select
                         value={category}
                         onValueChange={(value) => setCategory(value as SuggestCategoryId)}
                       >
-                        <SelectTrigger className="h-12 w-full rounded-2xl px-4">
+                        <SelectTrigger className="h-11 w-full rounded-2xl border-border/70 bg-background/76 px-4 shadow-inner">
                           <SelectValue placeholder={t("category")} />
                         </SelectTrigger>
                         <SelectContent className="rounded-2xl">
@@ -478,168 +455,175 @@ export default function SuggestPage() {
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
 
-                    <div className="space-y-2">
-                      <label className="flex items-center gap-2 text-sm font-medium">
-                        <FileText className="h-4 w-4" />
-                        {t("description")}
-                      </label>
-                      <Textarea
-                        value={description}
-                        onChange={(event) => setDescription(event.target.value)}
-                        placeholder={t("describeYourIdea")}
-                        className="min-h-[160px] rounded-[1.5rem] px-4 py-3"
-                      />
+                  <div className="space-y-1.5">
+                    <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                      <FileText className="h-3.5 w-3.5" />
+                      {t("description")}
+                    </label>
+                    <Textarea
+                      value={description}
+                      onChange={(event) => setDescription(event.target.value)}
+                      placeholder={t("describeYourIdea")}
+                      className="min-h-[132px] rounded-[1.35rem] border-border/70 bg-background/76 px-4 py-3 shadow-inner"
+                    />
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-[0.82fr_1fr]">
+                    <div
+                      onDrop={(event) => {
+                        event.preventDefault();
+                        setIsDragging(false);
+                        addImages(Array.from(event.dataTransfer.files));
+                      }}
+                      onDragOver={(event) => {
+                        event.preventDefault();
+                        setIsDragging(true);
+                      }}
+                      onDragLeave={() => setIsDragging(false)}
+                      className={cn(
+                        "flex min-h-32 flex-col items-center justify-center rounded-[1.35rem] border border-dashed bg-background/54 px-4 py-4 text-center shadow-inner transition",
+                        isDragging
+                          ? "border-foreground bg-foreground/5"
+                          : "border-border hover:border-foreground/40",
+                      )}
+                    >
+                      <Upload className="h-6 w-6 text-muted-foreground" />
+                      <p className="mt-2 text-xs leading-5 text-muted-foreground">
+                        {t("dragImagesOrSelect")}{" "}
+                        <label className="cursor-pointer font-semibold text-foreground hover:underline">
+                          {t("selectFiles")}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={(event) => {
+                              addImages(Array.from(event.target.files || []));
+                              event.currentTarget.value = "";
+                            }}
+                          />
+                        </label>
+                      </p>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="flex items-center gap-2 text-sm font-medium">
-                        <Camera className="h-4 w-4" />
-                        {t("photos")}
-                      </label>
-                      <div
-                        onDrop={(event) => {
-                          event.preventDefault();
-                          setIsDragging(false);
-                          addImages(Array.from(event.dataTransfer.files));
-                        }}
-                        onDragOver={(event) => {
-                          event.preventDefault();
-                          setIsDragging(true);
-                        }}
-                        onDragLeave={() => setIsDragging(false)}
-                        className={cn(
-                          "rounded-[1.75rem] border-2 border-dashed p-6 text-center transition",
-                          isDragging
-                            ? "border-foreground bg-foreground/5"
-                            : "border-border hover:border-foreground/40",
-                        )}
-                      >
-                        <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
-                        <p className="mt-3 text-sm text-muted-foreground">
-                          {t("dragImagesOrSelect")}{" "}
-                          <label className="cursor-pointer font-semibold text-foreground hover:underline">
-                            {t("selectFiles")}
-                            <input
-                              type="file"
-                              accept="image/*"
-                              multiple
-                              className="hidden"
-                              onChange={(event) => {
-                                addImages(Array.from(event.target.files || []));
-                                event.currentTarget.value = "";
-                              }}
-                            />
-                          </label>
-                        </p>
-                      </div>
-
+                    <div className="min-h-32 rounded-[1.35rem] border border-border/60 bg-background/48 p-2 shadow-inner">
                       {images.length > 0 ? (
-                        <div className="flex flex-wrap gap-3 pt-2">
-                          {images.map((image, index) => (
+                        <div className="grid grid-cols-3 gap-2">
+                          {images.slice(0, 6).map((image, index) => (
                             <div
                               key={image.id}
-                              className="group relative h-24 w-24 overflow-hidden rounded-2xl border border-border/70"
+                              className="group relative aspect-square overflow-hidden rounded-xl border border-border/70"
                             >
                               <img
                                 src={image.preview}
                                 alt=""
-                                className="h-full w-full object-cover"
+                                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                               />
                               <button
                                 type="button"
                                 onClick={() => removeImage(index)}
-                                className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-foreground/80 text-background opacity-0 transition group-hover:opacity-100"
+                                className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-foreground/85 text-background opacity-0 transition group-hover:opacity-100"
                               >
-                                <X className="h-4 w-4" />
+                                <X className="h-3.5 w-3.5" />
                               </button>
                             </div>
                           ))}
                         </div>
-                      ) : null}
+                      ) : (
+                        <div className="flex h-full min-h-28 items-center justify-center rounded-xl border border-dashed border-border/60 text-center text-xs text-muted-foreground">
+                          {t("photos")}
+                        </div>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.section>
 
-              <div className="space-y-6">
-                <motion.div
-                  style={glowStyle}
-                  onMouseMove={updateGlow}
-                  onMouseLeave={resetGlow}
-                  whileHover={{ y: -6 }}
-                  className="group relative"
-                >
-                  <Card className="rounded-[2rem] border-border/70 bg-card/88 before:pointer-events-none before:absolute before:inset-0 before:rounded-[2rem] before:bg-[radial-gradient(340px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.18),transparent_42%)] before:opacity-0 before:transition-opacity before:duration-300 group-hover:before:opacity-100 dark:before:bg-[radial-gradient(340px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.1),transparent_44%)]">
-                    <CardHeader className="relative px-6 pt-6">
-                      <CardTitle className="text-2xl font-semibold tracking-[-0.03em]">
+            <motion.section
+              style={glowStyle}
+              onMouseMove={updateGlow}
+              onMouseLeave={resetGlow}
+              className="group relative xl:col-span-7"
+            >
+              <Card className="h-full rounded-[1.8rem] border-border/70 bg-card/84 shadow-[0_28px_86px_-62px_rgba(0,0,0,0.9)] backdrop-blur-xl before:pointer-events-none before:absolute before:inset-0 before:rounded-[1.8rem] before:bg-[radial-gradient(420px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.16),transparent_44%)] before:opacity-0 before:transition-opacity before:duration-300 group-hover:before:opacity-100">
+                <CardContent className="relative p-3 sm:p-4">
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
+                    <div>
+                      <h2 className="text-xl font-semibold tracking-[-0.035em]">
                         {t("markOnMap")}
-                      </CardTitle>
-                      <CardDescription>
+                      </h2>
+                      <p className="text-xs text-muted-foreground">
                         {mapSelection
-                          ? `${t("mapSelectedCoordinates")}: ${mapSelection[1].toFixed(5)}, ${mapSelection[0].toFixed(5)}`
+                          ? `${mapSelection[1].toFixed(5)}, ${mapSelection[0].toFixed(5)}`
                           : t("clickMapToMark")}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="relative space-y-4 px-6 pb-6">
-                      <MapLibreMap
-                        className="min-h-[320px]"
-                        center={mapCenter}
-                        markers={
-                          mapSelection
-                            ? [
-                                {
-                                  id: "selection",
-                                  coordinates: mapSelection,
-                                  title: t("markOnMap"),
-                                },
-                              ]
-                            : []
-                        }
-                        onMapClick={(coordinates) => setMapSelection(coordinates)}
-                      />
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <Card className="rounded-[1.5rem] border-border/70 bg-background/60">
-                          <CardContent className="px-5 py-5">
-                            <p className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
-                              {t("projectCityLabel")}
-                            </p>
-                            <p className="mt-2 text-lg font-semibold">{selectedCity}</p>
-                          </CardContent>
-                        </Card>
-                        <Card className="rounded-[1.5rem] border-border/70 bg-background/60">
-                          <CardContent className="px-5 py-5">
-                            <p className="text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
-                              {t("photos")}
-                            </p>
-                            <p className="mt-2 text-lg font-semibold">{images.length}</p>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs font-semibold text-muted-foreground">
+                      {selectedCity}
+                    </span>
+                  </div>
+                  <MapLibreMap
+                    className="min-h-[430px] overflow-hidden rounded-[1.45rem] border border-border/70 shadow-[0_24px_70px_-52px_rgba(0,0,0,0.76)]"
+                    center={mapCenter}
+                    markers={
+                      mapSelection
+                        ? [
+                            {
+                              id: "selection",
+                              coordinates: mapSelection,
+                              title: t("markOnMap"),
+                            },
+                          ]
+                        : []
+                    }
+                    onMapClick={(coordinates) => setMapSelection(coordinates)}
+                  />
+                </CardContent>
+              </Card>
+            </motion.section>
 
-                {submitError ? (
-                  <Alert
-                    variant="destructive"
-                    className="rounded-[1.75rem] border-destructive/30"
+            <motion.div
+              className="xl:col-span-12"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.42, delay: 0.12 }}
+            >
+              <div className="flex flex-col gap-3 rounded-[1.65rem] border border-border/70 bg-card/82 p-3 shadow-[0_20px_70px_-54px_rgba(0,0,0,0.85)] backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
+                <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-3">
+                  <span className="rounded-full bg-background/60 px-3 py-2">
+                    {title.trim() ? t("projectTitleLabel") : t("projectTitlePlaceholder")}
+                  </span>
+                  <span className="rounded-full bg-background/60 px-3 py-2">
+                    {images.length} {t("photos").toLowerCase()}
+                  </span>
+                  <span className="rounded-full bg-background/60 px-3 py-2">
+                    {mapSelection ? t("markOnMap") : t("clickMapToMark")}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  {submitError ? (
+                    <Alert
+                      variant="destructive"
+                      className="rounded-2xl border-destructive/30 px-3 py-2 text-xs"
+                    >
+                      <AlertTitle className="text-xs">{t("projectSubmitErrorGeneric")}</AlertTitle>
+                      <AlertDescription>{submitError}</AlertDescription>
+                    </Alert>
+                  ) : null}
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="h-12 rounded-full px-7 text-sm shadow-[0_22px_58px_-30px_rgba(0,0,0,0.72)] transition-transform hover:-translate-y-0.5"
                   >
-                    <AlertTitle>{t("projectSubmitErrorGeneric")}</AlertTitle>
-                    <AlertDescription>{submitError}</AlertDescription>
-                  </Alert>
-                ) : null}
-
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="h-14 w-full rounded-full text-base shadow-[0_22px_48px_-28px_rgba(0,0,0,0.55)]"
-                >
-                  {isSubmitting ? t("projectSubmitSending") : t("submitIdea")}
-                </Button>
+                    {isSubmitting ? t("projectSubmitSending") : t("submitIdea")}
+                  </Button>
+                </div>
               </div>
-            </motion.form>
-          </div>
+            </motion.div>
+          </motion.form>
         </div>
       </main>
     </div>

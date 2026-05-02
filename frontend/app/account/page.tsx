@@ -10,7 +10,22 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Mail, Shield, User, XIcon } from "lucide-react";
+import {
+  Camera,
+  Clock3,
+  Fingerprint,
+  KeyRound,
+  LogOut,
+  Mail,
+  MonitorCheck,
+  PencilLine,
+  RotateCw,
+  Shield,
+  Sparkles,
+  Trash2,
+  User,
+  XIcon,
+} from "lucide-react";
 import { Header } from "@/components/header";
 import { useLanguage } from "@/components/language-provider";
 import { useAuth } from "@/components/auth-provider";
@@ -79,6 +94,8 @@ const formatSessionHash = (hash?: string) => {
 const isAbortError = (error: unknown) =>
   error instanceof Error && error.name === "AbortError";
 
+type AccountTab = "profile" | "security" | "sessions" | "editor";
+
 export default function AccountPage() {
   const router = useRouter();
   const {
@@ -139,6 +156,7 @@ export default function AccountPage() {
   const [revokedSessionIds, setRevokedSessionIds] = useState<
     Record<string, boolean>
   >({});
+  const [activeTab, setActiveTab] = useState<AccountTab>("profile");
   const isAvatarSaving = avatarAction !== null;
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
   const sessionRemovalTimersRef = useRef<Record<string, number>>({});
@@ -610,85 +628,81 @@ export default function AccountPage() {
 
     return (
       <div
-        className={`rounded-2xl border p-4
-                    ${
-                      isRevoked
-                        ? "border-zinc-500 bg-zinc-200 dark:border-zinc-500 dark:bg-zinc-900"
-                        : "border-zinc-900 bg-white dark:border-zinc-100 dark:bg-zinc-950"
-                    }`}
+        className={`group relative overflow-hidden rounded-[1.55rem] border p-4 shadow-[0_18px_54px_-42px_rgba(0,0,0,0.82)] transition-all duration-300 ${
+          isRevoked
+            ? "border-muted-foreground/30 bg-muted/54 opacity-75"
+            : "border-border/70 bg-card/82 hover:-translate-y-0.5 hover:border-foreground/25 hover:bg-card"
+        }`}
       >
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(320px_circle_at_0%_0%,hsl(var(--foreground)/0.08),transparent_46%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <code className="block truncate text-xs font-semibold text-zinc-900 dark:text-zinc-100">
-              {session.id}
-            </code>
-            <div
-              className="mt-3 inline-flex max-w-full items-center gap-2 rounded-full
-                            border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-3 py-1"
-            >
-              <span className="text-[10px] uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
-                {t("accountSessionsDeviceHash")}
+            <div className="relative flex items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-border/70 bg-background/70">
+                <MonitorCheck className="h-4 w-4 text-muted-foreground" />
               </span>
-              <code
-                className="truncate text-[11px] font-semibold text-zinc-800 dark:text-zinc-100"
-                title={session.hash}
-              >
-                {hash ?? t("accountSessionsUnknown")}
-              </code>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-foreground">
+                  {t("accountSessionsTitle")}
+                </p>
+                <code className="block truncate text-[11px] font-semibold text-muted-foreground">
+                  {session.id}
+                </code>
+              </div>
             </div>
           </div>
 
           {isRevoked ? (
-            <span
-              className="rounded-full border border-zinc-500 bg-zinc-200 px-3 py-1
-                             text-xs font-semibold text-zinc-900 dark:border-zinc-500 dark:bg-zinc-900 dark:text-zinc-100"
-            >
+            <span className="relative rounded-full border border-muted-foreground/30 bg-muted/70 px-3 py-1 text-xs font-semibold text-muted-foreground">
               {t("accountSessionsEnded")}
             </span>
           ) : (
             <button
               type="button"
-              className="rounded-full border border-zinc-900 bg-zinc-900
-                         px-4 py-2 text-xs font-semibold
-                         text-zinc-50 dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900
-                         disabled:cursor-not-allowed disabled:opacity-50"
+              className="relative inline-flex items-center gap-2 rounded-full border border-foreground bg-foreground px-4 py-2 text-xs font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
               onClick={() => void handleSessionRevoke(session.id)}
               disabled={isRevoking || sessionsLoading}
             >
               {isRevoking ? (
                 <span className="inline-flex items-center gap-1.5">
-                  <svg
-                    className="h-3 w-3 animate-spin"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2.5}
-                  >
-                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-                  </svg>
+                  <RotateCw className="h-3 w-3 animate-spin" />
                   {t("accountSessionsRevoking")}
                 </span>
               ) : (
-                t("accountSessionsRevoke")
+                <>
+                  <LogOut className="h-3.5 w-3.5" />
+                  {t("accountSessionsRevoke")}
+                </>
               )}
             </button>
           )}
         </div>
 
-        <div className="mt-4 grid gap-2 text-xs sm:grid-cols-2">
-          <div className="rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2.5 dark:border-zinc-700 dark:bg-zinc-900">
-            <span className="text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.14em] text-[10px]">
+        <div className="relative mt-4 grid gap-2 text-xs sm:grid-cols-3">
+          <div className="rounded-xl border border-border/60 bg-background/64 px-3 py-2.5 shadow-inner">
+            <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+              <Fingerprint className="h-3 w-3" />
+              {t("accountSessionsDeviceHash")}
+            </span>
+            <code className="mt-1 block truncate font-semibold text-foreground" title={session.hash}>
+              {hash ?? t("accountSessionsUnknown")}
+            </code>
+          </div>
+          <div className="rounded-xl border border-border/60 bg-background/64 px-3 py-2.5 shadow-inner">
+            <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+              <Clock3 className="h-3 w-3" />
               {t("accountSessionsCreated")}
             </span>
-            <p className="mt-1 font-semibold text-zinc-900 dark:text-zinc-100">
+            <p className="mt-1 font-semibold text-foreground">
               {formatSessionDate(session.createdAt)}
             </p>
           </div>
-          <div className="rounded-xl border border-zinc-300 bg-zinc-50 px-3 py-2.5 dark:border-zinc-700 dark:bg-zinc-900">
-            <span className="text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.14em] text-[10px]">
+          <div className="rounded-xl border border-border/60 bg-background/64 px-3 py-2.5 shadow-inner">
+            <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+              <Clock3 className="h-3 w-3" />
               {t("accountSessionsLastSeen")}
             </span>
-            <p className="mt-1 font-semibold text-zinc-900 dark:text-zinc-100">
+            <p className="mt-1 font-semibold text-foreground">
               {formatSessionDate(session.lastSeenAt)}
             </p>
           </div>
@@ -698,32 +712,139 @@ export default function AccountPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_16%_12%,hsl(var(--foreground)/0.08),transparent_30%),radial-gradient(circle_at_86%_14%,hsl(var(--foreground)/0.06),transparent_26%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--muted)/0.24)_48%,hsl(var(--background)))]">
       <Header />
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border)/0.16)_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border)/0.12)_1px,transparent_1px)] bg-[size:76px_76px] opacity-40 [mask-image:radial-gradient(ellipse_at_top,black,transparent_72%)]" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
+      </div>
 
-      <main className="pt-24 pb-12 px-4 sm:pt-28 sm:pb-16 sm:px-6">
-        <div className="container mx-auto max-w-3xl space-y-6">
+      <main className="relative px-4 pb-16 pt-28 sm:px-6 sm:pb-20 sm:pt-32">
+        <div className="container mx-auto max-w-6xl space-y-8">
           <motion.div
+            className="relative overflow-hidden rounded-[2.6rem] border border-border/70 bg-background/76 p-6 shadow-[0_36px_110px_-78px_rgba(0,0,0,0.92)] backdrop-blur-xl sm:p-8"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
-            <h1 className="text-3xl font-bold mb-2 sm:text-4xl">
-              {t("accountSettings")}
-            </h1>
-            <p className="text-muted-foreground">
-              {t("accountSettingsSubtitle")}
-            </p>
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(620px_circle_at_12%_0%,hsl(var(--foreground)/0.12),transparent_48%)]" />
+            <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/76 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Account control
+                </span>
+                <h1 className="mt-5 max-w-3xl text-5xl font-semibold leading-[0.9] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
+                  {t("accountSettings")}
+                </h1>
+                <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+                  {t("accountSettingsSubtitle")}
+                </p>
+              </div>
+              <div className="grid min-w-[min(100%,22rem)] gap-3 sm:grid-cols-2">
+                <div className="rounded-[1.4rem] border border-border/60 bg-card/72 p-4 shadow-[0_18px_48px_-34px_rgba(0,0,0,0.65)]">
+                  <p className="text-[10px] uppercase tracking-[0.26em] text-muted-foreground">
+                    Email
+                  </p>
+                  <p className="mt-2 text-xl font-semibold">
+                    {isEmailVerified ? t("accountEmailVerified") : t("accountEmailNotVerified")}
+                  </p>
+                </div>
+                <div className="rounded-[1.4rem] border border-border/60 bg-card/72 p-4 shadow-[0_18px_48px_-34px_rgba(0,0,0,0.65)]">
+                  <p className="text-[10px] uppercase tracking-[0.26em] text-muted-foreground">
+                    2FA
+                  </p>
+                  <p className="mt-2 text-xl font-semibold">
+                    {isTotpEnabled ? t("accountTotpEnabled") : t("accountTotpDisabled")}
+                  </p>
+                </div>
+              </div>
+            </div>
           </motion.div>
 
+          <div className="grid gap-6 lg:grid-cols-[19rem_1fr] lg:items-start">
+            <motion.aside
+              className="lg:sticky lg:top-28"
+              initial={{ opacity: 0, x: -18 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.45, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div className="relative overflow-hidden rounded-[2.25rem] border border-border/70 bg-card/82 p-5 shadow-[0_30px_90px_-62px_rgba(0,0,0,0.9)] backdrop-blur-xl">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(420px_circle_at_0%_0%,hsl(var(--foreground)/0.1),transparent_46%)]" />
+                <div className="relative flex items-center gap-4">
+                  <Avatar className="h-16 w-16 border border-border/70 shadow-[0_18px_44px_-30px_rgba(0,0,0,0.8)]">
+                    {avatarSrc ? (
+                      <AvatarImage src={avatarSrc} alt={nameForAvatar} />
+                    ) : null}
+                    <AvatarFallback className="text-lg font-semibold">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="truncate text-lg font-semibold">
+                      {user.displayName || user.username}
+                    </p>
+                    <p className="truncate text-sm text-muted-foreground">
+                      @{user.username}
+                    </p>
+                  </div>
+                </div>
+
+                {user.rank?.name ? (
+                  <div className="relative mt-4">
+                    <span
+                      className="inline-flex rounded-full border px-3 py-1 text-xs font-semibold text-foreground"
+                      style={roleGlowStyle ?? undefined}
+                    >
+                      {user.rank.name}
+                    </span>
+                  </div>
+                ) : null}
+
+                <nav className="relative mt-6 grid gap-2" aria-label="Account settings">
+                  {[
+                    { id: "profile" as const, label: t("accountSettings"), icon: User },
+                    { id: "security" as const, label: t("accountSecurityTitle"), icon: KeyRound },
+                    { id: "sessions" as const, label: t("accountSessionsTitle"), icon: MonitorCheck },
+                    { id: "editor" as const, label: "Редактор", icon: PencilLine },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setActiveTab(item.id)}
+                        aria-current={isActive ? "page" : undefined}
+                        className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition-all duration-300 ${
+                          isActive
+                            ? "border-foreground bg-foreground text-background shadow-[0_18px_42px_-30px_hsl(var(--foreground)/0.55)]"
+                            : "border-border/60 bg-background/54 text-foreground hover:-translate-y-0.5 hover:border-foreground/30 hover:bg-background"
+                        }`}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </nav>
+              </div>
+            </motion.aside>
+
+            <div className="min-w-0 space-y-6">
+
+          {activeTab === "profile" ? (
           <motion.div
-            className="rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.35)]"
+            key="profile-tab"
+            className="relative overflow-hidden rounded-[2.25rem] border border-border/70 bg-card/82 p-6 shadow-[0_30px_90px_-62px_rgba(0,0,0,0.9)] backdrop-blur-xl"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
           >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(460px_circle_at_0%_0%,hsl(var(--foreground)/0.08),transparent_46%)]" />
+            <div className="relative">
             <div className="flex flex-wrap items-center gap-4">
-              <Avatar className="h-14 w-14">
+              <Avatar className="h-16 w-16 border border-border/70 shadow-[0_18px_44px_-30px_rgba(0,0,0,0.8)]">
                 {avatarSrc ? (
                   <AvatarImage src={avatarSrc} alt={nameForAvatar} />
                 ) : null}
@@ -750,10 +871,11 @@ export default function AccountPage() {
                 <div className="flex flex-wrap gap-2">
                   <GradientButton
                     type="button"
-                    className="w-full justify-center sm:w-auto"
+                    className="w-full justify-center shadow-[0_18px_44px_-28px_rgba(0,0,0,0.75)] sm:w-auto"
                     onClick={handleAvatarSelect}
                     disabled={isAvatarSaving}
                   >
+                    <Camera className="h-4 w-4" />
                     {avatarAction === "upload"
                       ? t("accountAvatarUploading")
                       : t("accountAvatarChange")}
@@ -761,7 +883,7 @@ export default function AccountPage() {
                   {canResetAvatar ? (
                     <button
                       type="button"
-                      className="w-full rounded-full border border-border/70 px-4 py-3 text-xs font-semibold transition-colors duration-300 hover:bg-foreground hover:text-background sm:w-auto"
+                      className="w-full rounded-full border border-border/70 bg-background/60 px-4 py-3 text-xs font-semibold transition-all duration-300 hover:-translate-y-0.5 hover:bg-foreground hover:text-background sm:w-auto"
                       onClick={() => void handleAvatarReset()}
                       disabled={isAvatarSaving}
                     >
@@ -782,8 +904,9 @@ export default function AccountPage() {
               </div>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-destructive/30 bg-destructive/5 p-4">
-              <p className="text-xs uppercase tracking-[0.2em] text-destructive">
+            <div className="mt-5 rounded-[1.6rem] border border-destructive/30 bg-destructive/5 p-4">
+              <p className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-destructive">
+                <Trash2 className="h-3.5 w-3.5" />
                 {t("accountDangerZone")}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
@@ -792,7 +915,7 @@ export default function AccountPage() {
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
                   type="button"
-                  className="w-full rounded-full border border-destructive/40 px-4 py-2 text-xs font-semibold text-destructive transition-colors duration-300 hover:bg-destructive hover:text-destructive-foreground disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                  className="w-full rounded-full border border-destructive/40 bg-background/40 px-4 py-2 text-xs font-semibold text-destructive transition-all duration-300 hover:-translate-y-0.5 hover:bg-destructive hover:text-destructive-foreground disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                   onClick={() => void handleDeleteDescription()}
                   disabled={deleteDescriptionLoading || !canDeleteDescription}
                 >
@@ -802,7 +925,7 @@ export default function AccountPage() {
                 </button>
                 <button
                   type="button"
-                  className="w-full rounded-full bg-red px-4 py-2 text-xs font-semibold text-destructive-foreground transition-opacity duration-300 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                  className="w-full rounded-full bg-destructive px-4 py-2 text-xs font-semibold text-destructive-foreground transition-all duration-300 hover:-translate-y-0.5 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                   onClick={() => {
                     setDeleteProfileInput("");
                     setDeleteProfileError(null);
@@ -847,14 +970,20 @@ export default function AccountPage() {
                 </div>
               ) : null}
             </div>
+            </div>
           </motion.div>
+          ) : null}
 
+          {activeTab === "security" ? (
           <motion.div
-            className="rounded-3xl border border-border/70 bg-card/90 p-6"
+            key="security-tab"
+            className="relative overflow-hidden rounded-[2.25rem] border border-border/70 bg-card/82 p-6 shadow-[0_30px_90px_-62px_rgba(0,0,0,0.9)] backdrop-blur-xl"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.15 }}
           >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(460px_circle_at_0%_0%,hsl(var(--foreground)/0.08),transparent_46%)]" />
+            <div className="relative">
             <div>
               <h2 className="text-xl font-semibold">
                 {t("accountSecurityTitle")}
@@ -865,7 +994,7 @@ export default function AccountPage() {
             </div>
 
             <div className="mt-5 grid gap-4">
-              <div className="rounded-2xl border border-border/60 bg-background/70 p-4">
+              <div className="rounded-[1.6rem] border border-border/60 bg-background/64 p-4 shadow-inner">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold">
@@ -913,7 +1042,7 @@ export default function AccountPage() {
                 ) : null}
               </div>
 
-              <div className="rounded-2xl border border-border/60 bg-background/70 p-4">
+              <div className="rounded-[1.6rem] border border-border/60 bg-background/64 p-4 shadow-inner">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold">
@@ -1014,38 +1143,43 @@ export default function AccountPage() {
                 ) : null}
               </div>
             </div>
+            </div>
           </motion.div>
+          ) : null}
 
+          {activeTab === "sessions" ? (
           <motion.div
-            className="rounded-3xl border border-zinc-900 bg-white p-4 sm:p-6 dark:border-zinc-100 dark:bg-zinc-950"
+            key="sessions-tab"
+            className="relative overflow-hidden rounded-[2.25rem] border border-border/70 bg-card/82 p-4 shadow-[0_30px_90px_-62px_rgba(0,0,0,0.9)] backdrop-blur-xl sm:p-6"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            <div className="rounded-2xl border border-zinc-300 bg-zinc-50 p-4 sm:p-5 dark:border-zinc-700 dark:bg-zinc-900">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(460px_circle_at_0%_0%,hsl(var(--foreground)/0.08),transparent_46%)]" />
+            <div className="relative rounded-[1.6rem] border border-border/60 bg-background/64 p-4 shadow-inner sm:p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex flex-col gap-1">
-                  <h2 className="flex items-center gap-2 text-base font-semibold text-zinc-900 sm:text-xl dark:text-zinc-100">
-                    <Shield className="h-4 w-4 shrink-0 text-zinc-700 sm:h-5 sm:w-5 dark:text-zinc-300" />
+                  <h2 className="flex items-center gap-2 text-base font-semibold text-foreground sm:text-xl">
+                    <MonitorCheck className="h-4 w-4 shrink-0 text-muted-foreground sm:h-5 sm:w-5" />
                     {t("accountSessionsTitle")}
                   </h2>
-                  <p className="max-w-sm text-xs leading-relaxed text-zinc-600 sm:text-sm dark:text-zinc-300">
+                  <p className="max-w-sm text-xs leading-relaxed text-muted-foreground sm:text-sm">
                     {t("accountSessionsSubtitle")}
                   </p>
                 </div>
-                <span className="inline-flex items-center rounded-full border border-zinc-900 bg-zinc-900 px-3 py-1 text-xs font-semibold text-zinc-50 dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900">
+                <span className="inline-flex items-center rounded-full border border-foreground bg-foreground px-3 py-1 text-xs font-semibold text-background">
                   {t("accountSessionsActiveLabel")}: {sessions.length}
                 </span>
               </div>
 
-              <p className="mt-4 text-xs leading-relaxed text-zinc-600 sm:text-[13px] dark:text-zinc-300">
+              <p className="mt-4 text-xs leading-relaxed text-muted-foreground sm:text-[13px]">
                 {t("accountSessionsCurrentHint")}
               </p>
 
               <div className="mt-4">
                 <button
                   type="button"
-                  className="inline-flex items-center rounded-full border border-zinc-900 bg-zinc-900 px-4 py-2 text-xs font-semibold text-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:py-2.5 sm:text-[13px] dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
+                  className="inline-flex items-center rounded-full border border-foreground bg-foreground px-4 py-2 text-xs font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:py-2.5 sm:text-[13px]"
                   onClick={() => setSessionsDialogOpen(true)}
                   disabled={sessionsBusy}
                 >
@@ -1057,42 +1191,44 @@ export default function AccountPage() {
             </div>
 
             {sessionsError ? (
-              <p className="mt-3 px-1 text-xs text-zinc-700 dark:text-zinc-300">
+              <p className="relative mt-3 px-1 text-xs text-muted-foreground">
                 {sessionsError}
               </p>
             ) : null}
           </motion.div>
+          ) : null}
 
           <Dialog open={sessionsDialogOpen} onOpenChange={setSessionsDialogOpen}>
-            <DialogContent className="max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-5xl overflow-x-hidden overflow-y-auto rounded-2xl border-zinc-900 bg-white p-3 dark:border-zinc-100 dark:bg-zinc-950 sm:max-h-[90vh] sm:w-[calc(100vw-2rem)] sm:rounded-3xl sm:p-6">
+            <DialogContent className="max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-5xl overflow-x-hidden overflow-y-auto rounded-[2rem] border-border/70 bg-background/95 p-3 shadow-[0_40px_120px_-64px_rgba(0,0,0,0.9)] backdrop-blur-xl sm:max-h-[90vh] sm:w-[calc(100vw-2rem)] sm:p-6">
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
-                  <Shield className="h-4 w-4 text-zinc-700 dark:text-zinc-300" />
+                <DialogTitle className="flex items-center gap-2 text-foreground">
+                  <MonitorCheck className="h-4 w-4 text-muted-foreground" />
                   {t("accountSessionsTitle")}
                 </DialogTitle>
-                <DialogDescription className="text-zinc-600 dark:text-zinc-300">
+                <DialogDescription className="text-muted-foreground">
                   {t("accountSessionsSubtitle")}
                 </DialogDescription>
               </DialogHeader>
 
               <div className="mt-2 space-y-3">
-                <div className="rounded-2xl border border-zinc-900 bg-zinc-50 p-3 dark:border-zinc-100 dark:bg-zinc-900 sm:p-4">
+                <div className="rounded-[1.6rem] border border-border/70 bg-card/82 p-3 shadow-[0_18px_54px_-42px_rgba(0,0,0,0.82)] sm:p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <span className="rounded-full border border-zinc-900 bg-zinc-900 px-3 py-1 text-xs font-semibold text-zinc-50 dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900">
+                    <span className="rounded-full border border-foreground bg-foreground px-3 py-1 text-xs font-semibold text-background">
                       {t("accountSessionsActiveLabel")}: {sessions.length}
                     </span>
                     <button
                       type="button"
-                      className="rounded-full border border-zinc-900 bg-zinc-900 px-4 py-2 text-xs font-semibold text-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
+                      className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-4 py-2 text-xs font-semibold text-foreground transition-all duration-300 hover:-translate-y-0.5 hover:bg-foreground hover:text-background disabled:cursor-not-allowed disabled:opacity-50"
                       onClick={() => void loadUserSessions()}
                       disabled={sessionsBusy}
                     >
+                      <RotateCw className={`h-3.5 w-3.5 ${sessionsLoading ? "animate-spin" : ""}`} />
                       {sessionsLoading
                         ? t("accountSessionsRefreshing")
                         : t("accountSessionsRefresh")}
                     </button>
                   </div>
-                  <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-300">
+                  <p className="mt-2 text-xs text-muted-foreground">
                     {t("accountSessionsCurrentHint")}
                   </p>
                 </div>
@@ -1101,13 +1237,13 @@ export default function AccountPage() {
                   ? Array.from({ length: 3 }).map((_, index) => (
                       <div
                         key={`session-skeleton-${index}`}
-                        className="h-24 animate-pulse rounded-2xl border border-zinc-300 bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900"
+                        className="h-28 animate-pulse rounded-[1.55rem] border border-border/70 bg-muted/60"
                       />
                     ))
                   : null}
 
                 {!sessionsLoading && sessions.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-zinc-400 bg-zinc-50 px-4 py-6 text-center text-sm text-zinc-600 dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
+                  <div className="rounded-[1.55rem] border border-dashed border-border/70 bg-card/64 px-4 py-6 text-center text-sm text-muted-foreground">
                     {t("accountSessionsEmpty")}
                   </div>
                 ) : null}
@@ -1121,7 +1257,7 @@ export default function AccountPage() {
                 ) : null}
 
                 {sessionsError ? (
-                  <p className="text-xs text-zinc-700 dark:text-zinc-300">
+                  <p className="text-xs text-muted-foreground">
                     {sessionsError}
                   </p>
                 ) : null}
@@ -1129,12 +1265,16 @@ export default function AccountPage() {
             </DialogContent>
           </Dialog>
 
+          {activeTab === "editor" ? (
           <motion.div
-            className="rounded-3xl border border-border/70 bg-card/90 p-6"
+            key="editor-tab"
+            className="relative overflow-hidden rounded-[2.25rem] border border-border/70 bg-card/82 p-6 shadow-[0_30px_90px_-62px_rgba(0,0,0,0.9)] backdrop-blur-xl"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
           >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(460px_circle_at_0%_0%,hsl(var(--foreground)/0.08),transparent_46%)]" />
+            <div className="relative">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-semibold">
@@ -1147,14 +1287,14 @@ export default function AccountPage() {
               </div>
               <GradientButton
                 type="button"
-                className="w-full justify-center sm:w-auto"
+                className="w-full justify-center shadow-[0_18px_44px_-28px_rgba(0,0,0,0.75)] sm:w-auto"
                 onClick={openProfileEditor}
               >
                 Открыть редактор
               </GradientButton>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-border/60 bg-background/70 p-4">
+            <div className="mt-5 rounded-[1.6rem] border border-border/60 bg-background/64 p-4 shadow-inner">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                 Текущее состояние
               </p>
@@ -1171,7 +1311,11 @@ export default function AccountPage() {
             {successMessage ? (
               <p className="mt-4 text-sm text-foreground">{successMessage}</p>
             ) : null}
+            </div>
           </motion.div>
+          ) : null}
+            </div>
+          </div>
         </div>
       </main>
 
