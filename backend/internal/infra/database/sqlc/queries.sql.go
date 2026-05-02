@@ -805,7 +805,8 @@ select (select city from project_location group by city order by count(*) desc l
         from projects
         where impl_link is not null
           and status = 'implemented')                                                                    as implemented_count,
-       (select count(*) from projects)                                                                   as ideas_count
+       (select count(*) from projects)                                                                   as ideas_count,
+       (select coalesce(avg(extract(epoch from (accepted - created)) / 3600), 0)::double precision as avg_tickets_response from tickets where accepted is not null)
 `
 
 type GlobalStatsRow struct {
@@ -814,6 +815,7 @@ type GlobalStatsRow struct {
 	LikesCount                   int64       `json:"likes_count"`
 	ImplementedCount             int64       `json:"implemented_count"`
 	IdeasCount                   int64       `json:"ideas_count"`
+	AvgTicketsResponse           float64     `json:"avg_tickets_response"`
 }
 
 func (q *Queries) GlobalStats(ctx context.Context) (GlobalStatsRow, error) {
@@ -825,6 +827,7 @@ func (q *Queries) GlobalStats(ctx context.Context) (GlobalStatsRow, error) {
 		&i.LikesCount,
 		&i.ImplementedCount,
 		&i.IdeasCount,
+		&i.AvgTicketsResponse,
 	)
 	return i, err
 }

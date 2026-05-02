@@ -57,6 +57,7 @@ type Global struct {
 	Implemented int64
 	Votes       int64
 	City        string
+	Hours       float64
 }
 
 func (g *Global) Protobuf() *statpb.Global {
@@ -68,6 +69,7 @@ func (g *Global) Protobuf() *statpb.Global {
 	out.SetImplemented(g.Implemented)
 	out.SetVotes(g.Votes)
 	out.SetCity(g.City)
+	out.SetHours(g.Hours)
 	return out
 }
 

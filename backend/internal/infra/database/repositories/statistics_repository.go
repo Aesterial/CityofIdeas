@@ -28,6 +28,7 @@ func (s *StatisticsRepository) Global(ctx context.Context) (*statisticsdomain.Gl
 		Implemented: out.ImplementedCount,
 		Votes:       out.LikesCount,
 		City:        out.MostPopularCity,
+		Hours:       out.AvgTicketsResponse,
 	}, nil
 }
 

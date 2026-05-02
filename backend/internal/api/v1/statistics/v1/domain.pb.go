@@ -74,6 +74,7 @@ type Global struct {
 	xxx_hidden_Implemented int64                  `protobuf:"varint,2,opt,name=implemented"`
 	xxx_hidden_Votes       int64                  `protobuf:"varint,3,opt,name=votes"`
 	xxx_hidden_City        *string                `protobuf:"bytes,4,opt,name=city"`
+	xxx_hidden_Hours       float64                `protobuf:"fixed64,5,opt,name=hours"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
 	unknownFields          protoimpl.UnknownFields
@@ -136,24 +137,36 @@ func (x *Global) GetCity() string {
 	return ""
 }
 
+func (x *Global) GetHours() float64 {
+	if x != nil {
+		return x.xxx_hidden_Hours
+	}
+	return 0
+}
+
 func (x *Global) SetIdeas(v int64) {
 	x.xxx_hidden_Ideas = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 4)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 5)
 }
 
 func (x *Global) SetImplemented(v int64) {
 	x.xxx_hidden_Implemented = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 4)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 5)
 }
 
 func (x *Global) SetVotes(v int64) {
 	x.xxx_hidden_Votes = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 4)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 5)
 }
 
 func (x *Global) SetCity(v string) {
 	x.xxx_hidden_City = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 4)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 5)
+}
+
+func (x *Global) SetHours(v float64) {
+	x.xxx_hidden_Hours = v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 5)
 }
 
 func (x *Global) HasIdeas() bool {
@@ -184,6 +197,13 @@ func (x *Global) HasCity() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
 }
 
+func (x *Global) HasHours() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 4)
+}
+
 func (x *Global) ClearIdeas() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
 	x.xxx_hidden_Ideas = 0
@@ -204,6 +224,11 @@ func (x *Global) ClearCity() {
 	x.xxx_hidden_City = nil
 }
 
+func (x *Global) ClearHours() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
+	x.xxx_hidden_Hours = 0
+}
+
 type Global_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -211,7 +236,8 @@ type Global_builder struct {
 	Implemented *int64
 	Votes       *int64
 	// contains the city with the maximum number of created projects.
-	City *string
+	City  *string
+	Hours *float64
 }
 
 func (b0 Global_builder) Build() *Global {
@@ -219,20 +245,24 @@ func (b0 Global_builder) Build() *Global {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Ideas != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 4)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 5)
 		x.xxx_hidden_Ideas = *b.Ideas
 	}
 	if b.Implemented != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 4)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 5)
 		x.xxx_hidden_Implemented = *b.Implemented
 	}
 	if b.Votes != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 4)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 5)
 		x.xxx_hidden_Votes = *b.Votes
 	}
 	if b.City != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 4)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 5)
 		x.xxx_hidden_City = b.City
+	}
+	if b.Hours != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 5)
+		x.xxx_hidden_Hours = *b.Hours
 	}
 	return m0
 }
@@ -622,12 +652,13 @@ var File_xyz_city_ideas_v1_statistics_v1_domain_proto protoreflect.FileDescripto
 
 const file_xyz_city_ideas_v1_statistics_v1_domain_proto_rawDesc = "" +
 	"\n" +
-	",xyz/city_ideas/v1/statistics/v1/domain.proto\x12\x1fxyz.city_ideas.v1.statistics.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"j\n" +
+	",xyz/city_ideas/v1/statistics/v1/domain.proto\x12\x1fxyz.city_ideas.v1.statistics.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x80\x01\n" +
 	"\x06Global\x12\x14\n" +
 	"\x05ideas\x18\x01 \x01(\x03R\x05ideas\x12 \n" +
 	"\vimplemented\x18\x02 \x01(\x03R\vimplemented\x12\x14\n" +
 	"\x05votes\x18\x03 \x01(\x03R\x05votes\x12\x12\n" +
-	"\x04city\x18\x04 \x01(\tR\x04city\"N\n" +
+	"\x04city\x18\x04 \x01(\tR\x04city\x12\x14\n" +
+	"\x05hours\x18\x05 \x01(\x01R\x05hours\"N\n" +
 	"\n" +
 	"GraphPoint\x12*\n" +
 	"\x02at\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x02at\x12\x14\n" +

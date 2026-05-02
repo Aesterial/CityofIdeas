@@ -453,7 +453,10 @@ select (select city from project_location group by city order by count(*) desc l
         from projects
         where impl_link is not null
           and status = 'implemented')                                                                    as implemented_count,
-       (select count(*) from projects)                                                                   as ideas_count;
+       (select count(*) from projects) as ideas_count,
+       (select coalesce(avg(extract(epoch from (accepted - created)) / 3600), 0)::double precision as avg_tickets_response
+        from tickets
+        where accepted is not null);
 
 -- name: ProjectVotesGraph :many
 with period as (select case sqlc.arg(separator)::text
