@@ -1,6 +1,5 @@
 "use client";
 
-import { motion, useMotionValueEvent, useScroll } from "motion/react";
 import {
   Bell,
   ChevronDown,
@@ -21,13 +20,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import {
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-  type MouseEvent,
-} from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "./auth-provider";
 import { useLanguage } from "./language-provider";
 import { Logo } from "./logo";
@@ -112,17 +105,6 @@ const resolveNotificationText = (
   return t("notificationsTypeDefault");
 };
 
-const updateGlow = (event: MouseEvent<HTMLDivElement>) => {
-  const rect = event.currentTarget.getBoundingClientRect();
-  event.currentTarget.style.setProperty("--glow-x", `${event.clientX - rect.left}px`);
-  event.currentTarget.style.setProperty("--glow-y", `${event.clientY - rect.top}px`);
-};
-
-const resetGlow = (event: MouseEvent<HTMLDivElement>) => {
-  event.currentTarget.style.setProperty("--glow-x", "50%");
-  event.currentTarget.style.setProperty("--glow-y", "50%");
-};
-
 export function Header() {
   const { theme, toggleTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
@@ -135,11 +117,7 @@ export function Header() {
     markAsRead,
     markAllAsRead,
   } = useNotifications();
-  const { scrollY } = useScroll();
-  const lastScrollY = useRef(0);
-
   const [mounted, setMounted] = useState(false);
-  const [compact, setCompact] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileCityOpen, setMobileCityOpen] = useState(false);
   const [city, setCity] = useState<City>(cities[0]);
@@ -180,21 +158,6 @@ export function Header() {
     emitCityChange(city);
   }, [city, mounted]);
 
-  useMotionValueEvent(scrollY, "change", (value) => {
-    const previous = lastScrollY.current;
-    const goingDown = value > previous;
-
-    if (value < 12) {
-      setCompact(false);
-    } else if (goingDown && value > 72) {
-      setCompact(true);
-    } else if (!goingDown) {
-      setCompact(false);
-    }
-
-    lastScrollY.current = value;
-  });
-
   const displayName = user?.displayName || user?.username || "";
   const avatarLabel = getInitials(displayName || user?.username || "User");
   const avatarSrc = resolveAvatarSrc(user?.avatar);
@@ -206,42 +169,10 @@ export function Header() {
       className="fixed inset-x-0 z-50 flex justify-center px-2 pt-3 sm:px-5 sm:pt-4"
       style={{ top: "var(--maintenance-banner-height)" }}
     >
-      <motion.div
-        className="w-full"
-        animate={{
-          maxWidth: compact ? 1120 : 1380,
-          y: compact ? -4 : 0,
-        }}
-        transition={{ duration: 0.42, ease: [0.16, 1, 0.3, 1] }}
-      >
-        <motion.div
-          onMouseMove={updateGlow}
-          onMouseLeave={resetGlow}
-          className="relative overflow-hidden border border-border/70 bg-background/70 backdrop-blur-2xl"
-          style={
-            {
-              "--glow-x": "50%",
-              "--glow-y": "50%",
-            } as CSSProperties
-          }
-          animate={{
-            borderRadius: compact ? 28 : 38,
-            paddingTop: compact ? 8 : 14,
-            paddingBottom: compact ? 8 : 14,
-            paddingLeft: compact ? 12 : 18,
-            paddingRight: compact ? 12 : 18,
-            boxShadow: compact
-              ? "0 22px 56px -34px rgba(0,0,0,0.55)"
-              : "0 36px 90px -42px rgba(0,0,0,0.58)",
-          }}
-          transition={{ duration: 0.38, ease: [0.16, 1, 0.3, 1] }}
-        >
+      <div className="w-full max-w-[1380px]">
+        <div className="relative overflow-hidden rounded-[38px] border border-border/70 bg-background/70 px-[18px] py-[14px] shadow-[0_36px_90px_-42px_rgba(0,0,0,0.58)] backdrop-blur-2xl">
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-            <div className="absolute inset-0 bg-[radial-gradient(420px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.24),transparent_42%)] opacity-70 dark:bg-[radial-gradient(420px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.12),transparent_44%)]" />
             <div className="absolute inset-x-[16%] top-0 h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent" />
-            <div className="absolute -left-20 top-0 h-28 w-40 rounded-full bg-foreground/6 blur-3xl" />
-            <div className="absolute -right-12 bottom-0 h-20 w-32 rounded-full bg-foreground/6 blur-3xl" />
           </div>
 
           <div className="relative flex items-center gap-3">
@@ -361,13 +292,12 @@ export function Header() {
             </div>
 
             <div className="flex min-w-0 items-center gap-2.5">
-            <div className="flex min-w-0 items-center gap-2.5">
               <Link href="/" className="shrink-0">
-                <Logo className={compact ? "h-8 w-8" : "h-9 w-9"} showText />
+                <Logo className="h-9 w-9" showText />
               </Link>
 
               <div className="hidden lg:flex">
-                <DropdownMenu>
+                <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
@@ -406,16 +336,10 @@ export function Header() {
                 </DropdownMenu>
               </div>
             </div>
-            </div>
 
             <div className="hidden xl:flex flex-1 justify-center">
-              <motion.nav
+              <nav
                 className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-card/75 p-1 shadow-[0_18px_46px_-30px_rgba(0,0,0,0.42)] backdrop-blur-md"
-                animate={{
-                  scale: compact ? 0.92 : 1,
-                  y: compact ? -1 : 0,
-                }}
-                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               >
                 {navItems.map((item) => (
                   <Link
@@ -426,12 +350,12 @@ export function Header() {
                     {item.label}
                   </Link>
                 ))}
-              </motion.nav>
+              </nav>
             </div>
 
             <div className="ml-auto flex items-center gap-2">
               <div className="hidden lg:flex items-center gap-2">
-                <DropdownMenu>
+                <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
@@ -469,7 +393,7 @@ export function Header() {
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                <DropdownMenu>
+                <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
@@ -516,7 +440,7 @@ export function Header() {
                 ) : null}
               </Button>
               {status === "authenticated" && user ? (
-                <DropdownMenu>
+                <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <button
                       type="button"
@@ -597,8 +521,8 @@ export function Header() {
               )}
             </div>
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </header>
   );
 }

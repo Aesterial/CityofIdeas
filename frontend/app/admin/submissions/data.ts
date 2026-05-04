@@ -135,7 +135,14 @@ const resolveAuthorName = (project?: ApiProject | null) => {
 const resolveAuthorId = (project?: ApiProject | null) => {
   const author = project?.author ?? null;
   const id = author?.userID ?? author?.uid;
-  return typeof id === "number" ? id : undefined;
+  if (typeof id === "number" && Number.isFinite(id)) {
+    return id;
+  }
+  if (typeof id === "string") {
+    const parsed = Number(id.trim());
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+  }
+  return undefined;
 };
 
 const toSummary = (description: string) => {
@@ -185,7 +192,7 @@ export const mapSubmissionTarget = (
     ? locationParts.join(" ")
     : coordinates
       ? formatCoordinates(coordinates)
-      : UNKNOWN_LABEL;
+      : location?.city?.trim() || UNKNOWN_LABEL;
   const city = location?.city?.trim() || UNKNOWN_LABEL;
 
   const photos = Array.isArray(info?.photos) ? info?.photos : [];

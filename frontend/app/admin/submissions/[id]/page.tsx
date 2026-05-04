@@ -475,9 +475,6 @@ export default function SubmissionDetailPage({
               <div className="text-xs text-muted-foreground">
                 {t("adminSubmissionsInfoCity")}: {submission.city}
               </div>
-              <div className="text-xs text-muted-foreground">
-                {t("adminSubmissionsInfoSource")}: {submission.source}
-              </div>
             </div>
 
             <div className="mt-6 rounded-2xl border border-border/70 bg-background/70 p-5">

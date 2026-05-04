@@ -295,6 +295,17 @@ const getInitials = (name: string) =>
     .map((part) => part[0]?.toUpperCase() ?? "")
     .join("") || "U";
 
+const resolveNumericUserId = (value: unknown) => {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Number(value.trim());
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+  }
+  return undefined;
+};
+
 export default function ProjectPage({ params }: ProjectPageProps) {
   const { id } = use(params);
   const { user } = useAuth();
@@ -565,7 +576,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     ? addressParts.join(" ")
     : coordinates
       ? formatCoordinates(coordinates)
-      : UNKNOWN_LABEL;
+      : location?.city?.trim() || UNKNOWN_LABEL;
   const city = location?.city?.trim() || UNKNOWN_LABEL;
   const createdAtLabel = formatDate(
     parseTimestamp(project.createdAt ?? project.created_at),
@@ -575,6 +586,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   const votes = Number(project.likesCount ?? project.likes_count ?? 0);
   const author = project.author ?? null;
   const authorId = author?.userID ?? author?.uid;
+  const authorProfileId = resolveNumericUserId(authorId);
   const authorName =
     author?.settings?.display_name ??
     author?.settings?.displayName ??
@@ -656,9 +668,9 @@ export default function ProjectPage({ params }: ProjectPageProps) {
                     <span className="text-muted-foreground">
                       {t("adminSubmissionsInfoAuthor")}:
                     </span>
-                    {typeof authorId === "number" ? (
+                    {authorProfileId ? (
                       <Link
-                        href={`/users/${authorId}`}
+                        href={`/users/${authorProfileId}`}
                         className="font-semibold hover:underline"
                       >
                         {authorName}

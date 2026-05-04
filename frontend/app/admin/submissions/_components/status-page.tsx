@@ -450,9 +450,6 @@ export default function SubmissionStatusPage({ status }: StatusPageProps) {
                           {selected.location}
                         </span>
                       </div>
-                      <div className="text-xs text-muted-foreground break-all">
-                        {t("adminSubmissionsInfoSource")}: {selected.source}
-                      </div>
                     </div>
                     <Link
                       href={`/admin/submissions/${selected.id}`}

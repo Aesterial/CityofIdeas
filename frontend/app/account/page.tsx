@@ -904,8 +904,8 @@ export default function AccountPage() {
               </div>
             </div>
 
-            <div className="mt-5 rounded-[1.6rem] border border-destructive/30 bg-destructive/5 p-4">
-              <p className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-destructive">
+            <div className="mt-5 rounded-[1.6rem] border border-rose-500/25 bg-rose-500/8 p-4">
+              <p className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-rose-500">
                 <Trash2 className="h-3.5 w-3.5" />
                 {t("accountDangerZone")}
               </p>
@@ -915,7 +915,7 @@ export default function AccountPage() {
               <div className="mt-3 flex flex-wrap gap-2">
                 <button
                   type="button"
-                  className="w-full rounded-full border border-destructive/40 bg-background/40 px-4 py-2 text-xs font-semibold text-destructive transition-all duration-300 hover:-translate-y-0.5 hover:bg-destructive hover:text-destructive-foreground disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                  className="w-full rounded-full border border-rose-500/35 bg-background/60 px-4 py-2 text-xs font-semibold text-rose-500 transition-all duration-300 hover:-translate-y-0.5 hover:bg-rose-500 hover:text-white disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                   onClick={() => void handleDeleteDescription()}
                   disabled={deleteDescriptionLoading || !canDeleteDescription}
                 >
@@ -925,7 +925,7 @@ export default function AccountPage() {
                 </button>
                 <button
                   type="button"
-                  className="w-full rounded-full bg-destructive px-4 py-2 text-xs font-semibold text-destructive-foreground transition-all duration-300 hover:-translate-y-0.5 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                  className="w-full rounded-full bg-rose-600 px-4 py-2 text-xs font-semibold text-white shadow-[0_18px_44px_-28px_rgba(225,29,72,0.85)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-rose-500 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                   onClick={() => {
                     setDeleteProfileInput("");
                     setDeleteProfileError(null);

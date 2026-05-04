@@ -1626,15 +1626,17 @@ export default function AdminPage() {
                       data-tutorial="admin-functional-trigger"
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.97 }}
-                      className="group relative inline-flex h-10 items-center gap-2 overflow-hidden rounded-full border border-border/70 bg-background px-3 text-foreground hover:bg-foreground hover:text-background sm:px-4"
+                      className="group relative inline-flex h-10 items-center gap-2 overflow-hidden rounded-full border border-border/70 bg-card/90 px-2.5 pr-3 text-foreground shadow-[0_16px_42px_-30px_rgba(0,0,0,0.7)] transition-colors hover:border-foreground/30 hover:bg-muted/80 sm:pr-4"
                       aria-label={t("adminSidebarGroupFunctional")}
                       title={t("adminSidebarGroupFunctional")}
                     >
-                      <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.18),transparent_55%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                      <Sparkles className="relative h-4 w-4 shrink-0" />
+                      <span className="relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
+                        <Sparkles className="h-3.5 w-3.5" />
+                      </span>
                       <span className="relative hidden text-sm font-semibold sm:inline">
                         {t("adminSidebarGroupFunctional")}
                       </span>
+                      <ChevronDown className="relative h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
                     </motion.button>
                   </DropdownMenuTrigger>
 
@@ -1724,7 +1726,7 @@ export default function AdminPage() {
                                             href={item.href}
                                             className="group flex items-center gap-2.5"
                                           >
-                                            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background">
+                                            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-foreground">
                                               <Icon className="h-3.5 w-3.5" />
                                             </span>
                                             <span className="min-w-0 truncate text-[13px] font-medium">
@@ -1754,7 +1756,7 @@ export default function AdminPage() {
                             href="/"
                             className="group flex items-center gap-2.5"
                           >
-                            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background">
+                            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-foreground">
                               <House className="h-3.5 w-3.5" />
                             </span>
                             <span className="min-w-0 truncate text-[13px] font-medium">
@@ -1771,7 +1773,7 @@ export default function AdminPage() {
                             setQuickMenuOpen(false);
                           }}
                         >
-                          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background">
+                          <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-foreground">
                             {mounted ? (
                               theme === "light" ? (
                                 <Moon className="h-3.5 w-3.5" />

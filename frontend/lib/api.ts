@@ -34,7 +34,10 @@ import {
   RequestWithValueSchema,
   RequestWithValuesSchema,
 } from "@/gen/xyz/city_ideas/v1/types_pb";
-import {UpdatePreferencesRequestSchema} from "@/gen/xyz/city_ideas/v1/user/v1/domain_pb";
+import {
+  type PublicUser as GrpcPublicUser,
+  UpdatePreferencesRequestSchema,
+} from "@/gen/xyz/city_ideas/v1/user/v1/domain_pb";
 import {
   loginClient,
   maintenanceClient,
@@ -1068,8 +1071,21 @@ const toProjectStatus = (status: GrpcProject["status"]) => {
   }
 };
 
+const readProjectAuthorId = (project: ApiProject) => {
+  const rawId = project.author?.userID ?? project.author?.uid;
+  if (typeof rawId === "number" && Number.isFinite(rawId)) {
+    return rawId;
+  }
+  if (typeof rawId === "string") {
+    const trimmed = rawId.trim();
+    return trimmed || undefined;
+  }
+  return undefined;
+};
+
 const toApiProject = (project: GrpcProject): ApiProject => {
   const createdAt = toGrpcTimestamp(project.at);
+  const authorId = project.author.trim();
   const location = project.location
     ? {
         city: project.location.city || undefined,
@@ -1088,8 +1104,8 @@ const toApiProject = (project: GrpcProject): ApiProject => {
   const likes = toSafeNumber(project.likes);
   return {
     id: project.id,
-    author: project.author
-      ? { uid: project.author, userID: project.author, username: project.author }
+    author: authorId
+      ? { uid: authorId, userID: authorId }
       : null,
     info,
     details: info,
@@ -1099,6 +1115,41 @@ const toApiProject = (project: GrpcProject): ApiProject => {
     created_at: createdAt,
     status: toProjectStatus(project.status),
   };
+};
+
+const hydrateProjectAuthor = async (
+  project: ApiProject,
+  signal?: AbortSignal,
+): Promise<ApiProject> => {
+  const authorId = readProjectAuthorId(project);
+  if (!authorId) {
+    return project;
+  }
+  try {
+    const author = await fetchUserPublic(authorId, { signal });
+    return {
+      ...project,
+      author: {
+        ...author,
+        uid: author.uid ?? author.userID ?? authorId,
+        userID: author.userID ?? author.uid ?? authorId,
+      },
+    };
+  } catch {
+    return project;
+  }
+};
+
+const hydrateProjectAuthors = async (
+  projects: ApiProject[],
+  signal?: AbortSignal,
+): Promise<ApiProject[]> => {
+  const hydrated = await Promise.allSettled(
+    projects.map((project) => hydrateProjectAuthor(project, signal)),
+  );
+  return hydrated.map((result, index) =>
+    result.status === "fulfilled" ? result.value : projects[index],
+  );
 };
 
 const toApiSubmission = (
@@ -1879,6 +1930,24 @@ function toUserListItem(payload: ApiUserPublic): UserListItem | null {
   };
 }
 
+function toApiUserPublic(payload: GrpcPublicUser): ApiUserPublic {
+  return {
+    uid: payload.id,
+    userID: payload.id,
+    username: payload.username || undefined,
+    settings: payload.prefs
+      ? {
+          displayName: payload.prefs.displayName || undefined,
+          display_name: payload.prefs.displayName || undefined,
+          description: payload.prefs.description || undefined,
+          avatar: payload.prefs.avatar ? { key: payload.prefs.avatar } : null,
+        }
+      : null,
+    rank: payload.rank?.name ? { name: payload.rank.name } : null,
+    joined: toGrpcTimestamp(payload.joined),
+  };
+}
+
 export async function logoutUser(): Promise<void> {
   await grpcRequest(() => loginClient.logout(create(EmptySchema, {})));
 }
@@ -1958,6 +2027,19 @@ export async function fetchUserPublic(
   options?: { signal?: AbortSignal },
 ): Promise<ApiUserPublic> {
   const normalizedUserID = normalizeUserID(userID);
+  try {
+    const grpcPayload = await grpcRequest(() =>
+      userClient.info(create(RequestWithValueSchema, { value: normalizedUserID }), {
+        signal: options?.signal,
+      }),
+    );
+    if (grpcPayload.id || grpcPayload.username) {
+      return toApiUserPublic(grpcPayload);
+    }
+  } catch {
+    // Fall back to the legacy REST endpoint below.
+  }
+
   const payload = await apiRequest<ApiUserPublic | ApiUserPublicResponse>(
     `/api/user/${encodeURIComponent(normalizedUserID)}`,
     {
@@ -2441,7 +2523,7 @@ export async function fetchProjects(options?: {
       signal: options?.signal,
     }),
   );
-  return payload.list.map(toApiProject);
+  return hydrateProjectAuthors(payload.list.map(toApiProject), options?.signal);
 }
 
 export async function fetchProjectById(
@@ -2457,7 +2539,7 @@ export async function fetchProjectById(
       signal: options?.signal,
     }),
   );
-  return toApiProject(payload);
+  return hydrateProjectAuthor(toApiProject(payload), options?.signal);
 }
 
 export async function fetchTopProjects(options?: {
@@ -2480,7 +2562,7 @@ export async function fetchTopProjects(options?: {
       },
     ),
   );
-  return payload.list.map(toApiProject);
+  return hydrateProjectAuthors(payload.list.map(toApiProject), options?.signal);
 }
 
 export async function fetchArchivedProjects(options?: {

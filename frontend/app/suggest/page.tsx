@@ -81,6 +81,12 @@ const heroWords = {
   KZ: ["шешімдер", "жобалар", "жаңартулар"],
 } as const;
 
+const mapSectionTitle = {
+  RU: "\u041C\u0435\u0441\u0442\u043E \u043F\u0440\u043E\u0435\u043A\u0442\u0430",
+  EN: "Project location",
+  KZ: "\u0416\u043E\u0431\u0430 \u043E\u0440\u043D\u044B",
+} as const;
+
 const glowStyle = {
   "--glow-x": "50%",
   "--glow-y": "50%",
@@ -541,7 +547,7 @@ export default function SuggestPage() {
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
                     <div>
                       <h2 className="text-xl font-semibold tracking-[-0.035em]">
-                        {t("markOnMap")}
+                        {mapSectionTitle[language]}
                       </h2>
                       <p className="text-xs text-muted-foreground">
                         {mapSelection
@@ -562,7 +568,7 @@ export default function SuggestPage() {
                             {
                               id: "selection",
                               coordinates: mapSelection,
-                              title: t("markOnMap"),
+                              title: mapSectionTitle[language],
                             },
                           ]
                         : []
