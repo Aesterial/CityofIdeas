@@ -69,7 +69,7 @@ func (g *Global) Protobuf() *statpb.Global {
 	out.SetImplemented(g.Implemented)
 	out.SetVotes(g.Votes)
 	out.SetCity(g.City)
-	out.SetHours(g.Hours)
+	out.SetSupportDelay(g.Hours)
 	return out
 }
 

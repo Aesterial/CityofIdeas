@@ -69,16 +69,16 @@ func (x Separator) Number() protoreflect.EnumNumber {
 }
 
 type Global struct {
-	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_Ideas       int64                  `protobuf:"varint,1,opt,name=ideas"`
-	xxx_hidden_Implemented int64                  `protobuf:"varint,2,opt,name=implemented"`
-	xxx_hidden_Votes       int64                  `protobuf:"varint,3,opt,name=votes"`
-	xxx_hidden_City        *string                `protobuf:"bytes,4,opt,name=city"`
-	xxx_hidden_Hours       float64                `protobuf:"fixed64,5,opt,name=hours"`
-	XXX_raceDetectHookData protoimpl.RaceDetectHookData
-	XXX_presence           [1]uint32
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Ideas        int64                  `protobuf:"varint,1,opt,name=ideas"`
+	xxx_hidden_Implemented  int64                  `protobuf:"varint,2,opt,name=implemented"`
+	xxx_hidden_Votes        int64                  `protobuf:"varint,3,opt,name=votes"`
+	xxx_hidden_City         *string                `protobuf:"bytes,4,opt,name=city"`
+	xxx_hidden_SupportDelay float64                `protobuf:"fixed64,5,opt,name=support_delay,json=supportDelay"`
+	XXX_raceDetectHookData  protoimpl.RaceDetectHookData
+	XXX_presence            [1]uint32
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *Global) Reset() {
@@ -137,9 +137,9 @@ func (x *Global) GetCity() string {
 	return ""
 }
 
-func (x *Global) GetHours() float64 {
+func (x *Global) GetSupportDelay() float64 {
 	if x != nil {
-		return x.xxx_hidden_Hours
+		return x.xxx_hidden_SupportDelay
 	}
 	return 0
 }
@@ -164,8 +164,8 @@ func (x *Global) SetCity(v string) {
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 5)
 }
 
-func (x *Global) SetHours(v float64) {
-	x.xxx_hidden_Hours = v
+func (x *Global) SetSupportDelay(v float64) {
+	x.xxx_hidden_SupportDelay = v
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 5)
 }
 
@@ -197,7 +197,7 @@ func (x *Global) HasCity() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
 }
 
-func (x *Global) HasHours() bool {
+func (x *Global) HasSupportDelay() bool {
 	if x == nil {
 		return false
 	}
@@ -224,9 +224,9 @@ func (x *Global) ClearCity() {
 	x.xxx_hidden_City = nil
 }
 
-func (x *Global) ClearHours() {
+func (x *Global) ClearSupportDelay() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
-	x.xxx_hidden_Hours = 0
+	x.xxx_hidden_SupportDelay = 0
 }
 
 type Global_builder struct {
@@ -236,8 +236,8 @@ type Global_builder struct {
 	Implemented *int64
 	Votes       *int64
 	// contains the city with the maximum number of created projects.
-	City  *string
-	Hours *float64
+	City         *string
+	SupportDelay *float64
 }
 
 func (b0 Global_builder) Build() *Global {
@@ -260,9 +260,9 @@ func (b0 Global_builder) Build() *Global {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 5)
 		x.xxx_hidden_City = b.City
 	}
-	if b.Hours != nil {
+	if b.SupportDelay != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 5)
-		x.xxx_hidden_Hours = *b.Hours
+		x.xxx_hidden_SupportDelay = *b.SupportDelay
 	}
 	return m0
 }
@@ -652,13 +652,13 @@ var File_xyz_city_ideas_v1_statistics_v1_domain_proto protoreflect.FileDescripto
 
 const file_xyz_city_ideas_v1_statistics_v1_domain_proto_rawDesc = "" +
 	"\n" +
-	",xyz/city_ideas/v1/statistics/v1/domain.proto\x12\x1fxyz.city_ideas.v1.statistics.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x80\x01\n" +
+	",xyz/city_ideas/v1/statistics/v1/domain.proto\x12\x1fxyz.city_ideas.v1.statistics.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x8f\x01\n" +
 	"\x06Global\x12\x14\n" +
 	"\x05ideas\x18\x01 \x01(\x03R\x05ideas\x12 \n" +
 	"\vimplemented\x18\x02 \x01(\x03R\vimplemented\x12\x14\n" +
 	"\x05votes\x18\x03 \x01(\x03R\x05votes\x12\x12\n" +
-	"\x04city\x18\x04 \x01(\tR\x04city\x12\x14\n" +
-	"\x05hours\x18\x05 \x01(\x01R\x05hours\"N\n" +
+	"\x04city\x18\x04 \x01(\tR\x04city\x12#\n" +
+	"\rsupport_delay\x18\x05 \x01(\x01R\fsupportDelay\"N\n" +
 	"\n" +
 	"GraphPoint\x12*\n" +
 	"\x02at\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\x02at\x12\x14\n" +
