@@ -12,7 +12,7 @@ message Global {
   int64 votes = 3;
   // contains the city with the maximum number of created projects.
   string city = 4;
-  double hours = 5;
+  double support_delay = 5;
 }
 
 message GraphPoint {

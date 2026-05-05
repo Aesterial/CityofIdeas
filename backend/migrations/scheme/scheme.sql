@@ -67,6 +67,21 @@ create table if not exists users_oauth
 
 create index if not exists users_oauth_owner_idx on users_oauth (owner);
 
+create table if not exists users_actions (
+    id uuid primary key default gen_random_uuid(),
+    owner uuid not null references users (uid),
+    purpose varchar(64) not null,
+    hash text not null,
+    at timestamptz not null default now(),
+    expires timestamptz not null,
+    used timestamptz,
+    constraint users_actions_expires_check check (expires > at)
+);
+
+create index if not exists users_actions_idx on users_actions (id);
+create index if not exists users_actions_owner_idx on users_actions (owner);
+create unique index if not exists users_actions_hash_purpose_uq on users_actions (hash, purpose);
+
 create type device_t as enum ('desktop', 'mobile', 'tablet');
 
 create table if not exists sessions

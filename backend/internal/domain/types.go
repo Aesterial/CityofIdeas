@@ -233,6 +233,9 @@ func ParseClaims(token string, secret string) (*Claims, error) {
 		return []byte(secret), nil
 	})
 	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return nil, errors.Unauthenticated
+		}
 		return nil, err
 	}
 	if !tk.Valid {
