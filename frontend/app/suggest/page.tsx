@@ -87,6 +87,12 @@ const mapSectionTitle = {
   KZ: "\u0416\u043E\u0431\u0430 \u043E\u0440\u043D\u044B",
 } as const;
 
+const mapSectionDescription = {
+  RU: "Локация",
+  EN: "Location",
+  KZ: "Орналасқан жері"
+} as const;
+
 const glowStyle = {
   "--glow-x": "50%",
   "--glow-y": "50%",
@@ -98,9 +104,8 @@ const updateGlow = (event: MouseEvent<HTMLDivElement>) => {
   event.currentTarget.style.setProperty("--glow-y", `${event.clientY - rect.top}px`);
 };
 
-const resetGlow = (event: MouseEvent<HTMLDivElement>) => {
-  event.currentTarget.style.setProperty("--glow-x", "50%");
-  event.currentTarget.style.setProperty("--glow-y", "50%");
+const resetGlow = (_event: MouseEvent<HTMLDivElement>) => {
+  //
 };
 
 const createImageId = () => {
@@ -359,42 +364,18 @@ export default function SuggestPage() {
             transition={{ duration: 0.48, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(580px_circle_at_10%_0%,hsl(var(--foreground)/0.12),transparent_48%)]" />
-            <div className="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-              <div className="max-w-4xl">
-                <h1 className="mt-4 max-w-4xl text-[clamp(2.75rem,5vw,5.6rem)] font-semibold leading-[0.92] tracking-[-0.055em]">
-                  {heroLead[language]}{" "}
-                  <TextMorph
-                    words={heroWords[language]}
-                    className="inline-flex text-foreground"
-                    charClassName="tracking-[-0.055em]"
-                  />
-                </h1>
-                <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-                  {t("describeIssue")}
-                </p>
-              </div>
-              <div className="grid w-full gap-2 sm:grid-cols-3 xl:w-[28rem]">
-                {[
-                  { label: t("projectCityLabel"), value: selectedCity },
-                  { label: t("photos"), value: String(images.length) },
-                  {
-                    label: t("markOnMap"),
-                    value: mapSelection ? "OK" : "—",
-                  },
-                ].map((item) => (
-                  <div
-                    key={item.label}
-                    className="rounded-[1.1rem] border border-border/60 bg-card/70 px-3 py-3 shadow-[0_16px_42px_-34px_rgba(0,0,0,0.7)]"
-                  >
-                    <p className="text-[9px] uppercase tracking-[0.22em] text-muted-foreground">
-                      {item.label}
-                    </p>
-                    <p className="mt-1 truncate text-lg font-semibold">
-                      {item.value}
-                    </p>
-                  </div>
-                ))}
-              </div>
+            <div className="relative max-w-4xl">
+              <h1 className="mt-4 max-w-4xl text-[clamp(2.75rem,5vw,5.6rem)] font-semibold leading-[0.92] tracking-[-0.055em]">
+                {heroLead[language]}{" "}
+                <TextMorph
+                  words={heroWords[language]}
+                  className="inline-flex text-foreground"
+                  charClassName="tracking-[-0.055em]"
+                />
+              </h1>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+                {t("describeIssue")}
+              </p>
             </div>
           </motion.section>
 
@@ -568,7 +549,7 @@ export default function SuggestPage() {
                             {
                               id: "selection",
                               coordinates: mapSelection,
-                              title: mapSectionTitle[language],
+                              title: mapSectionDescription[language],
                             },
                           ]
                         : []
@@ -585,36 +566,23 @@ export default function SuggestPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.42, delay: 0.12 }}
             >
-              <div className="flex flex-col gap-3 rounded-[1.65rem] border border-border/70 bg-card/82 p-3 shadow-[0_20px_70px_-54px_rgba(0,0,0,0.85)] backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
-                <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-3">
-                  <span className="rounded-full bg-background/60 px-3 py-2">
-                    {title.trim() ? t("projectTitleLabel") : t("projectTitlePlaceholder")}
-                  </span>
-                  <span className="rounded-full bg-background/60 px-3 py-2">
-                    {images.length} {t("photos").toLowerCase()}
-                  </span>
-                  <span className="rounded-full bg-background/60 px-3 py-2">
-                    {mapSelection ? t("markOnMap") : t("clickMapToMark")}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  {submitError ? (
-                    <Alert
-                      variant="destructive"
-                      className="rounded-2xl border-destructive/30 px-3 py-2 text-xs"
-                    >
-                      <AlertTitle className="text-xs">{t("projectSubmitErrorGeneric")}</AlertTitle>
-                      <AlertDescription>{submitError}</AlertDescription>
-                    </Alert>
-                  ) : null}
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="h-12 rounded-full px-7 text-sm shadow-[0_22px_58px_-30px_rgba(0,0,0,0.72)] transition-transform hover:-translate-y-0.5"
+              <div className="flex flex-col gap-3">
+                {submitError ? (
+                  <Alert
+                    variant="destructive"
+                    className="rounded-2xl border-destructive/30 px-3 py-2 text-xs"
                   >
-                    {isSubmitting ? t("projectSubmitSending") : t("submitIdea")}
-                  </Button>
-                </div>
+                    <AlertTitle className="text-xs">{t("projectSubmitErrorGeneric")}</AlertTitle>
+                    <AlertDescription>{submitError}</AlertDescription>
+                  </Alert>
+                ) : null}
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="h-14 w-full justify-center rounded-[1.4rem] text-base font-semibold shadow-[0_28px_72px_-32px_rgba(0,0,0,0.78)] transition-transform hover:-translate-y-0.5"
+                >
+                  {isSubmitting ? t("projectSubmitSending") : t("submitIdea")}
+                </Button>
               </div>
             </motion.div>
           </motion.form>

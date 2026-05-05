@@ -69,8 +69,8 @@ export default function SubmissionDetailPage({
 }: SubmissionDetailPageProps) {
   const { id } = use(params);
   const routeSubmissionId = useMemo(() => {
-    const parsed = Number(id);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+    const trimmed = id?.trim();
+    return trimmed ? trimmed : null;
   }, [id]);
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [isLoading, setIsLoading] = useState(true);

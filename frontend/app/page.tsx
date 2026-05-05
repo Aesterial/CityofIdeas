@@ -110,9 +110,9 @@ const updateGlow = (event: MouseEvent<HTMLDivElement>) => {
   );
 };
 
-const resetGlow = (event: MouseEvent<HTMLDivElement>) => {
-  event.currentTarget.style.setProperty("--glow-x", "50%");
-  event.currentTarget.style.setProperty("--glow-y", "50%");
+const resetGlow = (_event: MouseEvent<HTMLDivElement>) => {
+  // Intentionally a no-op: keep the last cursor position so the glow fades
+  // out from where it was rather than flashing back to centre.
 };
 
 const getProjectInfo = (project?: ApiProject | null) =>
@@ -159,6 +159,8 @@ export default function HomePage() {
   const [popularProjects, setPopularProjects] = useState<ApiProject[]>([]);
   const [mapMarkers, setMapMarkers] = useState<MapMarker[]>([]);
   const [votesCount, setVotesCount] = useState(0);
+  const [implementedCount, setImplementedCount] = useState(0);
+  const [topCity, setTopCity] = useState("");
   const [popularLoading, setPopularLoading] = useState(true);
   const [mapLoading, setMapLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState<ApiProject | null>(null);
@@ -191,10 +193,14 @@ export default function HomePage() {
         });
         if (!controller.signal.aborted) {
           setVotesCount(statistics.votes);
+          setImplementedCount(statistics.implemented);
+          setTopCity(statistics.city ?? "");
         }
       } catch {
         if (!controller.signal.aborted) {
           setVotesCount(0);
+          setImplementedCount(0);
+          setTopCity("");
         }
       }
     };
@@ -320,7 +326,8 @@ export default function HomePage() {
   const metricItems = [
     { label: t("ideas"), value: mapMarkers.length || MAP_LIMIT },
     { label: t("vote"), value: formatMetricNumber(votesCount) },
-    { label: t("mapProjectDetailsTitle"), value: selectedCity },
+    { label: t("topCity"), value: topCity || selectedCity },
+    { label: t("implemented"), value: formatMetricNumber(implementedCount) },
   ];
 
   const featureItems = [
@@ -387,7 +394,7 @@ export default function HomePage() {
                     </Link>
                   </Button>
                   <Button asChild variant="outline" className="rounded-full px-6">
-                    <Link href="/voting">{t("vote")}</Link>
+                    <Link href="/voting">{t("voteAction")}</Link>
                   </Button>
                 </div>
 
@@ -398,14 +405,18 @@ export default function HomePage() {
                   whileHover={{ y: -4 }}
                   className={`${surfaceClass} group mt-8 rounded-[2rem] before:pointer-events-none before:absolute before:inset-0 before:rounded-[2rem] before:bg-[radial-gradient(340px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.16),transparent_44%)] before:opacity-0 before:transition-opacity before:duration-300 group-hover:before:opacity-100 dark:before:bg-[radial-gradient(340px_circle_at_var(--glow-x)_var(--glow-y),rgba(255,255,255,0.08),transparent_44%)]`}
                 >
-                  <div className="relative grid gap-4 p-5 sm:grid-cols-3 sm:p-6">
+                  <div className="relative grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4 sm:p-6">
                     {metricItems.map((item, index) => (
                       <div
                         key={item.label}
                         className="relative min-w-0 sm:pl-5"
                       >
                         {index > 0 ? (
-                          <div className="absolute left-0 top-1 hidden h-[calc(100%-8px)] w-px bg-border/80 sm:block" />
+                          <div
+                            className={`absolute left-0 top-1 hidden h-[calc(100%-8px)] w-px bg-border/80 sm:block ${
+                              index % 2 === 0 ? "sm:hidden lg:block" : ""
+                            }`}
+                          />
                         ) : null}
                         <p className="text-[10px] uppercase tracking-[0.26em] text-muted-foreground">
                           {item.label}

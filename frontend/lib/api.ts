@@ -1259,6 +1259,7 @@ export type StatisticsGlobal = {
   implemented: number;
   votes: number;
   city?: string;
+  hours: number;
 };
 
 const toStatisticsGraph = (graph: GrpcGraph): StatisticsGraph => ({
@@ -1276,6 +1277,10 @@ const toStatisticsGlobal = (global: GrpcGlobal): StatisticsGlobal => ({
   implemented: toSafeNumber(global.implemented),
   votes: toSafeNumber(global.votes),
   city: global.city || undefined,
+  hours:
+    typeof global.hours === "number" && Number.isFinite(global.hours)
+      ? global.hours
+      : 0,
 });
 
 const mapGrpcCodeToHttpStatus = (code: Code) => {
@@ -2685,15 +2690,16 @@ export async function fetchSubmissions(options?: {
 }
 
 export async function fetchSubmissionById(
-  id: number,
+  id: string | number,
   options?: { signal?: AbortSignal },
 ): Promise<ApiSubmissionTarget | null> {
-  if (!Number.isFinite(id) || id <= 0) {
+  const trimmed = String(id).trim();
+  if (!trimmed) {
     throw new Error("Submission id is required.");
   }
   const payload = await grpcRequest(() =>
     projectsClient.submission(
-      create(RequestWithValueSchema, { value: String(id) }),
+      create(RequestWithValueSchema, { value: trimmed }),
       {
         signal: options?.signal,
       },
@@ -2960,25 +2966,33 @@ export async function fetchStatisticsQuestionsActivity(options?: {
   return toStatisticsGraph(payload);
 }
 
-export async function approveSubmission(id: number): Promise<void> {
+export async function approveSubmission(id: string | number): Promise<void> {
+  const trimmed = String(id).trim();
+  if (!trimmed) {
+    throw new Error("Submission id is required.");
+  }
   await grpcRequest(() =>
     projectsClient.acceptSubmission(
-      create(RequestWithValueSchema, { value: String(id) }),
+      create(RequestWithValueSchema, { value: trimmed }),
     ),
   );
 }
 
 export async function declineSubmission(
-  id: number,
+  id: string | number,
   reason: string,
 ): Promise<void> {
   const trimmed = reason.trim();
   if (!trimmed) {
     throw new Error("Decline reason is required.");
   }
+  const submissionId = String(id).trim();
+  if (!submissionId) {
+    throw new Error("Submission id is required.");
+  }
   await grpcRequest(() =>
     projectsClient.denySubmission(
-      create(RequestWithValuesSchema, { values: [String(id), trimmed] }),
+      create(RequestWithValuesSchema, { values: [submissionId, trimmed] }),
     ),
   );
 }

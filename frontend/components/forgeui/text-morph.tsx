@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 
 type TextMorphProps = {
@@ -30,38 +30,53 @@ export function TextMorph({
     return () => clearInterval(timer);
   }, [words, interval]);
 
-  const chars = useMemo(() => {
-    return Array.from(words[index] ?? "");
-  }, [index, words]);
-
   if (!words.length) return null;
 
   return (
-    <AnimatePresence mode="popLayout">
-      <motion.span
-        key={index}
-        className={`flex gap-[0.5px] overflow-hidden ${className ?? ""}`}
-        initial={{ opacity: 0, y: 5 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -5 }}
-        transition={{ duration: 0.4 }}
+    <span
+      className={`relative align-baseline ${className ?? ""}`}
+      style={{ display: "inline-grid", gridTemplateAreas: '"stack"' }}
+    >
+      <span
+        aria-hidden="true"
+        className="invisible whitespace-pre"
+        style={{ gridArea: "stack" }}
       >
-        {chars.map((char, i) => (
+        {words.reduce((longest, word) =>
+          word.length > longest.length ? word : longest,
+        )}
+      </span>
+      <span
+        className="relative flex items-baseline overflow-hidden"
+        style={{ gridArea: "stack" }}
+      >
+        <AnimatePresence mode="popLayout">
           <motion.span
-            key={i}
-            className={charClassName}
-            initial={{ opacity: 0, y: 5, filter: "blur(5px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -5, filter: "blur(5px)" }}
-            transition={{
-              delay: i * 0.03,
-              duration: 0.3,
-            }}
+            key={index}
+            className="flex gap-[0.5px]"
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ duration: 0.4 }}
           >
-            {char}
+            {Array.from(words[index] ?? "").map((char, i) => (
+              <motion.span
+                key={i}
+                className={charClassName}
+                initial={{ opacity: 0, y: 5, filter: "blur(5px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -5, filter: "blur(5px)" }}
+                transition={{
+                  delay: i * 0.03,
+                  duration: 0.3,
+                }}
+              >
+                {char}
+              </motion.span>
+            ))}
           </motion.span>
-        ))}
-      </motion.span>
-    </AnimatePresence>
+        </AnimatePresence>
+      </span>
+    </span>
   );
 }

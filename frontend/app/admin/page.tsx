@@ -14,6 +14,7 @@ import {
   MessageSquare,
   Moon,
   House,
+  Search,
   Shield,
   Sparkles,
   Settings,
@@ -445,6 +446,7 @@ export default function AdminPage() {
   const [showHeaderNote, setShowHeaderNote] = useState(true);
   const [activeSection, setActiveSection] = useState("users");
   const [quickMenuOpen, setQuickMenuOpen] = useState(false);
+  const [quickMenuQuery, setQuickMenuQuery] = useState("");
   const [quickMenuExpanded, setQuickMenuExpanded] = useState<
     Record<string, boolean>
   >({
@@ -452,6 +454,13 @@ export default function AdminPage() {
     analytics: false,
     moderation: false,
   });
+
+  useEffect(() => {
+    if (!quickMenuOpen) {
+      // Reset search whenever the menu closes so it opens fresh next time.
+      setQuickMenuQuery("");
+    }
+  }, [quickMenuOpen]);
 
   const [statsSummary, setStatsSummary] = useState<StatsSummary>({
     activeUsers: null,
@@ -1570,6 +1579,24 @@ export default function AdminPage() {
     }));
   };
 
+  const normalizedQuickQuery = quickMenuQuery.trim().toLowerCase();
+  const filteredQuickGroups = useMemo(() => {
+    if (!normalizedQuickQuery) return quickMenuGroups;
+    return quickMenuGroups
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) =>
+          item.label.toLowerCase().includes(normalizedQuickQuery),
+        ),
+      }))
+      .filter((group) => group.items.length > 0);
+  }, [normalizedQuickQuery, quickMenuGroups]);
+  const totalFilteredItems = filteredQuickGroups.reduce(
+    (sum, group) => sum + group.items.length,
+    0,
+  );
+  const isQuickSearchActive = normalizedQuickQuery.length > 0;
+
   return (
     <TutorialProvider steps={adminTutorialSteps} storageKey="admin-tutorial-v1">
       <div className="relative min-h-screen bg-background text-foreground">
@@ -1620,13 +1647,12 @@ export default function AdminPage() {
                   onOpenChange={setQuickMenuOpen}
                 >
                   <DropdownMenuTrigger asChild>
-                    <motion.button
+                    <button
                       ref={quickMenuTriggerRef}
                       type="button"
                       data-tutorial="admin-functional-trigger"
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                      className="group relative inline-flex h-10 items-center gap-2 overflow-hidden rounded-full border border-border/70 bg-card/90 px-2.5 pr-3 text-foreground shadow-[0_16px_42px_-30px_rgba(0,0,0,0.7)] transition-colors hover:border-foreground/30 hover:bg-muted/80 sm:pr-4"
+                      data-state={quickMenuOpen ? "open" : "closed"}
+                      className="group/trigger relative inline-flex h-10 items-center gap-2 overflow-hidden rounded-full border border-border/70 bg-card/90 px-2.5 pr-3 text-foreground shadow-[0_16px_42px_-30px_rgba(0,0,0,0.7)] transition-[transform,colors,box-shadow] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:border-foreground/30 hover:bg-muted/80 active:scale-[0.97] data-[state=open]:border-foreground/40 data-[state=open]:bg-muted/80 data-[state=open]:shadow-[0_22px_60px_-32px_rgba(0,0,0,0.78)] sm:pr-4"
                       aria-label={t("adminSidebarGroupFunctional")}
                       title={t("adminSidebarGroupFunctional")}
                     >
@@ -1636,126 +1662,238 @@ export default function AdminPage() {
                       <span className="relative hidden text-sm font-semibold sm:inline">
                         {t("adminSidebarGroupFunctional")}
                       </span>
-                      <ChevronDown className="relative h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
-                    </motion.button>
+                      <ChevronDown className="relative h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] group-data-[state=open]/trigger:rotate-180" />
+                    </button>
                   </DropdownMenuTrigger>
 
                   <DropdownMenuContent
                     align="start"
                     sideOffset={10}
-                    className="w-[calc(100vw-1rem)] sm:w-[320px] max-w-[95vw] overflow-hidden rounded-2xl border-border/70 bg-background/95 p-0 shadow-[0_28px_70px_-45px_rgba(0,0,0,0.7)] backdrop-blur-xl"
+                    className="z-[60] flex max-h-[min(560px,calc(100dvh-7rem))] w-[calc(100vw-1rem)] max-w-[95vw] flex-col overflow-hidden rounded-2xl border-border/70 bg-background/95 p-0 shadow-[0_28px_70px_-45px_rgba(0,0,0,0.7)] backdrop-blur-xl sm:w-[360px] data-[state=open]:animate-none data-[state=closed]:animate-none"
+                    style={{
+                      transformOrigin: "var(--radix-dropdown-menu-content-transform-origin)",
+                    }}
                   >
                     <motion.div
-                      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                      initial={{ opacity: 0, y: 6, scale: 0.97 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ duration: 0.2, ease: "easeOut" }}
-                      className="relative"
+                      transition={{
+                        duration: 0.2,
+                        ease: [0.23, 1, 0.32, 1],
+                      }}
+                      className="flex min-h-0 flex-1 flex-col"
+                      style={{
+                        transformOrigin:
+                          "var(--radix-dropdown-menu-content-transform-origin)",
+                      }}
                     >
                       <div className="pointer-events-none absolute -left-14 -top-12 h-28 w-28 rounded-full bg-foreground/10 blur-2xl" />
                       <div className="pointer-events-none absolute -right-16 top-8 h-32 w-32 rounded-full bg-foreground/10 blur-2xl" />
 
-                      <div className="relative border-b border-border/70 px-4 pb-3 pt-4">
-                        <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-                          {t("adminSidebarGroupFunctional")}
-                        </p>
-                        <p className="text-sm font-semibold">
-                          {t("adminPanelTitle")}
-                        </p>
-                      </div>
 
-                      <div className="max-h-[250px] space-y-2 overflow-y-auto p-2">
-                        {quickMenuGroups.map((group) => {
-                          const expanded = Boolean(quickMenuExpanded[group.id]);
-                          const GroupIcon = group.icon;
-                          return (
-                            <div
-                              key={group.id}
-                              className="overflow-hidden rounded-xl border border-border/70 bg-background/80"
+                      <div className="relative shrink-0 border-b border-border/70 px-4 pb-3 pt-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
+                              {t("adminSidebarGroupFunctional")}
+                            </p>
+                            <p className="truncate text-sm font-semibold">
+                              {t("adminPanelTitle")}
+                            </p>
+                          </div>
+                          <span className="rounded-full border border-border/70 bg-background/70 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                            {totalFilteredItems}
+                          </span>
+                        </div>
+
+                        <div className="relative mt-3">
+                          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                          <input
+                            type="text"
+                            value={quickMenuQuery}
+                            onChange={(event) =>
+                              setQuickMenuQuery(event.target.value)
+                            }
+                            onKeyDown={(event) => {
+                              event.stopPropagation();
+                              if (event.key === "Escape" && quickMenuQuery) {
+                                event.preventDefault();
+                                setQuickMenuQuery("");
+                              }
+                            }}
+                            placeholder={t("searchIdeas")}
+                            aria-label={t("searchIdeas")}
+                            className="h-9 w-full rounded-xl border border-border/70 bg-background/80 pl-8 pr-9 text-[13px] outline-none transition-[box-shadow,border-color] duration-150 ease-out placeholder:text-muted-foreground focus:border-foreground/30 focus:shadow-[0_0_0_3px_hsl(var(--foreground)/0.08)]"
+                          />
+                          {quickMenuQuery ? (
+                            <button
+                              type="button"
+                              onClick={() => setQuickMenuQuery("")}
+                              aria-label="Clear search"
+                              className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-[transform,background-color,color] duration-150 ease-out hover:bg-muted hover:text-foreground active:scale-[0.94]"
                             >
-                              <button
-                                type="button"
-                                onClick={() => toggleQuickMenuGroup(group.id)}
-                                className="flex w-full items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-muted/60"
-                                aria-expanded={expanded}
-                              >
-                                <GroupIcon className="h-4 w-4 shrink-0" />
-                                <span className="min-w-0 flex-1 truncate text-[13px] font-semibold">
-                                  {group.label}
-                                </span>
-                                <ChevronDown
-                                  className={`h-4 w-4 shrink-0 transition-transform ${
-                                    expanded ? "rotate-180" : ""
-                                  }`}
-                                />
-                              </button>
-
-                              <AnimatePresence initial={false}>
-                                {expanded ? (
-                                  <motion.div
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: "auto" }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    transition={{
-                                      duration: 0.2,
-                                      ease: "easeOut",
-                                    }}
-                                    className="space-y-1 border-t border-border/60 p-2"
-                                  >
-                                    {group.items.map((item) => {
-                                      const Icon = item.icon;
-                                      const isActiveSection =
-                                        item.section &&
-                                        activeSection === item.section;
-                                      return (
-                                        <DropdownMenuItem
-                                          key={item.id}
-                                          asChild
-                                          className={`rounded-lg px-2.5 py-2 ${
-                                            isActiveSection
-                                              ? "bg-foreground text-background focus:bg-foreground focus:text-background"
-                                              : ""
-                                          }`}
-                                          onSelect={() => {
-                                            if (item.section) {
-                                              setActiveSection(item.section);
-                                            }
-                                            setQuickMenuOpen(false);
-                                          }}
-                                        >
-                                          <Link
-                                            href={item.href}
-                                            className="group flex items-center gap-2.5"
-                                          >
-                                            <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-foreground">
-                                              <Icon className="h-3.5 w-3.5" />
-                                            </span>
-                                            <span className="min-w-0 truncate text-[13px] font-medium">
-                                              {item.label}
-                                            </span>
-                                          </Link>
-                                        </DropdownMenuItem>
-                                      );
-                                    })}
-                                  </motion.div>
-                                ) : null}
-                              </AnimatePresence>
-                            </div>
-                          );
-                        })}
+                              <X className="h-3 w-3" />
+                            </button>
+                          ) : null}
+                        </div>
                       </div>
 
-                      <div className="border-t border-border/70 p-2">
+
+                      <div
+                        data-lenis-prevent
+                        className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain"
+                        style={{ scrollbarGutter: "stable" }}
+                      >
+                        <div className="space-y-2 p-2">
+                          {filteredQuickGroups.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border/70 px-3 py-8 text-center">
+                              <Search className="h-4 w-4 text-muted-foreground" />
+                              <p className="text-[13px] font-semibold">
+                                {t("mapProjectsEmpty")}
+                              </p>
+                              <p className="text-[11px] text-muted-foreground">
+                                «{quickMenuQuery}»
+                              </p>
+                            </div>
+                          ) : (
+                            filteredQuickGroups.map((group, groupIndex) => {
+                              const expanded =
+                                isQuickSearchActive ||
+                                Boolean(quickMenuExpanded[group.id]);
+                              const GroupIcon = group.icon;
+                              return (
+                                <motion.div
+                                  key={group.id}
+                                  initial={{ opacity: 0, y: 4 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{
+                                    duration: 0.22,
+                                    ease: [0.23, 1, 0.32, 1],
+                                    delay: 0.04 * groupIndex,
+                                  }}
+                                  className="overflow-hidden rounded-xl border border-border/70 bg-background/80"
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (isQuickSearchActive) return;
+                                      toggleQuickMenuGroup(group.id);
+                                    }}
+                                    disabled={isQuickSearchActive}
+                                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left transition-[background-color,transform] duration-150 ease-out hover:bg-muted/60 active:scale-[0.995] disabled:cursor-default disabled:hover:bg-transparent"
+                                    aria-expanded={expanded}
+                                  >
+                                    <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border/60 bg-background/70 text-muted-foreground">
+                                      <GroupIcon className="h-3.5 w-3.5" />
+                                    </span>
+                                    <span className="min-w-0 flex-1 truncate text-[13px] font-semibold">
+                                      {group.label}
+                                    </span>
+                                    <span className="rounded-full bg-muted/70 px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                                      {group.items.length}
+                                    </span>
+                                    {!isQuickSearchActive ? (
+                                      <ChevronDown
+                                        className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] ${
+                                          expanded ? "rotate-180" : ""
+                                        }`}
+                                      />
+                                    ) : null}
+                                  </button>
+
+                                  <AnimatePresence initial={false}>
+                                    {expanded ? (
+                                      <motion.div
+                                        key="content"
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: "auto" }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        transition={{
+                                          duration: 0.22,
+                                          ease: [0.23, 1, 0.32, 1],
+                                        }}
+                                        className="border-t border-border/60"
+                                      >
+                                        <div className="space-y-1 p-2">
+                                          {group.items.map((item, itemIndex) => {
+                                            const Icon = item.icon;
+                                            const isActiveSection =
+                                              item.section &&
+                                              activeSection === item.section;
+                                            return (
+                                              <motion.div
+                                                key={item.id}
+                                                initial={{ opacity: 0, y: 2 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{
+                                                  duration: 0.18,
+                                                  ease: [0.23, 1, 0.32, 1],
+                                                  delay: 0.025 * itemIndex,
+                                                }}
+                                              >
+                                                <DropdownMenuItem
+                                                  asChild
+                                                  className={`group/item relative cursor-pointer rounded-lg px-2.5 py-2 transition-[background-color,transform] duration-150 ease-out active:scale-[0.99] ${
+                                                    isActiveSection
+                                                      ? "bg-foreground text-background focus:bg-foreground focus:text-background"
+                                                      : ""
+                                                  }`}
+                                                  onSelect={() => {
+                                                    if (item.section) {
+                                                      setActiveSection(
+                                                        item.section,
+                                                      );
+                                                    }
+                                                    setQuickMenuOpen(false);
+                                                  }}
+                                                >
+                                                  <Link
+                                                    href={item.href}
+                                                    className="flex items-center gap-2.5"
+                                                  >
+                                                    <span
+                                                      className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border transition-colors duration-150 ${
+                                                        isActiveSection
+                                                          ? "border-background/30 bg-background/15 text-background"
+                                                          : "border-border/70 bg-background text-foreground"
+                                                      }`}
+                                                    >
+                                                      <Icon className="h-3.5 w-3.5" />
+                                                    </span>
+                                                    <span className="min-w-0 flex-1 truncate text-[13px] font-medium">
+                                                      {item.label}
+                                                    </span>
+                                                    {isActiveSection ? (
+                                                      <span className="rounded-full bg-background/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-background">
+                                                        ●
+                                                      </span>
+                                                    ) : null}
+                                                  </Link>
+                                                </DropdownMenuItem>
+                                              </motion.div>
+                                            );
+                                          })}
+                                        </div>
+                                      </motion.div>
+                                    ) : null}
+                                  </AnimatePresence>
+                                </motion.div>
+                              );
+                            })
+                          )}
+                        </div>
+                      </div>
+
+
+                      <div className="relative shrink-0 border-t border-border/70 bg-background/85 p-2 backdrop-blur">
                         <DropdownMenuItem
                           asChild
-                          className="rounded-lg px-2.5 py-2"
+                          className="cursor-pointer rounded-lg px-2.5 py-2 transition-[background-color,transform] duration-150 ease-out active:scale-[0.99]"
                           onSelect={() => {
                             setQuickMenuOpen(false);
                           }}
                         >
-                          <Link
-                            href="/"
-                            className="group flex items-center gap-2.5"
-                          >
+                          <Link href="/" className="flex items-center gap-2.5">
                             <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-foreground">
                               <House className="h-3.5 w-3.5" />
                             </span>
@@ -1766,11 +1904,10 @@ export default function AdminPage() {
                         </DropdownMenuItem>
 
                         <DropdownMenuItem
-                          className="rounded-lg px-2.5 py-2"
+                          className="cursor-pointer rounded-lg px-2.5 py-2 transition-[background-color,transform] duration-150 ease-out active:scale-[0.99]"
                           onSelect={(event) => {
                             event.preventDefault();
                             toggleTheme();
-                            setQuickMenuOpen(false);
                           }}
                         >
                           <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-foreground">

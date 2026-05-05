@@ -228,12 +228,15 @@ export function MapLibreMap({
     onMapClickRef.current = onMapClick;
   }, [onMarkerClick, onMapClick]);
 
+  const isDarkRef = useRef(isDark);
+  isDarkRef.current = isDark;
+
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current || !ol) {
       return;
     }
 
-    const tileSource = createTileSource(ol, isDark);
+    const tileSource = createTileSource(ol, isDarkRef.current);
     tileSource.on("tileloaderror", () => {
       setLoadError("Map tiles failed to load. Check your connection.");
     });
@@ -308,7 +311,7 @@ export function MapLibreMap({
       tileLayerRef.current = null;
       setIsLoaded(false);
     };
-  }, [center, isDark, ol, zoom]);
+  }, [ol]);
 
   useEffect(() => {
     if (!ol || !tileLayerRef.current) {

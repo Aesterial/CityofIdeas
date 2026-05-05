@@ -887,7 +887,7 @@ export default function VotingPage() {
                     </div>
                   </div>
 
-                  <div className="relative flex flex-wrap items-center gap-3">
+                  <div className="relative mt-8 flex flex-wrap items-center gap-3 sm:mt-10">
                     <Link href={`/users/${user.uid}`} className="inline-flex">
                       <button
                         type="button"
@@ -1173,7 +1173,7 @@ export default function VotingPage() {
                                       {idea.isVoted
                                         ? "Голос учтен"
                                         : isEmailVerified
-                                          ? t("vote")
+                                          ? t("voteAction")
                                           : t("emailVerificationRequiredTitle")}
                                     </GradientButton>
                                   </div>

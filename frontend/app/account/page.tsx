@@ -68,7 +68,7 @@ const getInitials = (value: string) => {
   return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
 };
 
-const PROFILE_DESCRIPTION_MAX_LENGTH = 100;
+const PROFILE_DESCRIPTION_MAX_LENGTH = 256;
 const SESSION_HASH_TRIMMED_LENGTH = 30;
 
 const getLocaleByLanguage = (language: string) => {
@@ -728,37 +728,17 @@ export default function AccountPage() {
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(620px_circle_at_12%_0%,hsl(var(--foreground)/0.12),transparent_48%)]" />
-            <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/76 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Account control
-                </span>
-                <h1 className="mt-5 max-w-3xl text-5xl font-semibold leading-[0.9] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
-                  {t("accountSettings")}
-                </h1>
-                <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-                  {t("accountSettingsSubtitle")}
-                </p>
-              </div>
-              <div className="grid min-w-[min(100%,22rem)] gap-3 sm:grid-cols-2">
-                <div className="rounded-[1.4rem] border border-border/60 bg-card/72 p-4 shadow-[0_18px_48px_-34px_rgba(0,0,0,0.65)]">
-                  <p className="text-[10px] uppercase tracking-[0.26em] text-muted-foreground">
-                    Email
-                  </p>
-                  <p className="mt-2 text-xl font-semibold">
-                    {isEmailVerified ? t("accountEmailVerified") : t("accountEmailNotVerified")}
-                  </p>
-                </div>
-                <div className="rounded-[1.4rem] border border-border/60 bg-card/72 p-4 shadow-[0_18px_48px_-34px_rgba(0,0,0,0.65)]">
-                  <p className="text-[10px] uppercase tracking-[0.26em] text-muted-foreground">
-                    2FA
-                  </p>
-                  <p className="mt-2 text-xl font-semibold">
-                    {isTotpEnabled ? t("accountTotpEnabled") : t("accountTotpDisabled")}
-                  </p>
-                </div>
-              </div>
+            <div className="relative">
+              <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/76 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                <Sparkles className="h-3.5 w-3.5" />
+                Account control
+              </span>
+              <h1 className="mt-5 max-w-3xl text-5xl font-semibold leading-[0.9] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
+                {t("accountSettings")}
+              </h1>
+              <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+                {t("accountSettingsSubtitle")}
+              </p>
             </div>
           </motion.div>
 
@@ -781,25 +761,24 @@ export default function AccountPage() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <p className="truncate text-lg font-semibold">
-                      {user.displayName || user.username}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="truncate text-lg font-semibold">
+                        {user.displayName || user.username}
+                      </p>
+                      {user.rank?.name ? (
+                        <span
+                          className="inline-flex shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-foreground"
+                          style={roleGlowStyle ?? undefined}
+                        >
+                          {user.rank.name}
+                        </span>
+                      ) : null}
+                    </div>
                     <p className="truncate text-sm text-muted-foreground">
                       @{user.username}
                     </p>
                   </div>
                 </div>
-
-                {user.rank?.name ? (
-                  <div className="relative mt-4">
-                    <span
-                      className="inline-flex rounded-full border px-3 py-1 text-xs font-semibold text-foreground"
-                      style={roleGlowStyle ?? undefined}
-                    >
-                      {user.rank.name}
-                    </span>
-                  </div>
-                ) : null}
 
                 <nav className="relative mt-6 grid gap-2" aria-label="Account settings">
                   {[
@@ -1199,7 +1178,7 @@ export default function AccountPage() {
           ) : null}
 
           <Dialog open={sessionsDialogOpen} onOpenChange={setSessionsDialogOpen}>
-            <DialogContent className="max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-5xl overflow-x-hidden overflow-y-auto rounded-[2rem] border-border/70 bg-background/95 p-3 shadow-[0_40px_120px_-64px_rgba(0,0,0,0.9)] backdrop-blur-xl sm:max-h-[90vh] sm:w-[calc(100vw-2rem)] sm:p-6">
+            <DialogContent className="flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-5xl flex-col overflow-hidden rounded-[2rem] border-border/70 bg-background/95 p-3 shadow-[0_40px_120px_-64px_rgba(0,0,0,0.9)] backdrop-blur-xl sm:max-h-[90vh] sm:w-[calc(100vw-2rem)] sm:p-6 lg:max-w-6xl">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 text-foreground">
                   <MonitorCheck className="h-4 w-4 text-muted-foreground" />
@@ -1210,7 +1189,7 @@ export default function AccountPage() {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="mt-2 space-y-3">
+              <div className="mt-2 flex min-h-0 flex-1 flex-col space-y-3">
                 <div className="rounded-[1.6rem] border border-border/70 bg-card/82 p-3 shadow-[0_18px_54px_-42px_rgba(0,0,0,0.82)] sm:p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <span className="rounded-full border border-foreground bg-foreground px-3 py-1 text-xs font-semibold text-background">
@@ -1249,11 +1228,35 @@ export default function AccountPage() {
                 ) : null}
 
                 {sessions.length > 0 ? (
-                  <div className="max-h-[calc(100dvh-16rem)] space-y-3 overflow-y-auto overscroll-contain pr-1 sm:max-h-[60vh]">
-                    {sessions.map((session) => (
-                      <div key={session.id}>{renderSessionCard(session)}</div>
-                    ))}
-                  </div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                    className="-mx-1 flex-1 overflow-y-auto overscroll-contain px-1"
+                  >
+                    <motion.div
+                      initial="hidden"
+                      animate="visible"
+                      variants={{
+                        hidden: {},
+                        visible: { transition: { staggerChildren: 0.04 } },
+                      }}
+                      className="space-y-3 pb-2"
+                    >
+                      {sessions.map((session) => (
+                        <motion.div
+                          key={session.id}
+                          variants={{
+                            hidden: { opacity: 0, y: 6 },
+                            visible: { opacity: 1, y: 0 },
+                          }}
+                          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                        >
+                          {renderSessionCard(session)}
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  </motion.div>
                 ) : null}
 
                 {sessionsError ? (
@@ -1332,7 +1335,7 @@ export default function AccountPage() {
       >
         <DialogContent
           showCloseButton={false}
-          className="max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-3xl overflow-x-hidden overflow-y-auto p-3 sm:max-h-[85vh] sm:w-[calc(100vw-1.5rem)] sm:p-6"
+          className="max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-5xl overflow-x-hidden overflow-y-auto p-3 sm:max-h-[90vh] sm:w-[calc(100vw-1.5rem)] sm:p-7 lg:max-w-6xl"
         >
           <DialogClose asChild>
             <button
@@ -1365,9 +1368,56 @@ export default function AccountPage() {
 
           <form
             onSubmit={handleProfileSave}
-            className="grid gap-3 sm:gap-6 md:grid-cols-2"
+            className="grid gap-4 sm:gap-6 md:grid-cols-2"
           >
-            <div className="space-y-4">
+            <div className="space-y-5">
+              <div className="rounded-2xl border border-border/60 bg-background/64 p-4 shadow-inner">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                  {t("accountAvatarChange")}
+                </p>
+                <div className="mt-3 flex items-center gap-4">
+                  <Avatar className="h-16 w-16 border border-border/70">
+                    {avatarSrc ? (
+                      <AvatarImage src={avatarSrc} alt={previewName} />
+                    ) : null}
+                    <AvatarFallback className="text-lg font-semibold">
+                      {previewInitials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-wrap gap-2">
+                    <GradientButton
+                      type="button"
+                      className="px-4 py-2 text-xs"
+                      onClick={handleAvatarSelect}
+                      disabled={isAvatarSaving}
+                    >
+                      <Camera className="h-4 w-4" />
+                      {avatarAction === "upload"
+                        ? t("accountAvatarUploading")
+                        : t("accountAvatarChange")}
+                    </GradientButton>
+                    {canResetAvatar ? (
+                      <button
+                        type="button"
+                        className="rounded-full border border-border/70 bg-background/60 px-4 py-2 text-xs font-semibold transition-all duration-300 hover:-translate-y-0.5 hover:bg-foreground hover:text-background disabled:cursor-not-allowed disabled:opacity-60"
+                        onClick={() => void handleAvatarReset()}
+                        disabled={isAvatarSaving}
+                      >
+                        {avatarAction === "reset"
+                          ? t("accountAvatarResetting")
+                          : t("accountAvatarReset")}
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+                {avatarError ? (
+                  <p className="mt-2 text-xs text-destructive">{avatarError}</p>
+                ) : null}
+                {avatarSuccess ? (
+                  <p className="mt-2 text-xs text-foreground">{avatarSuccess}</p>
+                ) : null}
+              </div>
+
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-3">
                   <label className="text-sm font-medium">
@@ -1385,10 +1435,16 @@ export default function AccountPage() {
                 <input
                   type="text"
                   value={draftDisplayName}
-                  onChange={(event) => setDraftDisplayName(event.target.value)}
+                  onChange={(event) =>
+                    setDraftDisplayName(event.target.value.slice(0, 32))
+                  }
                   placeholder={t("displayNamePlaceholder")}
+                  maxLength={32}
                   className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20"
                 />
+                <p className="text-xs text-muted-foreground text-right">
+                  {draftDisplayName.length}/32
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -1406,9 +1462,9 @@ export default function AccountPage() {
                     )
                   }
                   placeholder={t("profileDescriptionPlaceholder")}
-                  rows={4}
+                  rows={6}
                   maxLength={PROFILE_DESCRIPTION_MAX_LENGTH}
-                  className="w-full min-h-[110px] resize-none rounded-2xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 sm:min-h-[160px] sm:px-4 sm:py-3"
+                  className="w-full min-h-[160px] resize-none rounded-2xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-foreground/20 sm:min-h-[220px] sm:px-4 sm:py-3"
                 />
                 <p className="text-xs text-muted-foreground text-right">
                   {draftProfileDescription.length}/

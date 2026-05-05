@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { motion } from "motion/react";
 import { useAuth } from "./auth-provider";
 import { useLanguage } from "./language-provider";
 import { Logo } from "./logo";
@@ -338,19 +339,34 @@ export function Header() {
             </div>
 
             <div className="hidden xl:flex flex-1 justify-center">
-              <nav
+              <motion.nav
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                 className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-card/75 p-1 shadow-[0_18px_46px_-30px_rgba(0,0,0,0.42)] backdrop-blur-md"
               >
-                {navItems.map((item) => (
-                  <Link
+                {navItems.map((item, index) => (
+                  <motion.div
                     key={item.href}
-                    href={item.href}
-                    className="rounded-full px-4 py-2 text-sm font-medium text-foreground/72 transition hover:bg-foreground hover:text-background"
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.35,
+                      delay: 0.06 * index,
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.96 }}
                   >
-                    {item.label}
-                  </Link>
+                    <Link
+                      href={item.href}
+                      className="block rounded-full px-4 py-2 text-sm font-medium text-foreground/72 transition-colors duration-300 hover:bg-foreground hover:text-background"
+                    >
+                      {item.label}
+                    </Link>
+                  </motion.div>
                 ))}
-              </nav>
+              </motion.nav>
             </div>
 
             <div className="ml-auto flex items-center gap-2">

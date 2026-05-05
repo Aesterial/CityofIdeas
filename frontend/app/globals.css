@@ -130,6 +130,7 @@
 
   html {
     scroll-behavior: smooth;
+    scrollbar-gutter: stable;
     @apply font-sans;
   }
 

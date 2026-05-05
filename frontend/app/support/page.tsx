@@ -18,7 +18,7 @@ import { Header } from "@/components/header";
 import { GradientButton } from "@/components/gradient-button";
 import { useAuth } from "@/components/auth-provider";
 import { useLanguage } from "@/components/language-provider";
-import { createTicket, createTicketMessage } from "@/lib/api";
+import { createTicket, createTicketMessage, fetchStatisticsGlobal } from "@/lib/api";
 
 type SupportCategoryId =
   | "account_access"
@@ -194,6 +194,9 @@ export default function SupportPage() {
   const [errors, setErrors] = useState<SupportFormErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [supportDelayHours, setSupportDelayHours] = useState<number | null>(
+    null,
+  );
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const categoryDropdownRef = useRef<HTMLDivElement | null>(null);
   const categoryListRef = useRef<HTMLUListElement | null>(null);
@@ -211,6 +214,36 @@ export default function SupportPage() {
       email: prev.email || user.email || "",
     }));
   }, [user]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchStatisticsGlobal({ signal: controller.signal })
+      .then((statistics) => {
+        if (controller.signal.aborted) return;
+        setSupportDelayHours(
+          Number.isFinite(statistics.hours) ? statistics.hours : null,
+        );
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setSupportDelayHours(null);
+        }
+      });
+    return () => controller.abort();
+  }, []);
+
+  const queueDelayLabel =
+    supportDelayHours == null
+      ? "—"
+      : supportDelayHours <= 0
+        ? "<1h"
+        : supportDelayHours < 1
+          ? `${Math.round(supportDelayHours * 60)}m`
+          : `${
+              Number.isInteger(supportDelayHours)
+                ? supportDelayHours
+                : supportDelayHours.toFixed(1)
+            }h`;
 
   const canManageSupport = hasAdminAccess;
   const canViewHistory = Boolean(user);
@@ -350,20 +383,14 @@ export default function SupportPage() {
                   {copy.subtitle}
                 </p>
               </div>
-              <div className="grid min-w-[min(100%,22rem)] gap-3 sm:grid-cols-2">
-                <div className="rounded-[1.4rem] border border-border/60 bg-card/72 p-4 shadow-[0_18px_48px_-34px_rgba(0,0,0,0.65)]">
-                  <p className="text-[10px] uppercase tracking-[0.26em] text-muted-foreground">
-                    Status
-                  </p>
-                  <p className="mt-2 text-xl font-semibold">
-                    {canViewHistory ? "Account linked" : "Guest mode"}
-                  </p>
-                </div>
+              <div className="grid min-w-[min(100%,16rem)] gap-3">
                 <div className="rounded-[1.4rem] border border-border/60 bg-card/72 p-4 shadow-[0_18px_48px_-34px_rgba(0,0,0,0.65)]">
                   <p className="text-[10px] uppercase tracking-[0.26em] text-muted-foreground">
                     Queue
                   </p>
-                  <p className="mt-2 text-xl font-semibold">48h SLA</p>
+                  <p className="mt-2 text-xl font-semibold">
+                    {queueDelayLabel}
+                  </p>
                 </div>
               </div>
             </div>
