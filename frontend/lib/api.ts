@@ -35,6 +35,10 @@ import {
   RequestWithValuesSchema,
 } from "@/gen/xyz/city_ideas/v1/types_pb";
 import {
+  Reset,
+  ResetTotpRequestSchema,
+} from "@/gen/xyz/city_ideas/v1/login/v1/domain_pb";
+import {
   type PublicUser as GrpcPublicUser,
   UpdatePreferencesRequestSchema,
 } from "@/gen/xyz/city_ideas/v1/user/v1/domain_pb";
@@ -854,6 +858,9 @@ export const getPublicApiErrorMessage = (
     if (includesAny(normalized, ["record not found", "not found"])) {
       return "Requested data was not found.";
     }
+    if (normalized.includes("invalid totp")) {
+      return "Invalid authentication code. Please try again.";
+    }
     if (
       includesAny(normalized, [
         "invalid arguments",
@@ -1520,19 +1527,19 @@ async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
     let rawMessage = `Request failed (${response.status})`;
     let data: { error?: string; data?: unknown; message?: string } | null =
       null;
-    try {
-      data = (await response.json()) as {
-        error?: string;
-        data?: unknown;
-        message?: string;
-      };
-    } catch {
-      const text = await response.text();
-      if (text) {
-        rawMessage = text;
-      } else if (response.statusText) {
-        rawMessage = response.statusText;
+    const rawText = await response.text();
+    if (rawText) {
+      try {
+        data = JSON.parse(rawText) as {
+          error?: string;
+          data?: unknown;
+          message?: string;
+        };
+      } catch {
+        rawMessage = rawText;
       }
+    } else if (response.statusText) {
+      rawMessage = response.statusText;
     }
 
     if (data?.error) {
@@ -1731,78 +1738,50 @@ export async function checkMfaCode(payload: { code: string }): Promise<void> {
   if (!code) {
     throw new Error("Code is required.");
   }
-  await apiRequest("/api/login/2fa/check", {
-    method: "POST",
-    body: JSON.stringify({ code }),
-  });
+  await grpcRequest(() =>
+    loginClient.checkTotp(create(RequestWithValueSchema, { value: code })),
+  );
 }
+
+const parseOtpauthUrl = (
+  url: string,
+): { secret?: string; digits?: number; period?: number } => {
+  if (!url || !url.toLowerCase().startsWith("otpauth://")) {
+    return {};
+  }
+  try {
+    const parsed = new URL(url);
+    const params = parsed.searchParams;
+    const secret = params.get("secret") ?? undefined;
+    const digitsRaw = params.get("digits");
+    const periodRaw = params.get("period");
+    const digits = digitsRaw ? Number.parseInt(digitsRaw, 10) : undefined;
+    const period = periodRaw ? Number.parseInt(periodRaw, 10) : undefined;
+    return {
+      secret,
+      digits: Number.isFinite(digits) ? digits : undefined,
+      period: Number.isFinite(period) ? period : undefined,
+    };
+  } catch {
+    return {};
+  }
+};
 
 export async function startTotpEnrollment(): Promise<TotpEnrollment> {
-  const payload = await apiRequest<Record<string, unknown>>(
-    "/api/login/2fa/setup",
-    {
-      method: "POST",
-    },
+  const response = await grpcRequest(() =>
+    loginClient.createTotp(create(EmptySchema, {})),
   );
-  const record = toRecord(payload) ?? {};
-  const data = toRecord(record.data) ?? record;
+  const otpauthUrl = response.url || undefined;
+  const parsed = otpauthUrl ? parseOtpauthUrl(otpauthUrl) : {};
   return {
-    secret:
-      pickString(data, ["secret", "key"]) ??
-      pickString(record, ["secret", "key"]),
-    otpauthUrl:
-      pickString(data, ["otpauthUrl", "otpauth_url", "uri", "otpauth"]) ??
-      pickString(record, ["otpauthUrl", "otpauth_url", "uri", "otpauth"]),
-    qrBase64:
-      pickString(data, [
-        "qrBase64",
-        "qr_base64",
-        "qr",
-        "qrCode",
-        "qr_code",
-        "image",
-        "imageBase64",
-        "image_base64",
-      ]) ??
-      pickString(record, [
-        "qrBase64",
-        "qr_base64",
-        "qr",
-        "qrCode",
-        "qr_code",
-        "image",
-        "imageBase64",
-        "image_base64",
-      ]),
-    manualUrl:
-      pickString(data, ["manualUrl", "manual_url", "url", "setupUrl"]) ??
-      pickString(record, ["manualUrl", "manual_url", "url", "setupUrl"]),
-    token:
-      pickString(data, ["token", "challenge", "challengeId", "challenge_id"]) ??
-      pickString(record, ["token", "challenge", "challengeId", "challenge_id"]),
-    digits:
-      pickNumber(data, ["digits", "length", "codeLength", "code_length"]) ??
-      pickNumber(record, ["digits", "length", "codeLength", "code_length"]),
-    period:
-      pickNumber(data, ["period", "interval"]) ??
-      pickNumber(record, ["period", "interval"]),
+    secret: parsed.secret,
+    otpauthUrl,
+    qrBase64: response.qr || undefined,
+    manualUrl: otpauthUrl,
+    digits: parsed.digits,
+    period: parsed.period,
   };
 }
-
-const parseRecoveryCodes = (value: unknown): string[] => {
-  if (Array.isArray(value)) {
-    return value
-      .map((item) => (typeof item === "string" ? item.trim() : ""))
-      .filter(Boolean);
-  }
-  if (typeof value === "string") {
-    return value
-      .split(/[\n,;]+/)
-      .map((item) => item.trim())
-      .filter(Boolean);
-  }
-  return [];
-};
 
 export async function confirmTotpEnrollment(payload: {
   code: string;
@@ -1812,43 +1791,26 @@ export async function confirmTotpEnrollment(payload: {
   if (!code) {
     throw new Error("Code is required.");
   }
-  const body: Record<string, unknown> = { code };
-  if (payload.token) {
-    body.token = payload.token;
-  }
-  const response = await apiRequest<Record<string, unknown>>(
-    "/api/login/2fa/confirm",
-    {
-      method: "POST",
-      body: JSON.stringify(body),
-    },
+  const response = await grpcRequest(() =>
+    loginClient.confirmTotp(create(RequestWithValueSchema, { value: code })),
   );
-  const record = toRecord(response) ?? {};
-  const data = toRecord(record.data) ?? record;
-  const codesFromData = parseRecoveryCodes(
-    data.recoveryCodes ?? data.recovery_codes ?? data.codes ?? data.recovery,
-  );
-  const codes =
-    codesFromData.length > 0
-      ? codesFromData
-      : parseRecoveryCodes(
-          record.recoveryCodes ??
-            record.recovery_codes ??
-            record.codes ??
-            record.recovery,
-        );
-  return { recoveryCodes: codes };
+  return {
+    recoveryCodes: response.codes
+      .map((item) => item.trim())
+      .filter(Boolean),
+  };
 }
 
 export async function disableTotp(payload?: { code?: string }): Promise<void> {
-  const body: Record<string, unknown> = {};
-  if (payload?.code) {
-    body.code = payload.code.trim();
-  }
-  await apiRequest("/api/login/2fa/reset/recovery", {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  const code = payload?.code?.trim() ?? "";
+  await grpcRequest(() =>
+    loginClient.resetTotp(
+      create(ResetTotpRequestSchema, {
+        kind: Reset.RECOVERY,
+        code,
+      }),
+    ),
+  );
 }
 
 type VkStartResponse = {

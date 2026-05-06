@@ -252,7 +252,7 @@ export function Header() {
                         />
                       </button>
                       {mobileCityOpen ? (
-                        <div className="mt-4 grid grid-cols-2 gap-2">
+                        <div className="mobile-collapse-panel mt-4 grid grid-cols-2 gap-2">
                           {cities.map((cityName) => (
                             <button
                               key={cityName}

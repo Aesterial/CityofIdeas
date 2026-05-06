@@ -47,6 +47,25 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import {
   fetchUserSessions,
   confirmTotpEnrollment,
   disableTotp,
@@ -152,7 +171,6 @@ export default function AccountPage() {
   const [sessionsLoading, setSessionsLoading] = useState(false);
   const [sessionsError, setSessionsError] = useState<string | null>(null);
   const [sessionActionId, setSessionActionId] = useState<string | null>(null);
-  const [sessionsDialogOpen, setSessionsDialogOpen] = useState(false);
   const [revokedSessionIds, setRevokedSessionIds] = useState<
     Record<string, boolean>
   >({});
@@ -627,87 +645,92 @@ export default function AccountPage() {
     const hash = formatSessionHash(session.hash);
 
     return (
-      <div
-        className={`group relative overflow-hidden rounded-[1.55rem] border p-4 shadow-[0_18px_54px_-42px_rgba(0,0,0,0.82)] transition-all duration-300 ${
-          isRevoked
-            ? "border-muted-foreground/30 bg-muted/54 opacity-75"
-            : "border-border/70 bg-card/82 hover:-translate-y-0.5 hover:border-foreground/25 hover:bg-card"
-        }`}
+      <Card
+        data-revoked={isRevoked || undefined}
+        className="overflow-hidden py-2 transition-[opacity,transform] duration-200 ease-out data-[revoked]:opacity-60 active:scale-[0.997]"
       >
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(320px_circle_at_0%_0%,hsl(var(--foreground)/0.08),transparent_46%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="relative flex items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-border/70 bg-background/70">
+        <CardHeader className="gap-3 py-4 sm:flex-row sm:items-start sm:justify-between sm:space-y-0 sm:py-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <Avatar className="h-10 w-10 shrink-0 rounded-xl border bg-muted">
+              <AvatarFallback className="rounded-xl bg-transparent">
                 <MonitorCheck className="h-4 w-4 text-muted-foreground" />
-              </span>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-foreground">
-                  {t("accountSessionsTitle")}
-                </p>
-                <code className="block truncate text-[11px] font-semibold text-muted-foreground">
-                  {session.id}
-                </code>
-              </div>
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 space-y-1">
+              <CardTitle className="truncate text-sm">
+                {t("accountSessionsTitle")}
+              </CardTitle>
+              <CardDescription className="truncate font-mono text-[11px]">
+                {session.id}
+              </CardDescription>
             </div>
           </div>
 
-          {isRevoked ? (
-            <span className="relative rounded-full border border-muted-foreground/30 bg-muted/70 px-3 py-1 text-xs font-semibold text-muted-foreground">
-              {t("accountSessionsEnded")}
-            </span>
-          ) : (
-            <button
-              type="button"
-              className="relative inline-flex items-center gap-2 rounded-full border border-foreground bg-foreground px-4 py-2 text-xs font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
-              onClick={() => void handleSessionRevoke(session.id)}
-              disabled={isRevoking || sessionsLoading}
-            >
-              {isRevoking ? (
-                <span className="inline-flex items-center gap-1.5">
-                  <RotateCw className="h-3 w-3 animate-spin" />
-                  {t("accountSessionsRevoking")}
-                </span>
-              ) : (
-                <>
-                  <LogOut className="h-3.5 w-3.5" />
-                  {t("accountSessionsRevoke")}
-                </>
-              )}
-            </button>
-          )}
-        </div>
+          <div className="shrink-0">
+            {isRevoked ? (
+              <Badge variant="secondary" className="gap-1">
+                {t("accountSessionsEnded")}
+              </Badge>
+            ) : (
+              <Button
+                type="button"
+                size="sm"
+                variant="destructive"
+                className="w-full sm:w-auto"
+                onClick={() => void handleSessionRevoke(session.id)}
+                disabled={isRevoking || sessionsLoading}
+              >
+                {isRevoking ? (
+                  <>
+                    <RotateCw className="h-3.5 w-3.5 animate-spin" />
+                    <span className="truncate">{t("accountSessionsRevoking")}</span>
+                  </>
+                ) : (
+                  <>
+                    <LogOut className="h-3.5 w-3.5" />
+                    <span className="truncate">{t("accountSessionsRevoke")}</span>
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </CardHeader>
 
-        <div className="relative mt-4 grid gap-2 text-xs sm:grid-cols-3">
-          <div className="rounded-xl border border-border/60 bg-background/64 px-3 py-2.5 shadow-inner">
-            <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+        <Separator />
+
+        <CardContent className="grid gap-3 pb-5 pt-4 sm:grid-cols-3 sm:pb-6 sm:pt-5">
+          <div className="min-w-0 space-y-1">
+            <span className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
               <Fingerprint className="h-3 w-3" />
               {t("accountSessionsDeviceHash")}
             </span>
-            <code className="mt-1 block truncate font-semibold text-foreground" title={session.hash}>
+            <code
+              className="block truncate font-mono text-xs font-medium text-foreground"
+              title={session.hash}
+            >
               {hash ?? t("accountSessionsUnknown")}
             </code>
           </div>
-          <div className="rounded-xl border border-border/60 bg-background/64 px-3 py-2.5 shadow-inner">
-            <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          <div className="min-w-0 space-y-1">
+            <span className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
               <Clock3 className="h-3 w-3" />
               {t("accountSessionsCreated")}
             </span>
-            <p className="mt-1 font-semibold text-foreground">
+            <p className="truncate text-xs font-medium text-foreground">
               {formatSessionDate(session.createdAt)}
             </p>
           </div>
-          <div className="rounded-xl border border-border/60 bg-background/64 px-3 py-2.5 shadow-inner">
-            <span className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+          <div className="min-w-0 space-y-1">
+            <span className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
               <Clock3 className="h-3 w-3" />
               {t("accountSessionsLastSeen")}
             </span>
-            <p className="mt-1 font-semibold text-foreground">
+            <p className="truncate text-xs font-medium text-foreground">
               {formatSessionDate(session.lastSeenAt)}
             </p>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     );
   };
 
@@ -1129,119 +1152,98 @@ export default function AccountPage() {
           {activeTab === "sessions" ? (
           <motion.div
             key="sessions-tab"
-            className="relative overflow-hidden rounded-[2.25rem] border border-border/70 bg-card/82 p-4 shadow-[0_30px_90px_-62px_rgba(0,0,0,0.9)] backdrop-blur-xl sm:p-6"
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
+            transition={{ duration: 0.32, ease: [0.23, 1, 0.32, 1] }}
           >
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(460px_circle_at_0%_0%,hsl(var(--foreground)/0.08),transparent_46%)]" />
-            <div className="relative rounded-[1.6rem] border border-border/60 bg-background/64 p-4 shadow-inner sm:p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="flex flex-col gap-1">
-                  <h2 className="flex items-center gap-2 text-base font-semibold text-foreground sm:text-xl">
-                    <MonitorCheck className="h-4 w-4 shrink-0 text-muted-foreground sm:h-5 sm:w-5" />
+            <Card className="overflow-hidden">
+              <CardHeader className="gap-3 sm:flex-row sm:items-start sm:justify-between sm:space-y-0">
+                <div className="space-y-1.5">
+                  <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                    <MonitorCheck className="h-5 w-5 shrink-0 text-muted-foreground" />
                     {t("accountSessionsTitle")}
-                  </h2>
-                  <p className="max-w-sm text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                  </CardTitle>
+                  <CardDescription className="leading-relaxed">
                     {t("accountSessionsSubtitle")}
-                  </p>
+                  </CardDescription>
                 </div>
-                <span className="inline-flex items-center rounded-full border border-foreground bg-foreground px-3 py-1 text-xs font-semibold text-background">
-                  {t("accountSessionsActiveLabel")}: {sessions.length}
-                </span>
-              </div>
-
-              <p className="mt-4 text-xs leading-relaxed text-muted-foreground sm:text-[13px]">
-                {t("accountSessionsCurrentHint")}
-              </p>
-
-              <div className="mt-4">
-                <button
-                  type="button"
-                  className="inline-flex items-center rounded-full border border-foreground bg-foreground px-4 py-2 text-xs font-semibold text-background transition-all duration-300 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50 sm:px-5 sm:py-2.5 sm:text-[13px]"
-                  onClick={() => setSessionsDialogOpen(true)}
-                  disabled={sessionsBusy}
-                >
-                  {sessionsLoading
-                    ? t("accountSessionsRefreshing")
-                    : t("accountSessionsOpen")}
-                </button>
-              </div>
-            </div>
-
-            {sessionsError ? (
-              <p className="relative mt-3 px-1 text-xs text-muted-foreground">
-                {sessionsError}
-              </p>
-            ) : null}
-          </motion.div>
-          ) : null}
-
-          <Dialog open={sessionsDialogOpen} onOpenChange={setSessionsDialogOpen}>
-            <DialogContent className="flex max-h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-5xl flex-col overflow-hidden rounded-[2rem] border-border/70 bg-background/95 p-3 shadow-[0_40px_120px_-64px_rgba(0,0,0,0.9)] backdrop-blur-xl sm:max-h-[90vh] sm:w-[calc(100vw-2rem)] sm:p-6 lg:max-w-6xl">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-foreground">
-                  <MonitorCheck className="h-4 w-4 text-muted-foreground" />
-                  {t("accountSessionsTitle")}
-                </DialogTitle>
-                <DialogDescription className="text-muted-foreground">
-                  {t("accountSessionsSubtitle")}
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="mt-2 flex min-h-0 flex-1 flex-col space-y-3">
-                <div className="rounded-[1.6rem] border border-border/70 bg-card/82 p-3 shadow-[0_18px_54px_-42px_rgba(0,0,0,0.82)] sm:p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <span className="rounded-full border border-foreground bg-foreground px-3 py-1 text-xs font-semibold text-background">
-                      {t("accountSessionsActiveLabel")}: {sessions.length}
-                    </span>
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/70 px-4 py-2 text-xs font-semibold text-foreground transition-all duration-300 hover:-translate-y-0.5 hover:bg-foreground hover:text-background disabled:cursor-not-allowed disabled:opacity-50"
-                      onClick={() => void loadUserSessions()}
-                      disabled={sessionsBusy}
-                    >
-                      <RotateCw className={`h-3.5 w-3.5 ${sessionsLoading ? "animate-spin" : ""}`} />
+                <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+                  <Badge variant="secondary" className="font-medium">
+                    {t("accountSessionsActiveLabel")}: {sessions.length}
+                  </Badge>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => void loadUserSessions()}
+                    disabled={sessionsBusy}
+                    className="gap-2"
+                  >
+                    <RotateCw
+                      className={`h-3.5 w-3.5 transition-transform ${
+                        sessionsLoading ? "animate-spin" : ""
+                      }`}
+                    />
+                    <span className="truncate">
                       {sessionsLoading
                         ? t("accountSessionsRefreshing")
                         : t("accountSessionsRefresh")}
-                    </button>
-                  </div>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    {t("accountSessionsCurrentHint")}
-                  </p>
+                    </span>
+                  </Button>
                 </div>
+              </CardHeader>
 
-                {sessionsLoading && sessions.length === 0
-                  ? Array.from({ length: 3 }).map((_, index) => (
-                      <div
+              <Separator />
+
+              <CardContent className="space-y-3 pt-4 sm:pt-6">
+                <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                  {t("accountSessionsCurrentHint")}
+                </p>
+
+                {sessionsError ? (
+                  <p className="text-xs text-destructive sm:text-sm">
+                    {sessionsError}
+                  </p>
+                ) : null}
+
+                {sessionsLoading && sessions.length === 0 ? (
+                  <div className="space-y-3">
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <Skeleton
                         key={`session-skeleton-${index}`}
-                        className="h-28 animate-pulse rounded-[1.55rem] border border-border/70 bg-muted/60"
+                        className="h-32 w-full rounded-xl"
                       />
-                    ))
-                  : null}
-
-                {!sessionsLoading && sessions.length === 0 ? (
-                  <div className="rounded-[1.55rem] border border-dashed border-border/70 bg-card/64 px-4 py-6 text-center text-sm text-muted-foreground">
-                    {t("accountSessionsEmpty")}
+                    ))}
                   </div>
                 ) : null}
 
+                {!sessionsLoading && sessions.length === 0 ? (
+                  <Empty className="border">
+                    <EmptyHeader>
+                      <EmptyMedia variant="icon">
+                        <MonitorCheck className="h-5 w-5" />
+                      </EmptyMedia>
+                      <EmptyTitle>{t("accountSessionsTitle")}</EmptyTitle>
+                      <EmptyDescription>
+                        {t("accountSessionsEmpty")}
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                ) : null}
+
                 {sessions.length > 0 ? (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                    className="-mx-1 flex-1 overflow-y-auto overscroll-contain px-1"
+                  <ScrollArea
+                    type="auto"
+                    className="-mx-1 h-[min(60vh,calc(100dvh-26rem))] min-h-[18rem] sm:h-[min(62vh,38rem)]"
                   >
                     <motion.div
                       initial="hidden"
                       animate="visible"
                       variants={{
                         hidden: {},
-                        visible: { transition: { staggerChildren: 0.04 } },
+                        visible: { transition: { staggerChildren: 0.05 } },
                       }}
-                      className="space-y-3 pb-2"
+                      className="space-y-4 px-1 pb-1 sm:space-y-5"
                     >
                       {sessions.map((session) => (
                         <motion.div
@@ -1250,23 +1252,21 @@ export default function AccountPage() {
                             hidden: { opacity: 0, y: 6 },
                             visible: { opacity: 1, y: 0 },
                           }}
-                          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                          transition={{
+                            duration: 0.24,
+                            ease: [0.23, 1, 0.32, 1],
+                          }}
                         >
                           {renderSessionCard(session)}
                         </motion.div>
                       ))}
                     </motion.div>
-                  </motion.div>
+                  </ScrollArea>
                 ) : null}
-
-                {sessionsError ? (
-                  <p className="text-xs text-muted-foreground">
-                    {sessionsError}
-                  </p>
-                ) : null}
-              </div>
-            </DialogContent>
-          </Dialog>
+              </CardContent>
+            </Card>
+          </motion.div>
+          ) : null}
 
           {activeTab === "editor" ? (
           <motion.div
