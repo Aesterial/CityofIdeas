@@ -1940,7 +1940,7 @@ export async function fetchCurrentUser(): Promise<AuthUser> {
           name: publicUser.rank.name,
         }
       : null,
-    totpEnabled: false,
+    totpEnabled: payload.security?.totpEnabled || false,
     joined: toGrpcTimestamp(publicUser.joined),
   };
 }
