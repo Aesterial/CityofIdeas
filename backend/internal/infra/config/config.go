@@ -68,6 +68,7 @@ func Ensure() error {
 			Name:   parseType("EMAIL_NAME", "Aesterial Support"),
 			Domain: parseType("EMAIL_DOMAIN", "support@aesterial.xyz"),
 		},
+		Security:       configdomain.Security{ActionsDuration: parseType("SECURITY_DURATION", 20)},
 		AllowedOrigins: parseType("ALLOWED_ORIGINS", []string{"https://aesterial.xyz"}),
 		Domain:         parseType("DOMAIN", "https://aesterial.xyz"),
 		Host:           parseType("HOST", "0.0.0.0"),

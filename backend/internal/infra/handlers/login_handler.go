@@ -104,6 +104,7 @@ func (h *LoginHandler) ConfirmTotp(ctx context.Context, req *typespb.RequestWith
 	if err != nil {
 		return nil, err
 	}
+	logger.Info("login", "received value is"+req.GetValue())
 	out, err := h.srv.ConfirmTotp(ctx, *meta.UserID, req.GetValue())
 	if err != nil {
 		return nil, err

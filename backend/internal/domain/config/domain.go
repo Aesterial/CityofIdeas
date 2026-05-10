@@ -62,10 +62,15 @@ type Email struct {
 	Domain  string
 }
 
+type Security struct {
+	ActionsDuration int // minutes
+}
+
 type Config struct {
 	Database       Database
 	Cookie         Cookie
 	Email          Email
+	Security       Security
 	AllowedOrigins []string
 	Domain         string
 	Host           string
