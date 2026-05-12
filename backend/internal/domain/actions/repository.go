@@ -8,7 +8,7 @@ import (
 )
 
 type Repository interface {
-	Create(ctx context.Context, user domain.UUID, purpose Purpose, expires time.Time) (*Action, error)
+	Create(ctx context.Context, user domain.UUID, purpose Purpose, hash string, expires time.Time) (*Action, error)
 	Use(ctx context.Context, purpose Purpose, hash string) error
 	Find(ctx context.Context, purpose Purpose, hash string) (*Action, error)
 	ByOwner(ctx context.Context, user domain.UUID) (Actions, error)

@@ -602,3 +602,18 @@ insert into project_likes (project, author) values ($1, $2);
 
 -- name: RemoveProjectLike :exec
 delete from project_likes where project = $1 and author = $2;
+
+-- name: CreateAction :one
+insert into users_actions (owner, purpose, hash, expires) values ($1, $2, $3, $4) returning id, owner, purpose, hash, at, expires, used;
+
+-- name: UseAction :exec
+update users_actions set used = now() where hash = $1 and purpose = $2;
+
+-- name: FindAction :one
+select id, owner, purpose, hash, at, expires, used from users_actions where hash = $1 and purpose = $2 limit 1;
+
+-- name: ActionsByOwner :many
+select id, owner, purpose, hash, at, expires, used from users_actions where owner = $1;
+
+-- name: IsActionValid :one
+select (used is null and expires > now())::boolean as is_valid from users_actions where hash = $1 and purpose = $2 limit 1;

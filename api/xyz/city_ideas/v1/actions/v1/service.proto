@@ -1,0 +1,16 @@
+edition = "2023";
+
+package xyz.city_ideas.v1.actions.v1;
+
+option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/actions/v1;v1";
+
+import "google/protobuf/empty.proto";
+import "xyz/city_ideas/v1/actions/v1/domain.proto";
+
+service ActionsService {
+  rpc CreateAction(xyz.city_ideas.v1.actions.v1.CreateActionRequest) returns (xyz.city_ideas.v1.actions.v1.CreateActionResponse);
+  rpc UseAction(xyz.city_ideas.v1.actions.v1.UseActionRequest) returns (google.protobuf.Empty);
+  rpc FindAction(xyz.city_ideas.v1.actions.v1.FindActionRequest) returns (xyz.city_ideas.v1.actions.v1.FindActionResponse);
+  rpc GetActionsByOwner(xyz.city_ideas.v1.actions.v1.GetActionsByOwnerRequest) returns (xyz.city_ideas.v1.actions.v1.GetActionsByOwnerResponse);
+  rpc CheckAction(xyz.city_ideas.v1.actions.v1.CheckActionRequest) returns (google.protobuf.Empty);
+}

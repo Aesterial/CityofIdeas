@@ -17,6 +17,8 @@ import (
 	statpb "github.com/aesterial/cityideas/backend/internal/api/v1/statistics/v1"
 	ticketpb "github.com/aesterial/cityideas/backend/internal/api/v1/tickets/v1"
 	userpb "github.com/aesterial/cityideas/backend/internal/api/v1/user/v1"
+	actionspb "github.com/aesterial/cityideas/backend/internal/api/v1/actions/v1"
+	actionsservice "github.com/aesterial/cityideas/backend/internal/app/actions"
 	emailservice "github.com/aesterial/cityideas/backend/internal/app/email"
 	loginservice "github.com/aesterial/cityideas/backend/internal/app/login"
 	maintenanceservice "github.com/aesterial/cityideas/backend/internal/app/maintenance"
@@ -68,6 +70,7 @@ func main() {
 	rankRepository := repositories.NewRankRepository(conn.Querier())
 	maintenanceRepository := repositories.NewMaintenanceRepository(conn.Querier())
 	statisticsRepository := repositories.NewStatisticsRepository(conn.Querier())
+	actionsRepository := repositories.NewActionsRepository(conn.Querier())
 	appCache := cache.New(cache.DefaultMaxEntries)
 	emailService := emailservice.NewService(userRepository)
 	userService := userservice.NewService(userRepository, appCache)
@@ -78,6 +81,7 @@ func main() {
 	rankService := rankservice.NewService(rankRepository, appCache)
 	maintenanceService := maintenanceservice.NewService(maintenanceRepository, appCache)
 	statisticsService := statisticsservice.NewService(statisticsRepository, appCache)
+	actionsService := actionsservice.NewService(actionsRepository)
 	interceptorService := interceptors.NewService(maintenanceService)
 
 	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptorService.CsrfCheck(), interceptorService.AvailabilityCheck(), interceptorService.FingerPrint(), interceptorService.Logging(), recovery.UnaryServerInterceptor(recovery.WithRecoveryHandlerContext(interceptorService.Recovery))))
@@ -93,6 +97,7 @@ func main() {
 	ticketHandler := handlers.NewTicketHandler(ticketService, auth)
 	maintenanceHandler := handlers.NewMaintenanceHandler(maintenanceService, auth)
 	statisticsHandler := handlers.NewStatisticsHandler(statisticsService, auth)
+	actionsHandler := handlers.NewActionsHandler(actionsService, auth)
 
 	loginpb.RegisterLoginServiceServer(srv, loginHandler)
 	userpb.RegisterUserServiceServer(srv, userHandler)
@@ -102,6 +107,7 @@ func main() {
 	ticketpb.RegisterTicketServiceServer(srv, ticketHandler)
 	maintenancepb.RegisterMaintenanceServiceServer(srv, maintenanceHandler)
 	statpb.RegisterStatisticServiceServer(srv, statisticsHandler)
+	actionspb.RegisterActionsServiceServer(srv, actionsHandler)
 
 	wrappedSrv := grpcweb.WrapServer(srv,
 		grpcweb.WithOriginFunc(func(origin string) bool {
@@ -177,4 +183,5 @@ func main() {
 			logger.Critical("main", "server received error", logger.F("error", err))
 		}
 	}
-}
+	}
+

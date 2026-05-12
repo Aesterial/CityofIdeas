@@ -44,8 +44,6 @@ export type Global = Message<"xyz.city_ideas.v1.statistics.v1.Global"> & {
    * @generated from field: double support_delay = 5;
    */
   supportDelay: number;
-
-  hours?: number;
 };
 
 /**
