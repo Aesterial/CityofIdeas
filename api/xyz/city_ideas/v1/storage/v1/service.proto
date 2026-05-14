@@ -1,0 +1,21 @@
+edition = "2023";
+
+package xyz.city_ideas.v1.storage.v1;
+
+import "xyz/city_ideas/v1/storage/v1/domain.proto";
+
+option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/storage/v1;storagepb";
+
+service StorageService {
+  rpc GetUploadURL(GetUploadURLRequest) returns (GetUploadURLResponse);
+}
+
+message GetUploadURLRequest {
+  string content_type = 1;
+  Purpose purpose = 2;
+}
+
+message GetUploadURLResponse {
+  string url = 1;
+  string file_id = 2;
+}

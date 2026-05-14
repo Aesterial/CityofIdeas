@@ -1,0 +1,18 @@
+edition = "2023";
+
+package xyz.city_ideas.v1.storage.v1;
+
+option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/storage/v1;storagepb";
+
+message File {
+  string id = 1;
+  string url = 2;
+  string content_type = 3;
+  int64 size = 4;
+}
+
+enum Purpose {
+  PURPOSE_UNSPECIFIED = 0;
+  PURPOSE_AVATAR = 1;
+  PURPOSE_PROJECT_IMAGE = 2;
+}

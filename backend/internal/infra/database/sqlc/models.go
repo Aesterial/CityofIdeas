@@ -502,6 +502,17 @@ type BannedEmail struct {
 	At      pgtype.Timestamptz `json:"at"`
 }
 
+type File struct {
+	ID        pgtype.UUID        `json:"id"`
+	Owner     pgtype.UUID        `json:"owner"`
+	Purpose   string             `json:"purpose"`
+	MimeType  string             `json:"mime_type"`
+	Size      int64              `json:"size"`
+	Key       string             `json:"key"`
+	Bucket    string             `json:"bucket"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
 type Maintenance struct {
 	ID           pgtype.UUID        `json:"id"`
 	Description  string             `json:"description"`

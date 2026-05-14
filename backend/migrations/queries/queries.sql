@@ -612,3 +612,33 @@ insert into users_bans (executor, target, reason, expires) values ($1, $2, $3, $
 
 -- name: UnbanUser :exec
 UPDATE users_bans SET remove = $1, expires = now() WHERE target = $2 AND (expires > now() OR expires IS NULL) AND remove IS NULL;
+
+-- name: CreateFile :one
+insert into files (owner, purpose, mime_type, size, key, bucket)
+values ($1, $2, $3, $4, $5, $6)
+returning id, owner, purpose, mime_type, size, key, bucket, created_at;
+
+-- name: GetFile :one
+select id,
+       owner,
+       purpose,
+       mime_type,
+       size,
+       key,
+       bucket,
+       created_at
+from files
+where id = $1
+limit 1;
+
+-- name: GetFilesByOwner :many
+select id,
+       owner,
+       purpose,
+       mime_type,
+       size,
+       key,
+       bucket,
+       created_at
+from files
+where owner = $1;

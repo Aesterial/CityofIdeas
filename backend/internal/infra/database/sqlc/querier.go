@@ -18,6 +18,7 @@ type Querier interface {
 	BanUser(ctx context.Context, arg BanUserParams) error
 	CloseTicket(ctx context.Context, arg CloseTicketParams) error
 	CreateAction(ctx context.Context, arg CreateActionParams) (UsersAction, error)
+	CreateFile(ctx context.Context, arg CreateFileParams) (File, error)
 	CreateMaintenance(ctx context.Context, arg CreateMaintenanceParams) (Maintenance, error)
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (ProjectMessage, error)
 	CreateProject(ctx context.Context, arg CreateProjectParams) (Project, error)
@@ -41,6 +42,8 @@ type Querier interface {
 	ExpiredTickets(ctx context.Context, dollar_1 pgtype.Interval) ([]pgtype.UUID, error)
 	ExtendSession(ctx context.Context, arg ExtendSessionParams) error
 	FindAction(ctx context.Context, arg FindActionParams) (UsersAction, error)
+	GetFile(ctx context.Context, id pgtype.UUID) (File, error)
+	GetFilesByOwner(ctx context.Context, owner pgtype.UUID) ([]File, error)
 	GetUser(ctx context.Context, uid pgtype.UUID) (User, error)
 	GetUserByUserMail(ctx context.Context, username string) (User, error)
 	GetUserId(ctx context.Context, email string) (pgtype.UUID, error)

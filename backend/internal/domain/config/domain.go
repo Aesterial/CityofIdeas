@@ -62,6 +62,16 @@ type Email struct {
 	Domain  string
 }
 
+type S3 struct {
+	Enabled   bool
+	Endpoint  string
+	Region    string
+	AccessKey string
+	SecretKey string
+	Bucket    string
+	UseSSL    bool
+}
+
 type Security struct {
 	ActionsDuration int // minutes
 }
@@ -70,6 +80,7 @@ type Config struct {
 	Database       Database
 	Cookie         Cookie
 	Email          Email
+	S3             S3
 	Security       Security
 	AllowedOrigins []string
 	Domain         string

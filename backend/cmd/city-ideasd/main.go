@@ -9,15 +9,16 @@ import (
 	"syscall"
 	"time"
 
+	actionspb "github.com/aesterial/cityideas/backend/internal/api/v1/actions/v1"
 	loginpb "github.com/aesterial/cityideas/backend/internal/api/v1/login/v1"
 	maintenancepb "github.com/aesterial/cityideas/backend/internal/api/v1/maintenances/v1"
 	projectpb "github.com/aesterial/cityideas/backend/internal/api/v1/projects/v1"
 	rankpb "github.com/aesterial/cityideas/backend/internal/api/v1/ranks/v1"
 	sessionpb "github.com/aesterial/cityideas/backend/internal/api/v1/sessions/v1"
 	statpb "github.com/aesterial/cityideas/backend/internal/api/v1/statistics/v1"
+	storagepb "github.com/aesterial/cityideas/backend/internal/api/v1/storage/v1"
 	ticketpb "github.com/aesterial/cityideas/backend/internal/api/v1/tickets/v1"
 	userpb "github.com/aesterial/cityideas/backend/internal/api/v1/user/v1"
-	actionspb "github.com/aesterial/cityideas/backend/internal/api/v1/actions/v1"
 	actionsservice "github.com/aesterial/cityideas/backend/internal/app/actions"
 	emailservice "github.com/aesterial/cityideas/backend/internal/app/email"
 	loginservice "github.com/aesterial/cityideas/backend/internal/app/login"
@@ -26,6 +27,7 @@ import (
 	rankservice "github.com/aesterial/cityideas/backend/internal/app/rank"
 	sessionservice "github.com/aesterial/cityideas/backend/internal/app/session"
 	statisticsservice "github.com/aesterial/cityideas/backend/internal/app/statistics"
+	storageservice "github.com/aesterial/cityideas/backend/internal/app/storage"
 	ticketservice "github.com/aesterial/cityideas/backend/internal/app/ticket"
 	userservice "github.com/aesterial/cityideas/backend/internal/app/user"
 	"github.com/aesterial/cityideas/backend/internal/infra/config"
@@ -34,6 +36,7 @@ import (
 	"github.com/aesterial/cityideas/backend/internal/infra/handlers"
 	"github.com/aesterial/cityideas/backend/internal/infra/handlers/interceptors"
 	"github.com/aesterial/cityideas/backend/internal/infra/logger"
+	"github.com/aesterial/cityideas/backend/internal/infra/storage"
 	"github.com/aesterial/cityideas/backend/internal/shared/cache"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
@@ -71,6 +74,14 @@ func main() {
 	maintenanceRepository := repositories.NewMaintenanceRepository(conn.Querier())
 	statisticsRepository := repositories.NewStatisticsRepository(conn.Querier())
 	actionsRepository := repositories.NewActionsRepository(conn.Querier())
+	storageRepository := repositories.NewStorageRepository(conn.Querier())
+
+	storageProvider, err := storage.NewS3Provider(cfg.S3)
+	if err != nil {
+		logger.Critical("main", "failed to create s3 provider", logger.F("error", err))
+		return
+	}
+
 	appCache := cache.New(cache.DefaultMaxEntries)
 	emailService := emailservice.NewService(userRepository)
 	userService := userservice.NewService(userRepository, appCache)
@@ -82,6 +93,7 @@ func main() {
 	maintenanceService := maintenanceservice.NewService(maintenanceRepository, appCache)
 	statisticsService := statisticsservice.NewService(statisticsRepository, appCache)
 	actionsService := actionsservice.NewService(actionsRepository)
+	storageService := storageservice.NewService(storageRepository, storageProvider, cfg.S3)
 	interceptorService := interceptors.NewService(maintenanceService)
 
 	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptorService.CsrfCheck(), interceptorService.AvailabilityCheck(), interceptorService.FingerPrint(), interceptorService.Logging(), recovery.UnaryServerInterceptor(recovery.WithRecoveryHandlerContext(interceptorService.Recovery))))
@@ -98,6 +110,7 @@ func main() {
 	maintenanceHandler := handlers.NewMaintenanceHandler(maintenanceService, auth)
 	statisticsHandler := handlers.NewStatisticsHandler(statisticsService, auth)
 	actionsHandler := handlers.NewActionsHandler(actionsService, auth)
+	storageHandler := handlers.NewStorageHandler(storageService, auth)
 
 	loginpb.RegisterLoginServiceServer(srv, loginHandler)
 	userpb.RegisterUserServiceServer(srv, userHandler)
@@ -108,6 +121,7 @@ func main() {
 	maintenancepb.RegisterMaintenanceServiceServer(srv, maintenanceHandler)
 	statpb.RegisterStatisticServiceServer(srv, statisticsHandler)
 	actionspb.RegisterActionsServiceServer(srv, actionsHandler)
+	storagepb.RegisterStorageServiceServer(srv, storageHandler)
 
 	wrappedSrv := grpcweb.WrapServer(srv,
 		grpcweb.WithOriginFunc(func(origin string) bool {
@@ -183,5 +197,4 @@ func main() {
 			logger.Critical("main", "server received error", logger.F("error", err))
 		}
 	}
-	}
-
+}

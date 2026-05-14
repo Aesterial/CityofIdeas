@@ -169,6 +169,44 @@ func (q *Queries) CreateAction(ctx context.Context, arg CreateActionParams) (Use
 	return i, err
 }
 
+const CreateFile = `-- name: CreateFile :one
+insert into files (owner, purpose, mime_type, size, key, bucket)
+values ($1, $2, $3, $4, $5, $6)
+returning id, owner, purpose, mime_type, size, key, bucket, created_at
+`
+
+type CreateFileParams struct {
+	Owner    pgtype.UUID `json:"owner"`
+	Purpose  string      `json:"purpose"`
+	MimeType string      `json:"mime_type"`
+	Size     int64       `json:"size"`
+	Key      string      `json:"key"`
+	Bucket   string      `json:"bucket"`
+}
+
+func (q *Queries) CreateFile(ctx context.Context, arg CreateFileParams) (File, error) {
+	row := q.db.QueryRow(ctx, CreateFile,
+		arg.Owner,
+		arg.Purpose,
+		arg.MimeType,
+		arg.Size,
+		arg.Key,
+		arg.Bucket,
+	)
+	var i File
+	err := row.Scan(
+		&i.ID,
+		&i.Owner,
+		&i.Purpose,
+		&i.MimeType,
+		&i.Size,
+		&i.Key,
+		&i.Bucket,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const CreateMaintenance = `-- name: CreateMaintenance :one
 insert into maintenances (description, planned_start, planned_end, caller) values ($1, $2, $3, $4) returning id, description, status, type, planned_start, planned_end, actual_start, actual_end, caller, created
 `
@@ -671,6 +709,64 @@ func (q *Queries) FindAction(ctx context.Context, arg FindActionParams) (UsersAc
 		&i.Used,
 	)
 	return i, err
+}
+
+const GetFile = `-- name: GetFile :one
+select id, owner, purpose, mime_type, size, key, bucket, created_at
+from files
+where id = $1
+limit 1
+`
+
+func (q *Queries) GetFile(ctx context.Context, id pgtype.UUID) (File, error) {
+	row := q.db.QueryRow(ctx, GetFile, id)
+	var i File
+	err := row.Scan(
+		&i.ID,
+		&i.Owner,
+		&i.Purpose,
+		&i.MimeType,
+		&i.Size,
+		&i.Key,
+		&i.Bucket,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const GetFilesByOwner = `-- name: GetFilesByOwner :many
+select id, owner, purpose, mime_type, size, key, bucket, created_at
+from files
+where owner = $1
+`
+
+func (q *Queries) GetFilesByOwner(ctx context.Context, owner pgtype.UUID) ([]File, error) {
+	rows, err := q.db.Query(ctx, GetFilesByOwner, owner)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []File
+	for rows.Next() {
+		var i File
+		if err := rows.Scan(
+			&i.ID,
+			&i.Owner,
+			&i.Purpose,
+			&i.MimeType,
+			&i.Size,
+			&i.Key,
+			&i.Bucket,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const GetUser = `-- name: GetUser :one

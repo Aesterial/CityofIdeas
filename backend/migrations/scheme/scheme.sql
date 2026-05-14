@@ -271,6 +271,21 @@ create table if not exists tickets_messages
     created timestamptz not null default now()
 );
 
+create table if not exists files
+(
+    id         uuid primary key      default gen_random_uuid(),
+    owner      uuid         not null references users (uid) on delete cascade,
+    purpose    varchar(32)  not null,
+    mime_type  varchar(128) not null,
+    size       bigint       not null default 0,
+    key        text         not null,
+    bucket     text         not null,
+    created_at timestamptz  not null default now()
+);
+
+create unique index if not exists files_idx on files (id);
+create index if not exists files_owner_idx on files (owner);
+
 create unique index tickets_messages_idx on tickets_messages (id);
 create index tickets_ticket_idx on tickets_messages (ticket);
 create index tickets_author_idx on tickets_messages (author);
