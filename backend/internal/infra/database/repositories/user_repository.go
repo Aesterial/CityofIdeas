@@ -493,3 +493,34 @@ func (u *UserRepository) ResetTotp(ctx context.Context, user domain.UUID) error 
 	}
 	return nil
 }
+
+func (u *UserRepository) Ban(ctx context.Context, user domain.UUID, executor domain.UUID, reason string, until *time.Time) error {
+	if reason == "" {
+		return errors.InvalidArguments
+	}
+	var expires = pgtype.Timestamptz{Valid: false}
+	if until != nil {
+		expires = pgtype.Timestamptz{Time: *until, Valid: true}
+	}
+	err := u.conn.BanUser(ctx, sqlc.BanUserParams{
+		Executor: executor.ToPG(),
+		Target:   user.ToPG(),
+		Reason:   reason,
+		Expires:  expires,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *UserRepository) Unban(ctx context.Context, user domain.UUID, executor domain.UUID) error {
+	err := u.conn.UnbanUser(ctx, sqlc.UnbanUserParams{
+		Remove: executor.ToPG(),
+		Target: user.ToPG(),
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}

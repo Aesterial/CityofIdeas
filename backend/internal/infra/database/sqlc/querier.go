@@ -15,6 +15,7 @@ type Querier interface {
 	AcceptTicket(ctx context.Context, arg AcceptTicketParams) error
 	ActionsByOwner(ctx context.Context, owner pgtype.UUID) ([]UsersAction, error)
 	ActiveMaintenance(ctx context.Context) (Maintenance, error)
+	BanUser(ctx context.Context, arg BanUserParams) error
 	CloseTicket(ctx context.Context, arg CloseTicketParams) error
 	CreateAction(ctx context.Context, arg CreateActionParams) (UsersAction, error)
 	CreateMaintenance(ctx context.Context, arg CreateMaintenanceParams) (Maintenance, error)
@@ -103,6 +104,7 @@ type Querier interface {
 	TicketOwner(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
 	Tickets(ctx context.Context, arg TicketsParams) ([]Ticket, error)
 	TicketsByAuthor(ctx context.Context, arg TicketsByAuthorParams) ([]Ticket, error)
+	UnbanUser(ctx context.Context, arg UnbanUserParams) error
 	UpdateProjectDescription(ctx context.Context, arg UpdateProjectDescriptionParams) error
 	UpdateRankColor(ctx context.Context, arg UpdateRankColorParams) error
 	UpdateRankDescription(ctx context.Context, arg UpdateRankDescriptionParams) error

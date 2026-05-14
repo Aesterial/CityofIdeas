@@ -242,3 +242,13 @@ type OAuth struct {
 	ID      string
 	At      time.Time
 }
+
+type Ban struct {
+	ID       domain.UUID
+	Executor domain.UUID
+	Target   domain.UUID
+	Remove   *domain.UUID
+	Reason   string
+	At       time.Time
+	Expires  *time.Time
+}

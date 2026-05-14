@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file xyz/city_ideas/v1/user/v1/domain.proto.
  */
 export const file_xyz_city_ideas_v1_user_v1_domain: GenFile = /*@__PURE__*/
-  fileDesc("CiZ4eXovY2l0eV9pZGVhcy92MS91c2VyL3YxL2RvbWFpbi5wcm90bxIZeHl6LmNpdHlfaWRlYXMudjEudXNlci52MSKAAQoPVXNlclByZWZlcmVuY2VzEhMKC2Rlc2NyaXB0aW9uGAEgASgJEhQKDGRpc3BsYXlfbmFtZRgCIAEoCRIOCgZhdmF0YXIYAyABKAkSMgoEbGFuZxgEIAEoDjIkLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuTGFuZ3VhZ2VzIicKCFVzZXJSYW5rEgwKBG5hbWUYASABKAkSDQoFY29sb3IYAiABKAMixAEKClB1YmxpY1VzZXISCgoCaWQYASABKAkSEAoIdXNlcm5hbWUYAiABKAkSKgoGam9pbmVkGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI5CgVwcmVmcxgEIAEoCzIqLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuVXNlclByZWZlcmVuY2VzEjEKBHJhbmsYBSABKAsyIy54eXouY2l0eV9pZGVhcy52MS51c2VyLnYxLlVzZXJSYW5rIkcKCFNlY3VyaXR5Eg0KBWVtYWlsGAEgASgJEhYKDmVtYWlsX3ZlcmlmaWVkGAIgASgIEhQKDHRvdHBfZW5hYmxlZBgDIAEoCCKmAQoLUHJpdmF0ZVVzZXISNQoGcHVibGljGAEgASgLMiUueHl6LmNpdHlfaWRlYXMudjEudXNlci52MS5QdWJsaWNVc2VyEhQKDHNlc3Npb25fbGl2ZRgCIAEoBRI1CghzZWN1cml0eRgDIAEoCzIjLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuU2VjdXJpdHkSEwoLcGVybWlzc2lvbnMYBCADKAkidQoYVXBkYXRlUHJlZmVyZW5jZXNSZXF1ZXN0EhQKDGRpc3BsYXlfbmFtZRgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCRITCgthdmF0YXJfaGFzaBgDIAEoCRIZChFzZXNzaW9uX2xpdmVfdGltZRgEIAEoBSJDCgxMaXN0UmVzcG9uc2USMwoEbGlzdBgBIAMoCzIlLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuUHVibGljVXNlcipUCglMYW5ndWFnZXMSGQoVTEFOR1VBR0VTX1VOU1BFQ0lGSUVEEAASFQoRTEFOR1VBR0VTX1JVU1NJQU4QARIVChFMQU5HVUFHRVNfRU5HTElTSBACQkNaQWdpdGh1Yi5jb20vYWVzdGVyaWFsL2NpdHlpZGVhcy9iYWNrZW5kL2ludGVybmFsL2FwaS92MS91c2VyL3YxO3YxYghlZGl0aW9uc3DoBw", [file_google_protobuf_timestamp]);
+  fileDesc("CiZ4eXovY2l0eV9pZGVhcy92MS91c2VyL3YxL2RvbWFpbi5wcm90bxIZeHl6LmNpdHlfaWRlYXMudjEudXNlci52MSKAAQoPVXNlclByZWZlcmVuY2VzEhMKC2Rlc2NyaXB0aW9uGAEgASgJEhQKDGRpc3BsYXlfbmFtZRgCIAEoCRIOCgZhdmF0YXIYAyABKAkSMgoEbGFuZxgEIAEoDjIkLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuTGFuZ3VhZ2VzIicKCFVzZXJSYW5rEgwKBG5hbWUYASABKAkSDQoFY29sb3IYAiABKAMixAEKClB1YmxpY1VzZXISCgoCaWQYASABKAkSEAoIdXNlcm5hbWUYAiABKAkSKgoGam9pbmVkGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcBI5CgVwcmVmcxgEIAEoCzIqLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuVXNlclByZWZlcmVuY2VzEjEKBHJhbmsYBSABKAsyIy54eXouY2l0eV9pZGVhcy52MS51c2VyLnYxLlVzZXJSYW5rIkcKCFNlY3VyaXR5Eg0KBWVtYWlsGAEgASgJEhYKDmVtYWlsX3ZlcmlmaWVkGAIgASgIEhQKDHRvdHBfZW5hYmxlZBgDIAEoCCKmAQoLUHJpdmF0ZVVzZXISNQoGcHVibGljGAEgASgLMiUueHl6LmNpdHlfaWRlYXMudjEudXNlci52MS5QdWJsaWNVc2VyEhQKDHNlc3Npb25fbGl2ZRgCIAEoBRI1CghzZWN1cml0eRgDIAEoCzIjLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuU2VjdXJpdHkSEwoLcGVybWlzc2lvbnMYBCADKAkidQoYVXBkYXRlUHJlZmVyZW5jZXNSZXF1ZXN0EhQKDGRpc3BsYXlfbmFtZRgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCRITCgthdmF0YXJfaGFzaBgDIAEoCRIZChFzZXNzaW9uX2xpdmVfdGltZRgEIAEoBSJDCgxMaXN0UmVzcG9uc2USMwoEbGlzdBgBIAMoCzIlLnh5ei5jaXR5X2lkZWFzLnYxLnVzZXIudjEuUHVibGljVXNlciJXCgpCYW5SZXF1ZXN0Eg4KBnRhcmdldBgBIAEoCRIOCgZyZWFzb24YAiABKAkSKQoFdW50aWwYAyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wKlQKCUxhbmd1YWdlcxIZChVMQU5HVUFHRVNfVU5TUEVDSUZJRUQQABIVChFMQU5HVUFHRVNfUlVTU0lBThABEhUKEUxBTkdVQUdFU19FTkdMSVNIEAJCQ1pBZ2l0aHViLmNvbS9hZXN0ZXJpYWwvY2l0eWlkZWFzL2JhY2tlbmQvaW50ZXJuYWwvYXBpL3YxL3VzZXIvdjE7djFiCGVkaXRpb25zcOgH", [file_google_protobuf_timestamp]);
 
 /**
  * @generated from message xyz.city_ideas.v1.user.v1.UserPreferences
@@ -212,6 +212,33 @@ export type ListResponse = Message<"xyz.city_ideas.v1.user.v1.ListResponse"> & {
  */
 export const ListResponseSchema: GenMessage<ListResponse> = /*@__PURE__*/
   messageDesc(file_xyz_city_ideas_v1_user_v1_domain, 6);
+
+/**
+ * @generated from message xyz.city_ideas.v1.user.v1.BanRequest
+ */
+export type BanRequest = Message<"xyz.city_ideas.v1.user.v1.BanRequest"> & {
+  /**
+   * @generated from field: string target = 1;
+   */
+  target: string;
+
+  /**
+   * @generated from field: string reason = 2;
+   */
+  reason: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp until = 3;
+   */
+  until?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message xyz.city_ideas.v1.user.v1.BanRequest.
+ * Use `create(BanRequestSchema)` to create a new message.
+ */
+export const BanRequestSchema: GenMessage<BanRequest> = /*@__PURE__*/
+  messageDesc(file_xyz_city_ideas_v1_user_v1_domain, 7);
 
 /**
  * @generated from enum xyz.city_ideas.v1.user.v1.Languages

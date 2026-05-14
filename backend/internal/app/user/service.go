@@ -10,6 +10,7 @@ import (
 	"github.com/aesterial/cityideas/backend/internal/shared/cache"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type Service struct {
@@ -108,6 +109,53 @@ func (s *Service) UpdatePreferences(ctx context.Context, user domain.UUID, prefs
 	}
 	s.c.DeleteTags(userCacheTag, userIDCacheTag(user.String()), userListCacheTag)
 	return out, nil
+}
+
+func (s *Service) BanUser(ctx context.Context, user string, executor domain.UUID, reason string, until *timestamppb.Timestamp) error {
+	if reason == "" {
+		return errors.InvalidArguments
+	}
+	userID, err := domain.FromString(user)
+	if err != nil {
+		return err
+	}
+	banned, err := s.usr.IsBanned(ctx, userID)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	if banned {
+		return errors.Conflict
+	}
+	var banUntil *time.Time = nil
+	if until.IsValid() {
+		banUntil = new(until.AsTime())
+	}
+	err = s.usr.Ban(ctx, userID, executor, reason, banUntil)
+	if err != nil {
+		logger.Error("user", "failed to ban user", logger.F("error", err))
+		return errors.Wrap(err)
+	}
+	return nil
+}
+
+func (s *Service) UnbanUser(ctx context.Context, user string, executor domain.UUID) error {
+	userID, err := domain.FromString(user)
+	if err != nil {
+		return err
+	}
+	banned, err := s.usr.IsBanned(ctx, userID)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	if !banned {
+		return errors.NotFound
+	}
+	err = s.usr.Unban(ctx, userID, executor)
+	if err != nil {
+		logger.Error("user", "failed to unban user", logger.F("error", err))
+		return errors.Wrap(err)
+	}
+	return nil
 }
 
 func userIDCacheTag(id string) string {

@@ -19,6 +19,8 @@ const (
 	UserUpdateAvatar      Permission = "user.update.avatar"
 	UserViewAll           Permission = "user.view.all"
 	UserDeleteAll         Permission = "user.delete.all"
+	UserBan               Permission = "user.ban"
+	UserUnban             Permission = "user.unban"
 
 	RankList   Permission = "rank.list"
 	RankInfo   Permission = "rank.info"

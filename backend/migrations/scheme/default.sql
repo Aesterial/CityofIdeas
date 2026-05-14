@@ -20,6 +20,8 @@ with generated_password as (select encode(gen_random_bytes(16), 'hex') as passwo
                        "user.update.avatar": {},
                        "user.view.all": {},
                        "user.delete.all": {},
+                       "user.ban": {},
+                       "user.unban": {},
                        "rank.list": {},
                        "rank.info": {},
                        "rank.create": {},

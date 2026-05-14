@@ -25,6 +25,8 @@ const (
 	UserService_Self_FullMethodName              = "/xyz.city_ideas.v1.user.v1.UserService/Self"
 	UserService_List_FullMethodName              = "/xyz.city_ideas.v1.user.v1.UserService/List"
 	UserService_UpdatePreferences_FullMethodName = "/xyz.city_ideas.v1.user.v1.UserService/UpdatePreferences"
+	UserService_Ban_FullMethodName               = "/xyz.city_ideas.v1.user.v1.UserService/Ban"
+	UserService_Unban_FullMethodName             = "/xyz.city_ideas.v1.user.v1.UserService/Unban"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -35,6 +37,8 @@ type UserServiceClient interface {
 	Self(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PrivateUser, error)
 	List(ctx context.Context, in *v1.RequestWithLimitAndOffset, opts ...grpc.CallOption) (*ListResponse, error)
 	UpdatePreferences(ctx context.Context, in *UpdatePreferencesRequest, opts ...grpc.CallOption) (*UserPreferences, error)
+	Ban(ctx context.Context, in *BanRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	Unban(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type userServiceClient struct {
@@ -85,6 +89,26 @@ func (c *userServiceClient) UpdatePreferences(ctx context.Context, in *UpdatePre
 	return out, nil
 }
 
+func (c *userServiceClient) Ban(ctx context.Context, in *BanRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, UserService_Ban_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) Unban(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, UserService_Unban_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations should embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -93,6 +117,8 @@ type UserServiceServer interface {
 	Self(context.Context, *emptypb.Empty) (*PrivateUser, error)
 	List(context.Context, *v1.RequestWithLimitAndOffset) (*ListResponse, error)
 	UpdatePreferences(context.Context, *UpdatePreferencesRequest) (*UserPreferences, error)
+	Ban(context.Context, *BanRequest) (*emptypb.Empty, error)
+	Unban(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error)
 }
 
 // UnimplementedUserServiceServer should be embedded to have
@@ -113,6 +139,12 @@ func (UnimplementedUserServiceServer) List(context.Context, *v1.RequestWithLimit
 }
 func (UnimplementedUserServiceServer) UpdatePreferences(context.Context, *UpdatePreferencesRequest) (*UserPreferences, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdatePreferences not implemented")
+}
+func (UnimplementedUserServiceServer) Ban(context.Context, *BanRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method Ban not implemented")
+}
+func (UnimplementedUserServiceServer) Unban(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method Unban not implemented")
 }
 func (UnimplementedUserServiceServer) testEmbeddedByValue() {}
 
@@ -206,6 +238,42 @@ func _UserService_UpdatePreferences_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_Ban_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BanRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).Ban(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_Ban_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).Ban(ctx, req.(*BanRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_Unban_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).Unban(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_Unban_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).Unban(ctx, req.(*v1.RequestWithValue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +296,14 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdatePreferences",
 			Handler:    _UserService_UpdatePreferences_Handler,
+		},
+		{
+			MethodName: "Ban",
+			Handler:    _UserService_Ban_Handler,
+		},
+		{
+			MethodName: "Unban",
+			Handler:    _UserService_Unban_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

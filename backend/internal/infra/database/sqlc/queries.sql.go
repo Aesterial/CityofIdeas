@@ -90,6 +90,27 @@ func (q *Queries) ActiveMaintenance(ctx context.Context) (Maintenance, error) {
 	return i, err
 }
 
+const BanUser = `-- name: BanUser :exec
+insert into users_bans (executor, target, reason, expires) values ($1, $2, $3, $4)
+`
+
+type BanUserParams struct {
+	Executor pgtype.UUID        `json:"executor"`
+	Target   pgtype.UUID        `json:"target"`
+	Reason   string             `json:"reason"`
+	Expires  pgtype.Timestamptz `json:"expires"`
+}
+
+func (q *Queries) BanUser(ctx context.Context, arg BanUserParams) error {
+	_, err := q.db.Exec(ctx, BanUser,
+		arg.Executor,
+		arg.Target,
+		arg.Reason,
+		arg.Expires,
+	)
+	return err
+}
+
 const CloseTicket = `-- name: CloseTicket :exec
 update tickets
 set status = 'closed',
@@ -884,18 +905,7 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 }
 
 const GlobalStats = `-- name: GlobalStats :one
-select (select city from project_location group by city order by count(*) desc limit 1)                  as most_popular_city,
-       coalesce((select count(*) from project_location group by city order by count(*) desc limit 1),
-                0)                                                                                       as most_popular_city_projects_count,
-       (select count(*) from project_likes)                                                              as likes_count,
-       (select count(*)
-        from projects
-        where impl_link is not null
-          and status = 'implemented')                                                                    as implemented_count,
-       (select count(*) from projects) as ideas_count,
-       (select coalesce(avg(extract(epoch from (accepted - created)) / 3600), 0)::double precision as avg_tickets_response
-        from tickets
-        where accepted is not null)
+select coalesce((select city from project_location where city is not null group by city order by count(*) desc limit 1),'')::text as most_popular_city,coalesce((select count(*) from project_location where city is not null group by city order by count(*) desc limit 1),0) as most_popular_city_projects_count,(select count(*) from project_likes) as likes_count,(select count(*) from projects where impl_link is not null and status='implemented') as implemented_count,(select count(*) from projects) as ideas_count,(select coalesce(avg(extract(epoch from (accepted-created))/3600),0)::double precision from tickets where accepted is not null) as avg_tickets_response
 `
 
 type GlobalStatsRow struct {
@@ -2283,6 +2293,20 @@ func (q *Queries) TicketsByAuthor(ctx context.Context, arg TicketsByAuthorParams
 		return nil, err
 	}
 	return items, nil
+}
+
+const UnbanUser = `-- name: UnbanUser :exec
+UPDATE users_bans SET remove = $1, expires = now() WHERE target = $2 AND (expires > now() OR expires IS NULL) AND remove IS NULL
+`
+
+type UnbanUserParams struct {
+	Remove pgtype.UUID `json:"remove"`
+	Target pgtype.UUID `json:"target"`
+}
+
+func (q *Queries) UnbanUser(ctx context.Context, arg UnbanUserParams) error {
+	_, err := q.db.Exec(ctx, UnbanUser, arg.Remove, arg.Target)
+	return err
 }
 
 const UpdateProjectDescription = `-- name: UpdateProjectDescription :exec

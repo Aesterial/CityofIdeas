@@ -2,6 +2,7 @@ package userdomain
 
 import (
 	"context"
+	"time"
 
 	"github.com/aesterial/cityideas/backend/internal/domain"
 )
@@ -9,7 +10,6 @@ import (
 type Repository interface {
 	Create(ctx context.Context, username string, email string, passHash string) (*User, error)
 	IsUserExists(ctx context.Context, userMail string) (bool, error)
-	IsBanned(ctx context.Context, user domain.UUID) (bool, error)
 	User(ctx context.Context, user domain.UUID) (*User, error)
 	UserByUsername(ctx context.Context, userMail string) (*User, error)
 	UserPassword(ctx context.Context, user domain.UUID) (string, error)
@@ -27,4 +27,7 @@ type Repository interface {
 	RecoveryCodesWithSelector(ctx context.Context, user domain.UUID, selector string) (*RecoveryCode, error)
 	UseRecovery(ctx context.Context, selector string) error
 	InsertRecovery(ctx context.Context, user domain.UUID, hashes []RecoveryCode) error
+	IsBanned(ctx context.Context, user domain.UUID) (bool, error)
+	Ban(ctx context.Context, user domain.UUID, caller domain.UUID, reason string, until *time.Time) error
+	Unban(ctx context.Context, user domain.UUID, caller domain.UUID) error
 }

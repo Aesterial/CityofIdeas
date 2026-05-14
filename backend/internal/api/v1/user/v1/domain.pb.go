@@ -1045,6 +1045,142 @@ func (b0 ListResponse_builder) Build() *ListResponse {
 	return m0
 }
 
+type BanRequest struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_Target      *string                `protobuf:"bytes,1,opt,name=target"`
+	xxx_hidden_Reason      *string                `protobuf:"bytes,2,opt,name=reason"`
+	xxx_hidden_Until       *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=until"`
+	XXX_raceDetectHookData protoimpl.RaceDetectHookData
+	XXX_presence           [1]uint32
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *BanRequest) Reset() {
+	*x = BanRequest{}
+	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BanRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BanRequest) ProtoMessage() {}
+
+func (x *BanRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *BanRequest) GetTarget() string {
+	if x != nil {
+		if x.xxx_hidden_Target != nil {
+			return *x.xxx_hidden_Target
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *BanRequest) GetReason() string {
+	if x != nil {
+		if x.xxx_hidden_Reason != nil {
+			return *x.xxx_hidden_Reason
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *BanRequest) GetUntil() *timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_Until
+	}
+	return nil
+}
+
+func (x *BanRequest) SetTarget(v string) {
+	x.xxx_hidden_Target = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 3)
+}
+
+func (x *BanRequest) SetReason(v string) {
+	x.xxx_hidden_Reason = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 3)
+}
+
+func (x *BanRequest) SetUntil(v *timestamppb.Timestamp) {
+	x.xxx_hidden_Until = v
+}
+
+func (x *BanRequest) HasTarget() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *BanRequest) HasReason() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *BanRequest) HasUntil() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_Until != nil
+}
+
+func (x *BanRequest) ClearTarget() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_Target = nil
+}
+
+func (x *BanRequest) ClearReason() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_Reason = nil
+}
+
+func (x *BanRequest) ClearUntil() {
+	x.xxx_hidden_Until = nil
+}
+
+type BanRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	Target *string
+	Reason *string
+	Until  *timestamppb.Timestamp
+}
+
+func (b0 BanRequest_builder) Build() *BanRequest {
+	m0 := &BanRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.Target != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 3)
+		x.xxx_hidden_Target = b.Target
+	}
+	if b.Reason != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
+		x.xxx_hidden_Reason = b.Reason
+	}
+	x.xxx_hidden_Until = b.Until
+	return m0
+}
+
 var File_xyz_city_ideas_v1_user_v1_domain_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc = "" +
@@ -1081,14 +1217,19 @@ const file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc = "" +
 	"avatarHash\x12*\n" +
 	"\x11session_live_time\x18\x04 \x01(\x05R\x0fsessionLiveTime\"I\n" +
 	"\fListResponse\x129\n" +
-	"\x04list\x18\x01 \x03(\v2%.xyz.city_ideas.v1.user.v1.PublicUserR\x04list*T\n" +
+	"\x04list\x18\x01 \x03(\v2%.xyz.city_ideas.v1.user.v1.PublicUserR\x04list\"n\n" +
+	"\n" +
+	"BanRequest\x12\x16\n" +
+	"\x06target\x18\x01 \x01(\tR\x06target\x12\x16\n" +
+	"\x06reason\x18\x02 \x01(\tR\x06reason\x120\n" +
+	"\x05until\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\x05until*T\n" +
 	"\tLanguages\x12\x19\n" +
 	"\x15LANGUAGES_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11LANGUAGES_RUSSIAN\x10\x01\x12\x15\n" +
 	"\x11LANGUAGES_ENGLISH\x10\x02BCZAgithub.com/aesterial/cityideas/backend/internal/api/v1/user/v1;v1b\beditionsp\xe8\a"
 
 var file_xyz_city_ideas_v1_user_v1_domain_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_xyz_city_ideas_v1_user_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_xyz_city_ideas_v1_user_v1_domain_proto_goTypes = []any{
 	(Languages)(0),                   // 0: xyz.city_ideas.v1.user.v1.Languages
 	(*UserPreferences)(nil),          // 1: xyz.city_ideas.v1.user.v1.UserPreferences
@@ -1098,21 +1239,23 @@ var file_xyz_city_ideas_v1_user_v1_domain_proto_goTypes = []any{
 	(*PrivateUser)(nil),              // 5: xyz.city_ideas.v1.user.v1.PrivateUser
 	(*UpdatePreferencesRequest)(nil), // 6: xyz.city_ideas.v1.user.v1.UpdatePreferencesRequest
 	(*ListResponse)(nil),             // 7: xyz.city_ideas.v1.user.v1.ListResponse
-	(*timestamppb.Timestamp)(nil),    // 8: google.protobuf.Timestamp
+	(*BanRequest)(nil),               // 8: xyz.city_ideas.v1.user.v1.BanRequest
+	(*timestamppb.Timestamp)(nil),    // 9: google.protobuf.Timestamp
 }
 var file_xyz_city_ideas_v1_user_v1_domain_proto_depIdxs = []int32{
 	0, // 0: xyz.city_ideas.v1.user.v1.UserPreferences.lang:type_name -> xyz.city_ideas.v1.user.v1.Languages
-	8, // 1: xyz.city_ideas.v1.user.v1.PublicUser.joined:type_name -> google.protobuf.Timestamp
+	9, // 1: xyz.city_ideas.v1.user.v1.PublicUser.joined:type_name -> google.protobuf.Timestamp
 	1, // 2: xyz.city_ideas.v1.user.v1.PublicUser.prefs:type_name -> xyz.city_ideas.v1.user.v1.UserPreferences
 	2, // 3: xyz.city_ideas.v1.user.v1.PublicUser.rank:type_name -> xyz.city_ideas.v1.user.v1.UserRank
 	3, // 4: xyz.city_ideas.v1.user.v1.PrivateUser.public:type_name -> xyz.city_ideas.v1.user.v1.PublicUser
 	4, // 5: xyz.city_ideas.v1.user.v1.PrivateUser.security:type_name -> xyz.city_ideas.v1.user.v1.Security
 	3, // 6: xyz.city_ideas.v1.user.v1.ListResponse.list:type_name -> xyz.city_ideas.v1.user.v1.PublicUser
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	9, // 7: xyz.city_ideas.v1.user.v1.BanRequest.until:type_name -> google.protobuf.Timestamp
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_xyz_city_ideas_v1_user_v1_domain_proto_init() }
@@ -1126,7 +1269,7 @@ func file_xyz_city_ideas_v1_user_v1_domain_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc), len(file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   7,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

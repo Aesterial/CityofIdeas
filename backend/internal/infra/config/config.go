@@ -77,9 +77,11 @@ func Ensure() error {
 		Loaded:         true,
 	}
 	if !cfg.Database.TlsMode.IsValid() || ((cfg.Database.TlsMode == configdomain.TlsDisable) && cfg.IsProduction()) {
+		logger.Error("config", "invalid database configuration")
 		return errors.InvalidArguments
 	}
 	if cfg.Cookie.Secret == "" {
+		logger.Error("config", "cookie secret is empty")
 		return errors.InvalidArguments
 	}
 	cfg.Email.Enabled = strings.TrimSpace(cfg.Email.API) != ""

@@ -445,18 +445,7 @@ where status = 'expected'
 limit 1;
 
 -- name: GlobalStats :one
-select (select city from project_location group by city order by count(*) desc limit 1)                  as most_popular_city,
-       coalesce((select count(*) from project_location group by city order by count(*) desc limit 1),
-                0)                                                                                       as most_popular_city_projects_count,
-       (select count(*) from project_likes)                                                              as likes_count,
-       (select count(*)
-        from projects
-        where impl_link is not null
-          and status = 'implemented')                                                                    as implemented_count,
-       (select count(*) from projects) as ideas_count,
-       (select coalesce(avg(extract(epoch from (accepted - created)) / 3600), 0)::double precision as avg_tickets_response
-        from tickets
-        where accepted is not null);
+select coalesce((select city from project_location where city is not null group by city order by count(*) desc limit 1),'')::text as most_popular_city,coalesce((select count(*) from project_location where city is not null group by city order by count(*) desc limit 1),0) as most_popular_city_projects_count,(select count(*) from project_likes) as likes_count,(select count(*) from projects where impl_link is not null and status='implemented') as implemented_count,(select count(*) from projects) as ideas_count,(select coalesce(avg(extract(epoch from (accepted-created))/3600),0)::double precision from tickets where accepted is not null) as avg_tickets_response;
 
 -- name: ProjectVotesGraph :many
 with period as (select case sqlc.arg(separator)::text
@@ -617,3 +606,9 @@ select id, owner, purpose, hash, at, expires, used from users_actions where owne
 
 -- name: IsActionValid :one
 select (used is null and expires > now())::boolean as is_valid from users_actions where hash = $1 and purpose = $2 limit 1;
+
+-- name: BanUser :exec
+insert into users_bans (executor, target, reason, expires) values ($1, $2, $3, $4);
+
+-- name: UnbanUser :exec
+UPDATE users_bans SET remove = $1, expires = now() WHERE target = $2 AND (expires > now() OR expires IS NULL) AND remove IS NULL;

@@ -55,3 +55,9 @@ message UpdatePreferencesRequest {
 message ListResponse {
   repeated PublicUser list = 1;
 }
+
+message BanRequest {
+  string target = 1;
+  string reason = 2;
+  google.protobuf.Timestamp until = 3;
+}

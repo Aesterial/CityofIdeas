@@ -136,10 +136,10 @@ create table if not exists users_bans
     id       uuid primary key     default gen_random_uuid(),
     executor uuid        not null references users (uid),
     target   uuid        not null references users (uid) on delete cascade,
+    remove   uuid        references users (uid),
     reason   text                   not null,
     at       timestamptz not null default now(),
     expires  timestamptz,
-    unique (target),
     check (expires is null or expires > at),
     check (executor <> target)
 );

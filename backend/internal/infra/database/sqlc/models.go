@@ -623,6 +623,7 @@ type UsersBan struct {
 	ID       pgtype.UUID        `json:"id"`
 	Executor pgtype.UUID        `json:"executor"`
 	Target   pgtype.UUID        `json:"target"`
+	Remove   pgtype.UUID        `json:"remove"`
 	Reason   string             `json:"reason"`
 	At       pgtype.Timestamptz `json:"at"`
 	Expires  pgtype.Timestamptz `json:"expires"`

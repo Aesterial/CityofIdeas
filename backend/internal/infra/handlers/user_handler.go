@@ -26,9 +26,19 @@ func NewUserHandler(srv *userservice.Service, auth *Authenticator) *UserHandler 
 	}
 }
 
-func (h *UserHandler) Info(ctx context.Context, req *typespb.RequestWithValue) (*userpb.PublicUser, error) {
+func (h *UserHandler) isRequestValid(req any) error {
 	if h == nil || h.srv == nil || h.auth == nil {
-		return nil, errors.ServerError
+		return errors.ServerError
+	}
+	if req == nil {
+		return errors.InvalidArguments
+	}
+	return nil
+}
+
+func (h *UserHandler) Info(ctx context.Context, req *typespb.RequestWithValue) (*userpb.PublicUser, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
 	}
 	if req == nil {
 		return nil, errors.InvalidArguments
@@ -45,8 +55,8 @@ func (h *UserHandler) Info(ctx context.Context, req *typespb.RequestWithValue) (
 }
 
 func (h *UserHandler) Self(ctx context.Context, _ *emptypb.Empty) (*userpb.PrivateUser, error) {
-	if h == nil || h.srv == nil || h.auth == nil {
-		return nil, errors.ServerError
+	if err := h.isRequestValid("{}"); err != nil {
+		return nil, err
 	}
 	meta, err := h.auth.User(ctx)
 	if err != nil {
@@ -63,8 +73,8 @@ func (h *UserHandler) Self(ctx context.Context, _ *emptypb.Empty) (*userpb.Priva
 }
 
 func (h *UserHandler) List(ctx context.Context, req *typespb.RequestWithLimitAndOffset) (*userpb.ListResponse, error) {
-	if h == nil || h.srv == nil || h.auth == nil {
-		return nil, errors.ServerError
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
 	}
 	if req == nil {
 		return nil, errors.InvalidArguments
@@ -86,24 +96,53 @@ func (h *UserHandler) List(ctx context.Context, req *typespb.RequestWithLimitAnd
 }
 
 func (h *UserHandler) UpdatePreferences(ctx context.Context, req *userpb.UpdatePreferencesRequest) (*userpb.UserPreferences, error) {
-	if h == nil || h.srv == nil || h.auth == nil {
-		return nil, errors.ServerError
-	}
-	if req == nil {
-		return nil, errors.InvalidArguments
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
 	}
 	meta, err := h.auth.User(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
-	if meta.IsEmpty() {
-		return nil, errors.Unauthenticated
-	}
-	// parser cannot give null value, because of if req == nil {} check
 	out, err := h.srv.UpdatePreferences(ctx, *meta.UserID, *userdomain.ParsePreferences(req))
 	if err != nil {
 		logger.Error("user", "failed to update user preferences", logger.F("error", err))
 		return nil, errors.Wrap(err)
 	}
 	return out.Protobuf(), nil
+}
+
+func (h *UserHandler) Ban(ctx context.Context, req *userpb.BanRequest) (*emptypb.Empty, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
+	}
+	meta, err := h.auth.User(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = h.auth.Permissions(ctx, *meta, permissionsdomain.UserBan); err != nil {
+		return nil, err
+	}
+	err = h.srv.BanUser(ctx, req.GetTarget(), *meta.UserID, req.GetReason(), req.GetUntil())
+	if err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, nil
+}
+
+func (h *UserHandler) Unban(ctx context.Context, req *typespb.RequestWithValue) (*emptypb.Empty, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
+	}
+	meta, err := h.auth.User(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = h.auth.Permissions(ctx, *meta, permissionsdomain.UserUnban); err != nil {
+		return nil, err
+	}
+	err = h.srv.UnbanUser(ctx, req.GetValue(), *meta.UserID)
+	if err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, nil
 }

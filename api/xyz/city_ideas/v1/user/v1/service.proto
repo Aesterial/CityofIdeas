@@ -13,4 +13,6 @@ service UserService {
   rpc Self(google.protobuf.Empty) returns (xyz.city_ideas.v1.user.v1.PrivateUser);
   rpc List(xyz.city_ideas.v1.RequestWithLimitAndOffset) returns (xyz.city_ideas.v1.user.v1.ListResponse);
   rpc UpdatePreferences(xyz.city_ideas.v1.user.v1.UpdatePreferencesRequest) returns (UserPreferences);
+  rpc Ban(xyz.city_ideas.v1.user.v1.BanRequest) returns (google.protobuf.Empty);
+  rpc Unban(xyz.city_ideas.v1.RequestWithValue) returns (google.protobuf.Empty);
 }
