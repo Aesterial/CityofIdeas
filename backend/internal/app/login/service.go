@@ -116,6 +116,12 @@ func (s *Service) Register(ctx context.Context, username string, email string, p
 		logger.Error("login", "failed to add cookie to context", logger.F("error", err))
 		return nil, errors.Wrap(err)
 	}
+	if !config.Get().Email.Enabled {
+		if err = s.usr.VerifyEmail(ctx, user.UID); err != nil {
+			logger.Error("login", "Failed to set user as verified", logger.F("error", err))
+			return nil, errors.Wrap(err)
+		}
+	}
 	s.email.SendWelcomeEmail(emaildomain.UserInfo{
 		Username: username,
 		Address:  email,
