@@ -1285,8 +1285,8 @@ const toStatisticsGlobal = (global: GrpcGlobal): StatisticsGlobal => ({
   votes: toSafeNumber(global.votes),
   city: global.city || undefined,
   hours:
-    typeof global.hours === "number" && Number.isFinite(global.hours)
-      ? global.hours
+    typeof global.supportDelay === "number" && Number.isFinite(global.supportDelay)
+      ? global.supportDelay
       : 0,
 });
 

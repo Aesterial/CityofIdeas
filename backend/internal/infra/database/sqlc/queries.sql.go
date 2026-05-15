@@ -712,7 +712,14 @@ func (q *Queries) FindAction(ctx context.Context, arg FindActionParams) (UsersAc
 }
 
 const GetFile = `-- name: GetFile :one
-select id, owner, purpose, mime_type, size, key, bucket, created_at
+select id,
+       owner,
+       purpose,
+       mime_type,
+       size,
+       key,
+       bucket,
+       created_at
 from files
 where id = $1
 limit 1
@@ -735,7 +742,14 @@ func (q *Queries) GetFile(ctx context.Context, id pgtype.UUID) (File, error) {
 }
 
 const GetFilesByOwner = `-- name: GetFilesByOwner :many
-select id, owner, purpose, mime_type, size, key, bucket, created_at
+select id,
+       owner,
+       purpose,
+       mime_type,
+       size,
+       key,
+       bucket,
+       created_at
 from files
 where owner = $1
 `
@@ -1001,7 +1015,7 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 }
 
 const GlobalStats = `-- name: GlobalStats :one
-select coalesce((select city from project_location where city is not null group by city order by count(*) desc limit 1),'')::text as most_popular_city,coalesce((select count(*) from project_location where city is not null group by city order by count(*) desc limit 1),0) as most_popular_city_projects_count,(select count(*) from project_likes) as likes_count,(select count(*) from projects where impl_link is not null and status='implemented') as implemented_count,(select count(*) from projects) as ideas_count,(select coalesce(avg(extract(epoch from (accepted-created))/3600),0)::double precision from tickets where accepted is not null) as avg_tickets_response
+select coalesce((select city from project_location where city is not null group by city order by count(*) desc limit 1),'нету')::text as most_popular_city,coalesce((select count(*) from project_location where city is not null group by city order by count(*) desc limit 1),0) as most_popular_city_projects_count,(select count(*) from project_likes) as likes_count,(select count(*) from projects where impl_link is not null and status='implemented') as implemented_count,(select count(*) from projects) as ideas_count,(select coalesce(avg(extract(epoch from (accepted-created))/3600),0)::double precision from tickets where accepted is not null) as avg_tickets_response
 `
 
 type GlobalStatsRow struct {
