@@ -1015,7 +1015,7 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 }
 
 const GlobalStats = `-- name: GlobalStats :one
-select coalesce((select city from project_location where city is not null group by city order by count(*) desc limit 1),'нету')::text as most_popular_city,coalesce((select count(*) from project_location where city is not null group by city order by count(*) desc limit 1),0) as most_popular_city_projects_count,(select count(*) from project_likes) as likes_count,(select count(*) from projects where impl_link is not null and status='implemented') as implemented_count,(select count(*) from projects) as ideas_count,(select coalesce(avg(extract(epoch from (accepted-created))/3600),0)::double precision from tickets where accepted is not null) as avg_tickets_response
+select coalesce((select city from project_location where city is not null group by city order by count(*) desc limit 1),'нет')::text as most_popular_city,coalesce((select count(*) from project_location where city is not null group by city order by count(*) desc limit 1),0) as most_popular_city_projects_count,(select count(*) from project_likes) as likes_count,(select count(*) from projects where impl_link is not null and status='implemented') as implemented_count,(select count(*) from projects) as ideas_count,(select coalesce(avg(extract(epoch from (accepted-created))/3600),0)::double precision from tickets where accepted is not null) as avg_tickets_response
 `
 
 type GlobalStatsRow struct {
