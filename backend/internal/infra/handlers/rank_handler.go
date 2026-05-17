@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"time"
 
 	typespb "github.com/aesterial/cityideas/backend/internal/api/v1"
 	rankpb "github.com/aesterial/cityideas/backend/internal/api/v1/ranks/v1"
@@ -136,32 +135,6 @@ func (h *RankHandler) Edit(ctx context.Context, req *rankpb.Rank) (*rankpb.Rank,
 		return nil, err
 	}
 	return out.Protobuf(), nil
-}
-
-func (h *RankHandler) SetRank(ctx context.Context, req *rankpb.SetRankRequest) (*emptypb.Empty, error) {
-	if err := h.isRequestValid(req); err != nil {
-		return nil, err
-	}
-	meta, err := h.auth.User(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err)
-	}
-	if err = h.auth.Permissions(ctx, *meta, permissionsdomain.RankUpdate); err != nil {
-		return nil, err
-	}
-	userID, err := domain.FromString(req.GetUserId())
-	if err != nil {
-		return nil, errors.InvalidArguments
-	}
-	var expiresAt *time.Time
-	if req.GetExpiresAt() != nil {
-		t := req.GetExpiresAt().AsTime()
-		expiresAt = &t
-	}
-	if err = h.rank.SetUserRank(ctx, userID, req.GetRankName(), expiresAt); err != nil {
-		return nil, err
-	}
-	return &emptypb.Empty{}, nil
 }
 
 func (h *RankHandler) Delete(ctx context.Context, req *typespb.RequestWithValue) (*emptypb.Empty, error) {

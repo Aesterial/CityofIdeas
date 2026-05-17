@@ -11,7 +11,7 @@ import {
   ProjectLocationSchema,
   type Submission as GrpcSubmission,
 } from "@/gen/xyz/city_ideas/v1/projects/v1/domain_pb";
-import { CreateRequestSchema as RankCreateRequestSchema, RankSchema, SetRankRequestSchema, } from "@/gen/xyz/city_ideas/v1/ranks/v1/domain_pb";
+import {CreateRequestSchema as RankCreateRequestSchema, RankSchema, AssignRankRequestSchema,} from "@/gen/xyz/city_ideas/v1/ranks/v1/domain_pb";
 import { Purpose as StoragePurpose } from "@/gen/xyz/city_ideas/v1/storage/v1/domain_pb";
 import { GetUploadURLRequestSchema } from "@/gen/xyz/city_ideas/v1/storage/v1/service_pb";
 import {
@@ -46,6 +46,7 @@ import {
   UpdatePreferencesRequestSchema,
 } from "@/gen/xyz/city_ideas/v1/user/v1/domain_pb";
 import {
+  citiesClient,
   loginClient,
   maintenanceClient,
   projectsClient,
@@ -55,9 +56,9 @@ import {
   storageClient,
   ticketClient,
   userClient,
-} from "@/lib/grpc-web";
-import { emitMfaRequired, isMfaRequiredMessage } from "@/lib/mfa-required";
-import { StatusCodes } from "http-status-codes";
+} from "./grpc-web";
+import {emitMfaRequired, isMfaRequiredMessage} from "@/lib/mfa-required";
+import {StatusCodes} from "http-status-codes";
 
 export { Separator as StatisticsSeparator };
 
@@ -1099,12 +1100,13 @@ const toApiProject = (project: GrpcProject): ApiProject => {
   const authorId = project.author.trim();
   const location = project.location
     ? {
-      city: project.location.city || undefined,
-      latitude: project.location.lat,
-      longitude: project.location.lot,
-      lat: project.location.lat,
-      lng: project.location.lot,
-    }
+        city: project.location.cityId || undefined,
+        cityId: project.location.cityId || undefined,
+        latitude: project.location.lat,
+        longitude: project.location.lot,
+        lat: project.location.lat,
+        lng: project.location.lot,
+      }
     : null;
   const info: ApiProjectInfo = {
     title: project.title,
@@ -2062,21 +2064,12 @@ export async function setUserRank(
   if (!trimmedRank) {
     throw new Error("Rank is required.");
   }
-  let expiresAtTimestamp: ReturnType<typeof timestampFromDate> | undefined;
-  if (expiresAt) {
-    const dateValue =
-      typeof expiresAt === "string" ? new Date(expiresAt) : expiresAt;
-    if (Number.isNaN(dateValue.getTime())) {
-      throw new Error("Invalid expiration date.");
-    }
-    expiresAtTimestamp = timestampFromDate(dateValue);
-  }
   await grpcRequest(() =>
-    rankClient.setRank(
-      create(SetRankRequestSchema, {
+    rankClient.assign(
+      create(AssignRankRequestSchema, {
         userId: String(normalizedUserID),
         rankName: trimmedRank,
-        expiresAt: expiresAtTimestamp,
+        cityId: "",
       }),
     ),
   );
@@ -2310,6 +2303,7 @@ export async function fetchUserBanInfo(
   if (banned === false) {
     return null;
   }
+
   try {
     const normalizedUserID = normalizeUserID(userID);
     const payload = await apiRequest<ApiBanInfoResponse>(
@@ -2554,7 +2548,7 @@ export async function createProject(
         description: payload.description?.trim() || "",
         category: payload.category.trim(),
         location: create(ProjectLocationSchema, {
-          city: payload.location.city?.trim() || "",
+          cityId: payload.location.city?.trim() || "",
           lat: payload.location.latitude ?? payload.location.lat ?? 0,
           lot: payload.location.longitude ?? payload.location.lng ?? 0,
         }),
@@ -3313,3 +3307,13 @@ export async function fetchTicketsSelf(options?: {
   );
   return payload.list.map(toApiTicket);
 }
+
+export async function fetchCities(options?: {
+  signal?: AbortSignal;
+}): Promise<{ id: string; name: string }[]> {
+  const payload = await grpcRequest(() =>
+    citiesClient.list(create(EmptySchema, {}), { signal: options?.signal }),
+  );
+  return payload.list.map((c) => ({ id: c.id, name: c.name }));
+}
+

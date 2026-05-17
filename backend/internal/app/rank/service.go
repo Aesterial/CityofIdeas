@@ -174,18 +174,6 @@ func (s *Service) DeleteRank(ctx context.Context, rank string) error {
 	return nil
 }
 
-func (s *Service) SetUserRank(ctx context.Context, userID domain.UUID, rankName string, expiresAt *time.Time) error {
-	if rankName == "" {
-		return errors.InvalidArguments
-	}
-	if err := s.rank.Set(ctx, userID, rankName, expiresAt); err != nil {
-		logger.Error("rank", "failed to set user rank", logger.F("error", err))
-		return errors.Wrap(err)
-	}
-	s.c.DeleteTags(rankUserCacheTag(userID.String()))
-	return nil
-}
-
 func rankInfoCacheTag(id string) string {
 	return "ranks:item:" + id
 }

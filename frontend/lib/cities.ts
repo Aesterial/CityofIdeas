@@ -1,28 +1,18 @@
+import { fetchCities } from "./api";
+
 export const CITY_STORAGE_KEY = "city";
 export const CITY_CHANGE_EVENT = "city-change";
 
-export const cities = [
-  "Барнаул",
-  "Бийск",
-  "Рубцовск",
-  "Котельниково",
-  "Ленинск-Кузнецкий",
-  "Полысаево",
-  "Прокопьевск",
-  "Мыски",
-  "Бородино",
-  "Назарово",
-  "Шарыпово",
-  "Ковдор",
-  "Кингисепп",
-  "Березники",
-  "Абакан",
-  "Черногорск",
-  "Рефтинский",
-  "Чегдомын",
-] as const;
+export type CityData = { id: string; name: string };
+export let citiesData: CityData[] = [];
+export let cities: string[] = [];
 
-export type City = (typeof cities)[number];
+export const setGlobalCities = (data: CityData[]) => {
+  citiesData = data;
+  cities = data.map((c) => c.name);
+};
+
+export type City = string;
 
 export const DEFAULT_CITY_CENTER: [number, number] = [86.0877, 55.3541];
 
@@ -55,12 +45,19 @@ export const resolveCity = (value?: string | null): City | null => {
     return null;
   }
   const match = cities.find((city) => city.toLowerCase() === normalized);
-  return match ?? null;
+  return match ?? value ?? null;
+};
+
+export const resolveCityId = (name?: string | null): string => {
+  const normalized = normalizeCity(name);
+  if (!normalized) return "";
+  const match = citiesData.find((city) => city.name.toLowerCase() === normalized);
+  return match?.id ?? "";
 };
 
 export const resolveCityCenter = (value?: string | null): [number, number] => {
   const city = resolveCity(value);
-  if (city) {
+  if (city && CITY_CENTERS[city]) {
     return CITY_CENTERS[city];
   }
   return DEFAULT_CITY_CENTER;
@@ -68,10 +65,10 @@ export const resolveCityCenter = (value?: string | null): [number, number] => {
 
 export const getStoredCity = (): City => {
   if (typeof window === "undefined") {
-    return cities[0];
+    return cities[0] || "";
   }
   const savedCity = localStorage.getItem(CITY_STORAGE_KEY);
-  return resolveCity(savedCity) ?? cities[0];
+  return resolveCity(savedCity) ?? cities[0] ?? "";
 };
 
 export const emitCityChange = (city: City) => {

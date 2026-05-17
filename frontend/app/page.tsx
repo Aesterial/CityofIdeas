@@ -39,6 +39,7 @@ import {
   getStoredCity,
   resolveCity,
   resolveCityCenter,
+  resolveCityId,
   type City,
 } from "@/lib/cities";
 import {
@@ -167,7 +168,7 @@ export default function HomePage() {
   const [selectedCoordinates, setSelectedCoordinates] = useState<
     [number, number] | null
   >(null);
-  const [selectedCity, setSelectedCity] = useState<City>(cities[0]);
+  const [selectedCity, setSelectedCity] = useState<City>(getStoredCity());
   const cacheRef = useRef(new Map<string, ApiProject>());
   const { language, t } = useLanguage();
   const { status } = useAuth();
@@ -251,7 +252,7 @@ export default function HomePage() {
       try {
         const projects = await fetchTopProjects({
           limit: MAP_LIMIT,
-          city: selectedCity,
+          city: resolveCityId(selectedCity),
           signal: controller.signal,
         });
         if (controller.signal.aborted) return;

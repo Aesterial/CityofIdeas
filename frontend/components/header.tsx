@@ -48,11 +48,13 @@ import {
 import { cn } from "@/lib/utils";
 import {
   CITY_STORAGE_KEY,
-  cities,
+  cities as defaultCities,
   emitCityChange,
   getStoredCity,
+  setGlobalCities,
   type City,
 } from "@/lib/cities";
+import { fetchCities } from "@/lib/api";
 
 export { cities, type City } from "@/lib/cities";
 
@@ -121,7 +123,8 @@ export function Header() {
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileCityOpen, setMobileCityOpen] = useState(false);
-  const [city, setCity] = useState<City>(cities[0]);
+  const [city, setCity] = useState<City>("");
+  const [citiesList, setCitiesList] = useState<City[]>([]);
 
   const languages = [
     { code: "RU" as const, label: "RU" },
@@ -150,7 +153,21 @@ export function Header() {
 
   useEffect(() => {
     setMounted(true);
-    setCity(getStoredCity());
+    fetchCities()
+      .then((res) => {
+        setGlobalCities(res);
+        const list = res.map((c) => c.name);
+        setCitiesList(list);
+        setCity((prev) => {
+          const stored = getStoredCity();
+          if (list.includes(stored)) return stored;
+          if (list.includes(prev)) return prev;
+          return list[0] || prev;
+        });
+      })
+      .catch(() => {
+        setCity(getStoredCity());
+      });
   }, []);
 
   useEffect(() => {
@@ -237,7 +254,7 @@ export function Header() {
                         {mobileCityOpen ? (
                           <div className="mobile-collapse-panel border-t border-border/60 px-3 pb-3 pt-2">
                             <div className="grid grid-cols-2 gap-1.5">
-                              {cities.map((cityName) => (
+                              {citiesList.map((cityName) => (
                                 <button
                                   key={cityName}
                                   type="button"
@@ -328,7 +345,7 @@ export function Header() {
                       Города
                     </DropdownMenuLabel>
                     <div className="grid grid-cols-2 gap-2 pt-2 sm:grid-cols-3">
-                      {cities.map((cityName) => (
+                      {citiesList.map((cityName) => (
                         <button
                           key={cityName}
                           type="button"
@@ -401,7 +418,7 @@ export function Header() {
                       Город
                     </DropdownMenuLabel>
                     <div className="grid grid-cols-2 gap-2 pt-2 sm:grid-cols-3">
-                      {cities.map((cityName) => (
+                      {citiesList.map((cityName) => (
                         <button
                           key={cityName}
                           type="button"

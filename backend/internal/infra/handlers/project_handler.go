@@ -53,6 +53,7 @@ func (h *ProjectHandler) CreateProject(ctx context.Context, req *projectpb.Creat
 	}
 	cityID, err := domain.FromString(req.GetLocation().GetCityId())
 	if err != nil {
+		logger.Error("projects", "city is missing")
 		return nil, errors.InvalidArguments
 	}
 	project, err := h.proj.CreateProject(ctx, *meta.UserID, req.GetTitle(), req.GetDescription(), req.GetCategory(), cityID, req.GetLocation().GetLat(), req.GetLocation().GetLot())
@@ -249,11 +250,11 @@ func (h *ProjectHandler) AcceptSubmission(ctx context.Context, req *typespb.Requ
 	if err != nil {
 		return nil, err
 	}
-	projectID, err := domain.FromString(req.GetValue())
+	submission, err := h.proj.Submission(ctx, req.GetValue())
 	if err != nil {
-		return nil, errors.InvalidArguments
+		return nil, errors.Wrap(err)
 	}
-	cityID, err := h.proj.ProjectCity(ctx, projectID)
+	cityID, err := h.proj.ProjectCity(ctx, submission.Project)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}

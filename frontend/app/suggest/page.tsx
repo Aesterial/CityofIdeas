@@ -51,6 +51,7 @@ import {
   getStoredCity,
   resolveCity,
   resolveCityCenter,
+  resolveCityId,
   type City,
 } from "@/lib/cities";
 import { cn } from "@/lib/utils";
@@ -126,7 +127,7 @@ export default function SuggestPage() {
   const [images, setImages] = useState<SelectedImage[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [mapSelection, setMapSelection] = useState<[number, number] | null>(null);
-  const [selectedCity, setSelectedCity] = useState<City>(cities[0]);
+  const [selectedCity, setSelectedCity] = useState<City>(getStoredCity());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const imagesRef = useRef<SelectedImage[]>([]);
@@ -248,7 +249,7 @@ export default function SuggestPage() {
         description: trimmedDescription,
         category,
         location: {
-          city: selectedCity,
+          city: resolveCityId(selectedCity),
           latitude: mapSelection[1],
           longitude: mapSelection[0],
         },

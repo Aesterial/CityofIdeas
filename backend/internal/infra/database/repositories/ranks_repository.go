@@ -11,7 +11,6 @@ import (
 	ranksdomain "github.com/aesterial/cityideas/backend/internal/domain/ranks"
 	"github.com/aesterial/cityideas/backend/internal/infra/database/sqlc"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type RankRepository struct {

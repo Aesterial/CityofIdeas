@@ -10,6 +10,7 @@ import { StatisticService } from "@/gen/xyz/city_ideas/v1/statistics/v1/service_
 import { StorageService } from "@/gen/xyz/city_ideas/v1/storage/v1/service_pb";
 import { TicketService } from "@/gen/xyz/city_ideas/v1/tickets/v1/service_pb";
 import { UserService } from "@/gen/xyz/city_ideas/v1/user/v1/service_pb";
+import { CitiesService } from "@/gen/xyz/city_ideas/v1/cities/v1/service_pb";
 
 const transport = createGrpcWebTransport({
   baseUrl: GRPC_BASE_URL,
@@ -30,3 +31,4 @@ export const statisticClient = createClient(StatisticService, transport);
 export const storageClient = createClient(StorageService, transport);
 export const ticketClient = createClient(TicketService, transport);
 export const userClient = createClient(UserService, transport);
+export const citiesClient = createClient(CitiesService, transport);

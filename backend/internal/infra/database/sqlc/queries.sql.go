@@ -1714,14 +1714,14 @@ select projects.id,
        projects.at,
        updated,
        deleted,
-       project_location.city,
+       project_location.city_id,
        project_location.lat,
        project_location.lot
 from projects
          left join project_likes on project_likes.project = projects.id
          left join project_location on project_location.id = projects.id
 where projects.id = $1
-group by projects.id, projects.author, title, description, category, status, impl_link, projects.at, updated, deleted, project_location.city, project_location.lat, project_location.lot
+group by projects.id, projects.author, title, description, category, status, impl_link, projects.at, updated, deleted, project_location.city_id, project_location.lat, project_location.lot
 limit 1
 `
 
@@ -1737,7 +1737,7 @@ type ProjectInfoRow struct {
 	At          pgtype.Timestamptz `json:"at"`
 	Updated     pgtype.Timestamptz `json:"updated"`
 	Deleted     pgtype.Timestamptz `json:"deleted"`
-	City        pgtype.Text        `json:"city"`
+	CityID      pgtype.UUID        `json:"city_id"`
 	Lat         pgtype.Float8      `json:"lat"`
 	Lot         pgtype.Float8      `json:"lot"`
 }
@@ -1757,7 +1757,7 @@ func (q *Queries) ProjectInfo(ctx context.Context, id pgtype.UUID) (ProjectInfoR
 		&i.At,
 		&i.Updated,
 		&i.Deleted,
-		&i.City,
+		&i.CityID,
 		&i.Lat,
 		&i.Lot,
 	)
@@ -1859,7 +1859,7 @@ select projects.id,
        projects.at,
        updated,
        deleted,
-       project_location.city,
+       project_location.city_id,
        project_location.lat,
        project_location.lot
 from projects
@@ -1879,7 +1879,7 @@ group by projects.id,
          projects.at,
          updated,
          deleted,
-         project_location.city,
+         project_location.city_id,
          project_location.lat,
          project_location.lot
 limit $1 offset $2
@@ -1902,7 +1902,7 @@ type ProjectsListRow struct {
 	At          pgtype.Timestamptz `json:"at"`
 	Updated     pgtype.Timestamptz `json:"updated"`
 	Deleted     pgtype.Timestamptz `json:"deleted"`
-	City        pgtype.Text        `json:"city"`
+	CityID      pgtype.UUID        `json:"city_id"`
 	Lat         pgtype.Float8      `json:"lat"`
 	Lot         pgtype.Float8      `json:"lot"`
 }
@@ -1928,7 +1928,7 @@ func (q *Queries) ProjectsList(ctx context.Context, arg ProjectsListParams) ([]P
 			&i.At,
 			&i.Updated,
 			&i.Deleted,
-			&i.City,
+			&i.CityID,
 			&i.Lat,
 			&i.Lot,
 		); err != nil {
@@ -2357,7 +2357,7 @@ func (q *Queries) SetTotpLastSeen(ctx context.Context, arg SetTotpLastSeenParams
 
 const SetUserRank = `-- name: SetUserRank :exec
 insert into users_ranks (owner, rank, expires)
-values ($1, (select id from ranks where name = $2), $3)
+values ($1, (select id from ranks where ranks.name = $2), $3)
 on conflict (owner) do update set rank = (select id from ranks where name = $2), expires = $3
 `
 
