@@ -16,6 +16,7 @@ type Querier interface {
 	ActionsByOwner(ctx context.Context, owner pgtype.UUID) ([]UsersAction, error)
 	ActiveMaintenance(ctx context.Context) (Maintenance, error)
 	BanUser(ctx context.Context, arg BanUserParams) error
+	CanLikeProject(ctx context.Context, arg CanLikeProjectParams) (bool, error)
 	CloseTicket(ctx context.Context, arg CloseTicketParams) error
 	CreateAction(ctx context.Context, arg CreateActionParams) (UsersAction, error)
 	CreateFile(ctx context.Context, arg CreateFileParams) (File, error)
@@ -115,6 +116,7 @@ type Querier interface {
 	UpdateRankPermissions(ctx context.Context, arg UpdateRankPermissionsParams) error
 	UpdateRankWeight(ctx context.Context, arg UpdateRankWeightParams) error
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error
+	UpdateUserCity(ctx context.Context, arg UpdateUserCityParams) error
 	UpdateUserDescription(ctx context.Context, arg UpdateUserDescriptionParams) error
 	UpdateUserDisplayName(ctx context.Context, arg UpdateUserDisplayNameParams) error
 	UpdateUserLanguage(ctx context.Context, arg UpdateUserLanguageParams) error

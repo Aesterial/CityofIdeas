@@ -70,7 +70,8 @@ type UserPreferences struct {
 	xxx_hidden_Description *string                `protobuf:"bytes,1,opt,name=description"`
 	xxx_hidden_DisplayName *string                `protobuf:"bytes,2,opt,name=display_name,json=displayName"`
 	xxx_hidden_Avatar      *string                `protobuf:"bytes,3,opt,name=avatar"`
-	xxx_hidden_Lang        Languages              `protobuf:"varint,4,opt,name=lang,enum=xyz.city_ideas.v1.user.v1.Languages"`
+	xxx_hidden_City        *string                `protobuf:"bytes,4,opt,name=city"`
+	xxx_hidden_Lang        Languages              `protobuf:"varint,5,opt,name=lang,enum=xyz.city_ideas.v1.user.v1.Languages"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
 	unknownFields          protoimpl.UnknownFields
@@ -132,9 +133,19 @@ func (x *UserPreferences) GetAvatar() string {
 	return ""
 }
 
+func (x *UserPreferences) GetCity() string {
+	if x != nil {
+		if x.xxx_hidden_City != nil {
+			return *x.xxx_hidden_City
+		}
+		return ""
+	}
+	return ""
+}
+
 func (x *UserPreferences) GetLang() Languages {
 	if x != nil {
-		if protoimpl.X.Present(&(x.XXX_presence[0]), 3) {
+		if protoimpl.X.Present(&(x.XXX_presence[0]), 4) {
 			return x.xxx_hidden_Lang
 		}
 	}
@@ -143,22 +154,27 @@ func (x *UserPreferences) GetLang() Languages {
 
 func (x *UserPreferences) SetDescription(v string) {
 	x.xxx_hidden_Description = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 4)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 5)
 }
 
 func (x *UserPreferences) SetDisplayName(v string) {
 	x.xxx_hidden_DisplayName = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 4)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 5)
 }
 
 func (x *UserPreferences) SetAvatar(v string) {
 	x.xxx_hidden_Avatar = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 4)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 5)
+}
+
+func (x *UserPreferences) SetCity(v string) {
+	x.xxx_hidden_City = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 5)
 }
 
 func (x *UserPreferences) SetLang(v Languages) {
 	x.xxx_hidden_Lang = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 4)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 5)
 }
 
 func (x *UserPreferences) HasDescription() bool {
@@ -182,11 +198,18 @@ func (x *UserPreferences) HasAvatar() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
 }
 
-func (x *UserPreferences) HasLang() bool {
+func (x *UserPreferences) HasCity() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
+}
+
+func (x *UserPreferences) HasLang() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 4)
 }
 
 func (x *UserPreferences) ClearDescription() {
@@ -204,8 +227,13 @@ func (x *UserPreferences) ClearAvatar() {
 	x.xxx_hidden_Avatar = nil
 }
 
-func (x *UserPreferences) ClearLang() {
+func (x *UserPreferences) ClearCity() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
+	x.xxx_hidden_City = nil
+}
+
+func (x *UserPreferences) ClearLang() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
 	x.xxx_hidden_Lang = Languages_LANGUAGES_UNSPECIFIED
 }
 
@@ -215,6 +243,7 @@ type UserPreferences_builder struct {
 	Description *string
 	DisplayName *string
 	Avatar      *string
+	City        *string
 	Lang        *Languages
 }
 
@@ -223,19 +252,23 @@ func (b0 UserPreferences_builder) Build() *UserPreferences {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.Description != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 4)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 5)
 		x.xxx_hidden_Description = b.Description
 	}
 	if b.DisplayName != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 4)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 5)
 		x.xxx_hidden_DisplayName = b.DisplayName
 	}
 	if b.Avatar != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 4)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 5)
 		x.xxx_hidden_Avatar = b.Avatar
 	}
+	if b.City != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 5)
+		x.xxx_hidden_City = b.City
+	}
 	if b.Lang != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 4)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 5)
 		x.xxx_hidden_Lang = *b.Lang
 	}
 	return m0
@@ -818,6 +851,7 @@ type UpdatePreferencesRequest struct {
 	xxx_hidden_Description     *string                `protobuf:"bytes,2,opt,name=description"`
 	xxx_hidden_AvatarHash      *string                `protobuf:"bytes,3,opt,name=avatar_hash,json=avatarHash"`
 	xxx_hidden_SessionLiveTime int32                  `protobuf:"varint,4,opt,name=session_live_time,json=sessionLiveTime"`
+	xxx_hidden_City            *string                `protobuf:"bytes,5,opt,name=city"`
 	XXX_raceDetectHookData     protoimpl.RaceDetectHookData
 	XXX_presence               [1]uint32
 	unknownFields              protoimpl.UnknownFields
@@ -886,24 +920,39 @@ func (x *UpdatePreferencesRequest) GetSessionLiveTime() int32 {
 	return 0
 }
 
+func (x *UpdatePreferencesRequest) GetCity() string {
+	if x != nil {
+		if x.xxx_hidden_City != nil {
+			return *x.xxx_hidden_City
+		}
+		return ""
+	}
+	return ""
+}
+
 func (x *UpdatePreferencesRequest) SetDisplayName(v string) {
 	x.xxx_hidden_DisplayName = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 4)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 5)
 }
 
 func (x *UpdatePreferencesRequest) SetDescription(v string) {
 	x.xxx_hidden_Description = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 4)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 5)
 }
 
 func (x *UpdatePreferencesRequest) SetAvatarHash(v string) {
 	x.xxx_hidden_AvatarHash = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 4)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 5)
 }
 
 func (x *UpdatePreferencesRequest) SetSessionLiveTime(v int32) {
 	x.xxx_hidden_SessionLiveTime = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 4)
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 5)
+}
+
+func (x *UpdatePreferencesRequest) SetCity(v string) {
+	x.xxx_hidden_City = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 5)
 }
 
 func (x *UpdatePreferencesRequest) HasDisplayName() bool {
@@ -934,6 +983,13 @@ func (x *UpdatePreferencesRequest) HasSessionLiveTime() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
 }
 
+func (x *UpdatePreferencesRequest) HasCity() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 4)
+}
+
 func (x *UpdatePreferencesRequest) ClearDisplayName() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
 	x.xxx_hidden_DisplayName = nil
@@ -954,6 +1010,11 @@ func (x *UpdatePreferencesRequest) ClearSessionLiveTime() {
 	x.xxx_hidden_SessionLiveTime = 0
 }
 
+func (x *UpdatePreferencesRequest) ClearCity() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
+	x.xxx_hidden_City = nil
+}
+
 type UpdatePreferencesRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
@@ -961,6 +1022,7 @@ type UpdatePreferencesRequest_builder struct {
 	Description     *string
 	AvatarHash      *string
 	SessionLiveTime *int32
+	City            *string
 }
 
 func (b0 UpdatePreferencesRequest_builder) Build() *UpdatePreferencesRequest {
@@ -968,20 +1030,24 @@ func (b0 UpdatePreferencesRequest_builder) Build() *UpdatePreferencesRequest {
 	b, x := &b0, m0
 	_, _ = b, x
 	if b.DisplayName != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 4)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 5)
 		x.xxx_hidden_DisplayName = b.DisplayName
 	}
 	if b.Description != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 4)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 5)
 		x.xxx_hidden_Description = b.Description
 	}
 	if b.AvatarHash != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 4)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 5)
 		x.xxx_hidden_AvatarHash = b.AvatarHash
 	}
 	if b.SessionLiveTime != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 4)
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 5)
 		x.xxx_hidden_SessionLiveTime = *b.SessionLiveTime
+	}
+	if b.City != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 5)
+		x.xxx_hidden_City = b.City
 	}
 	return m0
 }
@@ -1185,12 +1251,13 @@ var File_xyz_city_ideas_v1_user_v1_domain_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc = "" +
 	"\n" +
-	"&xyz/city_ideas/v1/user/v1/domain.proto\x12\x19xyz.city_ideas.v1.user.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa8\x01\n" +
+	"&xyz/city_ideas/v1/user/v1/domain.proto\x12\x19xyz.city_ideas.v1.user.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xbc\x01\n" +
 	"\x0fUserPreferences\x12 \n" +
 	"\vdescription\x18\x01 \x01(\tR\vdescription\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x16\n" +
-	"\x06avatar\x18\x03 \x01(\tR\x06avatar\x128\n" +
-	"\x04lang\x18\x04 \x01(\x0e2$.xyz.city_ideas.v1.user.v1.LanguagesR\x04lang\"4\n" +
+	"\x06avatar\x18\x03 \x01(\tR\x06avatar\x12\x12\n" +
+	"\x04city\x18\x04 \x01(\tR\x04city\x128\n" +
+	"\x04lang\x18\x05 \x01(\x0e2$.xyz.city_ideas.v1.user.v1.LanguagesR\x04lang\"4\n" +
 	"\bUserRank\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
 	"\x05color\x18\x02 \x01(\x03R\x05color\"\xe7\x01\n" +
@@ -1209,13 +1276,14 @@ const file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc = "" +
 	"\x06public\x18\x01 \x01(\v2%.xyz.city_ideas.v1.user.v1.PublicUserR\x06public\x12!\n" +
 	"\fsession_live\x18\x02 \x01(\x05R\vsessionLive\x12?\n" +
 	"\bsecurity\x18\x03 \x01(\v2#.xyz.city_ideas.v1.user.v1.SecurityR\bsecurity\x12 \n" +
-	"\vpermissions\x18\x04 \x03(\tR\vpermissions\"\xac\x01\n" +
+	"\vpermissions\x18\x04 \x03(\tR\vpermissions\"\xc0\x01\n" +
 	"\x18UpdatePreferencesRequest\x12!\n" +
 	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1f\n" +
 	"\vavatar_hash\x18\x03 \x01(\tR\n" +
 	"avatarHash\x12*\n" +
-	"\x11session_live_time\x18\x04 \x01(\x05R\x0fsessionLiveTime\"I\n" +
+	"\x11session_live_time\x18\x04 \x01(\x05R\x0fsessionLiveTime\x12\x12\n" +
+	"\x04city\x18\x05 \x01(\tR\x04city\"I\n" +
 	"\fListResponse\x129\n" +
 	"\x04list\x18\x01 \x03(\v2%.xyz.city_ideas.v1.user.v1.PublicUserR\x04list\"n\n" +
 	"\n" +

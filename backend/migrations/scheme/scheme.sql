@@ -22,7 +22,9 @@ create table if not exists users_preferences
     description  varchar(256)    not null default '',
     avatar_hash  text,
     session_live int             not null default 7,
-    language preferences_languages not null default 'russian',
+    language     preferences_languages not null default 'russian',
+    city         varchar(32),
+    city_changed timestamptz,
     unique (owner)
 );
 

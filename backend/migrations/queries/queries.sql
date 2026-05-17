@@ -7,7 +7,7 @@ insert into users_security (owner, password) VALUES ($1, $2) returning owner, pa
 -- name: CreateUserPreferences :one
 insert into users_preferences (owner)
 VALUES ($1)
-returning owner, display_name, description, avatar_hash, session_live, language;
+returning owner, display_name, description, avatar_hash, session_live, language, city, city_changed;
 
 -- name: CreateUserDefaultRank :one
 insert into users_ranks (owner, rank, expires) values ($1, (select id from ranks where name = 'user'), null) returning (select name from ranks where id = users_ranks.rank), (select color from ranks where id = users_ranks.rank), (select weight from ranks where id = users_ranks.rank), expires;
@@ -34,7 +34,7 @@ select password from users_security where owner = $1 limit 1;
 select uid, username, email, joined from users limit $1 offset $2;
 
 -- name: GetUserPreferences :one
-select owner, display_name, description, avatar_hash, session_live, language
+select owner, display_name, description, avatar_hash, session_live, language, city, city_changed
 from users_preferences
 where owner = $1
 limit 1;
@@ -105,6 +105,9 @@ update users_preferences set session_live = $1 where owner = $2;
 update users_preferences
 set language = $1
 where owner = $2;
+
+-- name: UpdateUserCity :exec
+update users_preferences set city = $1, city_changed = now() where owner = $2;
 
 -- name: UpdateUserPassword :exec
 update users_security set password = $1 where owner = $2;
@@ -642,3 +645,6 @@ select id,
        created_at
 from files
 where owner = $1;
+
+-- name: CanLikeProject :one
+select coalesce(up.city = pl.city, false)::boolean as is_city_match from users_preferences up cross join project_location pl where up.owner = $1 and pl.id = $2;

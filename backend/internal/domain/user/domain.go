@@ -159,6 +159,8 @@ type Preferences struct {
 	Description     string
 	Avatar          *string
 	SessionLiveTime int32
+	City            *string
+	CityChanged     *time.Time
 	Language        Languages
 }
 
@@ -171,6 +173,7 @@ func ParsePreferences(prefs *userpb.UpdatePreferencesRequest) *Preferences {
 		Description:     prefs.GetDescription(),
 		Avatar:          new(prefs.GetAvatarHash()),
 		SessionLiveTime: prefs.GetSessionLiveTime(),
+		City:            new(prefs.GetCity()),
 	}
 }
 
@@ -179,13 +182,17 @@ func (p *Preferences) Protobuf() *userpb.UserPreferences {
 		return nil
 	}
 	var prefs = userpb.UserPreferences{}
-	var avatar string
+	var avatar, city string
 	if p.Avatar != nil {
 		avatar = *p.Avatar
+	}
+	if p.City != nil {
+		city = *p.City
 	}
 	prefs.SetAvatar(avatar)
 	prefs.SetDescription(p.Description)
 	prefs.SetDisplayName(p.DisplayName)
+	prefs.SetCity(city)
 	return &prefs
 }
 

@@ -188,8 +188,16 @@ func (s *Service) ProcessLikes(ctx context.Context, project string, user domain.
 	if err != nil {
 		return err
 	}
-	if err := s.proj.IsProjectExists(ctx, id); err != nil {
+	if err = s.proj.IsProjectExists(ctx, id); err != nil {
 		return errors.Wrap(err)
+	}
+	can, err := s.proj.CanLike(ctx, id, user)
+	if err != nil {
+		logger.Error("projects", "failed to check is user can like project", logger.F("error", err))
+		return errors.Wrap(err)
+	}
+	if !can {
+		return errors.AccessDenied
 	}
 	if set {
 		err = s.proj.CreateLike(ctx, id, user)

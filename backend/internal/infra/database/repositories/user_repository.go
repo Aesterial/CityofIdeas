@@ -9,6 +9,7 @@ import (
 	ranksdomain "github.com/aesterial/cityideas/backend/internal/domain/ranks"
 	userdomain "github.com/aesterial/cityideas/backend/internal/domain/user"
 	"github.com/aesterial/cityideas/backend/internal/infra/database/sqlc"
+	"github.com/aesterial/cityideas/backend/internal/infra/logger"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
 	"github.com/aesterial/cityideas/backend/internal/shared/safe"
 	"github.com/jackc/pgx/v5"
@@ -57,12 +58,22 @@ func (*UserRepository) parseSecurity(sec sqlc.UsersSecurity) *userdomain.Securit
 }
 
 func (*UserRepository) parsePreferences(prefs sqlc.UsersPreference) *userdomain.Preferences {
+	var city *string = nil
+	if prefs.City.Valid {
+		city = &prefs.City.String
+	}
+	var cityChanged *time.Time = nil
+	if prefs.CityChanged.Valid {
+		cityChanged = &prefs.CityChanged.Time
+	}
 	return &userdomain.Preferences{
 		DisplayName:     prefs.DisplayName,
 		Description:     prefs.Description,
 		Avatar:          &prefs.AvatarHash.String,
 		SessionLiveTime: prefs.SessionLive,
 		Language:        userdomain.ParseLanguage(string(prefs.Language)),
+		City:            city,
+		CityChanged:     cityChanged,
 	}
 }
 
@@ -276,11 +287,8 @@ func (u *UserRepository) Preferences(ctx context.Context, user domain.UUID) (*us
 }
 
 func isPointerChanged[T comparable](v, e *T) bool {
-	if v == nil {
-		return false
-	}
-	if e == nil {
-		return false
+	if v == nil || e == nil {
+		return v != e
 	}
 	return *v != *e
 }
@@ -293,6 +301,26 @@ func (u *UserRepository) UpdatePreferences(ctx context.Context, user domain.UUID
 	ps, err := u.Preferences(ctx, user)
 	if err != nil {
 		return nil, err
+	}
+	logger.Info("user", "received city to change: ", logger.F("city", prefs.City))
+	logger.Info("user", "saved city", logger.F("city", ps.City))
+	if isPointerChanged(ps.City, prefs.City) {
+		if ps.CityChanged == nil || ps.CityChanged.Add(30*24*time.Hour).Before(time.Now()) {
+			logger.Info("user", "updating city")
+			err = u.conn.UpdateUserCity(ctx, sqlc.UpdateUserCityParams{
+				City: pgtype.Text{
+					String: *prefs.City,
+					Valid:  true,
+				},
+				Owner: user.ToPG(),
+			})
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, errors.AccessDenied
+		}
+		ps.City = prefs.City
 	}
 	if isPointerChanged(ps.Avatar, prefs.Avatar) {
 		err = u.conn.UpdateUserAvatar(ctx, sqlc.UpdateUserAvatarParams{

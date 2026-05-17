@@ -469,6 +469,17 @@ func (p *ProjectRepository) IsProjectExists(ctx context.Context, project domain.
 	return nil
 }
 
+func (p *ProjectRepository) CanLike(ctx context.Context, project domain.UUID, user domain.UUID) (bool, error) {
+	can, err := p.conn.CanLikeProject(ctx, sqlc.CanLikeProjectParams{
+		Owner: user.ToPG(),
+		ID:    project.ToPG(),
+	})
+	if err != nil {
+		return false, err
+	}
+	return can, nil
+}
+
 func (p *ProjectRepository) CreateLike(ctx context.Context, project domain.UUID, user domain.UUID) error {
 	if err := p.isLikeExists(ctx, project, user); err != nil {
 		return err

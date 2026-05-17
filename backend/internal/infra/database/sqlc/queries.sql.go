@@ -111,6 +111,22 @@ func (q *Queries) BanUser(ctx context.Context, arg BanUserParams) error {
 	return err
 }
 
+const CanLikeProject = `-- name: CanLikeProject :one
+select coalesce(up.city = pl.city, false)::boolean as is_city_match from users_preferences up cross join project_location pl where up.owner = $1 and pl.id = $2
+`
+
+type CanLikeProjectParams struct {
+	Owner pgtype.UUID `json:"owner"`
+	ID    pgtype.UUID `json:"id"`
+}
+
+func (q *Queries) CanLikeProject(ctx context.Context, arg CanLikeProjectParams) (bool, error) {
+	row := q.db.QueryRow(ctx, CanLikeProject, arg.Owner, arg.ID)
+	var is_city_match bool
+	err := row.Scan(&is_city_match)
+	return is_city_match, err
+}
+
 const CloseTicket = `-- name: CloseTicket :exec
 update tickets
 set status = 'closed',
@@ -542,7 +558,7 @@ func (q *Queries) CreateUserDefaultRank(ctx context.Context, owner pgtype.UUID) 
 const CreateUserPreferences = `-- name: CreateUserPreferences :one
 insert into users_preferences (owner)
 VALUES ($1)
-returning owner, display_name, description, avatar_hash, session_live, language
+returning owner, display_name, description, avatar_hash, session_live, language, city, city_changed
 `
 
 func (q *Queries) CreateUserPreferences(ctx context.Context, owner pgtype.UUID) (UsersPreference, error) {
@@ -555,6 +571,8 @@ func (q *Queries) CreateUserPreferences(ctx context.Context, owner pgtype.UUID) 
 		&i.AvatarHash,
 		&i.SessionLive,
 		&i.Language,
+		&i.City,
+		&i.CityChanged,
 	)
 	return i, err
 }
@@ -838,7 +856,7 @@ func (q *Queries) GetUserPassword(ctx context.Context, owner pgtype.UUID) (strin
 }
 
 const GetUserPreferences = `-- name: GetUserPreferences :one
-select owner, display_name, description, avatar_hash, session_live, language
+select owner, display_name, description, avatar_hash, session_live, language, city, city_changed
 from users_preferences
 where owner = $1
 limit 1
@@ -854,6 +872,8 @@ func (q *Queries) GetUserPreferences(ctx context.Context, owner pgtype.UUID) (Us
 		&i.AvatarHash,
 		&i.SessionLive,
 		&i.Language,
+		&i.City,
+		&i.CityChanged,
 	)
 	return i, err
 }
@@ -2514,6 +2534,20 @@ type UpdateUserAvatarParams struct {
 
 func (q *Queries) UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error {
 	_, err := q.db.Exec(ctx, UpdateUserAvatar, arg.AvatarHash, arg.Owner)
+	return err
+}
+
+const UpdateUserCity = `-- name: UpdateUserCity :exec
+update users_preferences set city = $1, city_changed = now() where owner = $2
+`
+
+type UpdateUserCityParams struct {
+	City  pgtype.Text `json:"city"`
+	Owner pgtype.UUID `json:"owner"`
+}
+
+func (q *Queries) UpdateUserCity(ctx context.Context, arg UpdateUserCityParams) error {
+	_, err := q.db.Exec(ctx, UpdateUserCity, arg.City, arg.Owner)
 	return err
 }
 

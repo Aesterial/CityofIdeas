@@ -654,6 +654,8 @@ type UsersPreference struct {
 	AvatarHash  pgtype.Text          `json:"avatar_hash"`
 	SessionLive int32                `json:"session_live"`
 	Language    PreferencesLanguages `json:"language"`
+	City        pgtype.Text          `json:"city"`
+	CityChanged pgtype.Timestamptz   `json:"city_changed"`
 }
 
 type UsersRank struct {
