@@ -1,8 +1,8 @@
-import {create} from "@bufbuild/protobuf";
-import {Code, ConnectError} from "@connectrpc/connect";
-import {EmptySchema, timestampDate, timestampFromDate,} from "@bufbuild/protobuf/wkt";
-import {buildApiUrl} from "@/lib/api-base";
-import {AuthorizeRequestSchema, RegisterRequestSchema} from "@/gen/xyz/city_ideas/v1/login/v1/domain_pb";
+import { create } from "@bufbuild/protobuf";
+import { Code, ConnectError } from "@connectrpc/connect";
+import { EmptySchema, timestampDate, timestampFromDate, } from "@bufbuild/protobuf/wkt";
+import { buildApiUrl } from "@/lib/api-base";
+import { AuthorizeRequestSchema, RegisterRequestSchema } from "@/gen/xyz/city_ideas/v1/login/v1/domain_pb";
 import {
   CreateMessageRequestSchema as ProjectCreateMessageRequestSchema,
   CreateProjectRequestSchema,
@@ -11,7 +11,7 @@ import {
   ProjectLocationSchema,
   type Submission as GrpcSubmission,
 } from "@/gen/xyz/city_ideas/v1/projects/v1/domain_pb";
-import {CreateRequestSchema as RankCreateRequestSchema, RankSchema, SetRankRequestSchema,} from "@/gen/xyz/city_ideas/v1/ranks/v1/domain_pb";
+import { CreateRequestSchema as RankCreateRequestSchema, RankSchema, SetRankRequestSchema, } from "@/gen/xyz/city_ideas/v1/ranks/v1/domain_pb";
 import { Purpose as StoragePurpose } from "@/gen/xyz/city_ideas/v1/storage/v1/domain_pb";
 import { GetUploadURLRequestSchema } from "@/gen/xyz/city_ideas/v1/storage/v1/service_pb";
 import {
@@ -56,8 +56,8 @@ import {
   ticketClient,
   userClient,
 } from "@/lib/grpc-web";
-import {emitMfaRequired, isMfaRequiredMessage} from "@/lib/mfa-required";
-import {StatusCodes} from "http-status-codes";
+import { emitMfaRequired, isMfaRequiredMessage } from "@/lib/mfa-required";
+import { StatusCodes } from "http-status-codes";
 
 export { Separator as StatisticsSeparator };
 
@@ -725,10 +725,10 @@ const toUserSession = (value: unknown): UserSession | null => {
   const lastSeenAt =
     toIsoTimestamp(
       record.lastSeen ??
-        record.last_seen ??
-        record.last_seen_at ??
-        record.lastSeenAt ??
-        null,
+      record.last_seen ??
+      record.last_seen_at ??
+      record.lastSeenAt ??
+      null,
     ) ?? undefined;
   const hash = pickString(record, ["hash", "userAgentHash", "user_agent_hash"]);
 
@@ -1099,12 +1099,12 @@ const toApiProject = (project: GrpcProject): ApiProject => {
   const authorId = project.author.trim();
   const location = project.location
     ? {
-        city: project.location.city || undefined,
-        latitude: project.location.lat,
-        longitude: project.location.lot,
-        lat: project.location.lat,
-        lng: project.location.lot,
-      }
+      city: project.location.city || undefined,
+      latitude: project.location.lat,
+      longitude: project.location.lot,
+      lat: project.location.lat,
+      lng: project.location.lot,
+    }
     : null;
   const info: ApiProjectInfo = {
     title: project.title,
@@ -1908,11 +1908,11 @@ function toApiUserPublic(payload: GrpcPublicUser): ApiUserPublic {
     username: payload.username || undefined,
     settings: payload.prefs
       ? {
-          displayName: payload.prefs.displayName || undefined,
-          display_name: payload.prefs.displayName || undefined,
-          description: payload.prefs.description || undefined,
-          avatar: payload.prefs.avatar ? { key: payload.prefs.avatar } : null,
-        }
+        displayName: payload.prefs.displayName || undefined,
+        display_name: payload.prefs.displayName || undefined,
+        description: payload.prefs.description || undefined,
+        avatar: payload.prefs.avatar ? { key: payload.prefs.avatar } : null,
+      }
       : null,
     rank: payload.rank?.name ? { name: payload.rank.name } : null,
     joined: toGrpcTimestamp(payload.joined),
@@ -1941,8 +1941,8 @@ export async function fetchCurrentUser(): Promise<AuthUser> {
     avatar: publicUser.prefs?.avatar ? { key: publicUser.prefs.avatar } : null,
     rank: publicUser.rank?.name
       ? {
-          name: publicUser.rank.name,
-        }
+        name: publicUser.rank.name,
+      }
       : null,
     totpEnabled: payload.security?.totpEnabled || false,
     joined: toGrpcTimestamp(publicUser.joined),
@@ -2295,8 +2295,8 @@ export async function fetchUsers(options?: {
     banned: false,
     rank: user.rank?.name
       ? {
-          name: user.rank.name,
-        }
+        name: user.rank.name,
+      }
       : null,
     joined: toGrpcTimestamp(user.joined),
   }));
@@ -2312,24 +2312,27 @@ export async function fetchUserBanInfo(
   }
   try {
     const normalizedUserID = normalizeUserID(userID);
-    const payload = await grpcRequest(() =>
-      userClient.banInfo(
-        create(RequestWithValueSchema, { value: String(normalizedUserID) }),
-        { signal: options?.signal },
-      ),
+    const payload = await apiRequest<ApiBanInfoResponse>(
+      `/api/user/${encodeURIComponent(String(normalizedUserID))}/ban`,
+      { method: "GET", signal: options?.signal },
     );
+    if (!payload) {
+      return null;
+    }
     return {
-      reason: payload.reason,
-      at: payload.at ? timestampDate(payload.at).toISOString() : undefined,
-      expires: payload.expires
-        ? timestampDate(payload.expires).toISOString()
-        : null,
+      id: typeof payload.id === "string" ? payload.id : undefined,
+      reason: typeof payload.reason === "string" ? payload.reason : undefined,
+      at: typeof payload.at === "string" ? payload.at : undefined,
+      expires: typeof payload.expires === "string" ? payload.expires : null,
     };
   } catch (error) {
+    if (error instanceof ApiError && (error.status === 404 || error.status === 403)) {
+      return null;
+    }
     if (error instanceof ConnectError) {
       return null;
     }
-    throw error;
+    return null;
   }
 }
 
@@ -2622,7 +2625,7 @@ export async function fetchSubmissions(options?: {
         offset: 0,
       }),
       {
-      signal: options?.signal,
+        signal: options?.signal,
       },
     ),
   );
@@ -2630,8 +2633,8 @@ export async function fetchSubmissions(options?: {
     payload.list.map(async (submission) => {
       const project = submission.project
         ? await fetchProjectById(submission.project, {
-            signal: options?.signal,
-          })
+          signal: options?.signal,
+        })
         : null;
       return toApiSubmission(submission, project);
     }),
@@ -3056,9 +3059,9 @@ export async function fetchStoragePresignGet(
   const payload = await apiRequest<
     | PresignResponse
     | {
-        url?: string;
-        data?: { presign?: string; url?: string } | null;
-      }
+      url?: string;
+      data?: { presign?: string; url?: string } | null;
+    }
   >(`/api/storage/presign/get?key=${encodeURIComponent(trimmedKey)}`, {
     method: "GET",
     signal: options?.signal,
