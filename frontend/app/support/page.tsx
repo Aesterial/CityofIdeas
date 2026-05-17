@@ -383,16 +383,6 @@ export default function SupportPage() {
                   {copy.subtitle}
                 </p>
               </div>
-              <div className="grid min-w-[min(100%,16rem)] gap-3">
-                <div className="rounded-[1.4rem] border border-border/60 bg-card/72 p-4 shadow-[0_18px_48px_-34px_rgba(0,0,0,0.65)]">
-                  <p className="text-[10px] uppercase tracking-[0.26em] text-muted-foreground">
-                    Queue
-                  </p>
-                  <p className="mt-2 text-xl font-semibold">
-                    {queueDelayLabel}
-                  </p>
-                </div>
-              </div>
             </div>
           </motion.div>
 
