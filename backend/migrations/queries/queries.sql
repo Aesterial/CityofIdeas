@@ -4,13 +4,49 @@ insert into users (username, email) VALUES ($1, $2) returning uid, username, ema
 -- name: CreateUserSecurity :one
 insert into users_security (owner, password) VALUES ($1, $2) returning owner, password, email_verified, totp_enabled, totp_secret, totp_confirmed, totp_pending, totp_pending_created, totp_last_step;
 
+-- name: CreateCity :one
+insert into cities (name) values ($1) returning id, name, at;
+
+-- name: ListCities :many
+select id, name, at from cities order by name limit $1 offset $2;
+
+-- name: CityInfo :one
+select id, name, at from cities where id = $1 limit 1;
+
+-- name: CityByName :one
+select id, name, at from cities where name = $1 limit 1;
+
+-- name: DeleteCity :exec
+delete from cities where id = $1;
+
 -- name: CreateUserPreferences :one
 insert into users_preferences (owner)
 VALUES ($1)
-returning owner, display_name, description, avatar_hash, session_live, language, city, city_changed;
+returning owner, display_name, description, avatar_hash, session_live, language, city_id, city_changed;
 
 -- name: CreateUserDefaultRank :one
-insert into users_ranks (owner, rank, expires) values ($1, (select id from ranks where name = 'user'), null) returning (select name from ranks where id = users_ranks.rank), (select color from ranks where id = users_ranks.rank), (select weight from ranks where id = users_ranks.rank), expires;
+insert into users_ranks (owner, rank, city_id, expires) values ($1, (select id from ranks where name = 'user'), null, null) returning (select name from ranks where id = users_ranks.rank), (select color from ranks where id = users_ranks.rank), (select weight from ranks where id = users_ranks.rank), expires;
+
+-- name: AssignRankToUser :exec
+insert into users_ranks (owner, rank, city_id, expires)
+select $1::uuid, id, $2::uuid, $3::timestamptz
+from ranks
+where name = $4;
+
+-- name: RevokeRankFromUserScoped :exec
+update users_ranks set expires = now()
+from ranks
+where users_ranks.rank = ranks.id
+  and ranks.name = $1
+  and users_ranks.owner = $2
+  and users_ranks.city_id is not distinct from $3::uuid;
+
+-- name: GetUserRanksWithScope :many
+select ranks.id, ranks.name, ranks.color, ranks.weight, ranks.permissions, users_ranks.expires, users_ranks.city_id
+from users_ranks
+         join ranks on ranks.id = users_ranks.rank
+where users_ranks.owner = $1
+  and (users_ranks.expires is null or users_ranks.expires > now());
 
 -- name: IsUserExists :one
 select exists (select 1 from users where username = $1 or email = $1);
@@ -34,7 +70,7 @@ select password from users_security where owner = $1 limit 1;
 select uid, username, email, joined from users limit $1 offset $2;
 
 -- name: GetUserPreferences :one
-select owner, display_name, description, avatar_hash, session_live, language, city, city_changed
+select owner, display_name, description, avatar_hash, session_live, language, city_id, city_changed
 from users_preferences
 where owner = $1
 limit 1;
@@ -106,8 +142,8 @@ update users_preferences
 set language = $1
 where owner = $2;
 
--- name: UpdateUserCity :exec
-update users_preferences set city = $1, city_changed = now() where owner = $2;
+-- name: UpdateUserCityByID :exec
+update users_preferences set city_id = $1, city_changed = now() where owner = $2;
 
 -- name: UpdateUserPassword :exec
 update users_security set password = $1 where owner = $2;
@@ -239,9 +275,9 @@ values ($1, $2, $3, $4)
 returning id, author, title, description, category, status, impl_link, at, updated, deleted;
 
 -- name: CreateProjectLocation :one
-insert into project_location (id, city, lat, lot)
+insert into project_location (id, city_id, lat, lot)
 values ($1, $2, $3, $4)
-returning id, city, lat, lot;
+returning id, city_id, lat, lot;
 
 -- name: ProjectsList :many
 select projects.id,
@@ -296,7 +332,7 @@ from projects p
          join project_location pl on pl.id = p.id
          left join project_likes l on l.project = p.id
 where p.status not in ('reviewing', 'cancelled', 'implemented')
-  and pl.city = $1
+  and pl.city_id = $1
 group by p.id
 order by count(l.project) desc, p.at desc
 limit $2 offset $3;
@@ -324,9 +360,12 @@ group by projects.id, projects.author, title, description, category, status, imp
 limit 1;
 
 -- name: ProjectLocationInfo :one
-select id, city, lat, lot
+select id, city_id, lat, lot
 from project_location
 where id = $1;
+
+-- name: ProjectCityID :one
+select city_id from project_location where id = $1 limit 1;
 
 -- name: ProjectAuthor :one
 select author
@@ -341,27 +380,29 @@ update projects set status = $1, impl_link = $2 where id = $3;
 update projects set description = $1, updated = now() where id = $2;
 
 -- name: CreateSubmission :one
-insert into submissions (linked) VALUES ($1) returning id, linked, reason, approved;
+insert into submissions (linked) VALUES ($1) returning id, linked, reason, approved, reviewed_by, reviewed_at;
 
 -- name: SubmissionsList :many
-select id, linked, approved, reason from submissions limit $1 offset $2;
+select id, linked, approved, reason, reviewed_by, reviewed_at from submissions limit $1 offset $2;
 
 -- name: SubmissionInfo :one
-select id, linked, approved, reason from submissions where id = $1 limit 1;
+select id, linked, approved, reason, reviewed_by, reviewed_at from submissions where id = $1 limit 1;
 
 -- name: AcceptSubmission :exec
 update submissions
-set approved = true
-where linked = $1;
+set approved = true, reviewed_by = $1, reviewed_at = now()
+where linked = $2;
 
 -- name: DenySubmission :exec
 update submissions
-set approved = false,
-    reason   = $1
-where linked = $2;
+set approved     = false,
+    reason       = $1,
+    reviewed_by  = $2,
+    reviewed_at  = now()
+where linked = $3;
 
 -- name: IsSubmissionReviewed :one
-select approved <> false
+select (reviewed_at is not null)::boolean
 from submissions
 where linked = $1;
 
@@ -465,7 +506,7 @@ where status = 'expected'
 limit 1;
 
 -- name: GlobalStats :one
-select coalesce((select city from project_location where city is not null group by city order by count(*) desc limit 1),'нет')::text as most_popular_city,coalesce((select count(*) from project_location where city is not null group by city order by count(*) desc limit 1),0) as most_popular_city_projects_count,(select count(*) from project_likes) as likes_count,(select count(*) from projects where impl_link is not null and status='implemented') as implemented_count,(select count(*) from projects) as ideas_count,(select coalesce(avg(extract(epoch from (accepted-created))/3600),0)::double precision from tickets where accepted is not null) as avg_tickets_response;
+select coalesce((select c.name from project_location pl join cities c on c.id = pl.city_id group by c.name order by count(*) desc limit 1),'нет')::text as most_popular_city,coalesce((select count(*) from project_location group by city_id order by count(*) desc limit 1),0) as most_popular_city_projects_count,(select count(*) from project_likes) as likes_count,(select count(*) from projects where impl_link is not null and status='implemented') as implemented_count,(select count(*) from projects) as ideas_count,(select coalesce(avg(extract(epoch from (accepted-created))/3600),0)::double precision from tickets where accepted is not null) as avg_tickets_response;
 
 -- name: ProjectVotesGraph :many
 with period as (select case sqlc.arg(separator)::text
@@ -493,7 +534,7 @@ with period as (select case sqlc.arg(separator)::text
                          cross join period
                 where project_likes.at >= period.start_at
                   and project_likes.at < period.end_at + period.bucket_interval
-                  and (sqlc.narg(city)::text is null or project_location.city = sqlc.narg(city)::text))
+                  and (sqlc.narg(city)::uuid is null or project_location.city_id = sqlc.narg(city)::uuid))
 select series.at::timestamptz   as at,
        count(events.at)::bigint as value
 from series
@@ -526,7 +567,7 @@ with period as (select case sqlc.arg(separator)::text
                          cross join period
                 where projects.at >= period.start_at
                   and projects.at < period.end_at + period.bucket_interval
-                  and (sqlc.narg(city)::text is null or project_location.city = sqlc.narg(city)::text))
+                  and (sqlc.narg(city)::uuid is null or project_location.city_id = sqlc.narg(city)::uuid))
 select series.at::timestamptz   as at,
        count(events.at)::bigint as value
 from series
@@ -592,7 +633,7 @@ with period as (select case sqlc.arg(separator)::text
                 where project_messages.deleted is null
                   and project_messages.at >= period.start_at
                   and project_messages.at < period.end_at + period.bucket_interval
-                  and (sqlc.narg(city)::text is null or project_location.city = sqlc.narg(city)::text))
+                  and (sqlc.narg(city)::uuid is null or project_location.city_id = sqlc.narg(city)::uuid))
 select series.at::timestamptz   as at,
        count(events.at)::bigint as value
 from series
@@ -664,4 +705,8 @@ from files
 where owner = $1;
 
 -- name: CanLikeProject :one
-select coalesce(up.city = pl.city, false)::boolean as is_city_match from users_preferences up cross join project_location pl where up.owner = $1 and pl.id = $2;
+select coalesce(up.city_id = pl.city_id, false)::boolean as is_city_match
+from users_preferences up
+         left join project_location pl on pl.id = $2
+where up.owner = $1
+limit 1;

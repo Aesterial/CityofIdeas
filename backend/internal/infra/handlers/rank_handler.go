@@ -181,3 +181,61 @@ func (h *RankHandler) Delete(ctx context.Context, req *typespb.RequestWithValue)
 	}
 	return &emptypb.Empty{}, nil
 }
+
+func (h *RankHandler) Assign(ctx context.Context, req *rankpb.AssignRankRequest) (*emptypb.Empty, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
+	}
+	meta, err := h.auth.User(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+	if err = h.auth.Permissions(ctx, *meta, permissionsdomain.RankUpdate); err != nil {
+		return nil, err
+	}
+	userID, err := domain.FromString(req.GetUserId())
+	if err != nil {
+		return nil, errors.InvalidArguments
+	}
+	var cityID *domain.UUID
+	if cid := req.GetCityId(); cid != "" {
+		id, err := domain.FromString(cid)
+		if err != nil {
+			return nil, errors.InvalidArguments
+		}
+		cityID = &id
+	}
+	if err = h.rank.AssignRank(ctx, userID, req.GetRankName(), cityID, nil); err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, nil
+}
+
+func (h *RankHandler) Revoke(ctx context.Context, req *rankpb.RevokeRankRequest) (*emptypb.Empty, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
+	}
+	meta, err := h.auth.User(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+	if err = h.auth.Permissions(ctx, *meta, permissionsdomain.RankUpdate); err != nil {
+		return nil, err
+	}
+	userID, err := domain.FromString(req.GetUserId())
+	if err != nil {
+		return nil, errors.InvalidArguments
+	}
+	var cityID *domain.UUID
+	if cid := req.GetCityId(); cid != "" {
+		id, err := domain.FromString(cid)
+		if err != nil {
+			return nil, errors.InvalidArguments
+		}
+		cityID = &id
+	}
+	if err = h.rank.RevokeScoped(ctx, userID, req.GetRankName(), cityID); err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, nil
+}

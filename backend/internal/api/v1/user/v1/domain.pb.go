@@ -70,7 +70,7 @@ type UserPreferences struct {
 	xxx_hidden_Description *string                `protobuf:"bytes,1,opt,name=description"`
 	xxx_hidden_DisplayName *string                `protobuf:"bytes,2,opt,name=display_name,json=displayName"`
 	xxx_hidden_Avatar      *string                `protobuf:"bytes,3,opt,name=avatar"`
-	xxx_hidden_City        *string                `protobuf:"bytes,4,opt,name=city"`
+	xxx_hidden_CityId      *string                `protobuf:"bytes,4,opt,name=city_id,json=cityId"`
 	xxx_hidden_Lang        Languages              `protobuf:"varint,5,opt,name=lang,enum=xyz.city_ideas.v1.user.v1.Languages"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
@@ -133,10 +133,10 @@ func (x *UserPreferences) GetAvatar() string {
 	return ""
 }
 
-func (x *UserPreferences) GetCity() string {
+func (x *UserPreferences) GetCityId() string {
 	if x != nil {
-		if x.xxx_hidden_City != nil {
-			return *x.xxx_hidden_City
+		if x.xxx_hidden_CityId != nil {
+			return *x.xxx_hidden_CityId
 		}
 		return ""
 	}
@@ -167,8 +167,8 @@ func (x *UserPreferences) SetAvatar(v string) {
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 5)
 }
 
-func (x *UserPreferences) SetCity(v string) {
-	x.xxx_hidden_City = &v
+func (x *UserPreferences) SetCityId(v string) {
+	x.xxx_hidden_CityId = &v
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 5)
 }
 
@@ -198,7 +198,7 @@ func (x *UserPreferences) HasAvatar() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
 }
 
-func (x *UserPreferences) HasCity() bool {
+func (x *UserPreferences) HasCityId() bool {
 	if x == nil {
 		return false
 	}
@@ -227,9 +227,9 @@ func (x *UserPreferences) ClearAvatar() {
 	x.xxx_hidden_Avatar = nil
 }
 
-func (x *UserPreferences) ClearCity() {
+func (x *UserPreferences) ClearCityId() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
-	x.xxx_hidden_City = nil
+	x.xxx_hidden_CityId = nil
 }
 
 func (x *UserPreferences) ClearLang() {
@@ -243,7 +243,7 @@ type UserPreferences_builder struct {
 	Description *string
 	DisplayName *string
 	Avatar      *string
-	City        *string
+	CityId      *string
 	Lang        *Languages
 }
 
@@ -263,9 +263,9 @@ func (b0 UserPreferences_builder) Build() *UserPreferences {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 5)
 		x.xxx_hidden_Avatar = b.Avatar
 	}
-	if b.City != nil {
+	if b.CityId != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 5)
-		x.xxx_hidden_City = b.City
+		x.xxx_hidden_CityId = b.CityId
 	}
 	if b.Lang != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 5)
@@ -851,7 +851,7 @@ type UpdatePreferencesRequest struct {
 	xxx_hidden_Description     *string                `protobuf:"bytes,2,opt,name=description"`
 	xxx_hidden_AvatarHash      *string                `protobuf:"bytes,3,opt,name=avatar_hash,json=avatarHash"`
 	xxx_hidden_SessionLiveTime int32                  `protobuf:"varint,4,opt,name=session_live_time,json=sessionLiveTime"`
-	xxx_hidden_City            *string                `protobuf:"bytes,5,opt,name=city"`
+	xxx_hidden_CityId          *string                `protobuf:"bytes,5,opt,name=city_id,json=cityId"`
 	XXX_raceDetectHookData     protoimpl.RaceDetectHookData
 	XXX_presence               [1]uint32
 	unknownFields              protoimpl.UnknownFields
@@ -920,10 +920,10 @@ func (x *UpdatePreferencesRequest) GetSessionLiveTime() int32 {
 	return 0
 }
 
-func (x *UpdatePreferencesRequest) GetCity() string {
+func (x *UpdatePreferencesRequest) GetCityId() string {
 	if x != nil {
-		if x.xxx_hidden_City != nil {
-			return *x.xxx_hidden_City
+		if x.xxx_hidden_CityId != nil {
+			return *x.xxx_hidden_CityId
 		}
 		return ""
 	}
@@ -950,8 +950,8 @@ func (x *UpdatePreferencesRequest) SetSessionLiveTime(v int32) {
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 5)
 }
 
-func (x *UpdatePreferencesRequest) SetCity(v string) {
-	x.xxx_hidden_City = &v
+func (x *UpdatePreferencesRequest) SetCityId(v string) {
+	x.xxx_hidden_CityId = &v
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 5)
 }
 
@@ -983,7 +983,7 @@ func (x *UpdatePreferencesRequest) HasSessionLiveTime() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
 }
 
-func (x *UpdatePreferencesRequest) HasCity() bool {
+func (x *UpdatePreferencesRequest) HasCityId() bool {
 	if x == nil {
 		return false
 	}
@@ -1010,9 +1010,9 @@ func (x *UpdatePreferencesRequest) ClearSessionLiveTime() {
 	x.xxx_hidden_SessionLiveTime = 0
 }
 
-func (x *UpdatePreferencesRequest) ClearCity() {
+func (x *UpdatePreferencesRequest) ClearCityId() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
-	x.xxx_hidden_City = nil
+	x.xxx_hidden_CityId = nil
 }
 
 type UpdatePreferencesRequest_builder struct {
@@ -1022,7 +1022,7 @@ type UpdatePreferencesRequest_builder struct {
 	Description     *string
 	AvatarHash      *string
 	SessionLiveTime *int32
-	City            *string
+	CityId          *string
 }
 
 func (b0 UpdatePreferencesRequest_builder) Build() *UpdatePreferencesRequest {
@@ -1045,9 +1045,9 @@ func (b0 UpdatePreferencesRequest_builder) Build() *UpdatePreferencesRequest {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 5)
 		x.xxx_hidden_SessionLiveTime = *b.SessionLiveTime
 	}
-	if b.City != nil {
+	if b.CityId != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 5)
-		x.xxx_hidden_City = b.City
+		x.xxx_hidden_CityId = b.CityId
 	}
 	return m0
 }
@@ -1251,12 +1251,12 @@ var File_xyz_city_ideas_v1_user_v1_domain_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc = "" +
 	"\n" +
-	"&xyz/city_ideas/v1/user/v1/domain.proto\x12\x19xyz.city_ideas.v1.user.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xbc\x01\n" +
+	"&xyz/city_ideas/v1/user/v1/domain.proto\x12\x19xyz.city_ideas.v1.user.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc1\x01\n" +
 	"\x0fUserPreferences\x12 \n" +
 	"\vdescription\x18\x01 \x01(\tR\vdescription\x12!\n" +
 	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12\x16\n" +
-	"\x06avatar\x18\x03 \x01(\tR\x06avatar\x12\x12\n" +
-	"\x04city\x18\x04 \x01(\tR\x04city\x128\n" +
+	"\x06avatar\x18\x03 \x01(\tR\x06avatar\x12\x17\n" +
+	"\acity_id\x18\x04 \x01(\tR\x06cityId\x128\n" +
 	"\x04lang\x18\x05 \x01(\x0e2$.xyz.city_ideas.v1.user.v1.LanguagesR\x04lang\"4\n" +
 	"\bUserRank\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
@@ -1276,14 +1276,14 @@ const file_xyz_city_ideas_v1_user_v1_domain_proto_rawDesc = "" +
 	"\x06public\x18\x01 \x01(\v2%.xyz.city_ideas.v1.user.v1.PublicUserR\x06public\x12!\n" +
 	"\fsession_live\x18\x02 \x01(\x05R\vsessionLive\x12?\n" +
 	"\bsecurity\x18\x03 \x01(\v2#.xyz.city_ideas.v1.user.v1.SecurityR\bsecurity\x12 \n" +
-	"\vpermissions\x18\x04 \x03(\tR\vpermissions\"\xc0\x01\n" +
+	"\vpermissions\x18\x04 \x03(\tR\vpermissions\"\xc5\x01\n" +
 	"\x18UpdatePreferencesRequest\x12!\n" +
 	"\fdisplay_name\x18\x01 \x01(\tR\vdisplayName\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1f\n" +
 	"\vavatar_hash\x18\x03 \x01(\tR\n" +
 	"avatarHash\x12*\n" +
-	"\x11session_live_time\x18\x04 \x01(\x05R\x0fsessionLiveTime\x12\x12\n" +
-	"\x04city\x18\x05 \x01(\tR\x04city\"I\n" +
+	"\x11session_live_time\x18\x04 \x01(\x05R\x0fsessionLiveTime\x12\x17\n" +
+	"\acity_id\x18\x05 \x01(\tR\x06cityId\"I\n" +
 	"\fListResponse\x129\n" +
 	"\x04list\x18\x01 \x03(\v2%.xyz.city_ideas.v1.user.v1.PublicUserR\x04list\"n\n" +
 	"\n" +

@@ -12,16 +12,16 @@ import type { Message as Message$1 } from "@bufbuild/protobuf";
  * Describes the file xyz/city_ideas/v1/projects/v1/domain.proto.
  */
 export const file_xyz_city_ideas_v1_projects_v1_domain: GenFile = /*@__PURE__*/
-  fileDesc("Cip4eXovY2l0eV9pZGVhcy92MS9wcm9qZWN0cy92MS9kb21haW4ucHJvdG8SHXh5ei5jaXR5X2lkZWFzLnYxLnByb2plY3RzLnYxIjkKD1Byb2plY3RMb2NhdGlvbhIMCgRjaXR5GAEgASgJEgsKA2xhdBgCIAEoARILCgNsb3QYAyABKAEi+AIKB1Byb2plY3QSCgoCaWQYASABKAkSDgoGYXV0aG9yGAIgASgJEg0KBXRpdGxlGAMgASgJEhMKC2Rlc2NyaXB0aW9uGAQgASgJEhAKCGNhdGVnb3J5GAUgASgJEjUKBnN0YXR1cxgGIAEoDjIlLnh5ei5jaXR5X2lkZWFzLnYxLnByb2plY3RzLnYxLlN0YXR1cxIRCglpbXBsX2xpbmsYByABKAkSDQoFbGlrZXMYCCABKAMSJgoCYXQYCSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEisKB3VwZGF0ZWQYCiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEisKB2RlbGV0ZWQYCyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEkAKCGxvY2F0aW9uGAwgASgLMi4ueHl6LmNpdHlfaWRlYXMudjEucHJvamVjdHMudjEuUHJvamVjdExvY2F0aW9uIpsBCgdNZXNzYWdlEgoKAmlkGAEgASgJEg4KBmF1dGhvchgCIAEoCRIOCgZwYXJlbnQYAyABKAkSDwoHY29udGVudBgEIAEoCRImCgJhdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASKwoHZGVsZXRlZBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiSwoKU3VibWlzc2lvbhIKCgJpZBgBIAEoCRIPCgdwcm9qZWN0GAIgASgJEhAKCGFwcHJvdmVkGAMgASgIEg4KBnJlYXNvbhgEIAEoCSJMChRQcm9qZWN0c0xpc3RSZXNwb25zZRI0CgRsaXN0GAEgAygLMiYueHl6LmNpdHlfaWRlYXMudjEucHJvamVjdHMudjEuUHJvamVjdCJSChdTdWJtaXNzaW9uc0xpc3RSZXNwb25zZRI3CgRsaXN0GAEgAygLMikueHl6LmNpdHlfaWRlYXMudjEucHJvamVjdHMudjEuU3VibWlzc2lvbiJMChRNZXNzYWdlc0xpc3RSZXNwb25zZRI0CgRsaXN0GAEgAygLMiYueHl6LmNpdHlfaWRlYXMudjEucHJvamVjdHMudjEuTWVzc2FnZSKOAQoUQ3JlYXRlUHJvamVjdFJlcXVlc3QSDQoFdGl0bGUYASABKAkSEwoLZGVzY3JpcHRpb24YAiABKAkSEAoIY2F0ZWdvcnkYAyABKAkSQAoIbG9jYXRpb24YBCABKAsyLi54eXouY2l0eV9pZGVhcy52MS5wcm9qZWN0cy52MS5Qcm9qZWN0TG9jYXRpb24iSAoUQ3JlYXRlTWVzc2FnZVJlcXVlc3QSDwoHcHJvamVjdBgBIAEoCRIOCgZwYXJlbnQYAiABKAkSDwoHY29udGVudBgDIAEoCSp5CgZTdGF0dXMSFgoSU1RBVFVTX1VOU1BFQ0lGSUVEEAASFAoQU1RBVFVTX0NBTkNFTExFRBABEhIKDlNUQVRVU19MSVNUSU5HEAISFAoQU1RBVFVTX1JFVklFV0lORxADEhcKE1NUQVRVU19JTVBMRU1FTlRJTkcQBEJHWkVnaXRodWIuY29tL2Flc3RlcmlhbC9jaXR5aWRlYXMvYmFja2VuZC9pbnRlcm5hbC9hcGkvdjEvcHJvamVjdHMvdjE7djFiCGVkaXRpb25zcOgH", [file_google_protobuf_timestamp]);
+  fileDesc("Cip4eXovY2l0eV9pZGVhcy92MS9wcm9qZWN0cy92MS9kb21haW4ucHJvdG8SHXh5ei5jaXR5X2lkZWFzLnYxLnByb2plY3RzLnYxIjwKD1Byb2plY3RMb2NhdGlvbhIPCgdjaXR5X2lkGAEgASgJEgsKA2xhdBgCIAEoARILCgNsb3QYAyABKAEi+AIKB1Byb2plY3QSCgoCaWQYASABKAkSDgoGYXV0aG9yGAIgASgJEg0KBXRpdGxlGAMgASgJEhMKC2Rlc2NyaXB0aW9uGAQgASgJEhAKCGNhdGVnb3J5GAUgASgJEjUKBnN0YXR1cxgGIAEoDjIlLnh5ei5jaXR5X2lkZWFzLnYxLnByb2plY3RzLnYxLlN0YXR1cxIRCglpbXBsX2xpbmsYByABKAkSDQoFbGlrZXMYCCABKAMSJgoCYXQYCSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEisKB3VwZGF0ZWQYCiABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEisKB2RlbGV0ZWQYCyABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wEkAKCGxvY2F0aW9uGAwgASgLMi4ueHl6LmNpdHlfaWRlYXMudjEucHJvamVjdHMudjEuUHJvamVjdExvY2F0aW9uIpsBCgdNZXNzYWdlEgoKAmlkGAEgASgJEg4KBmF1dGhvchgCIAEoCRIOCgZwYXJlbnQYAyABKAkSDwoHY29udGVudBgEIAEoCRImCgJhdBgFIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXASKwoHZGVsZXRlZBgGIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAiSwoKU3VibWlzc2lvbhIKCgJpZBgBIAEoCRIPCgdwcm9qZWN0GAIgASgJEhAKCGFwcHJvdmVkGAMgASgIEg4KBnJlYXNvbhgEIAEoCSJMChRQcm9qZWN0c0xpc3RSZXNwb25zZRI0CgRsaXN0GAEgAygLMiYueHl6LmNpdHlfaWRlYXMudjEucHJvamVjdHMudjEuUHJvamVjdCJSChdTdWJtaXNzaW9uc0xpc3RSZXNwb25zZRI3CgRsaXN0GAEgAygLMikueHl6LmNpdHlfaWRlYXMudjEucHJvamVjdHMudjEuU3VibWlzc2lvbiJMChRNZXNzYWdlc0xpc3RSZXNwb25zZRI0CgRsaXN0GAEgAygLMiYueHl6LmNpdHlfaWRlYXMudjEucHJvamVjdHMudjEuTWVzc2FnZSJCChlNYXJrQXNJbXBsZW1lbnRpbmdSZXF1ZXN0EhIKCnByb2plY3RfaWQYASABKAkSEQoJaW1wbF9saW5rGAIgASgJIo4BChRDcmVhdGVQcm9qZWN0UmVxdWVzdBINCgV0aXRsZRgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCRIQCghjYXRlZ29yeRgDIAEoCRJACghsb2NhdGlvbhgEIAEoCzIuLnh5ei5jaXR5X2lkZWFzLnYxLnByb2plY3RzLnYxLlByb2plY3RMb2NhdGlvbiJIChRDcmVhdGVNZXNzYWdlUmVxdWVzdBIPCgdwcm9qZWN0GAEgASgJEg4KBnBhcmVudBgCIAEoCRIPCgdjb250ZW50GAMgASgJKpEBCgZTdGF0dXMSFgoSU1RBVFVTX1VOU1BFQ0lGSUVEEAASFAoQU1RBVFVTX0NBTkNFTExFRBABEhIKDlNUQVRVU19MSVNUSU5HEAISFAoQU1RBVFVTX1JFVklFV0lORxADEhcKE1NUQVRVU19JTVBMRU1FTlRJTkcQBBIWChJTVEFUVVNfSU1QTEVNRU5URUQQBUJHWkVnaXRodWIuY29tL2Flc3RlcmlhbC9jaXR5aWRlYXMvYmFja2VuZC9pbnRlcm5hbC9hcGkvdjEvcHJvamVjdHMvdjE7djFiCGVkaXRpb25zcOgH", [file_google_protobuf_timestamp]);
 
 /**
  * @generated from message xyz.city_ideas.v1.projects.v1.ProjectLocation
  */
 export type ProjectLocation = Message$1<"xyz.city_ideas.v1.projects.v1.ProjectLocation"> & {
   /**
-   * @generated from field: string city = 1;
+   * @generated from field: string city_id = 1;
    */
-  city: string;
+  cityId: string;
 
   /**
    * @generated from field: double lat = 2;
@@ -239,6 +239,28 @@ export const MessagesListResponseSchema: GenMessage<MessagesListResponse> = /*@_
   messageDesc(file_xyz_city_ideas_v1_projects_v1_domain, 6);
 
 /**
+ * @generated from message xyz.city_ideas.v1.projects.v1.MarkAsImplementingRequest
+ */
+export type MarkAsImplementingRequest = Message$1<"xyz.city_ideas.v1.projects.v1.MarkAsImplementingRequest"> & {
+  /**
+   * @generated from field: string project_id = 1;
+   */
+  projectId: string;
+
+  /**
+   * @generated from field: string impl_link = 2;
+   */
+  implLink: string;
+};
+
+/**
+ * Describes the message xyz.city_ideas.v1.projects.v1.MarkAsImplementingRequest.
+ * Use `create(MarkAsImplementingRequestSchema)` to create a new message.
+ */
+export const MarkAsImplementingRequestSchema: GenMessage<MarkAsImplementingRequest> = /*@__PURE__*/
+  messageDesc(file_xyz_city_ideas_v1_projects_v1_domain, 7);
+
+/**
  * @generated from message xyz.city_ideas.v1.projects.v1.CreateProjectRequest
  */
 export type CreateProjectRequest = Message$1<"xyz.city_ideas.v1.projects.v1.CreateProjectRequest"> & {
@@ -268,7 +290,7 @@ export type CreateProjectRequest = Message$1<"xyz.city_ideas.v1.projects.v1.Crea
  * Use `create(CreateProjectRequestSchema)` to create a new message.
  */
 export const CreateProjectRequestSchema: GenMessage<CreateProjectRequest> = /*@__PURE__*/
-  messageDesc(file_xyz_city_ideas_v1_projects_v1_domain, 7);
+  messageDesc(file_xyz_city_ideas_v1_projects_v1_domain, 8);
 
 /**
  * @generated from message xyz.city_ideas.v1.projects.v1.CreateMessageRequest
@@ -295,7 +317,7 @@ export type CreateMessageRequest = Message$1<"xyz.city_ideas.v1.projects.v1.Crea
  * Use `create(CreateMessageRequestSchema)` to create a new message.
  */
 export const CreateMessageRequestSchema: GenMessage<CreateMessageRequest> = /*@__PURE__*/
-  messageDesc(file_xyz_city_ideas_v1_projects_v1_domain, 8);
+  messageDesc(file_xyz_city_ideas_v1_projects_v1_domain, 9);
 
 /**
  * @generated from enum xyz.city_ideas.v1.projects.v1.Status
@@ -325,6 +347,11 @@ export enum Status {
    * @generated from enum value: STATUS_IMPLEMENTING = 4;
    */
   IMPLEMENTING = 4,
+
+  /**
+   * @generated from enum value: STATUS_IMPLEMENTED = 5;
+   */
+  IMPLEMENTED = 5,
 }
 
 /**

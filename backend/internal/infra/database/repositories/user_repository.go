@@ -9,7 +9,6 @@ import (
 	ranksdomain "github.com/aesterial/cityideas/backend/internal/domain/ranks"
 	userdomain "github.com/aesterial/cityideas/backend/internal/domain/user"
 	"github.com/aesterial/cityideas/backend/internal/infra/database/sqlc"
-	"github.com/aesterial/cityideas/backend/internal/infra/logger"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
 	"github.com/aesterial/cityideas/backend/internal/shared/safe"
 	"github.com/jackc/pgx/v5"
@@ -58,9 +57,10 @@ func (*UserRepository) parseSecurity(sec sqlc.UsersSecurity) *userdomain.Securit
 }
 
 func (*UserRepository) parsePreferences(prefs sqlc.UsersPreference) *userdomain.Preferences {
-	var city *string = nil
-	if prefs.City.Valid {
-		city = &prefs.City.String
+	var cityID *domain.UUID = nil
+	if prefs.CityID.Valid {
+		id := domain.FromPG(prefs.CityID)
+		cityID = &id
 	}
 	var cityChanged *time.Time = nil
 	if prefs.CityChanged.Valid {
@@ -72,7 +72,7 @@ func (*UserRepository) parsePreferences(prefs sqlc.UsersPreference) *userdomain.
 		Avatar:          &prefs.AvatarHash.String,
 		SessionLiveTime: prefs.SessionLive,
 		Language:        userdomain.ParseLanguage(string(prefs.Language)),
-		City:            city,
+		CityID:          cityID,
 		CityChanged:     cityChanged,
 	}
 }
@@ -302,17 +302,15 @@ func (u *UserRepository) UpdatePreferences(ctx context.Context, user domain.UUID
 	if err != nil {
 		return nil, err
 	}
-	logger.Info("user", "received city to change: ", logger.F("city", prefs.City))
-	logger.Info("user", "saved city", logger.F("city", ps.City))
-	if isPointerChanged(ps.City, prefs.City) {
+	if isPointerChanged(ps.CityID, prefs.CityID) {
 		if ps.CityChanged == nil || ps.CityChanged.Add(30*24*time.Hour).Before(time.Now()) {
-			logger.Info("user", "updating city")
-			err = u.conn.UpdateUserCity(ctx, sqlc.UpdateUserCityParams{
-				City: pgtype.Text{
-					String: *prefs.City,
-					Valid:  true,
-				},
-				Owner: user.ToPG(),
+			var pgCityID pgtype.UUID
+			if prefs.CityID != nil {
+				pgCityID = prefs.CityID.ToPG()
+			}
+			err = u.conn.UpdateUserCityByID(ctx, sqlc.UpdateUserCityByIDParams{
+				CityID: pgCityID,
+				Owner:  user.ToPG(),
 			})
 			if err != nil {
 				return nil, err
@@ -320,7 +318,7 @@ func (u *UserRepository) UpdatePreferences(ctx context.Context, user domain.UUID
 		} else {
 			return nil, errors.AccessDenied
 		}
-		ps.City = prefs.City
+		ps.CityID = prefs.CityID
 	}
 	if isPointerChanged(ps.Avatar, prefs.Avatar) {
 		err = u.conn.UpdateUserAvatar(ctx, sqlc.UpdateUserAvatarParams{

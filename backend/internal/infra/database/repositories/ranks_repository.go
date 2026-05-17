@@ -11,6 +11,7 @@ import (
 	ranksdomain "github.com/aesterial/cityideas/backend/internal/domain/ranks"
 	"github.com/aesterial/cityideas/backend/internal/infra/database/sqlc"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type RankRepository struct {
@@ -194,6 +195,56 @@ func (r *RankRepository) User(ctx context.Context, user domain.UUID) (ranksdomai
 	return out, nil
 }
 
+func (r *RankRepository) UserWithScope(ctx context.Context, user domain.UUID) ([]domain.MetaRank, error) {
+	list, err := r.conn.GetUserRanksWithScope(ctx, user.ToPG())
+	if err != nil {
+		return nil, err
+	}
+	out := make([]domain.MetaRank, len(list))
+	for i, e := range list {
+		perms, _ := permissionsdomain.FromJson(e.Permissions)
+		mr := domain.MetaRank{
+			RankID:      domain.FromPG(e.ID),
+			Permissions: perms,
+		}
+		if e.CityID.Valid {
+			id := domain.FromPG(e.CityID)
+			mr.CityID = &id
+		}
+		out[i] = mr
+	}
+	return out, nil
+}
+
+func (r *RankRepository) Assign(ctx context.Context, user domain.UUID, rankName string, cityID *domain.UUID, expires *time.Time) error {
+	var pgCityID pgtype.UUID
+	if cityID != nil {
+		pgCityID = cityID.ToPG()
+	}
+	var pgExpires pgtype.Timestamptz
+	if expires != nil {
+		pgExpires = pgtype.Timestamptz{Time: *expires, Valid: true}
+	}
+	return r.conn.AssignRankToUser(ctx, sqlc.AssignRankToUserParams{
+		Column1: user.ToPG(),
+		Column2: pgCityID,
+		Column3: pgExpires,
+		Name:    rankName,
+	})
+}
+
+func (r *RankRepository) RevokeScoped(ctx context.Context, user domain.UUID, rankName string, cityID *domain.UUID) error {
+	var pgCityID pgtype.UUID
+	if cityID != nil {
+		pgCityID = cityID.ToPG()
+	}
+	return r.conn.RevokeRankFromUserScoped(ctx, sqlc.RevokeRankFromUserScopedParams{
+		Name:    rankName,
+		Owner:   user.ToPG(),
+		Column3: pgCityID,
+	})
+}
+
 func (r *RankRepository) Users(ctx context.Context, name string) ([]*domain.UUID, error) {
 	if name == "" {
 		return nil, errors.InvalidArguments
@@ -204,7 +255,8 @@ func (r *RankRepository) Users(ctx context.Context, name string) ([]*domain.UUID
 	}
 	var out = make([]*domain.UUID, len(ids))
 	for i, id := range ids {
-		out[i] = new(domain.FromPG(id))
+		v := domain.FromPG(id)
+		out[i] = &v
 	}
 	return out, nil
 }

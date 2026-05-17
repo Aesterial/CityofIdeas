@@ -17,7 +17,7 @@ type projectRepoStub struct {
 	likes     int64
 }
 
-func (r *projectRepoStub) ProjectsTop(context.Context, string, int32, int32) (projectdomain.Projects, error) {
+func (r *projectRepoStub) ProjectsTop(_ context.Context, _ domain.UUID, _ int32, _ int32) (projectdomain.Projects, error) {
 	return r.projects(), nil
 }
 
@@ -33,8 +33,16 @@ func (r *projectRepoStub) Submission(context.Context, domain.UUID) (*projectdoma
 	return nil, nil
 }
 
-func (r *projectRepoStub) SubmissionReview(context.Context, domain.UUID, bool, *string) error {
+func (r *projectRepoStub) SubmissionReview(_ context.Context, _ domain.UUID, _ domain.UUID, _ bool, _ *string) error {
 	return nil
+}
+
+func (r *projectRepoStub) ProjectCity(_ context.Context, _ domain.UUID) (domain.UUID, error) {
+	return domain.UUID{}, nil
+}
+
+func (r *projectRepoStub) CanLike(_ context.Context, _ domain.UUID, _ domain.UUID) (bool, error) {
+	return true, nil
 }
 
 func (r *projectRepoStub) Messages(context.Context, domain.UUID, int32, int32, bool) (projectdomain.Messages, error) {
@@ -53,7 +61,7 @@ func (r *projectRepoStub) ProjectAuthor(context.Context, domain.UUID) (*domain.U
 	return &r.userID, nil
 }
 
-func (r *projectRepoStub) CreateProject(context.Context, domain.UUID, string, string, string, string, float64, float64) (*projectdomain.Project, error) {
+func (r *projectRepoStub) CreateProject(_ context.Context, _ domain.UUID, _, _, _ string, _ domain.UUID, _, _ float64) (*projectdomain.Project, error) {
 	return r.project(), nil
 }
 

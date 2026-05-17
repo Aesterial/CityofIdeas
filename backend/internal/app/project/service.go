@@ -36,11 +36,11 @@ const (
 	statisticsCacheTag        = "statistics"
 )
 
-func (s *Service) CreateProject(ctx context.Context, user domain.UUID, title string, description string, category string, city string, latitude float64, longitude float64) (*projectdomain.Project, error) {
+func (s *Service) CreateProject(ctx context.Context, user domain.UUID, title string, description string, category string, cityID domain.UUID, latitude float64, longitude float64) (*projectdomain.Project, error) {
 	if title == "" || category == "" {
 		return nil, errors.InvalidArguments
 	}
-	proj, err := s.proj.CreateProject(ctx, user, title, description, category, city, latitude, longitude)
+	proj, err := s.proj.CreateProject(ctx, user, title, description, category, cityID, latitude, longitude)
 	if err != nil {
 		logger.Error("projects", "failed to create project", logger.F("error", err))
 		return nil, errors.Wrap(err)
@@ -93,16 +93,13 @@ func (s *Service) ProjectsList(ctx context.Context, limit int32, offset int32) (
 	})
 }
 
-func (s *Service) ProjectsTop(ctx context.Context, city string, limit int32, offset int32) (projectdomain.Projects, error) {
-	if city == "" {
-		return nil, errors.InvalidArguments
-	}
+func (s *Service) ProjectsTop(ctx context.Context, cityID domain.UUID, limit int32, offset int32) (projectdomain.Projects, error) {
 	if limit <= 0 {
 		limit = 3
 	}
-	key := cache.Key("projects.top", city, limit, offset)
+	key := cache.Key("projects.top", cityID.String(), limit, offset)
 	return cache.GetOrSet(ctx, s.c, key, projectCacheTTL, []string{projectTopCacheTag}, func(ctx context.Context) (projectdomain.Projects, error) {
-		list, err := s.proj.ProjectsTop(ctx, city, limit, offset)
+		list, err := s.proj.ProjectsTop(ctx, cityID, limit, offset)
 		if err != nil {
 			logger.Error("projects", "failed to get lis of projects top", logger.F("error", err))
 			return nil, errors.Wrap(err)
@@ -246,7 +243,7 @@ func (s *Service) Submission(ctx context.Context, submission string) (*projectdo
 	})
 }
 
-func (s *Service) SubmissionReview(ctx context.Context, submissionID string, conclusion bool, reason *string) error {
+func (s *Service) SubmissionReview(ctx context.Context, reviewer domain.UUID, submissionID string, conclusion bool, reason *string) error {
 	if !conclusion && reason == nil || submissionID == "" {
 		return errors.InvalidArguments
 	}
@@ -259,12 +256,41 @@ func (s *Service) SubmissionReview(ctx context.Context, submissionID string, con
 		logger.Error("projects", "failed to get submission for review", logger.F("error", err))
 		return errors.Wrap(err)
 	}
-	err = s.proj.SubmissionReview(ctx, submission.Project, conclusion, reason)
+	err = s.proj.SubmissionReview(ctx, submission.Project, reviewer, conclusion, reason)
 	if err != nil {
 		logger.Error("projects", "failed to review submission", logger.F("error", err))
 		return errors.Wrap(err)
 	}
 	s.c.DeleteTags(projectSubmissionCacheTag, projectListCacheTag, projectTopCacheTag, statisticsCacheTag)
+	return nil
+}
+
+func (s *Service) ProjectCity(ctx context.Context, project domain.UUID) (domain.UUID, error) {
+	return s.proj.ProjectCity(ctx, project)
+}
+
+func (s *Service) MarkAsImplementing(ctx context.Context, reviewer domain.UUID, project string, implLink string) error {
+	id, err := domain.FromString(project)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	info, err := s.proj.Project(ctx, id)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	if info.Status != projectdomain.StatusListing {
+		return errors.InvalidArguments
+	}
+	if implLink != "" {
+		err = s.proj.SetStatus(ctx, id, projectdomain.StatusImplementing, implLink)
+	} else {
+		err = s.proj.SetStatus(ctx, id, projectdomain.StatusImplementing)
+	}
+	if err != nil {
+		logger.Error("projects", "failed to mark project as implementing", logger.F("error", err))
+		return errors.Wrap(err)
+	}
+	s.c.DeleteTags(projectCacheTag(id.String()), projectListCacheTag, projectTopCacheTag, statisticsCacheTag)
 	return nil
 }
 

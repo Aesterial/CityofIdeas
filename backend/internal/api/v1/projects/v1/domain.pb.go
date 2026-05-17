@@ -29,6 +29,7 @@ const (
 	Status_STATUS_LISTING      Status = 2
 	Status_STATUS_REVIEWING    Status = 3
 	Status_STATUS_IMPLEMENTING Status = 4
+	Status_STATUS_IMPLEMENTED  Status = 5
 )
 
 // Enum value maps for Status.
@@ -39,6 +40,7 @@ var (
 		2: "STATUS_LISTING",
 		3: "STATUS_REVIEWING",
 		4: "STATUS_IMPLEMENTING",
+		5: "STATUS_IMPLEMENTED",
 	}
 	Status_value = map[string]int32{
 		"STATUS_UNSPECIFIED":  0,
@@ -46,6 +48,7 @@ var (
 		"STATUS_LISTING":      2,
 		"STATUS_REVIEWING":    3,
 		"STATUS_IMPLEMENTING": 4,
+		"STATUS_IMPLEMENTED":  5,
 	}
 )
 
@@ -73,7 +76,7 @@ func (x Status) Number() protoreflect.EnumNumber {
 
 type ProjectLocation struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_City        *string                `protobuf:"bytes,1,opt,name=city"`
+	xxx_hidden_CityId      *string                `protobuf:"bytes,1,opt,name=city_id,json=cityId"`
 	xxx_hidden_Lat         float64                `protobuf:"fixed64,2,opt,name=lat"`
 	xxx_hidden_Lot         float64                `protobuf:"fixed64,3,opt,name=lot"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
@@ -107,10 +110,10 @@ func (x *ProjectLocation) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *ProjectLocation) GetCity() string {
+func (x *ProjectLocation) GetCityId() string {
 	if x != nil {
-		if x.xxx_hidden_City != nil {
-			return *x.xxx_hidden_City
+		if x.xxx_hidden_CityId != nil {
+			return *x.xxx_hidden_CityId
 		}
 		return ""
 	}
@@ -131,8 +134,8 @@ func (x *ProjectLocation) GetLot() float64 {
 	return 0
 }
 
-func (x *ProjectLocation) SetCity(v string) {
-	x.xxx_hidden_City = &v
+func (x *ProjectLocation) SetCityId(v string) {
+	x.xxx_hidden_CityId = &v
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 3)
 }
 
@@ -146,7 +149,7 @@ func (x *ProjectLocation) SetLot(v float64) {
 	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
 }
 
-func (x *ProjectLocation) HasCity() bool {
+func (x *ProjectLocation) HasCityId() bool {
 	if x == nil {
 		return false
 	}
@@ -167,9 +170,9 @@ func (x *ProjectLocation) HasLot() bool {
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
 }
 
-func (x *ProjectLocation) ClearCity() {
+func (x *ProjectLocation) ClearCityId() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
-	x.xxx_hidden_City = nil
+	x.xxx_hidden_CityId = nil
 }
 
 func (x *ProjectLocation) ClearLat() {
@@ -185,18 +188,18 @@ func (x *ProjectLocation) ClearLot() {
 type ProjectLocation_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	City *string
-	Lat  *float64
-	Lot  *float64
+	CityId *string
+	Lat    *float64
+	Lot    *float64
 }
 
 func (b0 ProjectLocation_builder) Build() *ProjectLocation {
 	m0 := &ProjectLocation{}
 	b, x := &b0, m0
 	_, _ = b, x
-	if b.City != nil {
+	if b.CityId != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 3)
-		x.xxx_hidden_City = b.City
+		x.xxx_hidden_CityId = b.CityId
 	}
 	if b.Lat != nil {
 		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
@@ -1192,6 +1195,117 @@ func (b0 MessagesListResponse_builder) Build() *MessagesListResponse {
 	return m0
 }
 
+type MarkAsImplementingRequest struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_ProjectId   *string                `protobuf:"bytes,1,opt,name=project_id,json=projectId"`
+	xxx_hidden_ImplLink    *string                `protobuf:"bytes,2,opt,name=impl_link,json=implLink"`
+	XXX_raceDetectHookData protoimpl.RaceDetectHookData
+	XXX_presence           [1]uint32
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *MarkAsImplementingRequest) Reset() {
+	*x = MarkAsImplementingRequest{}
+	mi := &file_xyz_city_ideas_v1_projects_v1_domain_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *MarkAsImplementingRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*MarkAsImplementingRequest) ProtoMessage() {}
+
+func (x *MarkAsImplementingRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_xyz_city_ideas_v1_projects_v1_domain_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *MarkAsImplementingRequest) GetProjectId() string {
+	if x != nil {
+		if x.xxx_hidden_ProjectId != nil {
+			return *x.xxx_hidden_ProjectId
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *MarkAsImplementingRequest) GetImplLink() string {
+	if x != nil {
+		if x.xxx_hidden_ImplLink != nil {
+			return *x.xxx_hidden_ImplLink
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *MarkAsImplementingRequest) SetProjectId(v string) {
+	x.xxx_hidden_ProjectId = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
+}
+
+func (x *MarkAsImplementingRequest) SetImplLink(v string) {
+	x.xxx_hidden_ImplLink = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 2)
+}
+
+func (x *MarkAsImplementingRequest) HasProjectId() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *MarkAsImplementingRequest) HasImplLink() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *MarkAsImplementingRequest) ClearProjectId() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_ProjectId = nil
+}
+
+func (x *MarkAsImplementingRequest) ClearImplLink() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_ImplLink = nil
+}
+
+type MarkAsImplementingRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	ProjectId *string
+	ImplLink  *string
+}
+
+func (b0 MarkAsImplementingRequest_builder) Build() *MarkAsImplementingRequest {
+	m0 := &MarkAsImplementingRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.ProjectId != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 2)
+		x.xxx_hidden_ProjectId = b.ProjectId
+	}
+	if b.ImplLink != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 2)
+		x.xxx_hidden_ImplLink = b.ImplLink
+	}
+	return m0
+}
+
 type CreateProjectRequest struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Title       *string                `protobuf:"bytes,1,opt,name=title"`
@@ -1206,7 +1320,7 @@ type CreateProjectRequest struct {
 
 func (x *CreateProjectRequest) Reset() {
 	*x = CreateProjectRequest{}
-	mi := &file_xyz_city_ideas_v1_projects_v1_domain_proto_msgTypes[7]
+	mi := &file_xyz_city_ideas_v1_projects_v1_domain_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1218,7 +1332,7 @@ func (x *CreateProjectRequest) String() string {
 func (*CreateProjectRequest) ProtoMessage() {}
 
 func (x *CreateProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_projects_v1_domain_proto_msgTypes[7]
+	mi := &file_xyz_city_ideas_v1_projects_v1_domain_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1374,7 +1488,7 @@ type CreateMessageRequest struct {
 
 func (x *CreateMessageRequest) Reset() {
 	*x = CreateMessageRequest{}
-	mi := &file_xyz_city_ideas_v1_projects_v1_domain_proto_msgTypes[8]
+	mi := &file_xyz_city_ideas_v1_projects_v1_domain_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1386,7 +1500,7 @@ func (x *CreateMessageRequest) String() string {
 func (*CreateMessageRequest) ProtoMessage() {}
 
 func (x *CreateMessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_projects_v1_domain_proto_msgTypes[8]
+	mi := &file_xyz_city_ideas_v1_projects_v1_domain_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1509,9 +1623,9 @@ var File_xyz_city_ideas_v1_projects_v1_domain_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_projects_v1_domain_proto_rawDesc = "" +
 	"\n" +
-	"*xyz/city_ideas/v1/projects/v1/domain.proto\x12\x1dxyz.city_ideas.v1.projects.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"I\n" +
-	"\x0fProjectLocation\x12\x12\n" +
-	"\x04city\x18\x01 \x01(\tR\x04city\x12\x10\n" +
+	"*xyz/city_ideas/v1/projects/v1/domain.proto\x12\x1dxyz.city_ideas.v1.projects.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"N\n" +
+	"\x0fProjectLocation\x12\x17\n" +
+	"\acity_id\x18\x01 \x01(\tR\x06cityId\x12\x10\n" +
 	"\x03lat\x18\x02 \x01(\x01R\x03lat\x12\x10\n" +
 	"\x03lot\x18\x03 \x01(\x01R\x03lot\"\xdb\x03\n" +
 	"\aProject\x12\x0e\n" +
@@ -1546,7 +1660,11 @@ const file_xyz_city_ideas_v1_projects_v1_domain_proto_rawDesc = "" +
 	"\x17SubmissionsListResponse\x12=\n" +
 	"\x04list\x18\x01 \x03(\v2).xyz.city_ideas.v1.projects.v1.SubmissionR\x04list\"R\n" +
 	"\x14MessagesListResponse\x12:\n" +
-	"\x04list\x18\x01 \x03(\v2&.xyz.city_ideas.v1.projects.v1.MessageR\x04list\"\xb6\x01\n" +
+	"\x04list\x18\x01 \x03(\v2&.xyz.city_ideas.v1.projects.v1.MessageR\x04list\"W\n" +
+	"\x19MarkAsImplementingRequest\x12\x1d\n" +
+	"\n" +
+	"project_id\x18\x01 \x01(\tR\tprojectId\x12\x1b\n" +
+	"\timpl_link\x18\x02 \x01(\tR\bimplLink\"\xb6\x01\n" +
 	"\x14CreateProjectRequest\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1a\n" +
@@ -1555,37 +1673,39 @@ const file_xyz_city_ideas_v1_projects_v1_domain_proto_rawDesc = "" +
 	"\x14CreateMessageRequest\x12\x18\n" +
 	"\aproject\x18\x01 \x01(\tR\aproject\x12\x16\n" +
 	"\x06parent\x18\x02 \x01(\tR\x06parent\x12\x18\n" +
-	"\acontent\x18\x03 \x01(\tR\acontent*y\n" +
+	"\acontent\x18\x03 \x01(\tR\acontent*\x91\x01\n" +
 	"\x06Status\x12\x16\n" +
 	"\x12STATUS_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10STATUS_CANCELLED\x10\x01\x12\x12\n" +
 	"\x0eSTATUS_LISTING\x10\x02\x12\x14\n" +
 	"\x10STATUS_REVIEWING\x10\x03\x12\x17\n" +
-	"\x13STATUS_IMPLEMENTING\x10\x04BGZEgithub.com/aesterial/cityideas/backend/internal/api/v1/projects/v1;v1b\beditionsp\xe8\a"
+	"\x13STATUS_IMPLEMENTING\x10\x04\x12\x16\n" +
+	"\x12STATUS_IMPLEMENTED\x10\x05BGZEgithub.com/aesterial/cityideas/backend/internal/api/v1/projects/v1;v1b\beditionsp\xe8\a"
 
 var file_xyz_city_ideas_v1_projects_v1_domain_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_xyz_city_ideas_v1_projects_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_xyz_city_ideas_v1_projects_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_xyz_city_ideas_v1_projects_v1_domain_proto_goTypes = []any{
-	(Status)(0),                     // 0: xyz.city_ideas.v1.projects.v1.Status
-	(*ProjectLocation)(nil),         // 1: xyz.city_ideas.v1.projects.v1.ProjectLocation
-	(*Project)(nil),                 // 2: xyz.city_ideas.v1.projects.v1.Project
-	(*Message)(nil),                 // 3: xyz.city_ideas.v1.projects.v1.Message
-	(*Submission)(nil),              // 4: xyz.city_ideas.v1.projects.v1.Submission
-	(*ProjectsListResponse)(nil),    // 5: xyz.city_ideas.v1.projects.v1.ProjectsListResponse
-	(*SubmissionsListResponse)(nil), // 6: xyz.city_ideas.v1.projects.v1.SubmissionsListResponse
-	(*MessagesListResponse)(nil),    // 7: xyz.city_ideas.v1.projects.v1.MessagesListResponse
-	(*CreateProjectRequest)(nil),    // 8: xyz.city_ideas.v1.projects.v1.CreateProjectRequest
-	(*CreateMessageRequest)(nil),    // 9: xyz.city_ideas.v1.projects.v1.CreateMessageRequest
-	(*timestamppb.Timestamp)(nil),   // 10: google.protobuf.Timestamp
+	(Status)(0),                       // 0: xyz.city_ideas.v1.projects.v1.Status
+	(*ProjectLocation)(nil),           // 1: xyz.city_ideas.v1.projects.v1.ProjectLocation
+	(*Project)(nil),                   // 2: xyz.city_ideas.v1.projects.v1.Project
+	(*Message)(nil),                   // 3: xyz.city_ideas.v1.projects.v1.Message
+	(*Submission)(nil),                // 4: xyz.city_ideas.v1.projects.v1.Submission
+	(*ProjectsListResponse)(nil),      // 5: xyz.city_ideas.v1.projects.v1.ProjectsListResponse
+	(*SubmissionsListResponse)(nil),   // 6: xyz.city_ideas.v1.projects.v1.SubmissionsListResponse
+	(*MessagesListResponse)(nil),      // 7: xyz.city_ideas.v1.projects.v1.MessagesListResponse
+	(*MarkAsImplementingRequest)(nil), // 8: xyz.city_ideas.v1.projects.v1.MarkAsImplementingRequest
+	(*CreateProjectRequest)(nil),      // 9: xyz.city_ideas.v1.projects.v1.CreateProjectRequest
+	(*CreateMessageRequest)(nil),      // 10: xyz.city_ideas.v1.projects.v1.CreateMessageRequest
+	(*timestamppb.Timestamp)(nil),     // 11: google.protobuf.Timestamp
 }
 var file_xyz_city_ideas_v1_projects_v1_domain_proto_depIdxs = []int32{
 	0,  // 0: xyz.city_ideas.v1.projects.v1.Project.status:type_name -> xyz.city_ideas.v1.projects.v1.Status
-	10, // 1: xyz.city_ideas.v1.projects.v1.Project.at:type_name -> google.protobuf.Timestamp
-	10, // 2: xyz.city_ideas.v1.projects.v1.Project.updated:type_name -> google.protobuf.Timestamp
-	10, // 3: xyz.city_ideas.v1.projects.v1.Project.deleted:type_name -> google.protobuf.Timestamp
+	11, // 1: xyz.city_ideas.v1.projects.v1.Project.at:type_name -> google.protobuf.Timestamp
+	11, // 2: xyz.city_ideas.v1.projects.v1.Project.updated:type_name -> google.protobuf.Timestamp
+	11, // 3: xyz.city_ideas.v1.projects.v1.Project.deleted:type_name -> google.protobuf.Timestamp
 	1,  // 4: xyz.city_ideas.v1.projects.v1.Project.location:type_name -> xyz.city_ideas.v1.projects.v1.ProjectLocation
-	10, // 5: xyz.city_ideas.v1.projects.v1.Message.at:type_name -> google.protobuf.Timestamp
-	10, // 6: xyz.city_ideas.v1.projects.v1.Message.deleted:type_name -> google.protobuf.Timestamp
+	11, // 5: xyz.city_ideas.v1.projects.v1.Message.at:type_name -> google.protobuf.Timestamp
+	11, // 6: xyz.city_ideas.v1.projects.v1.Message.deleted:type_name -> google.protobuf.Timestamp
 	2,  // 7: xyz.city_ideas.v1.projects.v1.ProjectsListResponse.list:type_name -> xyz.city_ideas.v1.projects.v1.Project
 	4,  // 8: xyz.city_ideas.v1.projects.v1.SubmissionsListResponse.list:type_name -> xyz.city_ideas.v1.projects.v1.Submission
 	3,  // 9: xyz.city_ideas.v1.projects.v1.MessagesListResponse.list:type_name -> xyz.city_ideas.v1.projects.v1.Message
@@ -1608,7 +1728,7 @@ func file_xyz_city_ideas_v1_projects_v1_domain_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_xyz_city_ideas_v1_projects_v1_domain_proto_rawDesc), len(file_xyz_city_ideas_v1_projects_v1_domain_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   9,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

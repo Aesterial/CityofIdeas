@@ -15,7 +15,9 @@ type Repository interface {
 	RankByID(ctx context.Context, id domain.UUID) (*Rank, error)
 	Ranks(ctx context.Context, limit int32, offset int32) (Ranks, error)
 	User(ctx context.Context, user domain.UUID) (UserRanks, error)
+	UserWithScope(ctx context.Context, user domain.UUID) ([]domain.MetaRank, error)
 	Users(ctx context.Context, name string) ([]*domain.UUID, error)
 	Revoke(ctx context.Context, user domain.UUID, name string) error
-	Set(ctx context.Context, user domain.UUID, rankName string, expiresAt *time.Time) error
+	Assign(ctx context.Context, user domain.UUID, rankName string, cityID *domain.UUID, expires *time.Time) error
+	RevokeScoped(ctx context.Context, user domain.UUID, rankName string, cityID *domain.UUID) error
 }

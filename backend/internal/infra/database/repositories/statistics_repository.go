@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 
+	"github.com/aesterial/cityideas/backend/internal/domain"
 	statisticsdomain "github.com/aesterial/cityideas/backend/internal/domain/statistics"
 	"github.com/aesterial/cityideas/backend/internal/infra/database/sqlc"
 	"github.com/jackc/pgx/v5/pgtype"
@@ -32,11 +33,15 @@ func (s *StatisticsRepository) Global(ctx context.Context) (*statisticsdomain.Gl
 	}, nil
 }
 
-func statisticCityParam(city *string) pgtype.Text {
+func statisticCityParam(city *string) pgtype.UUID {
 	if city == nil || *city == "" {
-		return pgtype.Text{Valid: false}
+		return pgtype.UUID{Valid: false}
 	}
-	return pgtype.Text{String: *city, Valid: true}
+	id, err := domain.FromString(*city)
+	if err != nil {
+		return pgtype.UUID{Valid: false}
+	}
+	return id.ToPG()
 }
 
 func statisticGraph[T any](rows []T, values func(T) (pgtype.Timestamptz, int64)) statisticsdomain.Graph {

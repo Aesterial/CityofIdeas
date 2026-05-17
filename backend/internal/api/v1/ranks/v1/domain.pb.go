@@ -701,6 +701,294 @@ func (b0 ListResponse_builder) Build() *ListResponse {
 	return m0
 }
 
+type AssignRankRequest struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_UserId      *string                `protobuf:"bytes,1,opt,name=user_id,json=userId"`
+	xxx_hidden_RankName    *string                `protobuf:"bytes,2,opt,name=rank_name,json=rankName"`
+	xxx_hidden_CityId      *string                `protobuf:"bytes,3,opt,name=city_id,json=cityId"`
+	XXX_raceDetectHookData protoimpl.RaceDetectHookData
+	XXX_presence           [1]uint32
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *AssignRankRequest) Reset() {
+	*x = AssignRankRequest{}
+	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AssignRankRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AssignRankRequest) ProtoMessage() {}
+
+func (x *AssignRankRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *AssignRankRequest) GetUserId() string {
+	if x != nil {
+		if x.xxx_hidden_UserId != nil {
+			return *x.xxx_hidden_UserId
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *AssignRankRequest) GetRankName() string {
+	if x != nil {
+		if x.xxx_hidden_RankName != nil {
+			return *x.xxx_hidden_RankName
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *AssignRankRequest) GetCityId() string {
+	if x != nil {
+		if x.xxx_hidden_CityId != nil {
+			return *x.xxx_hidden_CityId
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *AssignRankRequest) SetUserId(v string) {
+	x.xxx_hidden_UserId = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 3)
+}
+
+func (x *AssignRankRequest) SetRankName(v string) {
+	x.xxx_hidden_RankName = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 3)
+}
+
+func (x *AssignRankRequest) SetCityId(v string) {
+	x.xxx_hidden_CityId = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
+}
+
+func (x *AssignRankRequest) HasUserId() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *AssignRankRequest) HasRankName() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *AssignRankRequest) HasCityId() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+}
+
+func (x *AssignRankRequest) ClearUserId() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_UserId = nil
+}
+
+func (x *AssignRankRequest) ClearRankName() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_RankName = nil
+}
+
+func (x *AssignRankRequest) ClearCityId() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	x.xxx_hidden_CityId = nil
+}
+
+type AssignRankRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	UserId   *string
+	RankName *string
+	CityId   *string
+}
+
+func (b0 AssignRankRequest_builder) Build() *AssignRankRequest {
+	m0 := &AssignRankRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.UserId != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 3)
+		x.xxx_hidden_UserId = b.UserId
+	}
+	if b.RankName != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
+		x.xxx_hidden_RankName = b.RankName
+	}
+	if b.CityId != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
+		x.xxx_hidden_CityId = b.CityId
+	}
+	return m0
+}
+
+type RevokeRankRequest struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_UserId      *string                `protobuf:"bytes,1,opt,name=user_id,json=userId"`
+	xxx_hidden_RankName    *string                `protobuf:"bytes,2,opt,name=rank_name,json=rankName"`
+	xxx_hidden_CityId      *string                `protobuf:"bytes,3,opt,name=city_id,json=cityId"`
+	XXX_raceDetectHookData protoimpl.RaceDetectHookData
+	XXX_presence           [1]uint32
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *RevokeRankRequest) Reset() {
+	*x = RevokeRankRequest{}
+	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RevokeRankRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RevokeRankRequest) ProtoMessage() {}
+
+func (x *RevokeRankRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *RevokeRankRequest) GetUserId() string {
+	if x != nil {
+		if x.xxx_hidden_UserId != nil {
+			return *x.xxx_hidden_UserId
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *RevokeRankRequest) GetRankName() string {
+	if x != nil {
+		if x.xxx_hidden_RankName != nil {
+			return *x.xxx_hidden_RankName
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *RevokeRankRequest) GetCityId() string {
+	if x != nil {
+		if x.xxx_hidden_CityId != nil {
+			return *x.xxx_hidden_CityId
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *RevokeRankRequest) SetUserId(v string) {
+	x.xxx_hidden_UserId = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 3)
+}
+
+func (x *RevokeRankRequest) SetRankName(v string) {
+	x.xxx_hidden_RankName = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 3)
+}
+
+func (x *RevokeRankRequest) SetCityId(v string) {
+	x.xxx_hidden_CityId = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 3)
+}
+
+func (x *RevokeRankRequest) HasUserId() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *RevokeRankRequest) HasRankName() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *RevokeRankRequest) HasCityId() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
+}
+
+func (x *RevokeRankRequest) ClearUserId() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_UserId = nil
+}
+
+func (x *RevokeRankRequest) ClearRankName() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_RankName = nil
+}
+
+func (x *RevokeRankRequest) ClearCityId() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
+	x.xxx_hidden_CityId = nil
+}
+
+type RevokeRankRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	UserId   *string
+	RankName *string
+	CityId   *string
+}
+
+func (b0 RevokeRankRequest_builder) Build() *RevokeRankRequest {
+	m0 := &RevokeRankRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.UserId != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 3)
+		x.xxx_hidden_UserId = b.UserId
+	}
+	if b.RankName != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
+		x.xxx_hidden_RankName = b.RankName
+	}
+	if b.CityId != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 3)
+		x.xxx_hidden_CityId = b.CityId
+	}
+	return m0
+}
+
 var File_xyz_city_ideas_v1_ranks_v1_domain_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_ranks_v1_domain_proto_rawDesc = "" +
@@ -728,20 +1016,30 @@ const file_xyz_city_ideas_v1_ranks_v1_domain_proto_rawDesc = "" +
 	"\vPermissions\x12\x14\n" +
 	"\x05perms\x18\x01 \x03(\tR\x05perms\"D\n" +
 	"\fListResponse\x124\n" +
-	"\x04list\x18\x01 \x03(\v2 .xyz.city_ideas.v1.ranks.v1.RankR\x04listBDZBgithub.com/aesterial/cityideas/backend/internal/api/v1/ranks/v1;v1b\beditionsp\xe8\a"
+	"\x04list\x18\x01 \x03(\v2 .xyz.city_ideas.v1.ranks.v1.RankR\x04list\"b\n" +
+	"\x11AssignRankRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
+	"\trank_name\x18\x02 \x01(\tR\brankName\x12\x17\n" +
+	"\acity_id\x18\x03 \x01(\tR\x06cityId\"b\n" +
+	"\x11RevokeRankRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
+	"\trank_name\x18\x02 \x01(\tR\brankName\x12\x17\n" +
+	"\acity_id\x18\x03 \x01(\tR\x06cityIdBDZBgithub.com/aesterial/cityideas/backend/internal/api/v1/ranks/v1;v1b\beditionsp\xe8\a"
 
-var file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_xyz_city_ideas_v1_ranks_v1_domain_proto_goTypes = []any{
 	(*CreateRequest)(nil),         // 0: xyz.city_ideas.v1.ranks.v1.CreateRequest
 	(*SetRankRequest)(nil),        // 1: xyz.city_ideas.v1.ranks.v1.SetRankRequest
 	(*Rank)(nil),                  // 2: xyz.city_ideas.v1.ranks.v1.Rank
 	(*Permissions)(nil),           // 3: xyz.city_ideas.v1.ranks.v1.Permissions
 	(*ListResponse)(nil),          // 4: xyz.city_ideas.v1.ranks.v1.ListResponse
-	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
+	(*AssignRankRequest)(nil),     // 5: xyz.city_ideas.v1.ranks.v1.AssignRankRequest
+	(*RevokeRankRequest)(nil),     // 6: xyz.city_ideas.v1.ranks.v1.RevokeRankRequest
+	(*timestamppb.Timestamp)(nil), // 7: google.protobuf.Timestamp
 }
 var file_xyz_city_ideas_v1_ranks_v1_domain_proto_depIdxs = []int32{
-	5, // 0: xyz.city_ideas.v1.ranks.v1.SetRankRequest.expires_at:type_name -> google.protobuf.Timestamp
-	5, // 1: xyz.city_ideas.v1.ranks.v1.Rank.at:type_name -> google.protobuf.Timestamp
+	7, // 0: xyz.city_ideas.v1.ranks.v1.SetRankRequest.expires_at:type_name -> google.protobuf.Timestamp
+	7, // 1: xyz.city_ideas.v1.ranks.v1.Rank.at:type_name -> google.protobuf.Timestamp
 	2, // 2: xyz.city_ideas.v1.ranks.v1.ListResponse.list:type_name -> xyz.city_ideas.v1.ranks.v1.Rank
 	3, // [3:3] is the sub-list for method output_type
 	3, // [3:3] is the sub-list for method input_type
@@ -761,7 +1059,7 @@ func file_xyz_city_ideas_v1_ranks_v1_domain_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_xyz_city_ideas_v1_ranks_v1_domain_proto_rawDesc), len(file_xyz_city_ideas_v1_ranks_v1_domain_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

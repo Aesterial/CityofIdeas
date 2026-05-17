@@ -22,4 +22,5 @@ service ProjectsService {
   rpc AcceptSubmission(xyz.city_ideas.v1.RequestWithValue) returns (google.protobuf.Empty);
   rpc DenySubmission(xyz.city_ideas.v1.RequestWithValues) returns (google.protobuf.Empty);
   rpc ProcessLikes(xyz.city_ideas.v1.RequestWithValues) returns (google.protobuf.Empty);
+  rpc MarkAsImplementing(xyz.city_ideas.v1.projects.v1.MarkAsImplementingRequest) returns (google.protobuf.Empty);
 }

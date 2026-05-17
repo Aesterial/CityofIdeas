@@ -21,19 +21,20 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ProjectsService_CreateProject_FullMethodName    = "/xyz.city_ideas.v1.projects.v1.ProjectsService/CreateProject"
-	ProjectsService_CreateMessage_FullMethodName    = "/xyz.city_ideas.v1.projects.v1.ProjectsService/CreateMessage"
-	ProjectsService_ProjectsTop_FullMethodName      = "/xyz.city_ideas.v1.projects.v1.ProjectsService/ProjectsTop"
-	ProjectsService_ProjectsList_FullMethodName     = "/xyz.city_ideas.v1.projects.v1.ProjectsService/ProjectsList"
-	ProjectsService_SubmissionsList_FullMethodName  = "/xyz.city_ideas.v1.projects.v1.ProjectsService/SubmissionsList"
-	ProjectsService_MessagesList_FullMethodName     = "/xyz.city_ideas.v1.projects.v1.ProjectsService/MessagesList"
-	ProjectsService_Project_FullMethodName          = "/xyz.city_ideas.v1.projects.v1.ProjectsService/Project"
-	ProjectsService_Submission_FullMethodName       = "/xyz.city_ideas.v1.projects.v1.ProjectsService/Submission"
-	ProjectsService_DeleteProject_FullMethodName    = "/xyz.city_ideas.v1.projects.v1.ProjectsService/DeleteProject"
-	ProjectsService_DeleteMessage_FullMethodName    = "/xyz.city_ideas.v1.projects.v1.ProjectsService/DeleteMessage"
-	ProjectsService_AcceptSubmission_FullMethodName = "/xyz.city_ideas.v1.projects.v1.ProjectsService/AcceptSubmission"
-	ProjectsService_DenySubmission_FullMethodName   = "/xyz.city_ideas.v1.projects.v1.ProjectsService/DenySubmission"
-	ProjectsService_ProcessLikes_FullMethodName     = "/xyz.city_ideas.v1.projects.v1.ProjectsService/ProcessLikes"
+	ProjectsService_CreateProject_FullMethodName      = "/xyz.city_ideas.v1.projects.v1.ProjectsService/CreateProject"
+	ProjectsService_CreateMessage_FullMethodName      = "/xyz.city_ideas.v1.projects.v1.ProjectsService/CreateMessage"
+	ProjectsService_ProjectsTop_FullMethodName        = "/xyz.city_ideas.v1.projects.v1.ProjectsService/ProjectsTop"
+	ProjectsService_ProjectsList_FullMethodName       = "/xyz.city_ideas.v1.projects.v1.ProjectsService/ProjectsList"
+	ProjectsService_SubmissionsList_FullMethodName    = "/xyz.city_ideas.v1.projects.v1.ProjectsService/SubmissionsList"
+	ProjectsService_MessagesList_FullMethodName       = "/xyz.city_ideas.v1.projects.v1.ProjectsService/MessagesList"
+	ProjectsService_Project_FullMethodName            = "/xyz.city_ideas.v1.projects.v1.ProjectsService/Project"
+	ProjectsService_Submission_FullMethodName         = "/xyz.city_ideas.v1.projects.v1.ProjectsService/Submission"
+	ProjectsService_DeleteProject_FullMethodName      = "/xyz.city_ideas.v1.projects.v1.ProjectsService/DeleteProject"
+	ProjectsService_DeleteMessage_FullMethodName      = "/xyz.city_ideas.v1.projects.v1.ProjectsService/DeleteMessage"
+	ProjectsService_AcceptSubmission_FullMethodName   = "/xyz.city_ideas.v1.projects.v1.ProjectsService/AcceptSubmission"
+	ProjectsService_DenySubmission_FullMethodName     = "/xyz.city_ideas.v1.projects.v1.ProjectsService/DenySubmission"
+	ProjectsService_ProcessLikes_FullMethodName       = "/xyz.city_ideas.v1.projects.v1.ProjectsService/ProcessLikes"
+	ProjectsService_MarkAsImplementing_FullMethodName = "/xyz.city_ideas.v1.projects.v1.ProjectsService/MarkAsImplementing"
 )
 
 // ProjectsServiceClient is the client API for ProjectsService service.
@@ -53,6 +54,7 @@ type ProjectsServiceClient interface {
 	AcceptSubmission(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	DenySubmission(ctx context.Context, in *v1.RequestWithValues, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	ProcessLikes(ctx context.Context, in *v1.RequestWithValues, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	MarkAsImplementing(ctx context.Context, in *MarkAsImplementingRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type projectsServiceClient struct {
@@ -193,6 +195,16 @@ func (c *projectsServiceClient) ProcessLikes(ctx context.Context, in *v1.Request
 	return out, nil
 }
 
+func (c *projectsServiceClient) MarkAsImplementing(ctx context.Context, in *MarkAsImplementingRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, ProjectsService_MarkAsImplementing_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ProjectsServiceServer is the server API for ProjectsService service.
 // All implementations should embed UnimplementedProjectsServiceServer
 // for forward compatibility.
@@ -210,6 +222,7 @@ type ProjectsServiceServer interface {
 	AcceptSubmission(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error)
 	DenySubmission(context.Context, *v1.RequestWithValues) (*emptypb.Empty, error)
 	ProcessLikes(context.Context, *v1.RequestWithValues) (*emptypb.Empty, error)
+	MarkAsImplementing(context.Context, *MarkAsImplementingRequest) (*emptypb.Empty, error)
 }
 
 // UnimplementedProjectsServiceServer should be embedded to have
@@ -257,6 +270,9 @@ func (UnimplementedProjectsServiceServer) DenySubmission(context.Context, *v1.Re
 }
 func (UnimplementedProjectsServiceServer) ProcessLikes(context.Context, *v1.RequestWithValues) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method ProcessLikes not implemented")
+}
+func (UnimplementedProjectsServiceServer) MarkAsImplementing(context.Context, *MarkAsImplementingRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method MarkAsImplementing not implemented")
 }
 func (UnimplementedProjectsServiceServer) testEmbeddedByValue() {}
 
@@ -512,6 +528,24 @@ func _ProjectsService_ProcessLikes_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ProjectsService_MarkAsImplementing_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MarkAsImplementingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProjectsServiceServer).MarkAsImplementing(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ProjectsService_MarkAsImplementing_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProjectsServiceServer).MarkAsImplementing(ctx, req.(*MarkAsImplementingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ProjectsService_ServiceDesc is the grpc.ServiceDesc for ProjectsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -570,6 +604,10 @@ var ProjectsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ProcessLikes",
 			Handler:    _ProjectsService_ProcessLikes_Handler,
+		},
+		{
+			MethodName: "MarkAsImplementing",
+			Handler:    _ProjectsService_MarkAsImplementing_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

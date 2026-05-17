@@ -502,6 +502,12 @@ type BannedEmail struct {
 	At      pgtype.Timestamptz `json:"at"`
 }
 
+type City struct {
+	ID   pgtype.UUID        `json:"id"`
+	Name string             `json:"name"`
+	At   pgtype.Timestamptz `json:"at"`
+}
+
 type File struct {
 	ID        pgtype.UUID        `json:"id"`
 	Owner     pgtype.UUID        `json:"owner"`
@@ -546,10 +552,10 @@ type ProjectLike struct {
 }
 
 type ProjectLocation struct {
-	ID   pgtype.UUID `json:"id"`
-	City string      `json:"city"`
-	Lat  float64     `json:"lat"`
-	Lot  float64     `json:"lot"`
+	ID     pgtype.UUID `json:"id"`
+	CityID pgtype.UUID `json:"city_id"`
+	Lat    float64     `json:"lat"`
+	Lot    float64     `json:"lot"`
 }
 
 type ProjectMessage struct {
@@ -584,10 +590,12 @@ type Session struct {
 }
 
 type Submission struct {
-	ID       pgtype.UUID `json:"id"`
-	Linked   pgtype.UUID `json:"linked"`
-	Approved bool        `json:"approved"`
-	Reason   pgtype.Text `json:"reason"`
+	ID         pgtype.UUID        `json:"id"`
+	Linked     pgtype.UUID        `json:"linked"`
+	Approved   bool               `json:"approved"`
+	Reason     pgtype.Text        `json:"reason"`
+	ReviewedBy pgtype.UUID        `json:"reviewed_by"`
+	ReviewedAt pgtype.Timestamptz `json:"reviewed_at"`
 }
 
 type Ticket struct {
@@ -654,13 +662,14 @@ type UsersPreference struct {
 	AvatarHash  pgtype.Text          `json:"avatar_hash"`
 	SessionLive int32                `json:"session_live"`
 	Language    PreferencesLanguages `json:"language"`
-	City        pgtype.Text          `json:"city"`
+	CityID      pgtype.UUID          `json:"city_id"`
 	CityChanged pgtype.Timestamptz   `json:"city_changed"`
 }
 
 type UsersRank struct {
 	Owner   pgtype.UUID        `json:"owner"`
 	Rank    pgtype.UUID        `json:"rank"`
+	CityID  pgtype.UUID        `json:"city_id"`
 	At      pgtype.Timestamptz `json:"at"`
 	Expires pgtype.Timestamptz `json:"expires"`
 }

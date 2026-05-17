@@ -46,6 +46,44 @@ func (s *Service) UserRanks(ctx context.Context, user domain.UUID) (ranksdomain.
 	})
 }
 
+func (s *Service) UserRanksWithScope(ctx context.Context, user domain.UUID) ([]domain.MetaRank, error) {
+	key := cache.Key("ranks.user.scope", user.String())
+	return cache.GetOrSet(ctx, s.c, key, rankCacheTTL, []string{rankCacheTag, rankUserCacheTag(user.String())}, func(ctx context.Context) ([]domain.MetaRank, error) {
+		list, err := s.rank.UserWithScope(ctx, user)
+		if err != nil {
+			logger.Error("rank", "failed to get scoped ranks for user", logger.F("error", err))
+			return nil, errors.Wrap(err)
+		}
+		return list, nil
+	})
+}
+
+func (s *Service) AssignRank(ctx context.Context, user domain.UUID, rankName string, cityID *domain.UUID, expires *time.Time) error {
+	if rankName == "" {
+		return errors.InvalidArguments
+	}
+	err := s.rank.Assign(ctx, user, rankName, cityID, expires)
+	if err != nil {
+		logger.Error("rank", "failed to assign rank", logger.F("error", err))
+		return errors.Wrap(err)
+	}
+	s.c.DeleteTags(rankUserCacheTag(user.String()))
+	return nil
+}
+
+func (s *Service) RevokeScoped(ctx context.Context, user domain.UUID, rankName string, cityID *domain.UUID) error {
+	if rankName == "" {
+		return errors.InvalidArguments
+	}
+	err := s.rank.RevokeScoped(ctx, user, rankName, cityID)
+	if err != nil {
+		logger.Error("rank", "failed to revoke scoped rank", logger.F("error", err))
+		return errors.Wrap(err)
+	}
+	s.c.DeleteTags(rankUserCacheTag(user.String()))
+	return nil
+}
+
 func (s *Service) RankInfo(ctx context.Context, rank string) (*ranksdomain.Rank, error) {
 	id, err := domain.FromString(rank)
 	if err != nil {

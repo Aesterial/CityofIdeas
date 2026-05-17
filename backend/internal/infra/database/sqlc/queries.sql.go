@@ -13,12 +13,17 @@ import (
 
 const AcceptSubmission = `-- name: AcceptSubmission :exec
 update submissions
-set approved = true
-where linked = $1
+set approved = true, reviewed_by = $1, reviewed_at = now()
+where linked = $2
 `
 
-func (q *Queries) AcceptSubmission(ctx context.Context, linked pgtype.UUID) error {
-	_, err := q.db.Exec(ctx, AcceptSubmission, linked)
+type AcceptSubmissionParams struct {
+	ReviewedBy pgtype.UUID `json:"reviewed_by"`
+	Linked     pgtype.UUID `json:"linked"`
+}
+
+func (q *Queries) AcceptSubmission(ctx context.Context, arg AcceptSubmissionParams) error {
+	_, err := q.db.Exec(ctx, AcceptSubmission, arg.ReviewedBy, arg.Linked)
 	return err
 }
 
@@ -90,6 +95,30 @@ func (q *Queries) ActiveMaintenance(ctx context.Context) (Maintenance, error) {
 	return i, err
 }
 
+const AssignRankToUser = `-- name: AssignRankToUser :exec
+insert into users_ranks (owner, rank, city_id, expires)
+select $1::uuid, id, $2::uuid, $3::timestamptz
+from ranks
+where name = $4
+`
+
+type AssignRankToUserParams struct {
+	Column1 pgtype.UUID        `json:"column_1"`
+	Column2 pgtype.UUID        `json:"column_2"`
+	Column3 pgtype.Timestamptz `json:"column_3"`
+	Name    string             `json:"name"`
+}
+
+func (q *Queries) AssignRankToUser(ctx context.Context, arg AssignRankToUserParams) error {
+	_, err := q.db.Exec(ctx, AssignRankToUser,
+		arg.Column1,
+		arg.Column2,
+		arg.Column3,
+		arg.Name,
+	)
+	return err
+}
+
 const BanUser = `-- name: BanUser :exec
 insert into users_bans (executor, target, reason, expires) values ($1, $2, $3, $4)
 `
@@ -112,7 +141,11 @@ func (q *Queries) BanUser(ctx context.Context, arg BanUserParams) error {
 }
 
 const CanLikeProject = `-- name: CanLikeProject :one
-select coalesce(up.city = pl.city, false)::boolean as is_city_match from users_preferences up cross join project_location pl where up.owner = $1 and pl.id = $2
+select coalesce(up.city_id = pl.city_id, false)::boolean as is_city_match
+from users_preferences up
+         left join project_location pl on pl.id = $2
+where up.owner = $1
+limit 1
 `
 
 type CanLikeProjectParams struct {
@@ -125,6 +158,28 @@ func (q *Queries) CanLikeProject(ctx context.Context, arg CanLikeProjectParams) 
 	var is_city_match bool
 	err := row.Scan(&is_city_match)
 	return is_city_match, err
+}
+
+const CityByName = `-- name: CityByName :one
+select id, name, at from cities where name = $1 limit 1
+`
+
+func (q *Queries) CityByName(ctx context.Context, name string) (City, error) {
+	row := q.db.QueryRow(ctx, CityByName, name)
+	var i City
+	err := row.Scan(&i.ID, &i.Name, &i.At)
+	return i, err
+}
+
+const CityInfo = `-- name: CityInfo :one
+select id, name, at from cities where id = $1 limit 1
+`
+
+func (q *Queries) CityInfo(ctx context.Context, id pgtype.UUID) (City, error) {
+	row := q.db.QueryRow(ctx, CityInfo, id)
+	var i City
+	err := row.Scan(&i.ID, &i.Name, &i.At)
+	return i, err
 }
 
 const CloseTicket = `-- name: CloseTicket :exec
@@ -182,6 +237,17 @@ func (q *Queries) CreateAction(ctx context.Context, arg CreateActionParams) (Use
 		&i.Expires,
 		&i.Used,
 	)
+	return i, err
+}
+
+const CreateCity = `-- name: CreateCity :one
+insert into cities (name) values ($1) returning id, name, at
+`
+
+func (q *Queries) CreateCity(ctx context.Context, name string) (City, error) {
+	row := q.db.QueryRow(ctx, CreateCity, name)
+	var i City
+	err := row.Scan(&i.ID, &i.Name, &i.At)
 	return i, err
 }
 
@@ -339,29 +405,29 @@ func (q *Queries) CreateProjectLike(ctx context.Context, arg CreateProjectLikePa
 }
 
 const CreateProjectLocation = `-- name: CreateProjectLocation :one
-insert into project_location (id, city, lat, lot)
+insert into project_location (id, city_id, lat, lot)
 values ($1, $2, $3, $4)
-returning id, city, lat, lot
+returning id, city_id, lat, lot
 `
 
 type CreateProjectLocationParams struct {
-	ID   pgtype.UUID `json:"id"`
-	City string      `json:"city"`
-	Lat  float64     `json:"lat"`
-	Lot  float64     `json:"lot"`
+	ID     pgtype.UUID `json:"id"`
+	CityID pgtype.UUID `json:"city_id"`
+	Lat    float64     `json:"lat"`
+	Lot    float64     `json:"lot"`
 }
 
 func (q *Queries) CreateProjectLocation(ctx context.Context, arg CreateProjectLocationParams) (ProjectLocation, error) {
 	row := q.db.QueryRow(ctx, CreateProjectLocation,
 		arg.ID,
-		arg.City,
+		arg.CityID,
 		arg.Lat,
 		arg.Lot,
 	)
 	var i ProjectLocation
 	err := row.Scan(
 		&i.ID,
-		&i.City,
+		&i.CityID,
 		&i.Lat,
 		&i.Lot,
 	)
@@ -434,14 +500,16 @@ func (q *Queries) CreateSession(ctx context.Context, arg CreateSessionParams) (S
 }
 
 const CreateSubmission = `-- name: CreateSubmission :one
-insert into submissions (linked) VALUES ($1) returning id, linked, reason, approved
+insert into submissions (linked) VALUES ($1) returning id, linked, reason, approved, reviewed_by, reviewed_at
 `
 
 type CreateSubmissionRow struct {
-	ID       pgtype.UUID `json:"id"`
-	Linked   pgtype.UUID `json:"linked"`
-	Reason   pgtype.Text `json:"reason"`
-	Approved bool        `json:"approved"`
+	ID         pgtype.UUID        `json:"id"`
+	Linked     pgtype.UUID        `json:"linked"`
+	Reason     pgtype.Text        `json:"reason"`
+	Approved   bool               `json:"approved"`
+	ReviewedBy pgtype.UUID        `json:"reviewed_by"`
+	ReviewedAt pgtype.Timestamptz `json:"reviewed_at"`
 }
 
 func (q *Queries) CreateSubmission(ctx context.Context, linked pgtype.UUID) (CreateSubmissionRow, error) {
@@ -452,6 +520,8 @@ func (q *Queries) CreateSubmission(ctx context.Context, linked pgtype.UUID) (Cre
 		&i.Linked,
 		&i.Reason,
 		&i.Approved,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
 	)
 	return i, err
 }
@@ -533,7 +603,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const CreateUserDefaultRank = `-- name: CreateUserDefaultRank :one
-insert into users_ranks (owner, rank, expires) values ($1, (select id from ranks where name = 'user'), null) returning (select name from ranks where id = users_ranks.rank), (select color from ranks where id = users_ranks.rank), (select weight from ranks where id = users_ranks.rank), expires
+insert into users_ranks (owner, rank, city_id, expires) values ($1, (select id from ranks where name = 'user'), null, null) returning (select name from ranks where id = users_ranks.rank), (select color from ranks where id = users_ranks.rank), (select weight from ranks where id = users_ranks.rank), expires
 `
 
 type CreateUserDefaultRankRow struct {
@@ -558,7 +628,7 @@ func (q *Queries) CreateUserDefaultRank(ctx context.Context, owner pgtype.UUID) 
 const CreateUserPreferences = `-- name: CreateUserPreferences :one
 insert into users_preferences (owner)
 VALUES ($1)
-returning owner, display_name, description, avatar_hash, session_live, language, city, city_changed
+returning owner, display_name, description, avatar_hash, session_live, language, city_id, city_changed
 `
 
 func (q *Queries) CreateUserPreferences(ctx context.Context, owner pgtype.UUID) (UsersPreference, error) {
@@ -571,7 +641,7 @@ func (q *Queries) CreateUserPreferences(ctx context.Context, owner pgtype.UUID) 
 		&i.AvatarHash,
 		&i.SessionLive,
 		&i.Language,
-		&i.City,
+		&i.CityID,
 		&i.CityChanged,
 	)
 	return i, err
@@ -601,6 +671,15 @@ func (q *Queries) CreateUserSecurity(ctx context.Context, arg CreateUserSecurity
 		&i.TotpLastStep,
 	)
 	return i, err
+}
+
+const DeleteCity = `-- name: DeleteCity :exec
+delete from cities where id = $1
+`
+
+func (q *Queries) DeleteCity(ctx context.Context, id pgtype.UUID) error {
+	_, err := q.db.Exec(ctx, DeleteCity, id)
+	return err
 }
 
 const DeleteMessage = `-- name: DeleteMessage :exec
@@ -634,18 +713,21 @@ func (q *Queries) DeleteRank(ctx context.Context, id pgtype.UUID) error {
 
 const DenySubmission = `-- name: DenySubmission :exec
 update submissions
-set approved = false,
-    reason   = $1
-where linked = $2
+set approved     = false,
+    reason       = $1,
+    reviewed_by  = $2,
+    reviewed_at  = now()
+where linked = $3
 `
 
 type DenySubmissionParams struct {
-	Reason pgtype.Text `json:"reason"`
-	Linked pgtype.UUID `json:"linked"`
+	Reason     pgtype.Text `json:"reason"`
+	ReviewedBy pgtype.UUID `json:"reviewed_by"`
+	Linked     pgtype.UUID `json:"linked"`
 }
 
 func (q *Queries) DenySubmission(ctx context.Context, arg DenySubmissionParams) error {
-	_, err := q.db.Exec(ctx, DenySubmission, arg.Reason, arg.Linked)
+	_, err := q.db.Exec(ctx, DenySubmission, arg.Reason, arg.ReviewedBy, arg.Linked)
 	return err
 }
 
@@ -856,7 +938,7 @@ func (q *Queries) GetUserPassword(ctx context.Context, owner pgtype.UUID) (strin
 }
 
 const GetUserPreferences = `-- name: GetUserPreferences :one
-select owner, display_name, description, avatar_hash, session_live, language, city, city_changed
+select owner, display_name, description, avatar_hash, session_live, language, city_id, city_changed
 from users_preferences
 where owner = $1
 limit 1
@@ -872,7 +954,7 @@ func (q *Queries) GetUserPreferences(ctx context.Context, owner pgtype.UUID) (Us
 		&i.AvatarHash,
 		&i.SessionLive,
 		&i.Language,
-		&i.City,
+		&i.CityID,
 		&i.CityChanged,
 	)
 	return i, err
@@ -910,6 +992,52 @@ func (q *Queries) GetUserRanks(ctx context.Context, owner pgtype.UUID) ([]GetUse
 			&i.Weight,
 			&i.Permissions,
 			&i.Expires,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const GetUserRanksWithScope = `-- name: GetUserRanksWithScope :many
+select ranks.id, ranks.name, ranks.color, ranks.weight, ranks.permissions, users_ranks.expires, users_ranks.city_id
+from users_ranks
+         join ranks on ranks.id = users_ranks.rank
+where users_ranks.owner = $1
+  and (users_ranks.expires is null or users_ranks.expires > now())
+`
+
+type GetUserRanksWithScopeRow struct {
+	ID          pgtype.UUID        `json:"id"`
+	Name        string             `json:"name"`
+	Color       int64              `json:"color"`
+	Weight      int32              `json:"weight"`
+	Permissions []byte             `json:"permissions"`
+	Expires     pgtype.Timestamptz `json:"expires"`
+	CityID      pgtype.UUID        `json:"city_id"`
+}
+
+func (q *Queries) GetUserRanksWithScope(ctx context.Context, owner pgtype.UUID) ([]GetUserRanksWithScopeRow, error) {
+	rows, err := q.db.Query(ctx, GetUserRanksWithScope, owner)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUserRanksWithScopeRow
+	for rows.Next() {
+		var i GetUserRanksWithScopeRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Color,
+			&i.Weight,
+			&i.Permissions,
+			&i.Expires,
+			&i.CityID,
 		); err != nil {
 			return nil, err
 		}
@@ -1035,7 +1163,7 @@ func (q *Queries) GetUsers(ctx context.Context, arg GetUsersParams) ([]User, err
 }
 
 const GlobalStats = `-- name: GlobalStats :one
-select coalesce((select city from project_location where city is not null group by city order by count(*) desc limit 1),'нет')::text as most_popular_city,coalesce((select count(*) from project_location where city is not null group by city order by count(*) desc limit 1),0) as most_popular_city_projects_count,(select count(*) from project_likes) as likes_count,(select count(*) from projects where impl_link is not null and status='implemented') as implemented_count,(select count(*) from projects) as ideas_count,(select coalesce(avg(extract(epoch from (accepted-created))/3600),0)::double precision from tickets where accepted is not null) as avg_tickets_response
+select coalesce((select c.name from project_location pl join cities c on c.id = pl.city_id group by c.name order by count(*) desc limit 1),'нет')::text as most_popular_city,coalesce((select count(*) from project_location group by city_id order by count(*) desc limit 1),0) as most_popular_city_projects_count,(select count(*) from project_likes) as likes_count,(select count(*) from projects where impl_link is not null and status='implemented') as implemented_count,(select count(*) from projects) as ideas_count,(select coalesce(avg(extract(epoch from (accepted-created))/3600),0)::double precision from tickets where accepted is not null) as avg_tickets_response
 `
 
 type GlobalStatsRow struct {
@@ -1163,7 +1291,7 @@ func (q *Queries) IsSessionValid(ctx context.Context, arg IsSessionValidParams) 
 }
 
 const IsSubmissionReviewed = `-- name: IsSubmissionReviewed :one
-select approved <> false
+select (reviewed_at is not null)::boolean
 from submissions
 where linked = $1
 `
@@ -1217,6 +1345,35 @@ func (q *Queries) IsUserExists(ctx context.Context, username string) (bool, erro
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const ListCities = `-- name: ListCities :many
+select id, name, at from cities order by name limit $1 offset $2
+`
+
+type ListCitiesParams struct {
+	Limit  int32 `json:"limit"`
+	Offset int32 `json:"offset"`
+}
+
+func (q *Queries) ListCities(ctx context.Context, arg ListCitiesParams) ([]City, error) {
+	rows, err := q.db.Query(ctx, ListCities, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []City
+	for rows.Next() {
+		var i City
+		if err := rows.Scan(&i.ID, &i.Name, &i.At); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const MaintenancesHistory = `-- name: MaintenancesHistory :many
@@ -1404,6 +1561,17 @@ func (q *Queries) ProjectAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUI
 	return author, err
 }
 
+const ProjectCityID = `-- name: ProjectCityID :one
+select city_id from project_location where id = $1 limit 1
+`
+
+func (q *Queries) ProjectCityID(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, ProjectCityID, id)
+	var city_id pgtype.UUID
+	err := row.Scan(&city_id)
+	return city_id, err
+}
+
 const ProjectCreationGraph = `-- name: ProjectCreationGraph :many
 with period as (select case $1::text
                            when 'hourly' then date_trunc('hour', now()) - interval '23 hours'
@@ -1429,7 +1597,7 @@ with period as (select case $1::text
                          cross join period
                 where projects.at >= period.start_at
                   and projects.at < period.end_at + period.bucket_interval
-                  and ($2::text is null or project_location.city = $2::text))
+                  and ($2::uuid is null or project_location.city_id = $2::uuid))
 select series.at::timestamptz   as at,
        count(events.at)::bigint as value
 from series
@@ -1440,7 +1608,7 @@ order by series.at
 
 type ProjectCreationGraphParams struct {
 	Separator string      `json:"separator"`
-	City      pgtype.Text `json:"city"`
+	City      pgtype.UUID `json:"city"`
 }
 
 type ProjectCreationGraphRow struct {
@@ -1495,7 +1663,7 @@ with period as (select case $1::text
                 where project_messages.deleted is null
                   and project_messages.at >= period.start_at
                   and project_messages.at < period.end_at + period.bucket_interval
-                  and ($2::text is null or project_location.city = $2::text))
+                  and ($2::uuid is null or project_location.city_id = $2::uuid))
 select series.at::timestamptz   as at,
        count(events.at)::bigint as value
 from series
@@ -1506,7 +1674,7 @@ order by series.at
 
 type ProjectDiscussionGraphParams struct {
 	Separator string      `json:"separator"`
-	City      pgtype.Text `json:"city"`
+	City      pgtype.UUID `json:"city"`
 }
 
 type ProjectDiscussionGraphRow struct {
@@ -1597,7 +1765,7 @@ func (q *Queries) ProjectInfo(ctx context.Context, id pgtype.UUID) (ProjectInfoR
 }
 
 const ProjectLocationInfo = `-- name: ProjectLocationInfo :one
-select id, city, lat, lot
+select id, city_id, lat, lot
 from project_location
 where id = $1
 `
@@ -1607,7 +1775,7 @@ func (q *Queries) ProjectLocationInfo(ctx context.Context, id pgtype.UUID) (Proj
 	var i ProjectLocation
 	err := row.Scan(
 		&i.ID,
-		&i.City,
+		&i.CityID,
 		&i.Lat,
 		&i.Lot,
 	)
@@ -1640,7 +1808,7 @@ with period as (select case $1::text
                          cross join period
                 where project_likes.at >= period.start_at
                   and project_likes.at < period.end_at + period.bucket_interval
-                  and ($2::text is null or project_location.city = $2::text))
+                  and ($2::uuid is null or project_location.city_id = $2::uuid))
 select series.at::timestamptz   as at,
        count(events.at)::bigint as value
 from series
@@ -1651,7 +1819,7 @@ order by series.at
 
 type ProjectVotesGraphParams struct {
 	Separator string      `json:"separator"`
-	City      pgtype.Text `json:"city"`
+	City      pgtype.UUID `json:"city"`
 }
 
 type ProjectVotesGraphRow struct {
@@ -1790,16 +1958,16 @@ from projects p
          join project_location pl on pl.id = p.id
          left join project_likes l on l.project = p.id
 where p.status not in ('reviewing', 'cancelled', 'implemented')
-  and pl.city = $1
+  and pl.city_id = $1
 group by p.id
 order by count(l.project) desc, p.at desc
 limit $2 offset $3
 `
 
 type ProjectsTopParams struct {
-	City   string `json:"city"`
-	Limit  int32  `json:"limit"`
-	Offset int32  `json:"offset"`
+	CityID pgtype.UUID `json:"city_id"`
+	Limit  int32       `json:"limit"`
+	Offset int32       `json:"offset"`
 }
 
 type ProjectsTopRow struct {
@@ -1817,7 +1985,7 @@ type ProjectsTopRow struct {
 }
 
 func (q *Queries) ProjectsTop(ctx context.Context, arg ProjectsTopParams) ([]ProjectsTopRow, error) {
-	rows, err := q.db.Query(ctx, ProjectsTop, arg.City, arg.Limit, arg.Offset)
+	rows, err := q.db.Query(ctx, ProjectsTop, arg.CityID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -2059,6 +2227,26 @@ func (q *Queries) RevokeRankFromUser(ctx context.Context, arg RevokeRankFromUser
 	return err
 }
 
+const RevokeRankFromUserScoped = `-- name: RevokeRankFromUserScoped :exec
+update users_ranks set expires = now()
+from ranks
+where users_ranks.rank = ranks.id
+  and ranks.name = $1
+  and users_ranks.owner = $2
+  and users_ranks.city_id is not distinct from $3::uuid
+`
+
+type RevokeRankFromUserScopedParams struct {
+	Name    string      `json:"name"`
+	Owner   pgtype.UUID `json:"owner"`
+	Column3 pgtype.UUID `json:"column_3"`
+}
+
+func (q *Queries) RevokeRankFromUserScoped(ctx context.Context, arg RevokeRankFromUserScopedParams) error {
+	_, err := q.db.Exec(ctx, RevokeRankFromUserScoped, arg.Name, arg.Owner, arg.Column3)
+	return err
+}
+
 const RevokeSession = `-- name: RevokeSession :exec
 update sessions set expires = now() where id = $1
 `
@@ -2217,7 +2405,7 @@ func (q *Queries) StartUserSecurityTotp(ctx context.Context, arg StartUserSecuri
 }
 
 const SubmissionInfo = `-- name: SubmissionInfo :one
-select id, linked, approved, reason from submissions where id = $1 limit 1
+select id, linked, approved, reason, reviewed_by, reviewed_at from submissions where id = $1 limit 1
 `
 
 func (q *Queries) SubmissionInfo(ctx context.Context, id pgtype.UUID) (Submission, error) {
@@ -2228,12 +2416,14 @@ func (q *Queries) SubmissionInfo(ctx context.Context, id pgtype.UUID) (Submissio
 		&i.Linked,
 		&i.Approved,
 		&i.Reason,
+		&i.ReviewedBy,
+		&i.ReviewedAt,
 	)
 	return i, err
 }
 
 const SubmissionsList = `-- name: SubmissionsList :many
-select id, linked, approved, reason from submissions limit $1 offset $2
+select id, linked, approved, reason, reviewed_by, reviewed_at from submissions limit $1 offset $2
 `
 
 type SubmissionsListParams struct {
@@ -2255,6 +2445,8 @@ func (q *Queries) SubmissionsList(ctx context.Context, arg SubmissionsListParams
 			&i.Linked,
 			&i.Approved,
 			&i.Reason,
+			&i.ReviewedBy,
+			&i.ReviewedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -2578,17 +2770,17 @@ func (q *Queries) UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarPara
 	return err
 }
 
-const UpdateUserCity = `-- name: UpdateUserCity :exec
-update users_preferences set city = $1, city_changed = now() where owner = $2
+const UpdateUserCityByID = `-- name: UpdateUserCityByID :exec
+update users_preferences set city_id = $1, city_changed = now() where owner = $2
 `
 
-type UpdateUserCityParams struct {
-	City  pgtype.Text `json:"city"`
-	Owner pgtype.UUID `json:"owner"`
+type UpdateUserCityByIDParams struct {
+	CityID pgtype.UUID `json:"city_id"`
+	Owner  pgtype.UUID `json:"owner"`
 }
 
-func (q *Queries) UpdateUserCity(ctx context.Context, arg UpdateUserCityParams) error {
-	_, err := q.db.Exec(ctx, UpdateUserCity, arg.City, arg.Owner)
+func (q *Queries) UpdateUserCityByID(ctx context.Context, arg UpdateUserCityByIDParams) error {
+	_, err := q.db.Exec(ctx, UpdateUserCityByID, arg.CityID, arg.Owner)
 	return err
 }
 

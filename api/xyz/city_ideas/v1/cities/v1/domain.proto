@@ -1,0 +1,21 @@
+edition = "2023";
+
+package xyz.city_ideas.v1.cities.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/cities/v1;v1";
+
+message City {
+  string id = 1;
+  string name = 2;
+  google.protobuf.Timestamp at = 3;
+}
+
+message CreateCityRequest {
+  string name = 1;
+}
+
+message ListResponse {
+  repeated City list = 1;
+}

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	actionspb "github.com/aesterial/cityideas/backend/internal/api/v1/actions/v1"
+	citypb "github.com/aesterial/cityideas/backend/internal/api/v1/cities/v1"
 	loginpb "github.com/aesterial/cityideas/backend/internal/api/v1/login/v1"
 	maintenancepb "github.com/aesterial/cityideas/backend/internal/api/v1/maintenances/v1"
 	projectpb "github.com/aesterial/cityideas/backend/internal/api/v1/projects/v1"
@@ -20,6 +21,7 @@ import (
 	ticketpb "github.com/aesterial/cityideas/backend/internal/api/v1/tickets/v1"
 	userpb "github.com/aesterial/cityideas/backend/internal/api/v1/user/v1"
 	actionsservice "github.com/aesterial/cityideas/backend/internal/app/actions"
+	cityservice "github.com/aesterial/cityideas/backend/internal/app/city"
 	emailservice "github.com/aesterial/cityideas/backend/internal/app/email"
 	loginservice "github.com/aesterial/cityideas/backend/internal/app/login"
 	maintenanceservice "github.com/aesterial/cityideas/backend/internal/app/maintenance"
@@ -75,6 +77,7 @@ func main() {
 	statisticsRepository := repositories.NewStatisticsRepository(conn.Querier())
 	actionsRepository := repositories.NewActionsRepository(conn.Querier())
 	storageRepository := repositories.NewStorageRepository(conn.Querier())
+	cityRepository := repositories.NewCityRepository(conn.Querier())
 
 	storageProvider, err := storage.NewS3Provider(cfg.S3)
 	if err != nil {
@@ -94,6 +97,7 @@ func main() {
 	statisticsService := statisticsservice.NewService(statisticsRepository, appCache)
 	actionsService := actionsservice.NewService(actionsRepository)
 	storageService := storageservice.NewService(storageRepository, storageProvider, cfg.S3)
+	cityService := cityservice.NewService(cityRepository)
 	interceptorService := interceptors.NewService(maintenanceService)
 
 	srv := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptorService.CsrfCheck(), interceptorService.AvailabilityCheck(), interceptorService.FingerPrint(), interceptorService.Logging(), recovery.UnaryServerInterceptor(recovery.WithRecoveryHandlerContext(interceptorService.Recovery))))
@@ -111,6 +115,7 @@ func main() {
 	statisticsHandler := handlers.NewStatisticsHandler(statisticsService, auth)
 	actionsHandler := handlers.NewActionsHandler(actionsService, auth)
 	storageHandler := handlers.NewStorageHandler(storageService, auth)
+	cityHandler := handlers.NewCityHandler(cityService, auth)
 
 	loginpb.RegisterLoginServiceServer(srv, loginHandler)
 	userpb.RegisterUserServiceServer(srv, userHandler)
@@ -122,6 +127,7 @@ func main() {
 	statpb.RegisterStatisticServiceServer(srv, statisticsHandler)
 	actionspb.RegisterActionsServiceServer(srv, actionsHandler)
 	storagepb.RegisterStorageServiceServer(srv, storageHandler)
+	citypb.RegisterCitiesServiceServer(srv, cityHandler)
 
 	wrappedSrv := grpcweb.WrapServer(srv,
 		grpcweb.WithOriginFunc(func(origin string) bool {

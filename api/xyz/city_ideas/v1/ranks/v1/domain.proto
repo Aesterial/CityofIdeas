@@ -37,3 +37,15 @@ message Permissions {
 message ListResponse {
   repeated Rank list = 1;
 }
+
+message AssignRankRequest {
+  string user_id = 1;
+  string rank_name = 2;
+  string city_id = 3;
+}
+
+message RevokeRankRequest {
+  string user_id = 1;
+  string rank_name = 2;
+  string city_id = 3;
+}

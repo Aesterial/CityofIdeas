@@ -96,11 +96,11 @@ func (a *Authenticator) User(ctx context.Context, skip ...bool) (*domain.Metadat
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
-	ranks, err := a.rank.UserRanks(ctx, session.Owner)
+	metaRanks, err := a.rank.UserRanksWithScope(ctx, session.Owner)
 	if err != nil {
 		return nil, err
 	}
-	meta.RankID = &ranks.Head().ID
+	meta.Ranks = metaRanks
 	meta.UserID = &session.Owner
 	banned, err := a.usr.IsBanned(ctx, session.Owner)
 	if err != nil {
@@ -116,15 +116,37 @@ func (a *Authenticator) User(ctx context.Context, skip ...bool) (*domain.Metadat
 }
 
 func (a *Authenticator) Permissions(ctx context.Context, meta domain.Metadata, permissions ...permissionsdomain.Permission) error {
-	if meta.UserID == nil || meta.RankID == nil {
+	if meta.UserID == nil {
 		return errors.InvalidArguments
 	}
-	rank, err := a.rank.RankInfo(ctx, meta.RankID.String())
-	if err != nil {
-		return err
+	for _, perm := range permissions {
+		granted := false
+		for _, r := range meta.Ranks {
+			if r.CityID == nil && r.Permissions.Has(perm) {
+				granted = true
+				break
+			}
+		}
+		if !granted {
+			return errors.AccessDenied
+		}
 	}
-	for _, permission := range permissions {
-		if !rank.Permissions.Has(permission) {
+	return nil
+}
+
+func (a *Authenticator) CityPermissions(ctx context.Context, meta domain.Metadata, cityID domain.UUID, permissions ...permissionsdomain.Permission) error {
+	if meta.UserID == nil {
+		return errors.InvalidArguments
+	}
+	for _, perm := range permissions {
+		granted := false
+		for _, r := range meta.Ranks {
+			if (r.CityID == nil || *r.CityID == cityID) && r.Permissions.Has(perm) {
+				granted = true
+				break
+			}
+		}
+		if !granted {
 			return errors.AccessDenied
 		}
 	}

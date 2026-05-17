@@ -3,6 +3,16 @@ create schema public;
 
 create extension if not exists citext;
 
+create table if not exists cities
+(
+    id   uuid primary key     default gen_random_uuid(),
+    name varchar(64) not null unique,
+    at   timestamptz not null default now()
+);
+
+create unique index if not exists cities_idx on cities (id);
+create unique index if not exists cities_name_idx on cities (name);
+
 create table if not exists users
 (
     uid      uuid primary key     default gen_random_uuid(),
@@ -23,7 +33,7 @@ create table if not exists users_preferences
     avatar_hash  text,
     session_live int             not null default 7,
     language     preferences_languages not null default 'russian',
-    city         varchar(32),
+    city_id      uuid references cities (id),
     city_changed timestamptz,
     unique (owner)
 );
@@ -121,11 +131,13 @@ create table if not exists users_ranks
 (
     owner   uuid        not null references users (uid) on delete cascade,
     rank    uuid        not null references ranks (id) on delete cascade,
+    city_id uuid references cities (id),
     at      timestamptz not null default now(),
     expires timestamptz
 );
 
-create unique index if not exists users_ranks_owner_idx on users_ranks (owner);
+create unique index if not exists users_ranks_unique_assignment
+    on users_ranks (owner, rank, coalesce(city_id, '00000000-0000-0000-0000-000000000000'::uuid));
 
 create table if not exists banned_emails
 (
@@ -174,10 +186,10 @@ create index if not exists projects_author_idx on projects (author);
 
 create table if not exists project_location
 (
-    id   uuid primary key references projects (id),
-    city varchar(64) not null,
-    lat  float       not null,
-    lot  float       not null
+    id      uuid primary key references projects (id),
+    city_id uuid  not null references cities (id),
+    lat     float not null,
+    lot     float not null
 );
 
 create unique index if not exists project_location_idx on project_location (id);
@@ -209,10 +221,12 @@ create unique index project_messages_author_idx on project_messages (author);
 
 create table if not exists submissions
 (
-    id       uuid primary key default gen_random_uuid(),
-    linked  uuid not null references projects (id) on delete cascade,
-    approved boolean         not null    default false,
-    reason   text,
+    id          uuid primary key     default gen_random_uuid(),
+    linked      uuid        not null references projects (id) on delete cascade,
+    approved    boolean     not null default false,
+    reason      text,
+    reviewed_by uuid references users (uid),
+    reviewed_at timestamptz,
     unique (linked)
 );
 

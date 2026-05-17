@@ -17,6 +17,7 @@ const (
 	StatusListing
 	StatusReviewing
 	StatusImplementing
+	StatusImplemented
 )
 
 func ParseStatus(str string) Status {
@@ -29,6 +30,8 @@ func ParseStatus(str string) Status {
 		return StatusReviewing
 	case "implementing":
 		return StatusImplementing
+	case "implemented":
+		return StatusImplemented
 	default:
 		return StatusReviewing
 	}
@@ -44,6 +47,8 @@ func (s Status) String() string {
 		return "reviewing"
 	case StatusImplementing:
 		return "implementing"
+	case StatusImplemented:
+		return "implemented"
 	default:
 		return "reviewing"
 	}
@@ -59,13 +64,15 @@ func (s Status) Protobuf() projectpb.Status {
 		return projectpb.Status_STATUS_REVIEWING
 	case StatusImplementing:
 		return projectpb.Status_STATUS_IMPLEMENTING
+	case StatusImplemented:
+		return projectpb.Status_STATUS_IMPLEMENTED
 	default:
 		return projectpb.Status_STATUS_UNSPECIFIED
 	}
 }
 
 type ProjectLocation struct {
-	City      string
+	CityID    domain.UUID
 	Latitude  float64
 	Longitude float64
 }
@@ -75,7 +82,7 @@ func (p *ProjectLocation) Protobuf() *projectpb.ProjectLocation {
 		return nil
 	}
 	var out = &projectpb.ProjectLocation{}
-	out.SetCity(p.City)
+	out.SetCityId(p.CityID.String())
 	out.SetLat(p.Latitude)
 	out.SetLot(p.Longitude)
 	return out

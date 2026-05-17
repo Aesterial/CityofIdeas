@@ -49,11 +49,13 @@ func (r Ranks) Protobuf() []*rankpb.Rank {
 }
 
 type UserRank struct {
-	ID      domain.UUID
-	Name    string
-	Color   int64
-	Weight  int32
-	Expires *time.Time
+	ID          domain.UUID
+	Name        string
+	Color       int64
+	Weight      int32
+	Expires     *time.Time
+	CityID      *domain.UUID
+	Permissions permissionsdomain.Set
 }
 
 func (r *UserRank) Protobuf() *userpb.UserRank {

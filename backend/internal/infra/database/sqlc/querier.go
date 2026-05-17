@@ -11,14 +11,18 @@ import (
 )
 
 type Querier interface {
-	AcceptSubmission(ctx context.Context, linked pgtype.UUID) error
+	AcceptSubmission(ctx context.Context, arg AcceptSubmissionParams) error
 	AcceptTicket(ctx context.Context, arg AcceptTicketParams) error
 	ActionsByOwner(ctx context.Context, owner pgtype.UUID) ([]UsersAction, error)
 	ActiveMaintenance(ctx context.Context) (Maintenance, error)
+	AssignRankToUser(ctx context.Context, arg AssignRankToUserParams) error
 	BanUser(ctx context.Context, arg BanUserParams) error
 	CanLikeProject(ctx context.Context, arg CanLikeProjectParams) (bool, error)
+	CityByName(ctx context.Context, name string) (City, error)
+	CityInfo(ctx context.Context, id pgtype.UUID) (City, error)
 	CloseTicket(ctx context.Context, arg CloseTicketParams) error
 	CreateAction(ctx context.Context, arg CreateActionParams) (UsersAction, error)
+	CreateCity(ctx context.Context, name string) (City, error)
 	CreateFile(ctx context.Context, arg CreateFileParams) (File, error)
 	CreateMaintenance(ctx context.Context, arg CreateMaintenanceParams) (Maintenance, error)
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (ProjectMessage, error)
@@ -34,6 +38,7 @@ type Querier interface {
 	CreateUserDefaultRank(ctx context.Context, owner pgtype.UUID) (CreateUserDefaultRankRow, error)
 	CreateUserPreferences(ctx context.Context, owner pgtype.UUID) (UsersPreference, error)
 	CreateUserSecurity(ctx context.Context, arg CreateUserSecurityParams) (UsersSecurity, error)
+	DeleteCity(ctx context.Context, id pgtype.UUID) error
 	DeleteMessage(ctx context.Context, id pgtype.UUID) error
 	DeleteProject(ctx context.Context, id pgtype.UUID) error
 	DeleteRank(ctx context.Context, id pgtype.UUID) error
@@ -51,6 +56,7 @@ type Querier interface {
 	GetUserPassword(ctx context.Context, owner pgtype.UUID) (string, error)
 	GetUserPreferences(ctx context.Context, owner pgtype.UUID) (UsersPreference, error)
 	GetUserRanks(ctx context.Context, owner pgtype.UUID) ([]GetUserRanksRow, error)
+	GetUserRanksWithScope(ctx context.Context, owner pgtype.UUID) ([]GetUserRanksWithScopeRow, error)
 	GetUserRecoveryCodes(ctx context.Context, owner pgtype.UUID) ([]UsersSecurityCode, error)
 	GetUserRecoveryCodesWithSelector(ctx context.Context, arg GetUserRecoveryCodesWithSelectorParams) (UsersSecurityCode, error)
 	GetUserSecurity(ctx context.Context, owner pgtype.UUID) (UsersSecurity, error)
@@ -69,6 +75,7 @@ type Querier interface {
 	IsTicketClosed(ctx context.Context, id pgtype.UUID) (bool, error)
 	IsUserBanned(ctx context.Context, target pgtype.UUID) (bool, error)
 	IsUserExists(ctx context.Context, username string) (bool, error)
+	ListCities(ctx context.Context, arg ListCitiesParams) ([]City, error)
 	MaintenancesHistory(ctx context.Context, arg MaintenancesHistoryParams) ([]Maintenance, error)
 	MessageAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
 	MessageInfo(ctx context.Context, id pgtype.UUID) (ProjectMessage, error)
@@ -76,6 +83,7 @@ type Querier interface {
 	MessagesListWithDeleted(ctx context.Context, arg MessagesListWithDeletedParams) ([]ProjectMessage, error)
 	PlannedMaintenance(ctx context.Context) (PlannedMaintenanceRow, error)
 	ProjectAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
+	ProjectCityID(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)
 	ProjectCreationGraph(ctx context.Context, arg ProjectCreationGraphParams) ([]ProjectCreationGraphRow, error)
 	ProjectDiscussionGraph(ctx context.Context, arg ProjectDiscussionGraphParams) ([]ProjectDiscussionGraphRow, error)
 	ProjectInfo(ctx context.Context, id pgtype.UUID) (ProjectInfoRow, error)
@@ -92,6 +100,7 @@ type Querier interface {
 	ResetTotp(ctx context.Context, owner pgtype.UUID) error
 	ResetTotpCodes(ctx context.Context, owner pgtype.UUID) error
 	RevokeRankFromUser(ctx context.Context, arg RevokeRankFromUserParams) error
+	RevokeRankFromUserScoped(ctx context.Context, arg RevokeRankFromUserScopedParams) error
 	RevokeSession(ctx context.Context, id pgtype.UUID) error
 	SessionInfo(ctx context.Context, id pgtype.UUID) (Session, error)
 	SessionsByOwner(ctx context.Context, arg SessionsByOwnerParams) ([]Session, error)
@@ -117,7 +126,7 @@ type Querier interface {
 	UpdateRankPermissions(ctx context.Context, arg UpdateRankPermissionsParams) error
 	UpdateRankWeight(ctx context.Context, arg UpdateRankWeightParams) error
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error
-	UpdateUserCity(ctx context.Context, arg UpdateUserCityParams) error
+	UpdateUserCityByID(ctx context.Context, arg UpdateUserCityByIDParams) error
 	UpdateUserDescription(ctx context.Context, arg UpdateUserDescriptionParams) error
 	UpdateUserDisplayName(ctx context.Context, arg UpdateUserDisplayNameParams) error
 	UpdateUserLanguage(ctx context.Context, arg UpdateUserLanguageParams) error

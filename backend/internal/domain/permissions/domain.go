@@ -36,18 +36,22 @@ const (
 	TicketMessageCreate    Permission = "ticket.message.create"
 	TicketMessageCreateAll Permission = "ticket.message.create.all"
 
-	ProjectCreate           Permission = "project.create"
-	ProjectUpdateAll        Permission = "project.update.all"
-	ProjectDeleteAll        Permission = "project.delete.all"
-	ProjectUpdateClose      Permission = "project.update.close"
-	ProjectUpdateApprove    Permission = "project.update.approve"
-	ProjectUpdateImplement  Permission = "project.update.implement"
-	ProjectSubmissionInfo   Permission = "project.submission.info"
-	ProjectSubmissionList   Permission = "project.submission.list"
-	ProjectSubmissionReview Permission = "project.submission.review"
-	ProjectMessageCreate    Permission = "project.message.create"
-	ProjectMessageViewAll   Permission = "project.message.view.all"
-	ProjectMessageDeleteAll Permission = "project.message.delete.all"
+	CityCreate Permission = "city.create"
+	CityDelete Permission = "city.delete"
+
+	ProjectCreate            Permission = "project.create"
+	ProjectUpdateAll         Permission = "project.update.all"
+	ProjectDeleteAll         Permission = "project.delete.all"
+	ProjectUpdateClose       Permission = "project.update.close"
+	ProjectUpdateApprove     Permission = "project.update.approve"
+	ProjectUpdateImplement   Permission = "project.update.implement"
+	ProjectUpdateImplemented Permission = "project.update.implemented"
+	ProjectSubmissionInfo    Permission = "project.submission.info"
+	ProjectSubmissionList    Permission = "project.submission.list"
+	ProjectSubmissionReview  Permission = "project.submission.review"
+	ProjectMessageCreate     Permission = "project.message.create"
+	ProjectMessageViewAll    Permission = "project.message.view.all"
+	ProjectMessageDeleteAll  Permission = "project.message.delete.all"
 
 	StatisticsVotes      Permission = "statistics.votes"
 	StatisticsCreation   Permission = "statistics.creation"
@@ -95,12 +99,16 @@ var All = Permissions{
 	TicketMessageCreate,
 	TicketMessageCreateAll,
 
+	CityCreate,
+	CityDelete,
+
 	ProjectCreate,
 	ProjectUpdateAll,
 	ProjectDeleteAll,
 	ProjectUpdateClose,
 	ProjectUpdateApprove,
 	ProjectUpdateImplement,
+	ProjectUpdateImplemented,
 	ProjectSubmissionInfo,
 	ProjectSubmissionList,
 	ProjectSubmissionReview,

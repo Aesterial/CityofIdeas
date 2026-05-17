@@ -6,6 +6,7 @@ import (
 	"time"
 
 	typespb "github.com/aesterial/cityideas/backend/internal/api/v1"
+	permissionsdomain "github.com/aesterial/cityideas/backend/internal/domain/permissions"
 	"github.com/aesterial/cityideas/backend/internal/infra/database/sqlc"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
 	"github.com/golang-jwt/jwt/v5"
@@ -192,17 +193,23 @@ func DeviceName(device Device, ua useragent.UserAgent) string {
 	return strings.TrimSpace(strings.Join(parts, " / "))
 }
 
+type MetaRank struct {
+	RankID      UUID
+	CityID      *UUID
+	Permissions permissionsdomain.Set
+}
+
 type Metadata struct {
 	UserID    *UUID
 	SessionID *UUID
-	RankID    *UUID
+	Ranks     []MetaRank
 }
 
 func (m *Metadata) IsEmpty() bool {
 	if m == nil {
 		return true
 	}
-	return m.UserID == nil && m.SessionID == nil && m.RankID == nil
+	return m.UserID == nil && m.SessionID == nil
 }
 
 type Claims struct {

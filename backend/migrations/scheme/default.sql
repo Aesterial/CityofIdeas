@@ -1,5 +1,7 @@
 create extension if not exists pgcrypto;
 
+insert into cities (name) values ('Москва');
+
 insert into ranks (name, permissions, weight)
 values ('user',
         '{
@@ -8,6 +10,19 @@ values ('user',
           "project.message.create": {}
         }'::jsonb,
         10);
+
+insert into ranks (name, permissions, weight)
+values ('city_administrator',
+        '{
+          "project.submission.list": {},
+          "project.submission.info": {},
+          "project.submission.review": {},
+          "project.update.implement": {},
+          "project.update.implemented": {},
+          "project.message.view.all": {},
+          "project.message.delete.all": {}
+        }'::jsonb,
+        50);
 
 with generated_password as (select encode(gen_random_bytes(16), 'hex') as password),
      staff_rank as (

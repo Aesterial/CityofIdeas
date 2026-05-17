@@ -51,7 +51,11 @@ func (h *ProjectHandler) CreateProject(ctx context.Context, req *projectpb.Creat
 	if err = h.auth.Permissions(ctx, *meta, permissionsdomain.ProjectCreate); err != nil {
 		return nil, err
 	}
-	project, err := h.proj.CreateProject(ctx, *meta.UserID, req.GetTitle(), req.GetDescription(), req.GetCategory(), req.GetLocation().GetCity(), req.GetLocation().GetLat(), req.GetLocation().GetLot())
+	cityID, err := domain.FromString(req.GetLocation().GetCityId())
+	if err != nil {
+		return nil, errors.InvalidArguments
+	}
+	project, err := h.proj.CreateProject(ctx, *meta.UserID, req.GetTitle(), req.GetDescription(), req.GetCategory(), cityID, req.GetLocation().GetLat(), req.GetLocation().GetLot())
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +98,11 @@ func (h *ProjectHandler) ProjectsTop(ctx context.Context, req *typespb.RequestWi
 	if err := h.isRequestValid(req); err != nil {
 		return nil, err
 	}
-	projects, err := h.proj.ProjectsTop(ctx, req.GetValue(), req.GetLimit(), req.GetOffset())
+	cityID, err := domain.FromString(req.GetValue())
+	if err != nil {
+		return nil, errors.InvalidArguments
+	}
+	projects, err := h.proj.ProjectsTop(ctx, cityID, req.GetLimit(), req.GetOffset())
 	if err != nil {
 		return nil, err
 	}
@@ -241,10 +249,18 @@ func (h *ProjectHandler) AcceptSubmission(ctx context.Context, req *typespb.Requ
 	if err != nil {
 		return nil, err
 	}
-	if err = h.auth.Permissions(ctx, *meta, permissionsdomain.ProjectSubmissionReview); err != nil {
+	projectID, err := domain.FromString(req.GetValue())
+	if err != nil {
+		return nil, errors.InvalidArguments
+	}
+	cityID, err := h.proj.ProjectCity(ctx, projectID)
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+	if err = h.auth.CityPermissions(ctx, *meta, cityID, permissionsdomain.ProjectSubmissionReview); err != nil {
 		return nil, err
 	}
-	err = h.proj.SubmissionReview(ctx, req.GetValue(), true, nil)
+	err = h.proj.SubmissionReview(ctx, *meta.UserID, req.GetValue(), true, nil)
 	if err != nil {
 		logger.Error("projects", "failed to review submission", logger.F("error", err))
 		return nil, errors.Wrap(err)
@@ -263,10 +279,45 @@ func (h *ProjectHandler) DenySubmission(ctx context.Context, req *typespb.Reques
 	if err != nil {
 		return nil, err
 	}
-	if err = h.auth.Permissions(ctx, *meta, permissionsdomain.ProjectSubmissionReview); err != nil {
+	projectID, err := domain.FromString(req.GetValues()[0])
+	if err != nil {
+		return nil, errors.InvalidArguments
+	}
+	cityID, err := h.proj.ProjectCity(ctx, projectID)
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+	if err = h.auth.CityPermissions(ctx, *meta, cityID, permissionsdomain.ProjectSubmissionReview); err != nil {
 		return nil, err
 	}
-	err = h.proj.SubmissionReview(ctx, req.GetValues()[0], false, new(req.GetValues()[1]))
+	reason := req.GetValues()[1]
+	err = h.proj.SubmissionReview(ctx, *meta.UserID, req.GetValues()[0], false, &reason)
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+	return &emptypb.Empty{}, nil
+}
+
+func (h *ProjectHandler) MarkAsImplementing(ctx context.Context, req *projectpb.MarkAsImplementingRequest) (*emptypb.Empty, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
+	}
+	meta, err := h.auth.User(ctx)
+	if err != nil {
+		return nil, err
+	}
+	projectID, err := domain.FromString(req.GetProjectId())
+	if err != nil {
+		return nil, errors.InvalidArguments
+	}
+	cityID, err := h.proj.ProjectCity(ctx, projectID)
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+	if err = h.auth.CityPermissions(ctx, *meta, cityID, permissionsdomain.ProjectUpdateImplement); err != nil {
+		return nil, err
+	}
+	err = h.proj.MarkAsImplementing(ctx, *meta.UserID, req.GetProjectId(), req.GetImplLink())
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}

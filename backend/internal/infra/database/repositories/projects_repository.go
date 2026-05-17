@@ -85,7 +85,7 @@ func (*ProjectRepository) parseProjectRow(project sqlc.ProjectInfoRow) *projects
 
 func (*ProjectRepository) parseLocation(location sqlc.ProjectLocation) *projectsdomain.ProjectLocation {
 	return &projectsdomain.ProjectLocation{
-		City:      location.City,
+		CityID:    domain.FromPG(location.CityID),
 		Latitude:  location.Lat,
 		Longitude: location.Lot,
 	}
@@ -236,15 +236,12 @@ func (p *ProjectRepository) Projects(ctx context.Context, limit int32, offset in
 	return list, nil
 }
 
-func (p *ProjectRepository) ProjectsTop(ctx context.Context, city string, limit int32, offset int32) (projectsdomain.Projects, error) {
-	if city == "" {
-		return nil, errors.InvalidArguments
-	}
+func (p *ProjectRepository) ProjectsTop(ctx context.Context, cityID domain.UUID, limit int32, offset int32) (projectsdomain.Projects, error) {
 	if limit <= 0 {
 		limit = 10
 	}
 	projects, err := p.conn.ProjectsTop(ctx, sqlc.ProjectsTopParams{
-		City:   city,
+		CityID: cityID.ToPG(),
 		Limit:  limit,
 		Offset: offset,
 	})
@@ -340,7 +337,7 @@ func (p *ProjectRepository) Project(ctx context.Context, id domain.UUID) (*proje
 	return p.parseProjectRow(info), nil
 }
 
-func (p *ProjectRepository) CreateProject(ctx context.Context, author domain.UUID, title string, description string, category string, city string, latitude float64, longitude float64) (*projectsdomain.Project, error) {
+func (p *ProjectRepository) CreateProject(ctx context.Context, author domain.UUID, title string, description string, category string, cityID domain.UUID, latitude float64, longitude float64) (*projectsdomain.Project, error) {
 	info, err := p.conn.CreateProject(ctx, sqlc.CreateProjectParams{
 		Author:      author.ToPG(),
 		Title:       title,
@@ -355,10 +352,10 @@ func (p *ProjectRepository) CreateProject(ctx context.Context, author domain.UUI
 		return nil, err
 	}
 	location, err := p.conn.CreateProjectLocation(ctx, sqlc.CreateProjectLocationParams{
-		ID:   info.ID,
-		City: city,
-		Lat:  latitude,
-		Lot:  longitude,
+		ID:     info.ID,
+		CityID: cityID.ToPG(),
+		Lat:    latitude,
+		Lot:    longitude,
 	})
 	if err != nil {
 		return nil, err
@@ -424,7 +421,8 @@ func (p *ProjectRepository) ProjectAuthor(ctx context.Context, project domain.UU
 	if err != nil {
 		return nil, err
 	}
-	return new(domain.FromPG(id)), nil
+	v := domain.FromPG(id)
+	return &v, nil
 }
 
 func (p *ProjectRepository) MessageAuthor(ctx context.Context, message domain.UUID) (*domain.UUID, error) {
@@ -432,7 +430,8 @@ func (p *ProjectRepository) MessageAuthor(ctx context.Context, message domain.UU
 	if err != nil {
 		return nil, err
 	}
-	return new(domain.FromPG(id)), nil
+	v := domain.FromPG(id)
+	return &v, nil
 }
 
 func (p *ProjectRepository) isReviewed(ctx context.Context, project domain.UUID) error {
@@ -446,12 +445,15 @@ func (p *ProjectRepository) isReviewed(ctx context.Context, project domain.UUID)
 	return nil
 }
 
-func (p *ProjectRepository) SubmissionReview(ctx context.Context, project domain.UUID, conclusion bool, reason *string) error {
+func (p *ProjectRepository) SubmissionReview(ctx context.Context, project domain.UUID, reviewer domain.UUID, conclusion bool, reason *string) error {
 	if err := p.isReviewed(ctx, project); err != nil {
 		return err
 	}
 	if conclusion {
-		err := p.conn.AcceptSubmission(ctx, project.ToPG())
+		err := p.conn.AcceptSubmission(ctx, sqlc.AcceptSubmissionParams{
+			ReviewedBy: reviewer.ToPG(),
+			Linked:     project.ToPG(),
+		})
 		if err != nil {
 			return err
 		}
@@ -465,8 +467,9 @@ func (p *ProjectRepository) SubmissionReview(ctx context.Context, project domain
 		return errors.InvalidArguments
 	}
 	err := p.conn.DenySubmission(ctx, sqlc.DenySubmissionParams{
-		Reason: pgtype.Text{String: *reason, Valid: true},
-		Linked: project.ToPG(),
+		Reason:     pgtype.Text{String: *reason, Valid: true},
+		ReviewedBy: reviewer.ToPG(),
+		Linked:     project.ToPG(),
 	})
 	if err != nil {
 		return err
@@ -476,6 +479,14 @@ func (p *ProjectRepository) SubmissionReview(ctx context.Context, project domain
 		return err
 	}
 	return nil
+}
+
+func (p *ProjectRepository) ProjectCity(ctx context.Context, project domain.UUID) (domain.UUID, error) {
+	id, err := p.conn.ProjectCityID(ctx, project.ToPG())
+	if err != nil {
+		return domain.UUID{}, err
+	}
+	return domain.FromPG(id), nil
 }
 
 func (p *ProjectRepository) isLikeExists(ctx context.Context, project domain.UUID, user domain.UUID) error {
