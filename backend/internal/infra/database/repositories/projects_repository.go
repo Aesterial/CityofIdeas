@@ -51,6 +51,22 @@ func (*ProjectRepository) parseProjectRow(project sqlc.ProjectInfoRow) *projects
 	if project.Deleted.Valid {
 		cancelled = &project.Deleted.Time
 	}
+	var location *projectsdomain.ProjectLocation
+	if project.City.Valid {
+		lat := 0.0
+		lot := 0.0
+		if project.Lat.Valid {
+			lat = project.Lat.Float64
+		}
+		if project.Lot.Valid {
+			lot = project.Lot.Float64
+		}
+		location = &projectsdomain.ProjectLocation{
+			City:      project.City.String,
+			Latitude:  lat,
+			Longitude: lot,
+		}
+	}
 	return &projectsdomain.Project{
 		ID:          domain.UUID{UUID: project.ID.Bytes},
 		Author:      domain.UUID{UUID: project.Author.Bytes},
@@ -63,6 +79,7 @@ func (*ProjectRepository) parseProjectRow(project sqlc.ProjectInfoRow) *projects
 		At:          project.At.Time,
 		Updated:     project.Updated.Time,
 		Cancelled:   cancelled,
+		Location:    location,
 	}
 }
 
@@ -136,6 +153,22 @@ func (p *ProjectRepository) parseProjectsRow(projects []sqlc.ProjectsListRow) pr
 		if project.Deleted.Valid {
 			cancelled = &project.Deleted.Time
 		}
+		var location *projectsdomain.ProjectLocation
+		if project.City.Valid {
+			lat := 0.0
+			lot := 0.0
+			if project.Lat.Valid {
+				lat = project.Lat.Float64
+			}
+			if project.Lot.Valid {
+				lot = project.Lot.Float64
+			}
+			location = &projectsdomain.ProjectLocation{
+				City:      project.City.String,
+				Latitude:  lat,
+				Longitude: lot,
+			}
+		}
 		out[i] = &projectsdomain.Project{
 			ID:          domain.FromPG(project.ID),
 			Author:      domain.FromPG(project.Author),
@@ -148,6 +181,7 @@ func (p *ProjectRepository) parseProjectsRow(projects []sqlc.ProjectsListRow) pr
 			At:          project.At.Time,
 			Updated:     project.Updated.Time,
 			Cancelled:   cancelled,
+			Location:    location,
 		}
 	}
 	return out

@@ -195,7 +195,7 @@ export function AdminUserSettingsDialog({
     const controller = new AbortController();
     setPermissionsLoading(true);
     setPermissionsError(null);
-    fetchUserPermissions(user.userID, { signal: controller.signal })
+    fetchUserPermissions(user.userID, user.role, { signal: controller.signal })
       .then((data) => {
         if (active) {
           setPermissions((data ?? {}) as Record<string, unknown>);
@@ -219,7 +219,7 @@ export function AdminUserSettingsDialog({
       active = false;
       controller.abort();
     };
-  }, [open, section, user?.userID, permissionsReloadKey, t]);
+  }, [open, section, user?.userID, user?.role, permissionsReloadKey, t]);
 
   useEffect(() => {
     if (!open || !user || section !== "role") {
@@ -290,7 +290,7 @@ export function AdminUserSettingsDialog({
     const nextValue = !entry.value;
     setPermissionsUpdating((prev) => new Set(prev).add(entry.key));
     try {
-      await updateUserPermission(user.userID, entry.key, nextValue);
+      await updateUserPermission(user.userID, entry.key, nextValue, user.role);
       setPermissions((prev) =>
         prev
           ? updatePermissionValue(prev, entry.key.split("."), nextValue)

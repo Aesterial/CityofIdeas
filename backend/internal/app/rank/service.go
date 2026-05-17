@@ -62,6 +62,21 @@ func (s *Service) RankInfo(ctx context.Context, rank string) (*ranksdomain.Rank,
 	})
 }
 
+func (s *Service) RankByName(ctx context.Context, name string) (*ranksdomain.Rank, error) {
+	if name == "" {
+		return nil, errors.InvalidArguments
+	}
+	key := cache.Key("ranks.info.name", name)
+	return cache.GetOrSet(ctx, s.c, key, rankCacheTTL, []string{rankCacheTag}, func(ctx context.Context) (*ranksdomain.Rank, error) {
+		info, err := s.rank.Rank(ctx, name)
+		if err != nil {
+			logger.Error("rank", "failed to get information about rank by name", logger.F("error", err))
+			return nil, errors.Wrap(err)
+		}
+		return info, nil
+	})
+}
+
 func (s *Service) CreateRank(ctx context.Context, name string, description string, color int64, weight int32, perms []string) (*ranksdomain.Rank, error) {
 	if name == "" || description == "" {
 		return nil, errors.InvalidArguments
@@ -118,6 +133,18 @@ func (s *Service) DeleteRank(ctx context.Context, rank string) error {
 		return errors.Wrap(err)
 	}
 	s.c.DeleteTags(rankCacheTag, rankListCacheTag, rankInfoCacheTag(id.String()))
+	return nil
+}
+
+func (s *Service) SetUserRank(ctx context.Context, userID domain.UUID, rankName string, expiresAt *time.Time) error {
+	if rankName == "" {
+		return errors.InvalidArguments
+	}
+	if err := s.rank.Set(ctx, userID, rankName, expiresAt); err != nil {
+		logger.Error("rank", "failed to set user rank", logger.F("error", err))
+		return errors.Wrap(err)
+	}
+	s.c.DeleteTags(rankUserCacheTag(userID.String()))
 	return nil
 }
 

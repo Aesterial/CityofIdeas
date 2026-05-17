@@ -15,4 +15,5 @@ service RankService {
   rpc List(xyz.city_ideas.v1.RequestWithLimitAndOffset) returns (xyz.city_ideas.v1.ranks.v1.ListResponse);
   rpc Edit(xyz.city_ideas.v1.ranks.v1.Rank) returns (xyz.city_ideas.v1.ranks.v1.Rank);
   rpc Delete(xyz.city_ideas.v1.RequestWithValue) returns (google.protobuf.Empty);
+  rpc SetRank(xyz.city_ideas.v1.ranks.v1.SetRankRequest) returns (google.protobuf.Empty);
 }

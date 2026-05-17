@@ -645,24 +645,23 @@ export default function AccountPage() {
     const hash = formatSessionHash(session.hash);
 
     return (
-      <Card
+      <div
         data-revoked={isRevoked || undefined}
-        className="overflow-hidden py-2 transition-[opacity,transform] duration-200 ease-out data-[revoked]:opacity-60 active:scale-[0.997]"
+        className="group relative overflow-hidden rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm transition-[opacity,transform] duration-200 ease-out data-[revoked]:opacity-50 active:scale-[0.998]"
       >
-        <CardHeader className="gap-3 py-4 sm:flex-row sm:items-start sm:justify-between sm:space-y-0 sm:py-5">
+
+        <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div className="flex min-w-0 items-center gap-3">
-            <Avatar className="h-10 w-10 shrink-0 rounded-xl border bg-muted">
-              <AvatarFallback className="rounded-xl bg-transparent">
-                <MonitorCheck className="h-4 w-4 text-muted-foreground" />
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 space-y-1">
-              <CardTitle className="truncate text-sm">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted/70 text-muted-foreground ring-1 ring-border/50">
+              <MonitorCheck className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium leading-none text-foreground">
                 {t("accountSessionsTitle")}
-              </CardTitle>
-              <CardDescription className="truncate font-mono text-[11px]">
+              </p>
+              <p className="mt-1.5 truncate font-mono text-[11px] text-muted-foreground">
                 {session.id}
-              </CardDescription>
+              </p>
             </div>
           </div>
 
@@ -694,43 +693,42 @@ export default function AccountPage() {
               </Button>
             )}
           </div>
-        </CardHeader>
+        </div>
 
-        <Separator />
 
-        <CardContent className="grid gap-3 pb-5 pt-4 sm:grid-cols-3 sm:pb-6 sm:pt-5">
-          <div className="min-w-0 space-y-1">
-            <span className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-              <Fingerprint className="h-3 w-3" />
+        <div className="grid grid-cols-1 gap-px border-t border-border/50 bg-border/30 sm:grid-cols-3">
+          <div className="min-w-0 bg-muted/20 px-4 py-3 sm:px-5 sm:py-3.5">
+            <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <Fingerprint className="h-3 w-3 shrink-0" />
               {t("accountSessionsDeviceHash")}
             </span>
             <code
-              className="block truncate font-mono text-xs font-medium text-foreground"
+              className="mt-1 block truncate font-mono text-xs font-medium text-foreground"
               title={session.hash}
             >
               {hash ?? t("accountSessionsUnknown")}
             </code>
           </div>
-          <div className="min-w-0 space-y-1">
-            <span className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-              <Clock3 className="h-3 w-3" />
+          <div className="min-w-0 bg-muted/20 px-4 py-3 sm:px-5 sm:py-3.5">
+            <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <Clock3 className="h-3 w-3 shrink-0" />
               {t("accountSessionsCreated")}
             </span>
-            <p className="truncate text-xs font-medium text-foreground">
+            <p className="mt-1 truncate text-xs font-medium text-foreground">
               {formatSessionDate(session.createdAt)}
             </p>
           </div>
-          <div className="min-w-0 space-y-1">
-            <span className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-              <Clock3 className="h-3 w-3" />
+          <div className="min-w-0 bg-muted/20 px-4 py-3 sm:px-5 sm:py-3.5">
+            <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <Clock3 className="h-3 w-3 shrink-0" />
               {t("accountSessionsLastSeen")}
             </span>
-            <p className="truncate text-xs font-medium text-foreground">
+            <p className="mt-1 truncate text-xs font-medium text-foreground">
               {formatSessionDate(session.lastSeenAt)}
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   };
 

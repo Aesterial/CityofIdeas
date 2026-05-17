@@ -1,8 +1,8 @@
 ﻿"use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Check, ChevronDown, ListFilter, MapPin, Sparkles } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { Check, ChevronDown, ListFilter, MapPin, Sparkles, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import { Header, cities as availableCities } from "@/components/header";
 import { GradientButton } from "@/components/gradient-button";
@@ -227,19 +227,19 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.2,
+      staggerChildren: 0.05,
+      delayChildren: 0.08,
     },
   },
 };
 
 const cardVariants: Variants = {
-  hidden: { opacity: 0, y: 12 },
+  hidden: { opacity: 0, y: 8 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.35,
+      duration: 0.25,
       ease: [0.16, 1, 0.3, 1],
     },
   },
@@ -324,12 +324,14 @@ const hasSubmissionsModerationAccess = (
 };
 
 export default function VotingPage() {
+  const shouldReduceMotion = useReducedMotion();
   const [ideas, setIdeas] = useState<IdeaCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState(ALL_FILTER);
   const [selectedCity, setSelectedCity] = useState<CityFilter>(ALL_FILTER);
   const [isCityOpen, setIsCityOpen] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const cityDropdownRef = useRef<HTMLDivElement | null>(null);
   const cityListRef = useRef<HTMLUListElement | null>(null);
   const [sortBy, setSortBy] =
@@ -910,9 +912,10 @@ export default function VotingPage() {
                 </motion.div>
 
                 <div className="mt-10 flex flex-col gap-8">
+
                   <motion.aside
-                    className="flex flex-col gap-6 lg:fixed lg:left-6 lg:top-28 lg:h-[calc(100vh-7rem)] lg:w-[280px] lg:overflow-y-auto lg:rounded-[2rem] lg:border lg:border-border/70 lg:bg-background/78 lg:p-5 lg:shadow-[0_28px_90px_-62px_rgba(0,0,0,0.92)] lg:backdrop-blur-xl"
-                    initial={{ opacity: 0, y: 16 }}
+                    className="hidden lg:flex lg:flex-col lg:gap-6 lg:fixed lg:left-6 lg:top-28 lg:h-[calc(100vh-7rem)] lg:w-[280px] lg:overflow-y-auto lg:rounded-[2rem] lg:border lg:border-border/70 lg:bg-background/78 lg:p-5 lg:shadow-[0_28px_90px_-62px_rgba(0,0,0,0.92)] lg:backdrop-blur-xl"
+                    initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4 }}
                     data-tutorial="voting-filters"
@@ -920,29 +923,68 @@ export default function VotingPage() {
                     {renderSidebarContent()}
                   </motion.aside>
 
+
+                  <div className="lg:hidden">
+                    <button
+                      type="button"
+                      onClick={() => setMobileFiltersOpen((v) => !v)}
+                      className="flex w-full items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card/80 px-4 py-3 text-sm font-semibold text-foreground backdrop-blur transition-[transform,border-color] duration-200 active:scale-[0.98] @media (hover: hover) hover:border-foreground/40"
+                    >
+                      <span className="flex items-center gap-2">
+                        <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+                        Фильтры
+                        {hasFilters && (
+                          <span className="rounded-full bg-foreground px-2 py-0.5 text-[10px] font-bold text-background">
+                            {[selectedCategory !== ALL_FILTER, selectedCity !== ALL_FILTER].filter(Boolean).length}
+                          </span>
+                        )}
+                      </span>
+                      <motion.div
+                        animate={{ rotate: mobileFiltersOpen ? 180 : 0 }}
+                        transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                      >
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      </motion.div>
+                    </button>
+
+                    <AnimatePresence initial={false}>
+                      {mobileFiltersOpen && (
+                        <motion.div
+                          key="mobile-filters"
+                          initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+                          animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, height: "auto" }}
+                          exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+                          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pt-4">
+                            {renderSidebarContent()}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
                   <section className="space-y-6">
-                    <motion.div
-                      className="rounded-[2rem] border border-border/60 bg-card/78 px-5 py-4 shadow-[0_26px_70px_-52px_rgba(0,0,0,0.82)] backdrop-blur-xl"
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.4 }}
+                    <div
+                      className="rounded-[2rem] border border-border/60 bg-card/78 px-4 py-4 shadow-[0_26px_70px_-52px_rgba(0,0,0,0.82)] backdrop-blur-xl sm:px-5"
                       data-tutorial="voting-sort"
                     >
-                      <div className="flex flex-wrap items-center justify-between gap-4">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-foreground text-background">
-                            <ListFilter className="h-5 w-5" />
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-foreground text-background sm:h-11 sm:w-11 sm:rounded-2xl">
+                            <ListFilter className="h-4 w-4 sm:h-5 sm:w-5" />
                           </div>
                           <div>
                             <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
                               Сортировка
                             </p>
-                            <p className="text-sm font-semibold">
+                            <p className="hidden text-sm font-semibold sm:block">
                               Выбери режим показа идей
                             </p>
                           </div>
                         </div>
-                        <div className="flex flex-wrap gap-2 rounded-full bg-background/70 p-1">
+                        <div className="flex gap-1.5 rounded-full border border-border/50 bg-background/70 p-1">
                           {sortOptions.map((option) => {
                             const isActive = sortBy === option.id;
                             return (
@@ -950,10 +992,10 @@ export default function VotingPage() {
                                 key={option.id}
                                 type="button"
                                 onClick={() => setSortBy(option.id)}
-                                className={`rounded-full border px-4 py-2 text-xs font-semibold transition-all duration-300 ${
+                                className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-[transform,background-color,color,box-shadow] duration-200 active:scale-[0.96] sm:px-4 sm:py-2 ${
                                   isActive
-                                    ? "border-foreground bg-foreground text-background shadow-lg shadow-foreground/20"
-                                    : "border-border/70 bg-background/70 text-foreground hover:bg-foreground hover:text-background"
+                                    ? "bg-foreground text-background shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
                                 }`}
                               >
                                 {option.label}
@@ -962,18 +1004,23 @@ export default function VotingPage() {
                           })}
                         </div>
                       </div>
-                      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
+                      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
                         <span className="rounded-full bg-muted/70 px-3 py-1 font-semibold text-muted-foreground">
-                          Показано {sortedIdeas.length} идей
+                          {sortedIdeas.length} идей
                         </span>
-                        <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1 font-semibold text-muted-foreground">
-                          {selectedCategoryLabel}
-                        </span>
-                        <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1 font-semibold text-muted-foreground">
-                          {selectedCityLabel}
-                        </span>
+                        {selectedCategory !== ALL_FILTER && (
+                          <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1 font-semibold text-muted-foreground">
+                            {selectedCategoryLabel}
+                          </span>
+                        )}
+                        {selectedCity !== ALL_FILTER && (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/70 px-3 py-1 font-semibold text-muted-foreground">
+                            <MapPin className="h-3 w-3" />
+                            {selectedCityLabel}
+                          </span>
+                        )}
                       </div>
-                    </motion.div>
+                    </div>
 
                     {loadError ? (
                       <motion.div
@@ -1044,139 +1091,154 @@ export default function VotingPage() {
                         {isLoading ? (
                           <motion.div
                             key="loading"
-                            variants={cardVariants}
-                            className="rounded-[2rem] border border-dashed border-border/70 bg-card/60 p-6 text-sm text-muted-foreground"
+                            variants={shouldReduceMotion ? {} : cardVariants}
+                            className="space-y-4"
                           >
-                            Идеи загружаются...
+                            {[1, 2, 3].map((i) => (
+                              <div
+                                key={i}
+                                className="rounded-[2rem] border border-border/50 bg-card/60 p-5 sm:p-6"
+                              >
+                                <div className="flex gap-2">
+                                  <div className="h-5 w-24 rounded-full bg-muted/80 animate-pulse" />
+                                  <div className="h-5 w-16 rounded-full bg-muted/60 animate-pulse" />
+                                </div>
+                                <div className="mt-4 h-7 w-3/4 rounded-xl bg-muted/80 animate-pulse" />
+                                <div className="mt-2 h-4 w-1/2 rounded-full bg-muted/60 animate-pulse" />
+                                <div className="mt-4 space-y-2">
+                                  <div className="h-3 w-full rounded-full bg-muted/60 animate-pulse" />
+                                  <div className="h-3 w-5/6 rounded-full bg-muted/50 animate-pulse" />
+                                </div>
+                                <div className="mt-5 flex items-center gap-2.5 border-t border-border/40 pt-4">
+                                  <div className="h-9 w-28 rounded-full bg-muted/70 animate-pulse" />
+                                  <div className="h-9 w-24 rounded-full bg-muted/50 animate-pulse" />
+                                </div>
+                              </div>
+                            ))}
                           </motion.div>
                         ) : sortedIdeas.length ? (
                           sortedIdeas.map((idea) => {
                             const voteShare = maxVotes
                               ? Math.round((idea.votes / maxVotes) * 100)
                               : 0;
-                            const neededVotes = Math.max(
-                              0,
-                              maxVotes - idea.votes,
-                            );
+                            const neededVotes = Math.max(0, maxVotes - idea.votes);
                             return (
                               <motion.article
                                 key={idea.id}
-                                variants={cardVariants}
-                                layout
-                                className="group relative overflow-hidden rounded-[2.35rem] border border-border/60 bg-card/82 p-6 shadow-[0_30px_80px_-58px_rgba(0,0,0,0.9)] backdrop-blur-xl transition-all duration-500 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(520px_circle_at_0%_0%,hsl(var(--foreground)/0.1),transparent_44%)] before:opacity-0 before:transition-opacity before:duration-500 hover:-translate-y-1 hover:border-foreground/20 hover:shadow-[0_38px_100px_-62px_rgba(0,0,0,0.95)] hover:before:opacity-100"
+                                variants={shouldReduceMotion ? {} : cardVariants}
+                                layout={!shouldReduceMotion}
+                                className="group relative overflow-hidden rounded-[2.25rem] border border-border/60 bg-card/82 shadow-[0_28px_72px_-52px_rgba(0,0,0,0.85)] backdrop-blur-xl transition-[transform,border-color,box-shadow] duration-300 before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(480px_circle_at_0%_0%,hsl(var(--foreground)/0.08),transparent_44%)] before:opacity-0 before:transition-opacity before:duration-300 @media_(hover:_hover)_hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-[0_36px_90px_-56px_rgba(0,0,0,0.92)] hover:before:opacity-100"
                               >
-                                <div className="relative flex flex-col gap-6 xl:flex-row">
-                                  <div className="flex-1 space-y-4">
-                                    <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
-                                      <span className="rounded-full bg-foreground/10 px-3 py-1 text-foreground">
-                                        {idea.category}
-                                      </span>
-                                      <span
-                                        className={`rounded-full border px-3 py-1 ${
-                                          idea.status === "approved"
-                                            ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700"
-                                            : idea.status === "declined"
-                                              ? "border-rose-500/40 bg-rose-500/10 text-rose-700"
-                                              : idea.status === "pending"
-                                                ? "border-amber-500/40 bg-amber-500/10 text-amber-700"
-                                                : "border-border/60 bg-background/70 text-muted-foreground"
-                                        }`}
-                                      >
-                                        {statusLabels[idea.status]}
-                                      </span>
-                                      <span className="inline-flex items-center gap-1 rounded-full border border-border/60 px-3 py-1 text-muted-foreground">
-                                        <MapPin className="h-3.5 w-3.5" />
-                                        {idea.city}
-                                      </span>
-                                    </div>
-                                    <div>
-                                      <h3 className="text-2xl font-semibold leading-tight tracking-[-0.035em] sm:text-3xl">
-                                        {idea.title}
-                                      </h3>
-                                      <p className="mt-2 text-sm text-muted-foreground">
-                                        {idea.address}
-                                      </p>
-                                    </div>
-                                    <p className="text-sm text-foreground/90">
-                                      {idea.description}
-                                    </p>
 
-                                    <div className="space-y-2">
-                                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                        <span>{idea.votes} голосов</span>
-                                        <span>Нужно: {neededVotes}</span>
-                                      </div>
-                                      <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted/60">
-                                        <div
-                                          className="h-full rounded-full bg-gradient-to-r from-foreground via-foreground/80 to-foreground/45 shadow-[0_0_24px_hsl(var(--foreground)/0.18)] transition-all duration-700"
-                                          style={{ width: `${voteShare}%` }}
-                                        />
-                                      </div>
-                                    </div>
+                                <div className="relative p-5 sm:p-6">
+
+                                  <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
+                                    <span className="rounded-full bg-foreground/10 px-3 py-1 text-foreground">
+                                      {idea.category}
+                                    </span>
+                                    <span
+                                      className={`rounded-full border px-3 py-1 ${
+                                        idea.status === "approved"
+                                          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                          : idea.status === "declined"
+                                            ? "border-rose-500/40 bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                                            : idea.status === "pending"
+                                              ? "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                                              : "border-border/60 bg-background/70 text-muted-foreground"
+                                      }`}
+                                    >
+                                      {statusLabels[idea.status]}
+                                    </span>
+                                    <span className="inline-flex items-center gap-1 rounded-full border border-border/60 px-3 py-1 text-muted-foreground">
+                                      <MapPin className="h-3 w-3 shrink-0" />
+                                      <span className="truncate max-w-[12rem]">{idea.city}</span>
+                                    </span>
                                   </div>
 
-                                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:w-64">
-                                    <motion.div
-                                      className="relative h-28 overflow-hidden rounded-2xl border border-border/60 shadow-md sm:h-32"
-                                      whileHover={{ scale: 1.03 }}
-                                      transition={{ duration: 0.3 }}
-                                    >
-                                      <MapPreviewImage
-                                        title={idea.title}
-                                        coordinates={idea.coordinates}
-                                      />
-                                      <span className="absolute bottom-2 left-2 rounded-full bg-background/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                                        Карта
-                                      </span>
-                                      <div className="absolute bottom-3 right-3 h-3 w-3 rounded-full bg-foreground ring-2 ring-background shadow-lg" />
-                                    </motion.div>
-                                    <motion.div
-                                      className="relative h-28 overflow-hidden rounded-2xl border border-border/60 shadow-md sm:h-32"
-                                      whileHover={{ scale: 1.03 }}
-                                      transition={{ duration: 0.3 }}
-                                    >
-                                      <img
-                                        src={idea.photoImage}
-                                        alt={`Фото - ${idea.title}`}
-                                        className="h-full w-full object-cover"
-                                        onError={(event) => {
-                                          event.currentTarget.onerror = null;
-                                          event.currentTarget.src =
-                                            PHOTO_FALLBACK_IMAGE;
-                                        }}
-                                      />
-                                      <span className="absolute bottom-2 left-2 rounded-full bg-background/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                                        Фото
-                                      </span>
-                                    </motion.div>
+
+                                  <div className="mt-4 flex flex-col gap-5 lg:flex-row">
+
+                                    <div className="flex-1 space-y-3">
+                                      <div>
+                                        <h3 className="text-xl font-semibold leading-tight tracking-[-0.03em] sm:text-2xl">
+                                          {idea.title}
+                                        </h3>
+                                        <p className="mt-1 text-sm text-muted-foreground">
+                                          {idea.address}
+                                        </p>
+                                      </div>
+                                      <p className="text-sm leading-relaxed text-foreground/80 line-clamp-3">
+                                        {idea.description}
+                                      </p>
+
+
+                                      <div className="space-y-1.5">
+                                        <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                                          <span className="font-semibold">{idea.votes} голосов</span>
+                                          {neededVotes > 0 && (
+                                            <span>до лидера: {neededVotes}</span>
+                                          )}
+                                        </div>
+                                        <div className="h-2 w-full overflow-hidden rounded-full bg-muted/50">
+                                          <div
+                                            className="h-full rounded-full bg-gradient-to-r from-foreground via-foreground/80 to-foreground/40 shadow-[0_0_18px_hsl(var(--foreground)/0.15)] transition-[width] duration-700"
+                                            style={{ width: `${voteShare}%` }}
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+
+
+                                    <div className="grid grid-cols-2 gap-2.5 lg:w-52 lg:grid-cols-1 xl:w-60">
+                                      <div className="group/img relative h-28 overflow-hidden rounded-2xl border border-border/60 shadow-sm sm:h-32 lg:h-28">
+                                        <div className="h-full w-full transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] @media_(hover:_hover)_group-hover/img:scale-[1.04]">
+                                          <MapPreviewImage
+                                            title={idea.title}
+                                            coordinates={idea.coordinates}
+                                          />
+                                        </div>
+                                        <span className="absolute bottom-2 left-2 rounded-full bg-background/80 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-muted-foreground backdrop-blur-sm">
+                                          Карта
+                                        </span>
+                                        <div className="absolute bottom-2.5 right-2.5 h-2.5 w-2.5 rounded-full bg-foreground ring-2 ring-background shadow" />
+                                      </div>
+                                      <div className="group/img relative h-28 overflow-hidden rounded-2xl border border-border/60 shadow-sm sm:h-32 lg:h-28">
+                                        <img
+                                          src={idea.photoImage}
+                                          alt={`Фото — ${idea.title}`}
+                                          className="h-full w-full object-cover transition-transform duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] @media_(hover:_hover)_group-hover/img:scale-[1.04]"
+                                          onError={(e) => {
+                                            e.currentTarget.onerror = null;
+                                            e.currentTarget.src = PHOTO_FALLBACK_IMAGE;
+                                          }}
+                                        />
+                                        <span className="absolute bottom-2 left-2 rounded-full bg-background/80 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-muted-foreground backdrop-blur-sm">
+                                          Фото
+                                        </span>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
 
-                                <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-border/60 pt-4">
-                                  <div className="flex flex-wrap items-center gap-3">
-                                    <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs font-semibold text-muted-foreground">
-                                      {idea.votes} гол.
-                                    </span>
-                                    <Link
-                                      href={`/projects/${idea.id}`}
-                                      className="inline-flex rounded-full border border-border/70 bg-background/80 px-5 py-2 text-xs font-semibold text-foreground transition-all duration-300 hover:border-foreground hover:bg-foreground hover:text-background sm:px-6 sm:py-3 sm:text-sm"
-                                    >
-                                      К проекту
-                                    </Link>
-                                    <GradientButton
-                                      className="px-5 py-2 text-xs sm:px-6 sm:py-3 sm:text-sm"
-                                      onClick={() => handleVote(idea.id)}
-                                      disabled={
-                                        !isEmailVerified || idea.isVoted
-                                      }
-                                    >
-                                      {idea.isVoted
-                                        ? "Голос учтен"
-                                        : isEmailVerified
-                                          ? t("voteAction")
-                                          : t("emailVerificationRequiredTitle")}
-                                    </GradientButton>
-                                  </div>
+
+                                <div className="flex flex-col gap-3 border-t border-border/50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                                  <Link
+                                    href={`/projects/${idea.id}`}
+                                    className="inline-flex items-center justify-center rounded-full border border-border/70 bg-background/80 px-5 py-2.5 text-sm font-semibold text-foreground transition-[transform,border-color,background-color,color] duration-200 active:scale-[0.97] hover:border-foreground hover:bg-foreground hover:text-background"
+                                  >
+                                    К проекту
+                                  </Link>
+                                  <GradientButton
+                                    className="px-5 py-2.5 text-sm active:scale-[0.97]"
+                                    onClick={() => handleVote(idea.id)}
+                                    disabled={!isEmailVerified || idea.isVoted}
+                                  >
+                                    {idea.isVoted
+                                      ? "Голос учтен"
+                                      : isEmailVerified
+                                        ? t("voteAction")
+                                        : t("emailVerificationRequiredTitle")}
+                                  </GradientButton>
                                 </div>
                               </motion.article>
                             );
@@ -1184,10 +1246,20 @@ export default function VotingPage() {
                         ) : (
                           <motion.div
                             key="empty"
-                            variants={cardVariants}
-                            className="rounded-[2rem] border border-dashed border-border/70 bg-card/60 p-6 text-sm text-muted-foreground"
+                            variants={shouldReduceMotion ? {} : cardVariants}
+                            className="rounded-[2rem] border border-dashed border-border/60 bg-card/50 px-5 py-10 text-center text-sm text-muted-foreground"
                           >
-                            Идеи по этим фильтрам пока не найдены.
+                            <p className="font-semibold">Идей не найдено</p>
+                            <p className="mt-1 text-xs">Попробуй изменить фильтры</p>
+                            {hasFilters && (
+                              <button
+                                type="button"
+                                onClick={resetFilters}
+                                className="mt-4 rounded-full border border-border/70 bg-background/80 px-4 py-2 text-xs font-semibold transition-[transform,border-color] duration-200 active:scale-[0.97] hover:border-foreground"
+                              >
+                                Сбросить фильтры
+                              </button>
+                            )}
                           </motion.div>
                         )}
                       </AnimatePresence>

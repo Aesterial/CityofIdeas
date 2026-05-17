@@ -14,6 +14,12 @@ message CreateRequest {
   repeated string perms = 5;
 }
 
+message SetRankRequest {
+  string user_id = 1;
+  string rank_name = 2;
+  google.protobuf.Timestamp expires_at = 3;
+}
+
 message Rank {
   string id = 1;
   string name = 2;

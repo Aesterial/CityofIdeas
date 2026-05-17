@@ -27,6 +27,7 @@ const (
 	RankService_List_FullMethodName        = "/xyz.city_ideas.v1.ranks.v1.RankService/List"
 	RankService_Edit_FullMethodName        = "/xyz.city_ideas.v1.ranks.v1.RankService/Edit"
 	RankService_Delete_FullMethodName      = "/xyz.city_ideas.v1.ranks.v1.RankService/Delete"
+	RankService_SetRank_FullMethodName     = "/xyz.city_ideas.v1.ranks.v1.RankService/SetRank"
 )
 
 // RankServiceClient is the client API for RankService service.
@@ -39,6 +40,7 @@ type RankServiceClient interface {
 	List(ctx context.Context, in *v1.RequestWithLimitAndOffset, opts ...grpc.CallOption) (*ListResponse, error)
 	Edit(ctx context.Context, in *Rank, opts ...grpc.CallOption) (*Rank, error)
 	Delete(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	SetRank(ctx context.Context, in *SetRankRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type rankServiceClient struct {
@@ -109,6 +111,16 @@ func (c *rankServiceClient) Delete(ctx context.Context, in *v1.RequestWithValue,
 	return out, nil
 }
 
+func (c *rankServiceClient) SetRank(ctx context.Context, in *SetRankRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, RankService_SetRank_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RankServiceServer is the server API for RankService service.
 // All implementations should embed UnimplementedRankServiceServer
 // for forward compatibility.
@@ -119,6 +131,7 @@ type RankServiceServer interface {
 	List(context.Context, *v1.RequestWithLimitAndOffset) (*ListResponse, error)
 	Edit(context.Context, *Rank) (*Rank, error)
 	Delete(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error)
+	SetRank(context.Context, *SetRankRequest) (*emptypb.Empty, error)
 }
 
 // UnimplementedRankServiceServer should be embedded to have
@@ -145,6 +158,9 @@ func (UnimplementedRankServiceServer) Edit(context.Context, *Rank) (*Rank, error
 }
 func (UnimplementedRankServiceServer) Delete(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error) {
 	return nil, status.Error(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedRankServiceServer) SetRank(context.Context, *SetRankRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetRank not implemented")
 }
 func (UnimplementedRankServiceServer) testEmbeddedByValue() {}
 
@@ -274,6 +290,24 @@ func _RankService_Delete_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RankService_SetRank_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetRankRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RankServiceServer).SetRank(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RankService_SetRank_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RankServiceServer).SetRank(ctx, req.(*SetRankRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RankService_ServiceDesc is the grpc.ServiceDesc for RankService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -304,6 +338,10 @@ var RankService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _RankService_Delete_Handler,
+		},
+		{
+			MethodName: "SetRank",
+			Handler:    _RankService_SetRank_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

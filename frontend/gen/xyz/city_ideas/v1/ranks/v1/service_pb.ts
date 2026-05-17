@@ -6,7 +6,7 @@ import type { GenFile, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import type { EmptySchema } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_empty } from "@bufbuild/protobuf/wkt";
-import type { CreateRequestSchema, ListResponseSchema, PermissionsSchema, RankSchema } from "./domain_pb";
+import type { CreateRequestSchema, ListResponseSchema, PermissionsSchema, RankSchema, SetRankRequestSchema } from "./domain_pb";
 import { file_xyz_city_ideas_v1_ranks_v1_domain } from "./domain_pb";
 import type { RequestWithLimitAndOffsetSchema, RequestWithValueSchema } from "../../types_pb";
 import { file_xyz_city_ideas_v1_types } from "../../types_pb";
@@ -15,7 +15,7 @@ import { file_xyz_city_ideas_v1_types } from "../../types_pb";
  * Describes the file xyz/city_ideas/v1/ranks/v1/service.proto.
  */
 export const file_xyz_city_ideas_v1_ranks_v1_service: GenFile = /*@__PURE__*/
-  fileDesc("Cih4eXovY2l0eV9pZGVhcy92MS9yYW5rcy92MS9zZXJ2aWNlLnByb3RvEhp4eXouY2l0eV9pZGVhcy52MS5yYW5rcy52MTL2AwoLUmFua1NlcnZpY2USTgoLUGVybWlzc2lvbnMSFi5nb29nbGUucHJvdG9idWYuRW1wdHkaJy54eXouY2l0eV9pZGVhcy52MS5yYW5rcy52MS5QZXJtaXNzaW9ucxJVCgZDcmVhdGUSKS54eXouY2l0eV9pZGVhcy52MS5yYW5rcy52MS5DcmVhdGVSZXF1ZXN0GiAueHl6LmNpdHlfaWRlYXMudjEucmFua3MudjEuUmFuaxJNCgRSYW5rEiMueHl6LmNpdHlfaWRlYXMudjEuUmVxdWVzdFdpdGhWYWx1ZRogLnh5ei5jaXR5X2lkZWFzLnYxLnJhbmtzLnYxLlJhbmsSXgoETGlzdBIsLnh5ei5jaXR5X2lkZWFzLnYxLlJlcXVlc3RXaXRoTGltaXRBbmRPZmZzZXQaKC54eXouY2l0eV9pZGVhcy52MS5yYW5rcy52MS5MaXN0UmVzcG9uc2USSgoERWRpdBIgLnh5ei5jaXR5X2lkZWFzLnYxLnJhbmtzLnYxLlJhbmsaIC54eXouY2l0eV9pZGVhcy52MS5yYW5rcy52MS5SYW5rEkUKBkRlbGV0ZRIjLnh5ei5jaXR5X2lkZWFzLnYxLlJlcXVlc3RXaXRoVmFsdWUaFi5nb29nbGUucHJvdG9idWYuRW1wdHlCRFpCZ2l0aHViLmNvbS9hZXN0ZXJpYWwvY2l0eWlkZWFzL2JhY2tlbmQvaW50ZXJuYWwvYXBpL3YxL3JhbmtzL3YxO3YxYghlZGl0aW9uc3DoBw", [file_google_protobuf_empty, file_xyz_city_ideas_v1_ranks_v1_domain, file_xyz_city_ideas_v1_types]);
+  fileDesc("Cih4eXovY2l0eV9pZGVhcy92MS9yYW5rcy92MS9zZXJ2aWNlLnByb3RvEhp4eXouY2l0eV9pZGVhcy52MS5yYW5rcy52MTLFBAoLUmFua1NlcnZpY2USTgoLUGVybWlzc2lvbnMSFi5nb29nbGUucHJvdG9idWYuRW1wdHkaJy54eXouY2l0eV9pZGVhcy52MS5yYW5rcy52MS5QZXJtaXNzaW9ucxJVCgZDcmVhdGUSKS54eXouY2l0eV9pZGVhcy52MS5yYW5rcy52MS5DcmVhdGVSZXF1ZXN0GiAueHl6LmNpdHlfaWRlYXMudjEucmFua3MudjEuUmFuaxJNCgRSYW5rEiMueHl6LmNpdHlfaWRlYXMudjEuUmVxdWVzdFdpdGhWYWx1ZRogLnh5ei5jaXR5X2lkZWFzLnYxLnJhbmtzLnYxLlJhbmsSXgoETGlzdBIsLnh5ei5jaXR5X2lkZWFzLnYxLlJlcXVlc3RXaXRoTGltaXRBbmRPZmZzZXQaKC54eXouY2l0eV9pZGVhcy52MS5yYW5rcy52MS5MaXN0UmVzcG9uc2USSgoERWRpdBIgLnh5ei5jaXR5X2lkZWFzLnYxLnJhbmtzLnYxLlJhbmsaIC54eXouY2l0eV9pZGVhcy52MS5yYW5rcy52MS5SYW5rEkUKBkRlbGV0ZRIjLnh5ei5jaXR5X2lkZWFzLnYxLlJlcXVlc3RXaXRoVmFsdWUaFi5nb29nbGUucHJvdG9idWYuRW1wdHkSTQoHU2V0UmFuaxIqLnh5ei5jaXR5X2lkZWFzLnYxLnJhbmtzLnYxLlNldFJhbmtSZXF1ZXN0GhYuZ29vZ2xlLnByb3RvYnVmLkVtcHR5QkRaQmdpdGh1Yi5jb20vYWVzdGVyaWFsL2NpdHlpZGVhcy9iYWNrZW5kL2ludGVybmFsL2FwaS92MS9yYW5rcy92MTt2MWIIZWRpdGlvbnNw6Ac", [file_google_protobuf_empty, file_xyz_city_ideas_v1_ranks_v1_domain, file_xyz_city_ideas_v1_types]);
 
 /**
  * @generated from service xyz.city_ideas.v1.ranks.v1.RankService
@@ -67,6 +67,14 @@ export const RankService: GenService<{
   delete: {
     methodKind: "unary";
     input: typeof RequestWithValueSchema;
+    output: typeof EmptySchema;
+  },
+  /**
+   * @generated from rpc xyz.city_ideas.v1.ranks.v1.RankService.SetRank
+   */
+  setRank: {
+    methodKind: "unary";
+    input: typeof SetRankRequestSchema;
     output: typeof EmptySchema;
   },
 }> = /*@__PURE__*/

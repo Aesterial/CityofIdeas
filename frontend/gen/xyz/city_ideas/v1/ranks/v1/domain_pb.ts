@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file xyz/city_ideas/v1/ranks/v1/domain.proto.
  */
 export const file_xyz_city_ideas_v1_ranks_v1_domain: GenFile = /*@__PURE__*/
-  fileDesc("Cid4eXovY2l0eV9pZGVhcy92MS9yYW5rcy92MS9kb21haW4ucHJvdG8SGnh5ei5jaXR5X2lkZWFzLnYxLnJhbmtzLnYxImAKDUNyZWF0ZVJlcXVlc3QSDAoEbmFtZRgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCRINCgVjb2xvchgDIAEoAxIOCgZ3ZWlnaHQYBCABKAUSDQoFcGVybXMYBSADKAkikQEKBFJhbmsSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRINCgVjb2xvchgEIAEoAxIOCgZ3ZWlnaHQYBSABKAUSEwoLcGVybWlzc2lvbnMYBiADKAkSJgoCYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIhwKC1Blcm1pc3Npb25zEg0KBXBlcm1zGAEgAygJIj4KDExpc3RSZXNwb25zZRIuCgRsaXN0GAEgAygLMiAueHl6LmNpdHlfaWRlYXMudjEucmFua3MudjEuUmFua0JEWkJnaXRodWIuY29tL2Flc3RlcmlhbC9jaXR5aWRlYXMvYmFja2VuZC9pbnRlcm5hbC9hcGkvdjEvcmFua3MvdjE7djFiCGVkaXRpb25zcOgH", [file_google_protobuf_timestamp]);
+  fileDesc("Cid4eXovY2l0eV9pZGVhcy92MS9yYW5rcy92MS9kb21haW4ucHJvdG8SGnh5ei5jaXR5X2lkZWFzLnYxLnJhbmtzLnYxImAKDUNyZWF0ZVJlcXVlc3QSDAoEbmFtZRgBIAEoCRITCgtkZXNjcmlwdGlvbhgCIAEoCRINCgVjb2xvchgDIAEoAxIOCgZ3ZWlnaHQYBCABKAUSDQoFcGVybXMYBSADKAkiZAoOU2V0UmFua1JlcXVlc3QSDwoHdXNlcl9pZBgBIAEoCRIRCglyYW5rX25hbWUYAiABKAkSLgoKZXhwaXJlc19hdBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXAikQEKBFJhbmsSCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRINCgVjb2xvchgEIAEoAxIOCgZ3ZWlnaHQYBSABKAUSEwoLcGVybWlzc2lvbnMYBiADKAkSJgoCYXQYByABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wIhwKC1Blcm1pc3Npb25zEg0KBXBlcm1zGAEgAygJIj4KDExpc3RSZXNwb25zZRIuCgRsaXN0GAEgAygLMiAueHl6LmNpdHlfaWRlYXMudjEucmFua3MudjEuUmFua0JEWkJnaXRodWIuY29tL2Flc3RlcmlhbC9jaXR5aWRlYXMvYmFja2VuZC9pbnRlcm5hbC9hcGkvdjEvcmFua3MvdjE7djFiCGVkaXRpb25zcOgH", [file_google_protobuf_timestamp]);
 
 /**
  * @generated from message xyz.city_ideas.v1.ranks.v1.CreateRequest
@@ -50,6 +50,33 @@ export type CreateRequest = Message<"xyz.city_ideas.v1.ranks.v1.CreateRequest"> 
  */
 export const CreateRequestSchema: GenMessage<CreateRequest> = /*@__PURE__*/
   messageDesc(file_xyz_city_ideas_v1_ranks_v1_domain, 0);
+
+/**
+ * @generated from message xyz.city_ideas.v1.ranks.v1.SetRankRequest
+ */
+export type SetRankRequest = Message<"xyz.city_ideas.v1.ranks.v1.SetRankRequest"> & {
+  /**
+   * @generated from field: string user_id = 1;
+   */
+  userId: string;
+
+  /**
+   * @generated from field: string rank_name = 2;
+   */
+  rankName: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp expires_at = 3;
+   */
+  expiresAt?: Timestamp | undefined;
+};
+
+/**
+ * Describes the message xyz.city_ideas.v1.ranks.v1.SetRankRequest.
+ * Use `create(SetRankRequestSchema)` to create a new message.
+ */
+export const SetRankRequestSchema: GenMessage<SetRankRequest> = /*@__PURE__*/
+  messageDesc(file_xyz_city_ideas_v1_ranks_v1_domain, 1);
 
 /**
  * @generated from message xyz.city_ideas.v1.ranks.v1.Rank
@@ -96,7 +123,7 @@ export type Rank = Message<"xyz.city_ideas.v1.ranks.v1.Rank"> & {
  * Use `create(RankSchema)` to create a new message.
  */
 export const RankSchema: GenMessage<Rank> = /*@__PURE__*/
-  messageDesc(file_xyz_city_ideas_v1_ranks_v1_domain, 1);
+  messageDesc(file_xyz_city_ideas_v1_ranks_v1_domain, 2);
 
 /**
  * @generated from message xyz.city_ideas.v1.ranks.v1.Permissions
@@ -113,7 +140,7 @@ export type Permissions = Message<"xyz.city_ideas.v1.ranks.v1.Permissions"> & {
  * Use `create(PermissionsSchema)` to create a new message.
  */
 export const PermissionsSchema: GenMessage<Permissions> = /*@__PURE__*/
-  messageDesc(file_xyz_city_ideas_v1_ranks_v1_domain, 2);
+  messageDesc(file_xyz_city_ideas_v1_ranks_v1_domain, 3);
 
 /**
  * @generated from message xyz.city_ideas.v1.ranks.v1.ListResponse
@@ -130,5 +157,5 @@ export type ListResponse = Message<"xyz.city_ideas.v1.ranks.v1.ListResponse"> & 
  * Use `create(ListResponseSchema)` to create a new message.
  */
 export const ListResponseSchema: GenMessage<ListResponse> = /*@__PURE__*/
-  messageDesc(file_xyz_city_ideas_v1_ranks_v1_domain, 3);
+  messageDesc(file_xyz_city_ideas_v1_ranks_v1_domain, 4);
 

@@ -206,6 +206,142 @@ func (b0 CreateRequest_builder) Build() *CreateRequest {
 	return m0
 }
 
+type SetRankRequest struct {
+	state                  protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_UserId      *string                `protobuf:"bytes,1,opt,name=user_id,json=userId"`
+	xxx_hidden_RankName    *string                `protobuf:"bytes,2,opt,name=rank_name,json=rankName"`
+	xxx_hidden_ExpiresAt   *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=expires_at,json=expiresAt"`
+	XXX_raceDetectHookData protoimpl.RaceDetectHookData
+	XXX_presence           [1]uint32
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *SetRankRequest) Reset() {
+	*x = SetRankRequest{}
+	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetRankRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetRankRequest) ProtoMessage() {}
+
+func (x *SetRankRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+func (x *SetRankRequest) GetUserId() string {
+	if x != nil {
+		if x.xxx_hidden_UserId != nil {
+			return *x.xxx_hidden_UserId
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *SetRankRequest) GetRankName() string {
+	if x != nil {
+		if x.xxx_hidden_RankName != nil {
+			return *x.xxx_hidden_RankName
+		}
+		return ""
+	}
+	return ""
+}
+
+func (x *SetRankRequest) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.xxx_hidden_ExpiresAt
+	}
+	return nil
+}
+
+func (x *SetRankRequest) SetUserId(v string) {
+	x.xxx_hidden_UserId = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 3)
+}
+
+func (x *SetRankRequest) SetRankName(v string) {
+	x.xxx_hidden_RankName = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 3)
+}
+
+func (x *SetRankRequest) SetExpiresAt(v *timestamppb.Timestamp) {
+	x.xxx_hidden_ExpiresAt = v
+}
+
+func (x *SetRankRequest) HasUserId() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
+}
+
+func (x *SetRankRequest) HasRankName() bool {
+	if x == nil {
+		return false
+	}
+	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
+}
+
+func (x *SetRankRequest) HasExpiresAt() bool {
+	if x == nil {
+		return false
+	}
+	return x.xxx_hidden_ExpiresAt != nil
+}
+
+func (x *SetRankRequest) ClearUserId() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
+	x.xxx_hidden_UserId = nil
+}
+
+func (x *SetRankRequest) ClearRankName() {
+	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
+	x.xxx_hidden_RankName = nil
+}
+
+func (x *SetRankRequest) ClearExpiresAt() {
+	x.xxx_hidden_ExpiresAt = nil
+}
+
+type SetRankRequest_builder struct {
+	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
+
+	UserId    *string
+	RankName  *string
+	ExpiresAt *timestamppb.Timestamp
+}
+
+func (b0 SetRankRequest_builder) Build() *SetRankRequest {
+	m0 := &SetRankRequest{}
+	b, x := &b0, m0
+	_, _ = b, x
+	if b.UserId != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 3)
+		x.xxx_hidden_UserId = b.UserId
+	}
+	if b.RankName != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 3)
+		x.xxx_hidden_RankName = b.RankName
+	}
+	x.xxx_hidden_ExpiresAt = b.ExpiresAt
+	return m0
+}
+
 type Rank struct {
 	state                  protoimpl.MessageState `protogen:"opaque.v1"`
 	xxx_hidden_Id          *string                `protobuf:"bytes,1,opt,name=id"`
@@ -223,7 +359,7 @@ type Rank struct {
 
 func (x *Rank) Reset() {
 	*x = Rank{}
-	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[1]
+	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -235,7 +371,7 @@ func (x *Rank) String() string {
 func (*Rank) ProtoMessage() {}
 
 func (x *Rank) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[1]
+	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -458,7 +594,7 @@ type Permissions struct {
 
 func (x *Permissions) Reset() {
 	*x = Permissions{}
-	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[2]
+	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -470,7 +606,7 @@ func (x *Permissions) String() string {
 func (*Permissions) ProtoMessage() {}
 
 func (x *Permissions) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[2]
+	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -515,7 +651,7 @@ type ListResponse struct {
 
 func (x *ListResponse) Reset() {
 	*x = ListResponse{}
-	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[3]
+	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -527,7 +663,7 @@ func (x *ListResponse) String() string {
 func (*ListResponse) ProtoMessage() {}
 
 func (x *ListResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[3]
+	mi := &file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -575,7 +711,12 @@ const file_xyz_city_ideas_v1_ranks_v1_domain_proto_rawDesc = "" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x14\n" +
 	"\x05color\x18\x03 \x01(\x03R\x05color\x12\x16\n" +
 	"\x06weight\x18\x04 \x01(\x05R\x06weight\x12\x14\n" +
-	"\x05perms\x18\x05 \x03(\tR\x05perms\"\xc8\x01\n" +
+	"\x05perms\x18\x05 \x03(\tR\x05perms\"\x81\x01\n" +
+	"\x0eSetRankRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1b\n" +
+	"\trank_name\x18\x02 \x01(\tR\brankName\x129\n" +
+	"\n" +
+	"expires_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\"\xc8\x01\n" +
 	"\x04Rank\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
@@ -589,22 +730,24 @@ const file_xyz_city_ideas_v1_ranks_v1_domain_proto_rawDesc = "" +
 	"\fListResponse\x124\n" +
 	"\x04list\x18\x01 \x03(\v2 .xyz.city_ideas.v1.ranks.v1.RankR\x04listBDZBgithub.com/aesterial/cityideas/backend/internal/api/v1/ranks/v1;v1b\beditionsp\xe8\a"
 
-var file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_xyz_city_ideas_v1_ranks_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_xyz_city_ideas_v1_ranks_v1_domain_proto_goTypes = []any{
 	(*CreateRequest)(nil),         // 0: xyz.city_ideas.v1.ranks.v1.CreateRequest
-	(*Rank)(nil),                  // 1: xyz.city_ideas.v1.ranks.v1.Rank
-	(*Permissions)(nil),           // 2: xyz.city_ideas.v1.ranks.v1.Permissions
-	(*ListResponse)(nil),          // 3: xyz.city_ideas.v1.ranks.v1.ListResponse
-	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
+	(*SetRankRequest)(nil),        // 1: xyz.city_ideas.v1.ranks.v1.SetRankRequest
+	(*Rank)(nil),                  // 2: xyz.city_ideas.v1.ranks.v1.Rank
+	(*Permissions)(nil),           // 3: xyz.city_ideas.v1.ranks.v1.Permissions
+	(*ListResponse)(nil),          // 4: xyz.city_ideas.v1.ranks.v1.ListResponse
+	(*timestamppb.Timestamp)(nil), // 5: google.protobuf.Timestamp
 }
 var file_xyz_city_ideas_v1_ranks_v1_domain_proto_depIdxs = []int32{
-	4, // 0: xyz.city_ideas.v1.ranks.v1.Rank.at:type_name -> google.protobuf.Timestamp
-	1, // 1: xyz.city_ideas.v1.ranks.v1.ListResponse.list:type_name -> xyz.city_ideas.v1.ranks.v1.Rank
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	5, // 0: xyz.city_ideas.v1.ranks.v1.SetRankRequest.expires_at:type_name -> google.protobuf.Timestamp
+	5, // 1: xyz.city_ideas.v1.ranks.v1.Rank.at:type_name -> google.protobuf.Timestamp
+	2, // 2: xyz.city_ideas.v1.ranks.v1.ListResponse.list:type_name -> xyz.city_ideas.v1.ranks.v1.Rank
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_xyz_city_ideas_v1_ranks_v1_domain_proto_init() }
@@ -618,7 +761,7 @@ func file_xyz_city_ideas_v1_ranks_v1_domain_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_xyz_city_ideas_v1_ranks_v1_domain_proto_rawDesc), len(file_xyz_city_ideas_v1_ranks_v1_domain_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

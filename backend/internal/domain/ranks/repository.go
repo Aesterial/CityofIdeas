@@ -2,6 +2,7 @@ package ranksdomain
 
 import (
 	"context"
+	"time"
 
 	"github.com/aesterial/cityideas/backend/internal/domain"
 )
@@ -16,4 +17,5 @@ type Repository interface {
 	User(ctx context.Context, user domain.UUID) (UserRanks, error)
 	Users(ctx context.Context, name string) ([]*domain.UUID, error)
 	Revoke(ctx context.Context, user domain.UUID, name string) error
+	Set(ctx context.Context, user domain.UUID, rankName string, expiresAt *time.Time) error
 }

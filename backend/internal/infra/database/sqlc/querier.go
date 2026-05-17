@@ -98,6 +98,7 @@ type Querier interface {
 	SetProjectStatus(ctx context.Context, arg SetProjectStatusParams) error
 	SetSessionLastSeen(ctx context.Context, id pgtype.UUID) error
 	SetTotpLastSeen(ctx context.Context, arg SetTotpLastSeenParams) error
+	SetUserRank(ctx context.Context, arg SetUserRankParams) error
 	SetUserSecurityEmailVerified(ctx context.Context, owner pgtype.UUID) error
 	StartMaintenance(ctx context.Context, id pgtype.UUID) error
 	StartUserSecurityTotp(ctx context.Context, arg StartUserSecurityTotpParams) error

@@ -1545,11 +1545,15 @@ select projects.id,
        impl_link,
        projects.at,
        updated,
-       deleted
+       deleted,
+       project_location.city,
+       project_location.lat,
+       project_location.lot
 from projects
          left join project_likes on project_likes.project = projects.id
+         left join project_location on project_location.id = projects.id
 where projects.id = $1
-group by projects.id, projects.author, title, description, category, status, impl_link, projects.at, updated, deleted
+group by projects.id, projects.author, title, description, category, status, impl_link, projects.at, updated, deleted, project_location.city, project_location.lat, project_location.lot
 limit 1
 `
 
@@ -1565,6 +1569,9 @@ type ProjectInfoRow struct {
 	At          pgtype.Timestamptz `json:"at"`
 	Updated     pgtype.Timestamptz `json:"updated"`
 	Deleted     pgtype.Timestamptz `json:"deleted"`
+	City        pgtype.Text        `json:"city"`
+	Lat         pgtype.Float8      `json:"lat"`
+	Lot         pgtype.Float8      `json:"lot"`
 }
 
 func (q *Queries) ProjectInfo(ctx context.Context, id pgtype.UUID) (ProjectInfoRow, error) {
@@ -1582,6 +1589,9 @@ func (q *Queries) ProjectInfo(ctx context.Context, id pgtype.UUID) (ProjectInfoR
 		&i.At,
 		&i.Updated,
 		&i.Deleted,
+		&i.City,
+		&i.Lat,
+		&i.Lot,
 	)
 	return i, err
 }
@@ -1680,10 +1690,15 @@ select projects.id,
        count(project_likes.project)::bigint as likes_count,
        projects.at,
        updated,
-       deleted
+       deleted,
+       project_location.city,
+       project_location.lat,
+       project_location.lot
 from projects
          left join project_likes
                    on project_likes.project = projects.id
+         left join project_location
+                   on project_location.id = projects.id
 where status <> 'reviewing'
   and status <> 'cancelled'
 group by projects.id,
@@ -1695,7 +1710,10 @@ group by projects.id,
          impl_link,
          projects.at,
          updated,
-         deleted
+         deleted,
+         project_location.city,
+         project_location.lat,
+         project_location.lot
 limit $1 offset $2
 `
 
@@ -1716,6 +1734,9 @@ type ProjectsListRow struct {
 	At          pgtype.Timestamptz `json:"at"`
 	Updated     pgtype.Timestamptz `json:"updated"`
 	Deleted     pgtype.Timestamptz `json:"deleted"`
+	City        pgtype.Text        `json:"city"`
+	Lat         pgtype.Float8      `json:"lat"`
+	Lot         pgtype.Float8      `json:"lot"`
 }
 
 func (q *Queries) ProjectsList(ctx context.Context, arg ProjectsListParams) ([]ProjectsListRow, error) {
@@ -1739,6 +1760,9 @@ func (q *Queries) ProjectsList(ctx context.Context, arg ProjectsListParams) ([]P
 			&i.At,
 			&i.Updated,
 			&i.Deleted,
+			&i.City,
+			&i.Lat,
+			&i.Lot,
 		); err != nil {
 			return nil, err
 		}
@@ -2140,6 +2164,23 @@ type SetTotpLastSeenParams struct {
 
 func (q *Queries) SetTotpLastSeen(ctx context.Context, arg SetTotpLastSeenParams) error {
 	_, err := q.db.Exec(ctx, SetTotpLastSeen, arg.TotpLastStep, arg.Owner)
+	return err
+}
+
+const SetUserRank = `-- name: SetUserRank :exec
+insert into users_ranks (owner, rank, expires)
+values ($1, (select id from ranks where name = $2), $3)
+on conflict (owner) do update set rank = (select id from ranks where name = $2), expires = $3
+`
+
+type SetUserRankParams struct {
+	Owner   pgtype.UUID        `json:"owner"`
+	Name    string             `json:"name"`
+	Expires pgtype.Timestamptz `json:"expires"`
+}
+
+func (q *Queries) SetUserRank(ctx context.Context, arg SetUserRankParams) error {
+	_, err := q.db.Exec(ctx, SetUserRank, arg.Owner, arg.Name, arg.Expires)
 	return err
 }
 

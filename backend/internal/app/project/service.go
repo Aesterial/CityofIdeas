@@ -246,15 +246,20 @@ func (s *Service) Submission(ctx context.Context, submission string) (*projectdo
 	})
 }
 
-func (s *Service) SubmissionReview(ctx context.Context, project string, conclusion bool, reason *string) error {
-	if !conclusion && reason == nil || project == "" {
+func (s *Service) SubmissionReview(ctx context.Context, submissionID string, conclusion bool, reason *string) error {
+	if !conclusion && reason == nil || submissionID == "" {
 		return errors.InvalidArguments
 	}
-	id, err := domain.FromString(project)
+	sid, err := domain.FromString(submissionID)
 	if err != nil {
 		return errors.Wrap(err)
 	}
-	err = s.proj.SubmissionReview(ctx, id, conclusion, reason)
+	submission, err := s.proj.Submission(ctx, sid)
+	if err != nil {
+		logger.Error("projects", "failed to get submission for review", logger.F("error", err))
+		return errors.Wrap(err)
+	}
+	err = s.proj.SubmissionReview(ctx, submission.Project, conclusion, reason)
 	if err != nil {
 		logger.Error("projects", "failed to review submission", logger.F("error", err))
 		return errors.Wrap(err)

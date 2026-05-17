@@ -254,10 +254,15 @@ select projects.id,
        count(project_likes.project)::bigint as likes_count,
        projects.at,
        updated,
-       deleted
+       deleted,
+       project_location.city,
+       project_location.lat,
+       project_location.lot
 from projects
          left join project_likes
                    on project_likes.project = projects.id
+         left join project_location
+                   on project_location.id = projects.id
 where status <> 'reviewing'
   and status <> 'cancelled'
 group by projects.id,
@@ -269,7 +274,10 @@ group by projects.id,
          impl_link,
          projects.at,
          updated,
-         deleted
+         deleted,
+         project_location.city,
+         project_location.lat,
+         project_location.lot
 limit $1 offset $2;
 
 -- name: ProjectsTop :many
@@ -304,11 +312,15 @@ select projects.id,
        impl_link,
        projects.at,
        updated,
-       deleted
+       deleted,
+       project_location.city,
+       project_location.lat,
+       project_location.lot
 from projects
          left join project_likes on project_likes.project = projects.id
+         left join project_location on project_location.id = projects.id
 where projects.id = $1
-group by projects.id, projects.author, title, description, category, status, impl_link, projects.at, updated, deleted
+group by projects.id, projects.author, title, description, category, status, impl_link, projects.at, updated, deleted, project_location.city, project_location.lat, project_location.lot
 limit 1;
 
 -- name: ProjectLocationInfo :one
@@ -405,6 +417,11 @@ select owner from users_ranks join ranks on ranks.id = users_ranks.rank where ra
 
 -- name: RevokeRankFromUser :exec
 update users_ranks set expires = now() from ranks where users_ranks.rank = ranks.id and ranks.name = $1 and users_ranks.owner = $2;
+
+-- name: SetUserRank :exec
+insert into users_ranks (owner, rank, expires)
+values ($1, (select id from ranks where name = $2), $3)
+on conflict (owner) do update set rank = (select id from ranks where name = $2), expires = $3;
 
 -- name: UpdateRankName :exec
 update ranks set name = $1 where id = $2;

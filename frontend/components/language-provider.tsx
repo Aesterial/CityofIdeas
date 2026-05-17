@@ -1824,6 +1824,16 @@ export const translations: Translations = {
     EN: "Online/offline over time",
     KZ: "\u041e\u043d\u043b\u0430\u0439\u043d/\u043e\u0444\u043b\u0430\u0439\u043d \u0434\u0438\u043d\u0430\u043c\u0438\u043a\u0430\u0441\u044b",
   },
+  adminStatsAudienceTitle: {
+    RU: "\u0410\u0443\u0434\u0438\u0442\u043e\u0440\u0438\u044f",
+    EN: "Audience",
+    KZ: "\u0410\u0443\u0434\u0438\u0442\u043e\u0440\u0438\u044f",
+  },
+  adminStatsAudienceSubtitle: {
+    RU: "\u0410\u043a\u0442\u0438\u0432\u043d\u044b\u0435 \u0438 \u043e\u0444\u043b\u0430\u0439\u043d \u0441\u0435\u0439\u0447\u0430\u0441",
+    EN: "Active and offline now",
+    KZ: "\u049a\u0430\u0437\u0456\u0440 \u0431\u0435\u043b\u0441\u0435\u043d\u0434\u0456 \u0436\u04d9\u043d\u0435 \u0436\u0435\u043b\u0456\u0434\u0435",
+  },
   adminStatsStatusesTitle: {
     RU: "\u0421\u0442\u0430\u0442\u0443\u0441\u044b \u0437\u0430\u044f\u0432\u043e\u043a",
     EN: "Submission statuses",

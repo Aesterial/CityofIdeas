@@ -11,7 +11,9 @@ import {
   ProjectLocationSchema,
   type Submission as GrpcSubmission,
 } from "@/gen/xyz/city_ideas/v1/projects/v1/domain_pb";
-import {CreateRequestSchema as RankCreateRequestSchema, RankSchema,} from "@/gen/xyz/city_ideas/v1/ranks/v1/domain_pb";
+import {CreateRequestSchema as RankCreateRequestSchema, RankSchema, SetRankRequestSchema,} from "@/gen/xyz/city_ideas/v1/ranks/v1/domain_pb";
+import { Purpose as StoragePurpose } from "@/gen/xyz/city_ideas/v1/storage/v1/domain_pb";
+import { GetUploadURLRequestSchema } from "@/gen/xyz/city_ideas/v1/storage/v1/service_pb";
 import {
   CreateRequestSchema as MaintenanceCreateRequestSchema,
   TimeRangeSchema,
@@ -39,6 +41,7 @@ import {
   ResetTotpRequestSchema,
 } from "@/gen/xyz/city_ideas/v1/login/v1/domain_pb";
 import {
+  BanRequestSchema,
   type PublicUser as GrpcPublicUser,
   UpdatePreferencesRequestSchema,
 } from "@/gen/xyz/city_ideas/v1/user/v1/domain_pb";
@@ -49,6 +52,7 @@ import {
   rankClient,
   sessionClient,
   statisticClient,
+  storageClient,
   ticketClient,
   userClient,
 } from "@/lib/grpc-web";
@@ -2022,40 +2026,30 @@ export async function fetchUserPublic(
 }
 
 export async function fetchUserPermissions(
-  userID: UserID,
+  _userID: UserID,
+  rankName?: string,
   options?: { signal?: AbortSignal },
 ): Promise<ApiPermissions | null> {
-  const normalizedUserID = normalizeUserID(userID);
-  const payload = await apiRequest<ApiPermissions | ApiPermissionsResponse>(
-    `/api/user/${encodeURIComponent(normalizedUserID)}/permissions`,
-    {
-      method: "GET",
-      signal: options?.signal,
-    },
-  );
-  if (!payload) {
+  if (!rankName) {
     return null;
   }
-  return isPermissionsResponse(payload) ? (payload.data ?? null) : payload;
+  return fetchRankPermissions(rankName, options);
 }
 
 export async function updateUserPermission(
-  userID: UserID,
+  _userID: UserID,
   permission: string,
   state: boolean,
+  rankName?: string,
 ): Promise<void> {
   const trimmed = permission.trim();
-  const normalizedUserID = normalizeUserID(userID);
   if (!trimmed) {
     throw new Error("Permission is required.");
   }
-  await apiRequest(
-    `/api/user/${encodeURIComponent(normalizedUserID)}/permissions/patch/${encodeURIComponent(trimmed)}`,
-    {
-      method: "POST",
-      body: JSON.stringify({ state }),
-    },
-  );
+  if (!rankName) {
+    throw new Error("Rank name is required to update permissions.");
+  }
+  await updateRankPermission(rankName, trimmed, state);
 }
 
 export async function setUserRank(
@@ -2068,22 +2062,24 @@ export async function setUserRank(
   if (!trimmedRank) {
     throw new Error("Rank is required.");
   }
-  const body: Record<string, unknown> = {
-    userID: normalizedUserID,
-    rank: trimmedRank,
-  };
+  let expiresAtTimestamp: ReturnType<typeof timestampFromDate> | undefined;
   if (expiresAt) {
     const dateValue =
       typeof expiresAt === "string" ? new Date(expiresAt) : expiresAt;
     if (Number.isNaN(dateValue.getTime())) {
       throw new Error("Invalid expiration date.");
     }
-    body.expires = dateValue.toISOString();
+    expiresAtTimestamp = timestampFromDate(dateValue);
   }
-  await apiRequest(`/api/user/${encodeURIComponent(normalizedUserID)}/rank/set`, {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
+  await grpcRequest(() =>
+    rankClient.setRank(
+      create(SetRankRequestSchema, {
+        userId: String(normalizedUserID),
+        rankName: trimmedRank,
+        expiresAt: expiresAtTimestamp,
+      }),
+    ),
+  );
 }
 
 export async function fetchRanksList(options?: {
@@ -2161,20 +2157,12 @@ export async function updateRank(
   if (!trimmed) {
     throw new Error("Rank name is required.");
   }
-  if (target === "name") {
-    const encodedName = encodeURIComponent(trimmed);
-    await apiRequest(`/api/ranks/${encodedName}/patch/name`, {
-      method: "PATCH",
-      body: JSON.stringify({ name: trimmed, target, value }),
-    });
-    return;
-  }
   const current = await fetchRankByName(trimmed);
   await grpcRequest(() =>
     rankClient.edit(
       create(RankSchema, {
         id: current.id,
-        name: current.name,
+        name: target === "name" ? String(value).trim() : current.name,
         description:
           target === "description" ? String(value).trim() : current.description,
         color:
@@ -2267,23 +2255,24 @@ export async function fetchRankUsers(
   if (!trimmed) {
     throw new Error("Rank name is required.");
   }
-
-  const encoded = encodeURIComponent(trimmed);
-
-  const payload = await apiRequest<ApiRankUsersResponse | ApiUserPublic[]>(
-    `/api/ranks/${encoded}/users`,
-    { method: "GET", signal: options?.signal },
+  const payload = await grpcRequest(() =>
+    userClient.list(
+      create(RequestWithLimitAndOffsetSchema, { limit: 500, offset: 0 }),
+      { signal: options?.signal },
+    ),
   );
-
-  const records: ApiUserPublic[] = Array.isArray(payload)
-    ? payload
-    : Array.isArray(payload?.users)
-      ? payload.users
-      : [];
-
-  return records
-    .map((u): UserListItem | null => toUserListItem(u))
-    .filter((u): u is UserListItem => u !== null);
+  const normalizedName = trimmed.toLowerCase();
+  return payload.list
+    .filter((u) => u.rank?.name?.toLowerCase() === normalizedName)
+    .map((u) => ({
+      userID: u.id,
+      username: u.username,
+      displayName: u.prefs?.displayName || undefined,
+      avatar: u.prefs?.avatar ? { key: u.prefs.avatar } : null,
+      banned: false,
+      rank: u.rank?.name ? { name: u.rank.name } : null,
+      joined: toGrpcTimestamp(u.joined),
+    }));
 }
 
 export async function fetchUsers(options?: {
@@ -2323,27 +2312,21 @@ export async function fetchUserBanInfo(
   }
   try {
     const normalizedUserID = normalizeUserID(userID);
-    const payload = await apiRequest<ApiBanInfoResponse>(
-      `/api/user/${encodeURIComponent(normalizedUserID)}/ban/info`,
-      {
-        method: "GET",
-        signal: options?.signal,
-      },
+    const payload = await grpcRequest(() =>
+      userClient.banInfo(
+        create(RequestWithValueSchema, { value: String(normalizedUserID) }),
+        { signal: options?.signal },
+      ),
     );
-    if (!payload) {
-      return null;
-    }
     return {
-      id: payload.id,
       reason: payload.reason,
-      at: payload.at,
-      expires: payload.expires ?? null,
+      at: payload.at ? timestampDate(payload.at).toISOString() : undefined,
+      expires: payload.expires
+        ? timestampDate(payload.expires).toISOString()
+        : null,
     };
   } catch (error) {
-    if (
-      error instanceof ApiError &&
-      error.status === StatusCodes.SERVICE_UNAVAILABLE
-    ) {
+    if (error instanceof ConnectError) {
       return null;
     }
     throw error;
@@ -2359,20 +2342,29 @@ export async function banUser(
   if (!trimmed) {
     throw new Error("Ban reason is required.");
   }
-  const duration = `${Math.max(0, Math.floor(durationSeconds))}s`;
   const normalizedUserID = normalizeUserID(userID);
-  await apiRequest(`/api/user/${encodeURIComponent(normalizedUserID)}/ban`, {
-    method: "POST",
-    body: JSON.stringify({ reason: trimmed, duration }),
-  });
+  const until =
+    durationSeconds > 0
+      ? timestampFromDate(new Date(Date.now() + Math.floor(durationSeconds) * 1000))
+      : undefined;
+  await grpcRequest(() =>
+    userClient.ban(
+      create(BanRequestSchema, {
+        target: String(normalizedUserID),
+        reason: trimmed,
+        until,
+      }),
+    ),
+  );
 }
 
 export async function unbanUser(userID: UserID): Promise<void> {
   const normalizedUserID = normalizeUserID(userID);
-  await apiRequest(`/api/user/${encodeURIComponent(normalizedUserID)}/unban`, {
-    method: "POST",
-    body: JSON.stringify({}),
-  });
+  await grpcRequest(() =>
+    userClient.unban(
+      create(RequestWithValueSchema, { value: String(normalizedUserID) }),
+    ),
+  );
 }
 
 export async function updateDisplayName(name: string): Promise<AuthUser> {
@@ -3011,16 +3003,6 @@ export async function createTicket(
   return { id };
 }
 
-const buildProjectPhotoKey = (projectId: string, photoId: string) =>
-  `photos/${projectId}/${photoId}`;
-
-const createPhotoId = () => {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return crypto.randomUUID();
-  }
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-};
-
 export async function uploadProjectPhotos(
   projectId: string,
   files: File[],
@@ -3036,14 +3018,15 @@ export async function uploadProjectPhotos(
 
   const uploads = images.map(async (file) => {
     const contentType = file.type || "application/octet-stream";
-    const key = buildProjectPhotoKey(trimmedId, createPhotoId());
-    const presignResponse = await apiRequest<PresignResponse>(
-      `/api/storage/presign/put?key=${encodeURIComponent(key)}&contentType=${encodeURIComponent(contentType)}`,
-      {
-        method: "GET",
-      },
+    const response = await grpcRequest(() =>
+      storageClient.getUploadURL(
+        create(GetUploadURLRequestSchema, {
+          contentType,
+          purpose: StoragePurpose.PROJECT_IMAGE,
+        }),
+      ),
     );
-    const presignUrl = presignResponse?.presign?.trim();
+    const presignUrl = response.url?.trim();
     if (!presignUrl) {
       throw new Error("Photo upload URL is missing.");
     }
@@ -3056,7 +3039,7 @@ export async function uploadProjectPhotos(
     if (!uploadResponse.ok) {
       throw new Error(`Photo upload failed (${uploadResponse.status}).`);
     }
-    return { key, contentType };
+    return { key: response.fileId, contentType };
   });
 
   return Promise.all(uploads);

@@ -6,6 +6,7 @@ import (
 	typespb "github.com/aesterial/cityideas/backend/internal/api/v1"
 	userpb "github.com/aesterial/cityideas/backend/internal/api/v1/user/v1"
 	userservice "github.com/aesterial/cityideas/backend/internal/app/user"
+	"github.com/aesterial/cityideas/backend/internal/domain"
 	permissionsdomain "github.com/aesterial/cityideas/backend/internal/domain/permissions"
 	userdomain "github.com/aesterial/cityideas/backend/internal/domain/user"
 	"github.com/aesterial/cityideas/backend/internal/infra/logger"
@@ -47,7 +48,13 @@ func (h *UserHandler) Info(ctx context.Context, req *typespb.RequestWithValue) (
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
-	usr, err := h.srv.Username(ctx, req.GetValue())
+	// Try to resolve by UUID first, fall back to username lookup.
+	var usr *userdomain.User
+	if id, uuidErr := domain.FromString(req.GetValue()); uuidErr == nil {
+		usr, err = h.srv.ID(ctx, id)
+	} else {
+		usr, err = h.srv.Username(ctx, req.GetValue())
+	}
 	if err != nil {
 		return nil, err
 	}

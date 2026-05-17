@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
+
 	"github.com/aesterial/cityideas/backend/internal/domain"
 	permissionsdomain "github.com/aesterial/cityideas/backend/internal/domain/permissions"
 	ranksdomain "github.com/aesterial/cityideas/backend/internal/domain/ranks"
@@ -219,6 +221,21 @@ func (r *RankRepository) Revoke(ctx context.Context, user domain.UUID, name stri
 		return err
 	}
 	return nil
+}
+
+func (r *RankRepository) Set(ctx context.Context, user domain.UUID, rankName string, expiresAt *time.Time) error {
+	if rankName == "" {
+		return errors.InvalidArguments
+	}
+	var expires pgtype.Timestamptz
+	if expiresAt != nil {
+		expires = pgtype.Timestamptz{Time: *expiresAt, Valid: true}
+	}
+	return r.conn.SetUserRank(ctx, sqlc.SetUserRankParams{
+		Owner:   user.ToPG(),
+		Name:    rankName,
+		Expires: expires,
+	})
 }
 
 func (r *RankRepository) Ranks(ctx context.Context, limit int32, offset int32) (ranksdomain.Ranks, error) {
