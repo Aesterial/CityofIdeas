@@ -3,6 +3,7 @@
 import {
   Bell,
   ChevronDown,
+  ChevronLeft,
   Clock,
   Globe,
   Lightbulb,
@@ -17,7 +18,6 @@ import {
   Sun,
   UserCircle,
   Users,
-  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -139,9 +139,9 @@ export function Header() {
     ...navItems,
     ...(status === "authenticated"
       ? [
-          { href: "/support/history", label: t("supportHistory"), icon: Clock },
-          { href: "/account", label: t("account"), icon: UserCircle },
-        ]
+        { href: "/support/history", label: t("supportHistory"), icon: Clock },
+        { href: "/account", label: t("account"), icon: UserCircle },
+      ]
       : [{ href: "/auth", label: t("login"), icon: LogIn }]),
     ...(hasAdminAccess
       ? [{ href: "/admin", label: t("adminPanel"), icon: Shield }]
@@ -192,21 +192,95 @@ export function Header() {
 
                 <SheetContent
                   side="left"
-                  className="w-[90vw] max-w-[420px] border-r border-border/70 bg-background/92 p-0 backdrop-blur-2xl [&>button]:hidden"
+                  className="w-[85vw] max-w-[360px] border-r border-border/70 bg-background/95 p-0 backdrop-blur-2xl [&>button]:hidden"
                 >
                   <SheetHeader className="sr-only">
                     <SheetTitle>{t("menuLabel")}</SheetTitle>
                   </SheetHeader>
-                  <div className="flex h-full flex-col overflow-y-auto px-5 py-5">
-                    <div className="mb-6 flex items-center justify-between">
-                      <Logo className="h-9 w-9" />
-                      <div className="flex gap-2">
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          className={cn(shellClass, "h-10 w-10 rounded-full")}
-                          onClick={toggleTheme}
+                  <div className="flex h-full flex-col overflow-y-auto overscroll-contain">
+                    <div className="flex items-center justify-between border-b border-border/60 px-4 py-4">
+                      <Logo className="h-8 w-8" showText={false} />
+                      <SheetClose asChild>
+                        <button
+                          type="button"
+                          className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 bg-background text-foreground transition-colors hover:bg-foreground hover:text-background"
+                          aria-label="Close menu"
                         >
+                          <ChevronLeft className="h-4 w-4" />
+                        </button>
+                      </SheetClose>
+                    </div>
+
+                    <div className="flex-1 space-y-2 px-3 py-4">
+                      <div className="rounded-2xl border border-border/60 bg-card/80">
+                        <button
+                          type="button"
+                          onClick={() => setMobileCityOpen((open) => !open)}
+                          className="flex w-full items-center gap-3 px-4 py-3.5"
+                        >
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-foreground text-background">
+                            <MapPin className="h-4 w-4" />
+                          </span>
+                          <div className="min-w-0 flex-1 text-left">
+                            <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                              {t("city") || "Город"}
+                            </p>
+                            <p className="text-sm font-semibold">{city}</p>
+                          </div>
+                          <ChevronDown
+                            className={cn(
+                              "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
+                              mobileCityOpen && "rotate-180",
+                            )}
+                          />
+                        </button>
+                        {mobileCityOpen ? (
+                          <div className="mobile-collapse-panel border-t border-border/60 px-3 pb-3 pt-2">
+                            <div className="grid grid-cols-2 gap-1.5">
+                              {cities.map((cityName) => (
+                                <button
+                                  key={cityName}
+                                  type="button"
+                                  onClick={() => setCity(cityName)}
+                                  className={cn(
+                                    "rounded-xl px-3 py-2 text-left text-xs font-semibold transition-colors",
+                                    cityName === city
+                                      ? "bg-foreground text-background"
+                                      : "bg-muted/60 text-foreground/75 hover:bg-foreground hover:text-background",
+                                  )}
+                                >
+                                  {cityName}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
+
+                      <div className="space-y-1.5">
+                        {mobileNavItems.map((item) => (
+                          <SheetClose asChild key={item.href}>
+                            <Link
+                              href={item.href}
+                              className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card/80 px-4 py-3 transition-colors hover:bg-muted/60 active:scale-[0.99]"
+                            >
+                              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-foreground text-background">
+                                <item.icon className="h-4 w-4" />
+                              </span>
+                              <span className="text-sm font-semibold">{item.label}</span>
+                            </Link>
+                          </SheetClose>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="border-t border-border/60 px-3 py-3">
+                      <button
+                        type="button"
+                        onClick={toggleTheme}
+                        className="flex w-full items-center gap-3 rounded-2xl border border-border/60 bg-card/80 px-4 py-3 transition-colors hover:bg-muted/60"
+                      >
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-background text-foreground">
                           {mounted ? (
                             theme === "light" ? (
                               <Moon className="h-4 w-4" />
@@ -214,85 +288,22 @@ export function Header() {
                               <Sun className="h-4 w-4" />
                             )
                           ) : null}
-                        </Button>
-                        <SheetClose asChild>
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className={cn(shellClass, "h-10 w-10 rounded-full")}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </SheetClose>
-                      </div>
-                    </div>
-
-                    <div className="rounded-[2rem] border border-border/70 bg-card/80 p-4">
-                      <button
-                        type="button"
-                        onClick={() => setMobileCityOpen((open) => !open)}
-                        className="flex w-full items-center justify-between gap-3"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-foreground text-background">
-                            <MapPin className="h-5 w-5" />
-                          </span>
-                          <div className="text-left">
-                            <p className="text-[10px] uppercase tracking-[0.26em] text-muted-foreground">
-                              Город
-                            </p>
-                            <p className="text-sm font-semibold">{city}</p>
-                          </div>
-                        </div>
-                        <ChevronDown
-                          className={cn(
-                            "h-4 w-4 transition-transform",
-                            mobileCityOpen && "rotate-180",
-                          )}
-                        />
+                        </span>
+                        <span className="text-sm font-semibold">
+                          {mounted
+                            ? theme === "light"
+                              ? t("adminThemeDark") || "Тёмная тема"
+                              : t("adminThemeLight") || "Светлая тема"
+                            : null}
+                        </span>
                       </button>
-                      {mobileCityOpen ? (
-                        <div className="mobile-collapse-panel mt-4 grid grid-cols-2 gap-2">
-                          {cities.map((cityName) => (
-                            <button
-                              key={cityName}
-                              type="button"
-                              onClick={() => setCity(cityName)}
-                              className={cn(
-                                "rounded-xl px-3 py-2 text-left text-xs font-semibold transition",
-                                cityName === city
-                                  ? "bg-foreground text-background"
-                                  : "bg-muted/70 text-foreground/75 hover:bg-foreground hover:text-background",
-                              )}
-                            >
-                              {cityName}
-                            </button>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-
-                    <div className="mt-5 grid gap-3">
-                      {mobileNavItems.map((item) => (
-                        <SheetClose asChild key={item.href}>
-                          <Link
-                            href={item.href}
-                            className="flex items-center gap-4 rounded-[2rem] border border-border/70 bg-card/80 px-4 py-3 transition hover:bg-muted/70"
-                          >
-                            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-foreground text-background">
-                              <item.icon className="h-5 w-5" />
-                            </span>
-                            <span className="text-sm font-semibold">{item.label}</span>
-                          </Link>
-                        </SheetClose>
-                      ))}
                     </div>
                   </div>
                 </SheetContent>
               </Sheet>
             </div>
 
-            <div className="flex min-w-0 items-center gap-2.5">
+            <div className="flex min-w-0 items-center gap-2">
               <Link href="/" className="shrink-0">
                 <Logo className="h-9 w-9" showText />
               </Link>
@@ -369,7 +380,7 @@ export function Header() {
               </motion.nav>
             </div>
 
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
               <div className="hidden lg:flex items-center gap-2">
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
@@ -428,13 +439,13 @@ export function Header() {
                     {languages
                       .filter((item) => item.code !== language)
                       .map((item) => (
-                      <DropdownMenuItem
-                        key={item.code}
-                        onSelect={() => setLanguage(item.code)}
-                        className="justify-center rounded-xl"
-                      >
-                        {item.label}
-                      </DropdownMenuItem>
+                        <DropdownMenuItem
+                          key={item.code}
+                          onSelect={() => setLanguage(item.code)}
+                          className="justify-center rounded-xl"
+                        >
+                          {item.label}
+                        </DropdownMenuItem>
                       ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -443,7 +454,7 @@ export function Header() {
               <Button
                 size="icon"
                 variant="outline"
-                className={cn(shellClass, "h-11 w-11 rounded-full")}
+                className={cn(shellClass, "hidden h-11 w-11 rounded-full xl:flex")}
                 onClick={toggleTheme}
                 aria-label="Toggle theme"
               >
@@ -462,18 +473,18 @@ export function Header() {
                       type="button"
                       className={cn(
                         shellClass,
-                        "flex min-w-0 items-center gap-3 rounded-full border px-2.5 py-2.5 pr-3",
+                        "flex min-w-0 items-center gap-2 rounded-full border px-2 py-2 sm:px-2.5 sm:pr-3",
                       )}
                     >
-                      <Avatar className="h-8 w-8 shrink-0">
+                      <Avatar className="h-7 w-7 shrink-0 sm:h-8 sm:w-8">
                         {avatarSrc ? (
                           <AvatarImage src={avatarSrc} alt={displayName || user.username} />
                         ) : null}
-                        <AvatarFallback className="text-xs font-semibold">
+                        <AvatarFallback className="text-[10px] font-semibold">
                           {avatarLabel}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="hidden max-w-[180px] truncate text-sm font-semibold xl:inline">
+                      <span className="hidden max-w-[120px] truncate text-sm font-semibold xl:inline">
                         {displayName || user.username}
                       </span>
                       <ChevronDown className="hidden h-4 w-4 text-muted-foreground xl:inline" />
@@ -526,11 +537,11 @@ export function Header() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : status === "loading" ? (
-                <div className="h-11 w-24 rounded-full bg-muted/80 animate-pulse" />
+                <div className="h-9 w-20 rounded-full bg-muted/80 animate-pulse sm:h-11 sm:w-24" />
               ) : (
                 <Button
                   asChild
-                  className="h-11 rounded-full px-5 shadow-[0_16px_40px_-24px_rgba(0,0,0,0.55)]"
+                  className="h-9 rounded-full px-4 text-sm shadow-[0_16px_40px_-24px_rgba(0,0,0,0.55)] sm:h-11 sm:px-5"
                 >
                   <Link href="/auth">{t("login")}</Link>
                 </Button>

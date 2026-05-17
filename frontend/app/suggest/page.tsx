@@ -546,12 +546,12 @@ export default function SuggestPage() {
                     markers={
                       mapSelection
                         ? [
-                            {
-                              id: "selection",
-                              coordinates: mapSelection,
-                              title: mapSectionDescription[language],
-                            },
-                          ]
+                          {
+                            id: "selection",
+                            coordinates: mapSelection,
+                            title: mapSectionDescription[language],
+                          },
+                        ]
                         : []
                     }
                     onMapClick={(coordinates) => setMapSelection(coordinates)}

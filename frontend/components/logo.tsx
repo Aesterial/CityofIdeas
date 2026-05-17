@@ -31,7 +31,7 @@ export function Logo({ className = "h-10 w-10", showText = true }: LogoProps) {
         </svg>
       </span>
       {showText ? (
-        <span className="whitespace-nowrap text-sm font-semibold uppercase tracking-[0.28em] sm:text-base">
+        <span className="hidden whitespace-nowrap text-sm font-semibold uppercase tracking-[0.28em] sm:inline sm:text-base">
           ГОРОД ИДЕЙ
         </span>
       ) : null}
