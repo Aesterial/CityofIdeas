@@ -3021,17 +3021,28 @@ export async function uploadProjectPhotos(
 
   const uploads = images.map(async (file) => {
     const contentType = file.type || "application/octet-stream";
-    const response = await grpcRequest(() =>
-      storageClient.getUploadURL(
-        create(GetUploadURLRequestSchema, {
-          contentType,
-          purpose: StoragePurpose.PROJECT_IMAGE,
-        }),
-      ),
-    );
+    let response: Awaited<ReturnType<typeof storageClient.getUploadURL>>;
+    try {
+      response = await grpcRequest(() =>
+        storageClient.getUploadURL(
+          create(GetUploadURLRequestSchema, {
+            contentType,
+            purpose: StoragePurpose.PROJECT_IMAGE,
+          }),
+        ),
+      );
+    } catch (error) {
+      if (
+        error instanceof ApiError &&
+        error.status === StatusCodes.SERVICE_UNAVAILABLE
+      ) {
+        return null;
+      }
+      throw error;
+    }
     const presignUrl = response.url?.trim();
     if (!presignUrl) {
-      throw new Error("Photo upload URL is missing.");
+      return null;
     }
     const uploadResponse = await fetch(presignUrl, {
       method: "PUT",
@@ -3045,7 +3056,8 @@ export async function uploadProjectPhotos(
     return { key: response.fileId, contentType };
   });
 
-  return Promise.all(uploads);
+  const results = await Promise.all(uploads);
+  return results.filter((item): item is NonNullable<typeof item> => item !== null);
 }
 
 export async function fetchStoragePresignGet(
