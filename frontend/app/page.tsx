@@ -35,8 +35,6 @@ import {
 import {
   CITY_CHANGE_EVENT,
   CITY_STORAGE_KEY,
-  DEFAULT_CITY,
-  cities,
   getStoredCity,
   resolveCity,
   resolveCityCenter,
@@ -169,7 +167,7 @@ export default function HomePage() {
   const [selectedCoordinates, setSelectedCoordinates] = useState<
     [number, number] | null
   >(null);
-  const [selectedCity, setSelectedCity] = useState<City>(DEFAULT_CITY);
+  const [selectedCity, setSelectedCity] = useState<City>("");
   const cacheRef = useRef(new Map<string, ApiProject>());
   const { language, t } = useLanguage();
   const { status } = useAuth();
@@ -182,7 +180,10 @@ export default function HomePage() {
   );
 
   useEffect(() => {
-    setSelectedCity(getStoredCity());
+    const storedCity = getStoredCity();
+    if (storedCity) {
+      setSelectedCity(storedCity);
+    }
   }, []);
 
   useEffect(() => {
@@ -328,7 +329,7 @@ export default function HomePage() {
   const metricItems = [
     { label: t("ideas"), value: mapMarkers.length || MAP_LIMIT },
     { label: t("vote"), value: formatMetricNumber(votesCount) },
-    { label: t("topCity"), value: topCity || selectedCity },
+    { label: t("topCity"), value: topCity || selectedCity || "-" },
     { label: t("implemented"), value: formatMetricNumber(implementedCount) },
   ];
 
@@ -539,7 +540,7 @@ export default function HomePage() {
                       className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground"
                       suppressHydrationWarning
                     >
-                      {selectedCity}
+                      {selectedCity || t("city") || "Город"}
                     </p>
                     <h3 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">
                       {t("mostPopularIdeas")}

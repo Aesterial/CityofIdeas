@@ -48,8 +48,6 @@ import {
 import { cn } from "@/lib/utils";
 import {
   CITY_STORAGE_KEY,
-  DEFAULT_CITY,
-  cities as defaultCities,
   emitCityChange,
   getStoredCity,
   setGlobalCities,
@@ -124,8 +122,8 @@ export function Header() {
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileCityOpen, setMobileCityOpen] = useState(false);
-  const [city, setCity] = useState<City>(DEFAULT_CITY);
-  const [citiesList, setCitiesList] = useState<City[]>(defaultCities);
+  const [city, setCity] = useState<City>("");
+  const [citiesList, setCitiesList] = useState<City[]>([]);
 
   const languages = [
     { code: "RU" as const, label: "RU" },
@@ -161,18 +159,24 @@ export function Header() {
         setCitiesList(list);
         setCity((prev) => {
           const stored = getStoredCity();
-          if (list.includes(stored)) return stored;
+          if (stored && list.includes(stored)) return stored;
           if (list.includes(prev)) return prev;
-          return list[0] || prev;
+          return list[0] ?? "";
         });
       })
       .catch(() => {
-        setCity(getStoredCity());
+        setGlobalCities([]);
+        setCitiesList([]);
+        setCity("");
       });
   }, []);
 
   useEffect(() => {
     if (!mounted) return;
+    if (!city) {
+      localStorage.removeItem(CITY_STORAGE_KEY);
+      return;
+    }
     localStorage.setItem(CITY_STORAGE_KEY, city);
     emitCityChange(city);
   }, [city, mounted]);
@@ -234,7 +238,8 @@ export function Header() {
                         <button
                           type="button"
                           onClick={() => setMobileCityOpen((open) => !open)}
-                          className="flex w-full items-center gap-3 px-4 py-3.5"
+                          disabled={citiesList.length === 0}
+                          className="flex w-full items-center gap-3 px-4 py-3.5 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-foreground text-background">
                             <MapPin className="h-4 w-4" />
@@ -243,7 +248,9 @@ export function Header() {
                             <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
                               {t("city") || "Город"}
                             </p>
-                            <p className="text-sm font-semibold">{city}</p>
+                            <p className="text-sm font-semibold">
+                              {city || t("city") || "Город"}
+                            </p>
                           </div>
                           <ChevronDown
                             className={cn(
@@ -332,9 +339,12 @@ export function Header() {
                     <Button
                       variant="outline"
                       className={cn(shellClass, "h-11 rounded-full px-3.5")}
+                      disabled={citiesList.length === 0}
                     >
                       <MapPin className="h-4 w-4" />
-                      <span className="max-w-[132px] truncate">{city}</span>
+                      <span className="max-w-[132px] truncate">
+                        {city || t("city") || "Город"}
+                      </span>
                       <ChevronDown className="h-3.5 w-3.5" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -405,9 +415,12 @@ export function Header() {
                     <Button
                       variant="outline"
                       className="hidden"
+                      disabled={citiesList.length === 0}
                     >
                       <MapPin className="h-4 w-4" />
-                      <span className="max-w-[140px] truncate">{city}</span>
+                      <span className="max-w-[140px] truncate">
+                        {city || t("city") || "Город"}
+                      </span>
                       <ChevronDown className="h-3.5 w-3.5" />
                     </Button>
                   </DropdownMenuTrigger>

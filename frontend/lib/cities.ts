@@ -29,12 +29,11 @@ export const CITY_CENTERS: Record<City, [number, number]> = {
   Чегдомын: [133.035553, 51.134487],
 };
 
-export const DEFAULT_CITY = Object.keys(CITY_CENTERS)[0] ?? "";
-export let cities: string[] = Object.keys(CITY_CENTERS);
+export let cities: string[] = [];
 
 export const setGlobalCities = (data: CityData[]) => {
   citiesData = data;
-  cities = data.length ? data.map((c) => c.name) : Object.keys(CITY_CENTERS);
+  cities = data.map((c) => c.name);
 };
 
 const normalizeCity = (value?: string | null) => value?.trim().toLowerCase() ?? "";
@@ -45,7 +44,7 @@ export const resolveCity = (value?: string | null): City | null => {
     return null;
   }
   const match = cities.find((city) => city.toLowerCase() === normalized);
-  return match ?? value ?? null;
+  return match ?? null;
 };
 
 export const resolveCityId = (name?: string | null): string => {
@@ -63,12 +62,12 @@ export const resolveCityCenter = (value?: string | null): [number, number] => {
   return DEFAULT_CITY_CENTER;
 };
 
-export const getStoredCity = (): City => {
+export const getStoredCity = (): City | null => {
   if (typeof window === "undefined") {
-    return cities[0] || DEFAULT_CITY;
+    return cities[0] ?? null;
   }
   const savedCity = localStorage.getItem(CITY_STORAGE_KEY);
-  return resolveCity(savedCity) ?? cities[0] ?? DEFAULT_CITY;
+  return resolveCity(savedCity) ?? cities[0] ?? null;
 };
 
 export const emitCityChange = (city: City) => {

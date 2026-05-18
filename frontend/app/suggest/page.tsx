@@ -47,8 +47,6 @@ import { createProject, uploadProjectPhotos } from "@/lib/api";
 import {
   CITY_CHANGE_EVENT,
   CITY_STORAGE_KEY,
-  DEFAULT_CITY,
-  cities,
   getStoredCity,
   resolveCity,
   resolveCityCenter,
@@ -128,7 +126,7 @@ export default function SuggestPage() {
   const [images, setImages] = useState<SelectedImage[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [mapSelection, setMapSelection] = useState<[number, number] | null>(null);
-  const [selectedCity, setSelectedCity] = useState<City>(DEFAULT_CITY);
+  const [selectedCity, setSelectedCity] = useState<City>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const imagesRef = useRef<SelectedImage[]>([]);
@@ -148,7 +146,10 @@ export default function SuggestPage() {
   );
 
   useEffect(() => {
-    setSelectedCity(getStoredCity());
+    const storedCity = getStoredCity();
+    if (storedCity) {
+      setSelectedCity(storedCity);
+    }
   }, []);
 
   useEffect(() => {
@@ -246,7 +247,7 @@ export default function SuggestPage() {
       const { id } = await createProject({
         title:
           trimmedTitle.slice(0, 80).trim() ||
-          `${t("projectTitleFallback")} ${selectedCity}`,
+          [t("projectTitleFallback"), selectedCity].filter(Boolean).join(" "),
         description: trimmedDescription,
         category,
         location: {
@@ -539,7 +540,7 @@ export default function SuggestPage() {
                       </p>
                     </div>
                     <span className="rounded-full border border-border/70 bg-background/70 px-3 py-1 text-xs font-semibold text-muted-foreground">
-                      {selectedCity}
+                      {selectedCity || t("city") || "Город"}
                     </span>
                   </div>
                   <MapLibreMap
