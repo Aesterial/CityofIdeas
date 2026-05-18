@@ -51,7 +51,7 @@ export const statusMeta: Record<
 };
 
 const UNKNOWN_LABEL = "-";
-const FALLBACK_IMAGE = "/placeholder.svg";
+const FALLBACK_IMAGE = "/pub-building-facade-harats-kemerovo.jpg";
 
 const normalizeStatus = (value?: string): SubmissionStatus | null => {
   const normalized = value?.trim().toLowerCase();

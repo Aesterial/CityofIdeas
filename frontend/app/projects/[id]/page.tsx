@@ -592,7 +592,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
     author?.settings?.displayName ??
     author?.username ??
     UNKNOWN_LABEL;
-  const coverImage = resolvedImages[0] ?? "/placeholder.svg";
+  const coverImage = resolvedImages[0] ?? "/pub-building-facade-harats-kemerovo.jpg";
   const discussionById = new Map(
     discussionMessages.map((message) => [message.id, message]),
   );

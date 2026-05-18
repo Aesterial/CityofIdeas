@@ -168,7 +168,7 @@ export default function HomePage() {
   const [selectedCoordinates, setSelectedCoordinates] = useState<
     [number, number] | null
   >(null);
-  const [selectedCity, setSelectedCity] = useState<City>(getStoredCity());
+  const [selectedCity, setSelectedCity] = useState<City>("");
   const cacheRef = useRef(new Map<string, ApiProject>());
   const { language, t } = useLanguage();
   const { status } = useAuth();
@@ -422,7 +422,10 @@ export default function HomePage() {
                         <p className="text-[10px] uppercase tracking-[0.26em] text-muted-foreground">
                           {item.label}
                         </p>
-                        <p className="mt-2 truncate text-3xl font-semibold tracking-[-0.05em]">
+                        <p
+                          className="mt-2 truncate text-3xl font-semibold tracking-[-0.05em]"
+                          suppressHydrationWarning
+                        >
                           {item.value}
                         </p>
                       </div>
@@ -531,7 +534,10 @@ export default function HomePage() {
               <div className="relative p-6 sm:p-7">
                 <div className="flex items-end justify-between gap-4">
                   <div>
-                    <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+                    <p
+                      className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground"
+                      suppressHydrationWarning
+                    >
                       {selectedCity}
                     </p>
                     <h3 className="mt-3 text-3xl font-semibold tracking-[-0.04em]">
