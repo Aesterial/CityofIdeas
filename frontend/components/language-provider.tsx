@@ -741,8 +741,8 @@ export const translations: Translations = {
     KZ: "\u0428\u044b\u0493\u0443",
   },
   adminPanel: {
-    RU: "\u0410\u0434\u043c\u0438\u043d-\u043f\u0430\u043d\u0435\u043b\u044c",
-    EN: "Admin panel",
+    RU: "\u0410\u0434\u043c\u0438\u043d\u0438\u0441\u0442\u0440\u0430\u0442\u0438\u0432\u043d\u0430\u044f \u043f\u0430\u043d\u0435\u043b\u044c",
+    EN: "Administrative panel",
     KZ: "\u04d8\u043a\u0456\u043c\u0448\u0456 \u043f\u0430\u043d\u0435\u043b\u0456",
   },
   adminPanelTitle: {

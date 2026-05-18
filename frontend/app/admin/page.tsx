@@ -1405,11 +1405,10 @@ export default function AdminPage() {
 
   return (
     <TutorialProvider steps={adminTutorialSteps} storageKey="admin-tutorial-v1">
-      <div className="relative min-h-screen bg-background text-foreground">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255, 255, 255, 0.12),transparent_32%),radial-gradient(circle_at_80%_0%,rgba(151, 151, 151, 0.15),transparent_28%),linear-gradient(135deg,rgba(255,255,255,0.02),transparent_50%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.03),transparent_50%)]" />
+      <div className="admin-shell relative min-h-screen text-foreground">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-foreground/15" />
         <header
-          className="fixed inset-x-0 z-30 px-4 sm:px-6 lg:px-10"
+          className="fixed inset-x-0 z-30 px-3 sm:px-6 lg:px-10"
           style={{ top: "var(--maintenance-banner-height)" }}
         >
           <motion.div
@@ -1417,15 +1416,14 @@ export default function AdminPage() {
             animate="visible"
             variants={headerVariants}
             transition={{ duration: 0.28, ease: "easeOut" }}
-            className="mx-auto max-w-6xl pt-3 sm:pt-4"
+            className="mx-auto max-w-7xl pt-3 sm:pt-4"
           >
             <motion.div
               layout
               transition={{ type: "spring", stiffness: 520, damping: 44 }}
               className={[
-                "relative overflow-hidden rounded-full border",
-                "bg-background/85 backdrop-blur-xl",
-                "shadow-[0_24px_60px_-38px_rgba(0,0,0,0.65)]",
+                "admin-topbar relative overflow-hidden rounded-[1.35rem] border",
+                "bg-background/88 backdrop-blur-xl",
                 headerCompact ? "border-border/60" : "border-border/70",
               ].join(" ")}
             >
@@ -1458,11 +1456,11 @@ export default function AdminPage() {
                       type="button"
                       data-tutorial="admin-functional-trigger"
                       data-state={quickMenuOpen ? "open" : "closed"}
-                      className="group/trigger relative inline-flex h-10 items-center gap-2 overflow-hidden rounded-full border border-border/70 bg-card/90 px-2.5 pr-3 text-foreground shadow-[0_16px_42px_-30px_rgba(0,0,0,0.7)] transition-[transform,colors,box-shadow] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:border-foreground/30 hover:bg-muted/80 active:scale-[0.97] data-[state=open]:border-foreground/40 data-[state=open]:bg-muted/80 data-[state=open]:shadow-[0_22px_60px_-32px_rgba(0,0,0,0.78)] sm:pr-4"
+                      className="admin-action group/trigger relative inline-flex h-10 items-center gap-2 overflow-hidden rounded-2xl border border-border/70 bg-card/90 px-2.5 pr-3 text-foreground shadow-[0_16px_42px_-34px_rgba(0,0,0,0.7)] hover:border-foreground/30 hover:bg-muted/80 data-[state=open]:border-foreground/40 data-[state=open]:bg-muted/80 sm:pr-4 xl:hidden"
                       aria-label={t("adminSidebarGroupFunctional")}
                       title={t("adminSidebarGroupFunctional")}
                     >
-                      <span className="relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
+                      <span className="relative inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-foreground text-background">
                         <Sparkles className="h-3.5 w-3.5" />
                       </span>
                       <span className="relative hidden text-sm font-semibold sm:inline">
@@ -1475,7 +1473,7 @@ export default function AdminPage() {
                   <DropdownMenuContent
                     align="start"
                     sideOffset={10}
-                    className="z-[60] flex max-h-[min(560px,calc(100dvh-7rem))] w-[calc(100vw-1rem)] max-w-[95vw] flex-col overflow-hidden rounded-2xl border-border/70 bg-background/95 p-0 shadow-[0_28px_70px_-45px_rgba(0,0,0,0.7)] backdrop-blur-xl sm:w-[360px] data-[state=open]:animate-none data-[state=closed]:animate-none"
+                    className="z-[60] flex max-h-[min(560px,calc(100dvh-7rem))] w-[calc(100vw-1rem)] max-w-[95vw] flex-col overflow-hidden rounded-2xl border-border/70 bg-background/95 p-0 shadow-[0_28px_70px_-45px_rgba(0,0,0,0.7)] backdrop-blur-xl sm:w-[380px] data-[state=open]:animate-none data-[state=closed]:animate-none"
                     style={{
                       transformOrigin: "var(--radix-dropdown-menu-content-transform-origin)",
                     }}
@@ -1736,6 +1734,52 @@ export default function AdminPage() {
                   </DropdownMenuContent>
                 </DropdownMenu>
 
+                <div className="hidden items-center gap-2 xl:flex">
+                  <motion.button
+                    type="button"
+                    onClick={toggleTheme}
+                    data-tutorial="admin-theme-toggle"
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="admin-action inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-border/70 bg-background text-foreground hover:bg-foreground hover:text-background"
+                    aria-label={t("adminThemeToggle")}
+                    title={t("adminThemeToggle")}
+                  >
+                    {mounted ? (
+                      theme === "light" ? (
+                        <Moon className="h-4 w-4" />
+                      ) : (
+                        <Sun className="h-4 w-4" />
+                      )
+                    ) : null}
+                  </motion.button>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <motion.button
+                        type="button"
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        className="admin-action inline-flex h-10 items-center gap-2 rounded-2xl border border-border/70 bg-background px-3 text-sm font-semibold hover:bg-foreground hover:text-background"
+                      >
+                        <Globe className="h-4 w-4" />
+                        <span className="w-[28px] text-center">{language}</span>
+                        <ChevronDown className="h-3 w-3" />
+                      </motion.button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="min-w-[90px]">
+                      {languageOptions.map((option) => (
+                        <DropdownMenuItem
+                          key={option.code}
+                          onClick={() => setLanguage(option.code)}
+                        >
+                          {option.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
                 <div className="pointer-events-none absolute inset-x-0 hidden items-center justify-center px-24 md:flex">
                   <p
                     ref={headerNoteRef}
@@ -1756,7 +1800,7 @@ export default function AdminPage() {
                     data-tutorial="admin-theme-toggle"
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.97 }}
-                    className="hidden h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background text-foreground hover:bg-foreground hover:text-background sm:inline-flex"
+                    className="admin-action hidden h-10 w-10 items-center justify-center rounded-2xl border border-border/70 bg-background text-foreground hover:bg-foreground hover:text-background sm:inline-flex xl:hidden"
                     aria-label={t("adminThemeToggle")}
                     title={t("adminThemeToggle")}
                   >
@@ -1777,7 +1821,7 @@ export default function AdminPage() {
                         type="button"
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.97 }}
-                        className="hidden h-10 items-center gap-2 rounded-full border border-border/70 bg-background px-3 text-sm font-semibold hover:bg-foreground hover:text-background sm:inline-flex"
+                        className="admin-action hidden h-10 items-center gap-2 rounded-2xl border border-border/70 bg-background px-3 text-sm font-semibold hover:bg-foreground hover:text-background sm:inline-flex xl:hidden"
                       >
                         <Globe className="h-4 w-4" />
                         <span className="w-[28px] text-center">{language}</span>
@@ -1802,7 +1846,7 @@ export default function AdminPage() {
                         type="button"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-background p-0 text-sm font-semibold hover:bg-foreground hover:text-background sm:w-auto sm:justify-start sm:gap-2 sm:px-2 sm:pr-3"
+                        className="admin-action flex h-10 w-10 items-center justify-center rounded-2xl border border-border/70 bg-background p-0 text-sm font-semibold hover:bg-foreground hover:text-background sm:w-auto sm:justify-start sm:gap-2 sm:px-2 sm:pr-3"
                       >
                         <Avatar className="h-8 w-8">
                           {avatarSrc ? (
@@ -1863,8 +1907,91 @@ export default function AdminPage() {
           </motion.div>
         </header>
 
-        <main className="px-4 pb-16 pt-28 sm:px-6 sm:pt-32 lg:px-10">
-          <div className="mx-auto flex max-w-6xl flex-col gap-10">
+        <main className="px-3 pb-24 pt-24 sm:px-6 sm:pt-30 lg:px-10">
+            <div className="mx-auto grid max-w-7xl gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
+            <aside className="sticky top-28 hidden h-[calc(100dvh-8rem)] min-h-0 xl:block">
+              <div className="admin-panel flex h-full flex-col rounded-[1.75rem] p-3">
+                <nav
+                  data-lenis-prevent
+                  className="min-h-0 flex-1 overflow-y-auto py-2"
+                  aria-label={t("adminSidebarGroupFunctional")}
+                >
+                  <div className="space-y-3">
+                    {quickMenuGroups.map((group) => {
+                      const GroupIcon = group.icon;
+                      return (
+                        <div key={group.id} className="space-y-1">
+                          <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+                            <GroupIcon className="h-3.5 w-3.5" />
+                            <span className="truncate">{group.label}</span>
+                          </div>
+                          {group.items.map((item) => {
+                            const Icon = item.icon;
+                            const isActiveSection =
+                              item.section && activeSection === item.section;
+                            return (
+                              <Link
+                                key={item.id}
+                                href={item.href}
+                                onClick={() => {
+                                  if (item.section) {
+                                    setActiveSection(item.section);
+                                  }
+                                }}
+                                className={`admin-action flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium ${isActiveSection
+                                  ? "bg-foreground text-background shadow-[0_18px_44px_-30px_rgba(0,0,0,0.7)]"
+                                  : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
+                                  }`}
+                              >
+                                <span
+                                  className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border ${isActiveSection
+                                    ? "border-background/25 bg-background/15 text-background"
+                                    : "border-border/70 bg-background text-foreground"
+                                    }`}
+                                >
+                                  <Icon className="h-4 w-4" />
+                                </span>
+                                <span className="min-w-0 flex-1 truncate">
+                                  {item.label}
+                                </span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </nav>
+              </div>
+            </aside>
+
+            <div className="min-w-0 space-y-8">
+              <section className="admin-panel rounded-[1.75rem] p-4 sm:p-6 lg:p-7">
+                <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+                  <div>
+                    <h1 className="mt-2 max-w-3xl text-3xl font-semibold tracking-normal sm:text-4xl">
+                      {t("adminPanel")}
+                    </h1>
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+                      {t("adminStatsSubtitle")} · {t("adminStatsActivitySubtitle")}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 sm:flex">
+                    <Link
+                      href="/admin/submissions"
+                      className="admin-action inline-flex h-11 items-center justify-center rounded-2xl border border-border/70 bg-foreground px-4 text-sm font-semibold text-background shadow-[0_18px_44px_-30px_rgba(0,0,0,0.7)]"
+                    >
+                      {t("adminSubmissionsTitle")}
+                    </Link>
+                    <Link
+                      href="/admin/users"
+                      className="admin-action inline-flex h-11 items-center justify-center rounded-2xl border border-border/70 bg-background px-4 text-sm font-semibold text-foreground hover:bg-muted"
+                    >
+                      {t("adminUsersViewAll")}
+                    </Link>
+                  </div>
+                </div>
+              </section>
             <motion.section
               id="users"
               initial="hidden"
@@ -1872,33 +1999,33 @@ export default function AdminPage() {
               viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.5 }}
               variants={sectionVariants}
-              className="space-y-6 scroll-mt-32"
+              className="space-y-5 scroll-mt-32"
             >
               <div
-                className="flex flex-wrap items-center justify-between gap-4"
+                className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"
                 data-tutorial="admin-access-section"
               >
                 <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                  <p className="admin-section-kicker">
                     {t("labelUsers")}
                   </p>
-                  <h2 className="text-2xl font-bold">
+                  <h2 className="mt-1 text-2xl font-semibold tracking-normal">
                     {t("adminAccessModerationTitle")}
                   </h2>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
                     {t("adminAccessModerationSubtitle")}
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
                   <Link
                     href="/admin/users"
-                    className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+                    className="admin-action inline-flex h-10 items-center justify-center rounded-2xl border border-border/70 bg-background px-4 text-sm font-semibold hover:bg-muted"
                   >
                     {t("adminUsersViewAll")}
                   </Link>
                   <Link
                     href="/admin/submissions"
-                    className="rounded-full border border-border/70 px-4 py-2 text-sm font-semibold transition-all duration-300 hover:bg-foreground hover:text-background"
+                    className="admin-action inline-flex h-10 items-center justify-center rounded-2xl border border-border/70 bg-foreground px-4 text-sm font-semibold text-background"
                   >
                     {t("adminSubmissionsTitle")}
                   </Link>
@@ -1907,8 +2034,8 @@ export default function AdminPage() {
               </div>
 
               <div className="grid gap-6">
-                <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-6 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)]">
-                  <div className="flex items-center justify-between">
+                <div className="admin-panel min-w-0 rounded-[1.75rem] p-4 sm:p-6">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm font-semibold">
                       {t("adminUsersListTitle")}
                     </p>
@@ -1930,10 +2057,10 @@ export default function AdminPage() {
                       return (
                         <div
                           key={user.id}
-                          className="rounded-2xl border border-border/60 bg-background/70 p-4"
+                          className="rounded-2xl border border-border/60 bg-background/72 p-3.5 transition-[background-color,border-color] duration-200 hover:border-foreground/20 hover:bg-muted/45 sm:p-4"
                         >
                           <div className="flex flex-col gap-3">
-                            <div className="flex items-start gap-3 min-w-0">
+                            <div className="flex min-w-0 items-start gap-3">
                               <Avatar className="h-10 w-10 shrink-0">
                                 {avatarSrc ? (
                                   <AvatarImage
@@ -1946,14 +2073,14 @@ export default function AdminPage() {
                                 </AvatarFallback>
                               </Avatar>
                               <div className="min-w-0 flex-1">
-                                <p className="text-sm font-semibold truncate">
+                                <p className="truncate text-sm font-semibold">
                                   {user.name}
                                 </p>
-                                <p className="text-xs text-muted-foreground truncate">
+                                <p className="truncate text-xs text-muted-foreground">
                                   @{user.username}
                                 </p>
                                 <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-                                  <span className="truncate max-w-[160px]">{user.email}</span>
+                                  <span className="max-w-[220px] truncate">{user.email}</span>
                                   <span>•</span>
                                   <span>{user.role}</span>
                                   <span>•</span>
@@ -1976,7 +2103,7 @@ export default function AdminPage() {
                                 <button
                                   type="button"
                                   title={actionTitle}
-                                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                  className="admin-action flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-background text-foreground hover:bg-foreground hover:text-background"
                                   onClick={() =>
                                     user.status === "banned"
                                       ? void handleUserAction(user, "unblock")
@@ -1988,7 +2115,7 @@ export default function AdminPage() {
                                 <button
                                   type="button"
                                   title={t("actionResetPassword")}
-                                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                  className="admin-action flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-background text-foreground hover:bg-foreground hover:text-background"
                                   onClick={() =>
                                     void handleUserAction(user, "reset")
                                   }
@@ -1998,7 +2125,7 @@ export default function AdminPage() {
                                 <button
                                   type="button"
                                   title={t("actionMessage")}
-                                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                  className="admin-action flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-background text-foreground hover:bg-foreground hover:text-background"
                                   onClick={() =>
                                     void handleUserAction(user, "message")
                                   }
@@ -2008,7 +2135,7 @@ export default function AdminPage() {
                                 <button
                                   type="button"
                                   title={t("adminUserSettingsTitle")}
-                                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/70 text-foreground transition-all duration-300 hover:bg-foreground hover:text-background"
+                                  className="admin-action flex h-9 w-9 items-center justify-center rounded-xl border border-border/70 bg-background text-foreground hover:bg-foreground hover:text-background"
                                   onClick={() =>
                                     setSettingsUser({
                                       userID: user.userID,
@@ -2041,10 +2168,13 @@ export default function AdminPage() {
               className="space-y-6 scroll-mt-32"
             >
               <div>
-                <h2 className="text-3xl font-bold leading-tight">
+                <p className="admin-section-kicker">
+                  {t("adminStatsTitle")}
+                </p>
+                <h2 className="mt-1 text-2xl font-semibold tracking-normal sm:text-3xl">
                   {t("adminStatsSubtitle")}
                 </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
                   {t("adminStatsActivitySubtitle")}
                 </p>
               </div>
@@ -2060,18 +2190,18 @@ export default function AdminPage() {
                   return (
                     <div
                       key={card.id}
-                      className="rounded-3xl border border-border/70 bg-card/90 p-5 shadow-[0_18px_40px_-30px_rgba(0,0,0,0.5)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_-32px_rgba(0,0,0,0.6)]"
+                      className="admin-panel rounded-[1.75rem] p-4 sm:p-5"
                     >
                       <div className="flex items-center justify-between">
-                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-foreground text-background shadow-lg shadow-foreground/20">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-foreground text-background shadow-[0_18px_40px_-28px_rgba(0,0,0,0.75)]">
                           <card.icon className="h-5 w-5" />
                         </div>
                         <Sparkles className="h-4 w-4 text-muted-foreground" />
                       </div>
-                      <div className="mt-4 text-2xl font-bold">
+                      <div className="mt-5 text-3xl font-semibold tracking-normal">
                         {displayValue}
                       </div>
-                      <p className="text-sm font-semibold text-muted-foreground">
+                      <p className="mt-1 text-sm font-medium text-muted-foreground">
                         {card.title}
                       </p>
                     </div>
@@ -2091,13 +2221,13 @@ export default function AdminPage() {
             >
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                  <p className="admin-section-kicker">
                     {t("adminStatsTitle")}
                   </p>
-                  <h2 className="text-2xl font-bold">
+                  <h2 className="mt-1 text-2xl font-semibold tracking-normal">
                     {t("adminStatsActivityTitle")}
                   </h2>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
                     {t("adminStatsActivitySubtitle")}
                   </p>
                 </div>
@@ -2105,7 +2235,7 @@ export default function AdminPage() {
 
               <div className="grid gap-6 lg:grid-cols-[1.6fr,1fr]">
                 <div
-                  className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-4 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)] sm:p-6"
+                  className="admin-panel min-w-0 rounded-[1.75rem] p-4 sm:p-6"
                   data-tutorial="admin-users-list"
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -2117,14 +2247,14 @@ export default function AdminPage() {
                         {t("adminStatsActivitySubtitle")}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1 self-start rounded-full border border-border/70 bg-background/60 p-1 sm:self-auto">
+                    <div className="flex items-center gap-1 self-start rounded-2xl border border-border/70 bg-background/70 p-1 sm:self-auto">
                       {activityRanges.map((range) => {
                         const isActive = range.id === activityRange;
                         return (
                           <button
                             key={range.id}
                             type="button"
-                            className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-[transform,background-color,color] duration-200 active:scale-[0.96] sm:py-1 ${isActive
+                            className={`admin-action rounded-xl px-3 py-1.5 text-xs font-semibold sm:py-1 ${isActive
                               ? "bg-foreground text-background shadow-sm"
                               : "text-muted-foreground hover:text-foreground"
                               }`}
@@ -2226,7 +2356,7 @@ export default function AdminPage() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1 lg:gap-6">
-                  <div className="rounded-3xl border border-border/70 bg-card/90 p-4 sm:p-6">
+                  <div className="admin-panel rounded-[1.75rem] p-4 sm:p-6">
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className="text-sm font-semibold">
@@ -2300,7 +2430,7 @@ export default function AdminPage() {
                     )}
                   </div>
 
-                  <div className="rounded-3xl border border-border/70 bg-card/90 p-4 sm:p-6">
+                  <div className="admin-panel rounded-[1.75rem] p-4 sm:p-6">
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className="text-sm font-semibold">
@@ -2375,7 +2505,7 @@ export default function AdminPage() {
               </div>
 
               <div className="grid gap-6">
-                <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-4 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)] sm:p-6">
+                <div className="admin-panel min-w-0 rounded-[1.75rem] p-4 sm:p-6">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
                       <p className="text-sm font-semibold">
@@ -2432,7 +2562,50 @@ export default function AdminPage() {
               </div>
             </motion.section>
           </div>
+          </div>
         </main>
+        <nav
+          className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-3 gap-1 rounded-[1.35rem] border border-border/70 bg-background/92 p-1 shadow-[0_24px_60px_-38px_rgba(0,0,0,0.72)] backdrop-blur-xl xl:hidden"
+          aria-label={t("adminSidebarGroupFunctional")}
+        >
+          {[
+            {
+              href: "#users",
+              label: t("labelUsers"),
+              icon: Users,
+              section: "users",
+            },
+            {
+              href: "#overview",
+              label: t("adminStatsTitle"),
+              icon: BarChart3,
+              section: "overview",
+            },
+            {
+              href: "#analytics",
+              label: t("adminStatsActivityTitle"),
+              icon: TrendingUp,
+              section: "analytics",
+            },
+          ].map((item) => {
+            const Icon = item.icon;
+            const isActive = activeSection === item.section;
+            return (
+              <Link
+                key={item.section}
+                href={item.href}
+                onClick={() => setActiveSection(item.section)}
+                className={`admin-mobile-tab flex min-w-0 flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-[10px] font-semibold ${isActive
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground"
+                  }`}
+              >
+                <Icon className="h-4 w-4" />
+                <span className="max-w-full truncate">{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
         <Dialog
           open={banDialogOpen}
           onOpenChange={(open) => {

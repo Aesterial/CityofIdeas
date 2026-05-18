@@ -257,6 +257,104 @@
   transform: scale(1.06);
 }
 
+.admin-shell {
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--background), var(--muted) 44%) 0%, var(--background) 38%),
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in oklab, var(--foreground), transparent 96%) 0,
+      color-mix(in oklab, var(--foreground), transparent 96%) 1px,
+      transparent 1px,
+      transparent 72px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in oklab, var(--foreground), transparent 97%) 0,
+      color-mix(in oklab, var(--foreground), transparent 97%) 1px,
+      transparent 1px,
+      transparent 72px
+    );
+}
+
+.admin-topbar {
+  box-shadow:
+    0 24px 70px -48px oklch(0 0 0 / 0.68),
+    inset 0 1px 0 color-mix(in oklab, var(--foreground), transparent 92%);
+}
+
+.admin-panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in oklab, var(--border), var(--foreground) 5%);
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--card), var(--muted) 30%) 0%, color-mix(in oklab, var(--card), var(--background) 20%) 100%);
+  box-shadow:
+    0 28px 70px -54px oklch(0 0 0 / 0.7),
+    inset 0 1px 0 color-mix(in oklab, var(--foreground), transparent 94%);
+  transition:
+    transform 220ms var(--ease-out-expo),
+    border-color 220ms ease,
+    box-shadow 220ms var(--ease-out-expo),
+    background-color 220ms ease;
+}
+
+.dark .admin-panel {
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--card), white 5%) 0%, color-mix(in oklab, var(--card), black 8%) 100%);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .admin-panel:hover {
+    transform: translateY(-1px);
+    border-color: color-mix(in oklab, var(--border), var(--foreground) 18%);
+    box-shadow:
+      0 32px 80px -52px oklch(0 0 0 / 0.74),
+      inset 0 1px 0 color-mix(in oklab, var(--foreground), transparent 92%);
+  }
+}
+
+.admin-action {
+  transition:
+    transform 150ms var(--ease-out-expo),
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms var(--ease-out-expo);
+}
+
+.admin-action:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .admin-action:hover {
+    transform: translateY(-1px);
+  }
+
+  .admin-action:active {
+    transform: scale(0.97) translateY(0);
+  }
+}
+
+.admin-section-kicker {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.admin-mobile-tab {
+  transition:
+    transform 150ms var(--ease-out-expo),
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.admin-mobile-tab:active {
+  transform: scale(0.96);
+}
+
 
 [data-slot="card"] {
   transition:
