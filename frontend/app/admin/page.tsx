@@ -313,6 +313,38 @@ type AdminUsersCache = {
   users: User[];
 };
 
+const runPool = async <TInput, TResult>(
+  items: TInput[],
+  concurrency: number,
+  task: (item: TInput, index: number) => Promise<TResult>,
+): Promise<PromiseSettledResult<TResult>[]> => {
+  const results: PromiseSettledResult<TResult>[] = new Array(items.length);
+  let nextIndex = 0;
+
+  const worker = async () => {
+    while (nextIndex < items.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      try {
+        results[index] = {
+          status: "fulfilled",
+          value: await task(items[index], index),
+        };
+      } catch (reason) {
+        results[index] = {
+          status: "rejected",
+          reason,
+        };
+      }
+    }
+  };
+
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, items.length) }, worker),
+  );
+  return results;
+};
+
 type ActivityPoint = {
   label: string;
   timestamp: number;
@@ -415,7 +447,7 @@ async function requestJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   try {
     rawBody = await response.text();
   } catch {
- // мне лень щя короч потом напишу
+    rawBody = "";
   }
   let data: { error?: string; data?: unknown; message?: string } | null = null;
   try {
@@ -773,12 +805,19 @@ export default function AdminPage() {
 
 
   const displayStats = useMemo<StatsSummary>(() => {
-    const activeCount = users.length
-      ? users.filter((u) => u.status !== "banned").length
-      : null;
-    const offlineCount = users.length
-      ? users.filter((u) => u.status === "banned").length
-      : null;
+    const userStatusCounts = users.reduce(
+      (counts, user) => {
+        if (user.status === "banned") {
+          counts.banned += 1;
+        } else {
+          counts.active += 1;
+        }
+        return counts;
+      },
+      { active: 0, banned: 0 },
+    );
+    const activeCount = users.length ? userStatusCounts.active : null;
+    const offlineCount = users.length ? userStatusCounts.banned : null;
     return {
       activeUsers: statsSummary.activeUsers ?? activeCount,
       offlineUsers: statsSummary.offlineUsers ?? offlineCount,
@@ -1264,12 +1303,10 @@ export default function AdminPage() {
       const loadUsers = async () => {
         try {
           const list = await fetchUsers({ signal: controller.signal });
-          const banResults = await Promise.allSettled(
-            list.map((item) =>
-              fetchUserBanInfo(item.userID, item.banned, {
-                signal: controller.signal,
-              }),
-            ),
+          const banResults = await runPool(list, 8, (item) =>
+            fetchUserBanInfo(item.userID, item.banned, {
+              signal: controller.signal,
+            }),
           );
           if (controller.signal.aborted) {
             return;
