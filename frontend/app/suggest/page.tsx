@@ -47,6 +47,7 @@ import { createProject, uploadProjectPhotos } from "@/lib/api";
 import {
   CITY_CHANGE_EVENT,
   CITY_STORAGE_KEY,
+  DEFAULT_CITY,
   cities,
   getStoredCity,
   resolveCity,
@@ -127,7 +128,7 @@ export default function SuggestPage() {
   const [images, setImages] = useState<SelectedImage[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [mapSelection, setMapSelection] = useState<[number, number] | null>(null);
-  const [selectedCity, setSelectedCity] = useState<City>("");
+  const [selectedCity, setSelectedCity] = useState<City>(DEFAULT_CITY);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const imagesRef = useRef<SelectedImage[]>([]);

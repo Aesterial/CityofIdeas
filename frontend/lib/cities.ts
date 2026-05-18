@@ -1,16 +1,8 @@
-import { fetchCities } from "./api";
-
 export const CITY_STORAGE_KEY = "city";
 export const CITY_CHANGE_EVENT = "city-change";
 
 export type CityData = { id: string; name: string };
 export let citiesData: CityData[] = [];
-export let cities: string[] = [];
-
-export const setGlobalCities = (data: CityData[]) => {
-  citiesData = data;
-  cities = data.map((c) => c.name);
-};
 
 export type City = string;
 
@@ -35,6 +27,14 @@ export const CITY_CENTERS: Record<City, [number, number]> = {
   Черногорск: [91.31321, 53.828236],
   Рефтинский: [61.6721615, 57.0839104],
   Чегдомын: [133.035553, 51.134487],
+};
+
+export const DEFAULT_CITY = Object.keys(CITY_CENTERS)[0] ?? "";
+export let cities: string[] = Object.keys(CITY_CENTERS);
+
+export const setGlobalCities = (data: CityData[]) => {
+  citiesData = data;
+  cities = data.length ? data.map((c) => c.name) : Object.keys(CITY_CENTERS);
 };
 
 const normalizeCity = (value?: string | null) => value?.trim().toLowerCase() ?? "";
@@ -65,10 +65,10 @@ export const resolveCityCenter = (value?: string | null): [number, number] => {
 
 export const getStoredCity = (): City => {
   if (typeof window === "undefined") {
-    return cities[0] || "";
+    return cities[0] || DEFAULT_CITY;
   }
   const savedCity = localStorage.getItem(CITY_STORAGE_KEY);
-  return resolveCity(savedCity) ?? cities[0] ?? "";
+  return resolveCity(savedCity) ?? cities[0] ?? DEFAULT_CITY;
 };
 
 export const emitCityChange = (city: City) => {

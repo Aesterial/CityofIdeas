@@ -48,6 +48,7 @@ import {
 import { cn } from "@/lib/utils";
 import {
   CITY_STORAGE_KEY,
+  DEFAULT_CITY,
   cities as defaultCities,
   emitCityChange,
   getStoredCity,
@@ -123,8 +124,8 @@ export function Header() {
   const [mounted, setMounted] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileCityOpen, setMobileCityOpen] = useState(false);
-  const [city, setCity] = useState<City>("");
-  const [citiesList, setCitiesList] = useState<City[]>([]);
+  const [city, setCity] = useState<City>(DEFAULT_CITY);
+  const [citiesList, setCitiesList] = useState<City[]>(defaultCities);
 
   const languages = [
     { code: "RU" as const, label: "RU" },

@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   ChevronDown,
   Globe,
-  Image as ImageIcon,
   LogOut,
   MessageSquare,
   Moon,
@@ -259,10 +258,6 @@ type QuickMenuGroup = {
   items: QuickMenuItem[];
 };
 
-type CountResponse = {
-  count?: number;
-};
-
 type VoteCategoryRecord = { name?: string; posts?: number };
 type TopCategoriesResponse = { record?: VoteCategoryRecord[] };
 
@@ -270,21 +265,6 @@ type IdeasRecapResponse = {
   approved?: number;
   waiting?: number;
   declined?: number;
-};
-
-type UsersActivityResponse = {
-  data?: Record<string, { active?: number; offline?: number }>;
-};
-
-type Grade = { good?: number; bad?: number };
-type EditorsGradeResponse = {
-  photos?: Grade;
-  videos?: Grade;
-  graphics?: Grade;
-};
-
-type MediaCoverageResponse = {
-  medias?: Record<string, { photos?: number; videos?: number }>;
 };
 
 type StatCardId = "activeUsers" | "offlineUsers" | "newIdeas" | "votes";
@@ -300,8 +280,6 @@ type AdminStatsCache = {
     declined: number | null;
   };
   activityPoints: ActivityPoint[];
-  mediaCoveragePoints: MediaCoveragePoint[];
-  qualityScores: QualityScore[];
   audienceSnapshot: {
     active: number | null;
     offline: number | null;
@@ -352,13 +330,6 @@ type ActivityPoint = {
   creations: number;
 };
 type VoteCategory = { category: string; votes: number };
-type MediaCoveragePoint = {
-  label: string;
-  timestamp: number;
-  photos: number;
-  videos: number;
-};
-type QualityScore = { type: string; score: number };
 type ActivityRange = "24h" | "3d" | "7d";
 
 const userDateFormatter = new Intl.DateTimeFormat("en-GB", {
@@ -536,9 +507,6 @@ export default function AdminPage() {
   });
   const [activityRange, setActivityRange] = useState<ActivityRange>("7d");
   const [activityPoints, setActivityPoints] = useState<ActivityPoint[]>([]);
-  const [mediaCoveragePoints, setMediaCoveragePoints] = useState<
-    MediaCoveragePoint[]
-  >([]);
   const [headerCompact, setHeaderCompact] = useState(false);
 
   useEffect(() => {
@@ -594,8 +562,6 @@ export default function AdminPage() {
     visible: { opacity: 1, y: 0, filter: "blur(0px)" },
   };
 
-
-  const [qualityScores, setQualityScores] = useState<QualityScore[]>([]);
   const [audienceSnapshot, setAudienceSnapshot] = useState<{
     active: number | null;
     offline: number | null;
@@ -609,8 +575,6 @@ export default function AdminPage() {
     voteCategories,
     ideasApproval,
     activityPoints,
-    mediaCoveragePoints,
-    qualityScores,
     audienceSnapshot,
   });
   const statsLoadGuardRef = useRef(false);
@@ -714,13 +678,6 @@ export default function AdminPage() {
             label: t("adminStatsActivityTitle"),
             icon: TrendingUp,
             section: "analytics",
-          },
-          {
-            id: "media",
-            href: "#media",
-            label: t("adminMediaTitle"),
-            icon: ImageIcon,
-            section: "media",
           },
         ],
       },
@@ -856,22 +813,6 @@ export default function AdminPage() {
     ];
   }, [displayStats, t]);
 
-  const mediaCoverageData = useMemo(
-    () => mediaCoveragePoints,
-    [mediaCoveragePoints],
-  );
-
-  const qualityData = useMemo(() => {
-    if (qualityScores.length) {
-      return qualityScores;
-    }
-    return [
-      { type: t("adminMediaLabelPhotos"), score: 0 },
-      { type: t("adminMediaLabelVideos"), score: 0 },
-      { type: t("adminMediaLabelGraphics"), score: 0 },
-    ];
-  }, [qualityScores, t]);
-
   const hasStatusDataLoaded = ideasApproval.approved !== null || ideasApproval.waiting !== null;
   const hasStatusData = statusData.some((entry) => entry.value > 0);
   const hasParticipationData = participationData.some(
@@ -879,10 +820,6 @@ export default function AdminPage() {
   );
   const hasVotesByCategoryData = votesByCategoryData.some(
     (entry) => entry.votes > 0,
-  );
-  const hasQualityData = qualityData.some((entry) => entry.score > 0);
-  const hasMediaCoverageData = mediaCoverageData.some(
-    (entry) => entry.photos > 0 || entry.videos > 0,
   );
 
   const activityConfig = {
@@ -903,17 +840,6 @@ export default function AdminPage() {
     },
   };
 
-  const mediaCoverageConfig = {
-    photos: {
-      label: t("adminMediaLabelPhotos"),
-      color: "var(--color-chart-1)",
-    },
-    videos: {
-      label: t("adminMediaLabelVideos"),
-      color: "var(--color-chart-2)",
-    },
-  };
-
   const handleLogout = async () => {
     await logout();
     router.push("/");
@@ -929,8 +855,6 @@ export default function AdminPage() {
       voteCategories,
       ideasApproval,
       activityPoints,
-      mediaCoveragePoints,
-      qualityScores,
       audienceSnapshot,
     };
   }, [
@@ -938,13 +862,11 @@ export default function AdminPage() {
     voteCategories,
     ideasApproval,
     activityPoints,
-    mediaCoveragePoints,
-    qualityScores,
     audienceSnapshot,
   ]);
 
   useEffect(() => {
-    const sectionIds = ["users", "overview", "analytics", "media"];
+    const sectionIds = ["users", "overview", "analytics"];
     let frame = 0;
 
     const resolveHeaderOffset = () => {
@@ -1010,8 +932,6 @@ export default function AdminPage() {
       setVoteCategories(cached.voteCategories);
       setIdeasApproval(cached.ideasApproval);
       setActivityPoints(cached.activityPoints);
-      setMediaCoveragePoints(cached.mediaCoveragePoints);
-      setQualityScores(cached.qualityScores);
       setAudienceSnapshot(cached.audienceSnapshot);
       return () => {
         cancelled = true;
@@ -1037,8 +957,6 @@ export default function AdminPage() {
           ideasRecapResult,
           votesGraphResult,
           creationsGraphResult,
-          qualityRecapResult,
-          mediaCoverageResult,
         ] = await Promise.allSettled([
           fetchStatisticsGlobal({ signal: controller.signal }),
           requestJson<TopCategoriesResponse>(
@@ -1057,14 +975,6 @@ export default function AdminPage() {
             separator: grpcSeparator,
             signal: controller.signal,
           }),
-          requestJson<EditorsGradeResponse>(
-            "/api/statistics/quality/recap",
-            controller.signal,
-          ),
-          requestJson<MediaCoverageResponse>(
-            "/api/statistics/media/coverage",
-            controller.signal,
-          ),
         ]);
 
         if (controller.signal.aborted) {
@@ -1089,30 +999,6 @@ export default function AdminPage() {
           toast.error(t("adminErrorLoadAudience"), {
             description:
               reason instanceof Error ? reason.message : undefined,
-          });
-        }
-
-        if (
-          qualityRecapResult.status !== "fulfilled" &&
-          qualityRecapResult.reason
-        ) {
-          toast.error(t("adminErrorLoadQualityRecap"), {
-            description:
-              qualityRecapResult.reason instanceof Error
-                ? qualityRecapResult.reason.message
-                : undefined,
-          });
-        }
-
-        if (
-          mediaCoverageResult.status !== "fulfilled" &&
-          mediaCoverageResult.reason
-        ) {
-          toast.error(t("adminErrorLoadMediaCoverage"), {
-            description:
-              mediaCoverageResult.reason instanceof Error
-                ? mediaCoverageResult.reason.message
-                : undefined,
           });
         }
 
@@ -1196,62 +1082,10 @@ export default function AdminPage() {
           }));
         }
 
-        const nextQualityScores =
-          qualityRecapResult.status === "fulfilled"
-            ? (() => {
-              const computeScore = (grade?: Grade) => {
-                const good = Number(grade?.good ?? 0);
-                const bad = Number(grade?.bad ?? 0);
-                const total = good + bad;
-                if (total === 0) return 0;
-                return Math.round((good / total) * 100);
-              };
-              return [
-                {
-                  type: t("adminMediaLabelPhotos"),
-                  score: computeScore(qualityRecapResult.value.photos),
-                },
-                {
-                  type: t("adminMediaLabelVideos"),
-                  score: computeScore(qualityRecapResult.value.videos),
-                },
-                {
-                  type: t("adminMediaLabelGraphics"),
-                  score: computeScore(qualityRecapResult.value.graphics),
-                },
-              ];
-            })()
-            : previous.qualityScores;
-
-        const nextMediaCoveragePoints =
-          mediaCoverageResult.status === "fulfilled"
-            ? (() => {
-              const formatter = new Intl.DateTimeFormat(locale, {
-                month: "short",
-                day: "numeric",
-              });
-              return Object.entries(mediaCoverageResult.value?.medias || {})
-                .map(([key, value]) => {
-                  const timestamp = Number(key) * 1000;
-                  if (!Number.isFinite(timestamp)) return null;
-                  return {
-                    label: formatter.format(new Date(timestamp)),
-                    timestamp,
-                    photos: Number(value?.photos ?? 0),
-                    videos: Number(value?.videos ?? 0),
-                  };
-                })
-                .filter((item): item is MediaCoveragePoint => Boolean(item))
-                .sort((a, b) => a.timestamp - b.timestamp);
-            })()
-            : previous.mediaCoveragePoints;
-
         setStatsSummary(nextStatsSummary);
         setVoteCategories(nextVoteCategories);
         setIdeasApproval(nextIdeasApproval);
         setActivityPoints(nextActivityPoints);
-        setMediaCoveragePoints(nextMediaCoveragePoints);
-        setQualityScores(nextQualityScores);
         setAudienceSnapshot(nextAudienceSnapshot);
 
         writeAdminCache(cacheKey, {
@@ -1260,8 +1094,6 @@ export default function AdminPage() {
           voteCategories: nextVoteCategories,
           ideasApproval: nextIdeasApproval,
           activityPoints: nextActivityPoints,
-          mediaCoveragePoints: nextMediaCoveragePoints,
-          qualityScores: nextQualityScores,
           audienceSnapshot: nextAudienceSnapshot,
         });
       };
@@ -2542,7 +2374,7 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="grid gap-6">
                 <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-4 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)] sm:p-6">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
@@ -2597,179 +2429,7 @@ export default function AdminPage() {
                     renderNoData("h-[180px] sm:h-[220px]")
                   )}
                 </div>
-
-                <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-4 sm:p-6">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-sm font-semibold">
-                        {t("adminMediaQualityTitle")}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {t("adminMediaQualitySubtitle")}
-                      </p>
-                    </div>
-                    <Shield className="h-4 w-4 shrink-0 text-muted-foreground sm:h-5 sm:w-5" />
-                  </div>
-                  {hasQualityData ? (
-                    <ChartContainer
-                      config={{}}
-                      className="mt-4 h-[180px] w-full sm:h-[210px]"
-                    >
-                      <BarChart
-                        data={qualityData}
-                        layout="vertical"
-                        margin={{ left: 0, right: 4 }}
-                      >
-                        <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-                        <XAxis
-                          type="number"
-                          tickLine={false}
-                          axisLine={false}
-                          tick={{ fontSize: 10 }}
-                          allowDecimals={false}
-                        />
-                        <YAxis
-                          type="category"
-                          dataKey="type"
-                          tickLine={false}
-                          axisLine={false}
-                          width={76}
-                          tick={{ fontSize: 10 }}
-                        />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Bar dataKey="score" radius={[0, 6, 6, 0]}>
-                          {qualityData.map((item, index) => (
-                            <Cell
-                              key={item.type}
-                              fill={`var(--color-chart-${index + 1})`}
-                            />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ChartContainer>
-                  ) : (
-                    renderNoData("h-[180px] sm:h-[210px]")
-                  )}
-                </div>
               </div>
-            </motion.section>
-
-            <motion.section
-              id="media"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.5 }}
-              variants={sectionVariants}
-              className="space-y-6 scroll-mt-32"
-            >
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                  {t("adminMediaTitle")}
-                </p>
-                <h2 className="text-2xl font-bold">
-                  {t("adminMediaSubtitle")}
-                </h2>
-              </div>
-              <div className="min-w-0 rounded-3xl border border-border/70 bg-card/90 p-4 shadow-[0_24px_60px_-45px_rgba(0,0,0,0.5)] sm:p-6">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                      <p className="text-sm font-semibold">
-                        {t("adminMediaCoverageTitle")}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {t("adminMediaCoverageSubtitle")}
-                      </p>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {t("adminMediaCoverageRange")}
-                    </span>
-                  </div>
-                  {hasMediaCoverageData ? (
-                    <ChartContainer
-                      config={mediaCoverageConfig}
-                      className="mt-4 h-[180px] sm:h-[220px]"
-                    >
-                      <AreaChart
-                        data={mediaCoverageData}
-                        margin={{ left: 0, right: 4, top: 4 }}
-                      >
-                        <defs>
-                          <linearGradient
-                            id="fillPhotos"
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                          >
-                            <stop
-                              offset="5%"
-                              stopColor="var(--color-chart-1)"
-                              stopOpacity={0.35}
-                            />
-                            <stop
-                              offset="95%"
-                              stopColor="var(--color-chart-1)"
-                              stopOpacity={0.05}
-                            />
-                          </linearGradient>
-                          <linearGradient
-                            id="fillVideos"
-                            x1="0"
-                            y1="0"
-                            x2="0"
-                            y2="1"
-                          >
-                            <stop
-                              offset="5%"
-                              stopColor="var(--color-chart-2)"
-                              stopOpacity={0.35}
-                            />
-                            <stop
-                              offset="95%"
-                              stopColor="var(--color-chart-2)"
-                              stopOpacity={0.05}
-                            />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                        <XAxis
-                          dataKey="label"
-                          tickLine={false}
-                          axisLine={false}
-                          tick={{ fontSize: 10 }}
-                          interval="preserveStartEnd"
-                          minTickGap={32}
-                        />
-                        <YAxis
-                          tickLine={false}
-                          axisLine={false}
-                          width={28}
-                          tick={{ fontSize: 10 }}
-                          allowDecimals={false}
-                        />
-                        <ChartTooltip content={<ChartTooltipContent />} />
-                        <Area
-                          type="monotone"
-                          dataKey="photos"
-                          stroke="var(--color-chart-1)"
-                          fill="url(#fillPhotos)"
-                          strokeWidth={1.5}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="videos"
-                          stroke="var(--color-chart-2)"
-                          fill="url(#fillVideos)"
-                          strokeWidth={1.5}
-                        />
-                        <ChartLegend content={<ChartLegendContent />} />
-                      </AreaChart>
-                    </ChartContainer>
-                  ) : (
-                    renderNoData("h-[180px] sm:h-[220px]")
-                  )}
-                </div>
             </motion.section>
           </div>
         </main>

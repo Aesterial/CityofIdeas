@@ -35,6 +35,7 @@ import {
 import {
   CITY_CHANGE_EVENT,
   CITY_STORAGE_KEY,
+  DEFAULT_CITY,
   cities,
   getStoredCity,
   resolveCity,
@@ -168,7 +169,7 @@ export default function HomePage() {
   const [selectedCoordinates, setSelectedCoordinates] = useState<
     [number, number] | null
   >(null);
-  const [selectedCity, setSelectedCity] = useState<City>("");
+  const [selectedCity, setSelectedCity] = useState<City>(DEFAULT_CITY);
   const cacheRef = useRef(new Map<string, ApiProject>());
   const { language, t } = useLanguage();
   const { status } = useAuth();
