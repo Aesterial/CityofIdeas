@@ -53,3 +53,5 @@ generated/
 .agents/
 .codex/
 .claude/
+AGENTS.md
+CLAUDE.md
