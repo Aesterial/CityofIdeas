@@ -60,7 +60,7 @@ func (*UserRepository) parsePreferences(prefs sqlc.UsersPreference) *userdomain.
 	var cityID *domain.UUID = nil
 	if prefs.CityID.Valid {
 		id := domain.FromPG(prefs.CityID)
-		cityID = &id
+		cityID = new(id)
 	}
 	var cityChanged *time.Time = nil
 	if prefs.CityChanged.Valid {
@@ -119,7 +119,7 @@ func (u *UserRepository) getRanks(ctx context.Context, user *userdomain.User) (*
 		var expires *time.Time
 		if row.Expires.Valid {
 			t := row.Expires.Time
-			expires = &t
+			expires = new(t)
 		}
 		ranks = append(ranks, &ranksdomain.UserRank{
 			Name:    row.Name,
@@ -211,7 +211,7 @@ func (u *UserRepository) User(ctx context.Context, user domain.UUID) (*userdomai
 	return u.completeUser(ctx, u.parseUser(usr))
 }
 
-func (u *UserRepository) UserByUsername(ctx context.Context, userMail string) (*userdomain.User, error) {
+func (u *UserRepository) UserByUserMail(ctx context.Context, userMail string) (*userdomain.User, error) {
 	usr, err := u.conn.GetUserByUserMail(ctx, userMail)
 	if err != nil {
 		return nil, err
@@ -549,4 +549,47 @@ func (u *UserRepository) Unban(ctx context.Context, user domain.UUID, executor d
 		return err
 	}
 	return nil
+}
+
+func (u *UserRepository) IsOauthExists(ctx context.Context, id string, service userdomain.OauthService) (*domain.UUID, error) {
+	if id == "" {
+		return nil, errors.InvalidArguments
+	}
+	owner, err := u.conn.IsOauthExists(ctx, sqlc.IsOauthExistsParams{
+		ID:      id,
+		Service: service.SQL(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	if !owner.Valid {
+		return nil, errors.NotFound
+	}
+	return new(domain.FromPG(owner)), nil
+}
+
+func (u *UserRepository) IsUserOauthLinked(ctx context.Context, user domain.UUID, service userdomain.OauthService) error {
+	linked, err := u.conn.IsUserOauthLinked(ctx, sqlc.IsUserOauthLinkedParams{
+		Owner:   user.ToPG(),
+		Service: service.SQL(),
+	})
+	if err != nil {
+		return err
+	}
+	if !linked {
+		return errors.NotFound
+	}
+	return nil
+}
+
+func (u *UserRepository) InsertOauth(ctx context.Context, user domain.UUID, id string, service userdomain.OauthService) error {
+	if err := u.IsUserOauthLinked(ctx, user, service); err == nil {
+		return errors.Conflict
+	}
+	err := u.conn.InsertOauth(ctx, sqlc.InsertOauthParams{
+		Owner:   user.ToPG(),
+		Service: service.SQL(),
+		ID:      id,
+	})
+	return err
 }

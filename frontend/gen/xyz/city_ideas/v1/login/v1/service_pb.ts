@@ -6,7 +6,7 @@ import type { GenFile, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import type { EmptySchema } from "@bufbuild/protobuf/wkt";
 import { file_google_protobuf_empty } from "@bufbuild/protobuf/wkt";
-import type { AuthorizeRequestSchema, ConfirmTotpResponseSchema, CreateTotpResponseSchema, LoginResponseSchema, RegisterRequestSchema, ResetTotpRequestSchema } from "./domain_pb";
+import type { AuthorizeRequestSchema, ConfirmTotpResponseSchema, CreateTotpResponseSchema, LoginResponseSchema, RegisterRequestSchema, ResetTotpRequestSchema, TgCallbackRequestSchema, TgStartRequestSchema, TgStartResponseSchema, VkCallbackRequestSchema, VkCallbackResponseSchema, VkStartRequestSchema } from "./domain_pb";
 import { file_xyz_city_ideas_v1_login_v1_domain } from "./domain_pb";
 import type { RequestWithValueSchema } from "../../types_pb";
 import { file_xyz_city_ideas_v1_types } from "../../types_pb";
@@ -15,7 +15,7 @@ import { file_xyz_city_ideas_v1_types } from "../../types_pb";
  * Describes the file xyz/city_ideas/v1/login/v1/service.proto.
  */
 export const file_xyz_city_ideas_v1_login_v1_service: GenFile = /*@__PURE__*/
-  fileDesc("Cih4eXovY2l0eV9pZGVhcy92MS9sb2dpbi92MS9zZXJ2aWNlLnByb3RvEhp4eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MTLqBAoMTG9naW5TZXJ2aWNlEmIKCFJlZ2lzdGVyEisueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuUmVnaXN0ZXJSZXF1ZXN0GikueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuTG9naW5SZXNwb25zZRJkCglBdXRob3JpemUSLC54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5BdXRob3JpemVSZXF1ZXN0GikueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuTG9naW5SZXNwb25zZRI4CgZMb2dvdXQSFi5nb29nbGUucHJvdG9idWYuRW1wdHkaFi5nb29nbGUucHJvdG9idWYuRW1wdHkSVAoKQ3JlYXRlVG90cBIWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eRouLnh5ei5jaXR5X2lkZWFzLnYxLmxvZ2luLnYxLkNyZWF0ZVRvdHBSZXNwb25zZRJjCgtDb25maXJtVG90cBIjLnh5ei5jaXR5X2lkZWFzLnYxLlJlcXVlc3RXaXRoVmFsdWUaLy54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5Db25maXJtVG90cFJlc3BvbnNlEkgKCUNoZWNrVG90cBIjLnh5ei5jaXR5X2lkZWFzLnYxLlJlcXVlc3RXaXRoVmFsdWUaFi5nb29nbGUucHJvdG9idWYuRW1wdHkSUQoJUmVzZXRUb3RwEiwueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuUmVzZXRUb3RwUmVxdWVzdBoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eUJEWkJnaXRodWIuY29tL2Flc3RlcmlhbC9jaXR5aWRlYXMvYmFja2VuZC9pbnRlcm5hbC9hcGkvdjEvbG9naW4vdjE7djFiCGVkaXRpb25zcOgH", [file_google_protobuf_empty, file_xyz_city_ideas_v1_login_v1_domain, file_xyz_city_ideas_v1_types]);
+  fileDesc("Cih4eXovY2l0eV9pZGVhcy92MS9sb2dpbi92MS9zZXJ2aWNlLnByb3RvEhp4eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MTKECAoMTG9naW5TZXJ2aWNlEmIKCFJlZ2lzdGVyEisueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuUmVnaXN0ZXJSZXF1ZXN0GikueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuTG9naW5SZXNwb25zZRJkCglBdXRob3JpemUSLC54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5BdXRob3JpemVSZXF1ZXN0GikueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuTG9naW5SZXNwb25zZRI4CgZMb2dvdXQSFi5nb29nbGUucHJvdG9idWYuRW1wdHkaFi5nb29nbGUucHJvdG9idWYuRW1wdHkSVAoKQ3JlYXRlVG90cBIWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eRouLnh5ei5jaXR5X2lkZWFzLnYxLmxvZ2luLnYxLkNyZWF0ZVRvdHBSZXNwb25zZRJjCgtDb25maXJtVG90cBIjLnh5ei5jaXR5X2lkZWFzLnYxLlJlcXVlc3RXaXRoVmFsdWUaLy54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5Db25maXJtVG90cFJlc3BvbnNlEkgKCUNoZWNrVG90cBIjLnh5ei5jaXR5X2lkZWFzLnYxLlJlcXVlc3RXaXRoVmFsdWUaFi5nb29nbGUucHJvdG9idWYuRW1wdHkSUQoJUmVzZXRUb3RwEiwueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuUmVzZXRUb3RwUmVxdWVzdBoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eRJaCgdWa1N0YXJ0EioueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuVmtTdGFydFJlcXVlc3QaIy54eXouY2l0eV9pZGVhcy52MS5SZXF1ZXN0V2l0aFZhbHVlEmsKClZrQ2FsbGJhY2sSLS54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5Wa0NhbGxiYWNrUmVxdWVzdBouLnh5ei5jaXR5X2lkZWFzLnYxLmxvZ2luLnYxLlZrQ2FsbGJhY2tSZXNwb25zZRJiCgdUZ1N0YXJ0EioueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuVGdTdGFydFJlcXVlc3QaKy54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5UZ1N0YXJ0UmVzcG9uc2USawoKVGdDYWxsYmFjaxItLnh5ei5jaXR5X2lkZWFzLnYxLmxvZ2luLnYxLlRnQ2FsbGJhY2tSZXF1ZXN0Gi4ueHl6LmNpdHlfaWRlYXMudjEubG9naW4udjEuVmtDYWxsYmFja1Jlc3BvbnNlQkRaQmdpdGh1Yi5jb20vYWVzdGVyaWFsL2NpdHlpZGVhcy9iYWNrZW5kL2ludGVybmFsL2FwaS92MS9sb2dpbi92MTt2MWIIZWRpdGlvbnNw6Ac", [file_google_protobuf_empty, file_xyz_city_ideas_v1_login_v1_domain, file_xyz_city_ideas_v1_types]);
 
 /**
  * @generated from service xyz.city_ideas.v1.login.v1.LoginService
@@ -76,6 +76,38 @@ export const LoginService: GenService<{
     methodKind: "unary";
     input: typeof ResetTotpRequestSchema;
     output: typeof EmptySchema;
+  },
+  /**
+   * @generated from rpc xyz.city_ideas.v1.login.v1.LoginService.VkStart
+   */
+  vkStart: {
+    methodKind: "unary";
+    input: typeof VkStartRequestSchema;
+    output: typeof RequestWithValueSchema;
+  },
+  /**
+   * @generated from rpc xyz.city_ideas.v1.login.v1.LoginService.VkCallback
+   */
+  vkCallback: {
+    methodKind: "unary";
+    input: typeof VkCallbackRequestSchema;
+    output: typeof VkCallbackResponseSchema;
+  },
+  /**
+   * @generated from rpc xyz.city_ideas.v1.login.v1.LoginService.TgStart
+   */
+  tgStart: {
+    methodKind: "unary";
+    input: typeof TgStartRequestSchema;
+    output: typeof TgStartResponseSchema;
+  },
+  /**
+   * @generated from rpc xyz.city_ideas.v1.login.v1.LoginService.TgCallback
+   */
+  tgCallback: {
+    methodKind: "unary";
+    input: typeof TgCallbackRequestSchema;
+    output: typeof VkCallbackResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_xyz_city_ideas_v1_login_v1_service, 0);

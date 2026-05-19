@@ -50,7 +50,7 @@ func (s *Service) Username(ctx context.Context, username string) (*userdomain.Us
 	}
 	key := cache.Key("user.username", username)
 	return cache.GetOrSet(ctx, s.c, key, userCacheTTL, []string{userCacheTag, userUsernameCacheTag(username)}, func(ctx context.Context) (*userdomain.User, error) {
-		usr, err := s.usr.UserByUsername(ctx, username)
+		usr, err := s.usr.UserByUserMail(ctx, username)
 		if err != nil {
 			logger.Error("user", "failed to get info about user", logger.F("error", err))
 			return nil, errors.Wrap(err)

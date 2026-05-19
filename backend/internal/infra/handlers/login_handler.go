@@ -6,9 +6,12 @@ import (
 	typespb "github.com/aesterial/cityideas/backend/internal/api/v1"
 	loginpb "github.com/aesterial/cityideas/backend/internal/api/v1/login/v1"
 	loginservice "github.com/aesterial/cityideas/backend/internal/app/login"
+	"github.com/aesterial/cityideas/backend/internal/domain"
 	userdomain "github.com/aesterial/cityideas/backend/internal/domain/user"
+	"github.com/aesterial/cityideas/backend/internal/infra/config"
 	"github.com/aesterial/cityideas/backend/internal/infra/logger"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -141,4 +144,85 @@ func (h *LoginHandler) ResetTotp(ctx context.Context, req *loginpb.ResetTotpRequ
 		return nil, err
 	}
 	return &emptypb.Empty{}, nil
+}
+
+func (h *LoginHandler) VkStart(ctx context.Context, req *loginpb.VkStartRequest) (*typespb.RequestWithValue, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
+	}
+	meta, _ := h.auth.User(ctx)
+	var userID *domain.UUID = nil
+	if meta != nil {
+		userID = meta.UserID
+	}
+	link, err := h.srv.VkStart(ctx, userdomain.CallbackFromProto(req.GetType()), userID)
+	if err != nil {
+		return nil, err
+	}
+	return typespb.RequestWithValue_builder{Value: link}.Build(), nil
+}
+
+func (h *LoginHandler) VkCallback(ctx context.Context, req *loginpb.VkCallbackRequest) (*loginpb.VkCallbackResponse, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
+	}
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, errors.InvalidArguments
+	}
+	token := h.auth.getToken(md, config.Get().Oauth.Key)
+	if token == "" {
+		return nil, errors.InvalidArguments
+	}
+	callback, err := h.srv.VkCallback(ctx, req.GetCode(), req.GetState())
+	if err != nil {
+		return nil, err
+	}
+	return callback.Protobuf(), nil
+}
+
+func (h *LoginHandler) TgStart(ctx context.Context, req *loginpb.TgStartRequest) (*loginpb.TgStartResponse, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
+	}
+	meta, _ := h.auth.User(ctx)
+	var userID *domain.UUID = nil
+	if meta != nil {
+		userID = meta.UserID
+	}
+	data, err := h.srv.TgStart(ctx, userdomain.CallbackFromProto(req.GetType()), userID)
+	if err != nil {
+		return nil, err
+	}
+	out := &loginpb.TgStartResponse{}
+	out.SetState(data.State)
+	out.SetBotUsername(data.BotUsername)
+	return out, nil
+}
+
+func (h *LoginHandler) TgCallback(ctx context.Context, req *loginpb.TgCallbackRequest) (*loginpb.VkCallbackResponse, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
+	}
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, errors.InvalidArguments
+	}
+	token := h.auth.getToken(md, config.Get().Oauth.Key)
+	if token == "" {
+		return nil, errors.InvalidArguments
+	}
+	callback, err := h.srv.TgCallback(ctx, req.GetState(), userdomain.TgAuthData{
+		ID:        req.GetId(),
+		FirstName: req.GetFirstName(),
+		LastName:  req.GetLastName(),
+		Username:  req.GetUsername(),
+		PhotoURL:  req.GetPhotoUrl(),
+		AuthDate:  req.GetAuthDate(),
+		Hash:      req.GetHash(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return callback.Protobuf(), nil
 }

@@ -76,12 +76,32 @@ type Security struct {
 	ActionsDuration int // minutes
 }
 
+type VK struct {
+	Enabled     bool
+	ID          string
+	Secret      string
+	RedirectURL string
+}
+
+type Telegram struct {
+	Enabled     bool
+	BotToken    string
+	BotUsername string
+}
+
+type Oauth struct {
+	Key string
+	Vk  VK
+	Tg  Telegram
+}
+
 type Config struct {
 	Database       Database
 	Cookie         Cookie
 	Email          Email
 	S3             S3
 	Security       Security
+	Oauth          Oauth
 	AllowedOrigins []string
 	Domain         string
 	Host           string

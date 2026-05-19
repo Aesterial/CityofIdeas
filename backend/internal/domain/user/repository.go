@@ -11,7 +11,7 @@ type Repository interface {
 	Create(ctx context.Context, username string, email string, passHash string) (*User, error)
 	IsUserExists(ctx context.Context, userMail string) (bool, error)
 	User(ctx context.Context, user domain.UUID) (*User, error)
-	UserByUsername(ctx context.Context, userMail string) (*User, error)
+	UserByUserMail(ctx context.Context, userMail string) (*User, error)
 	UserPassword(ctx context.Context, user domain.UUID) (string, error)
 	List(ctx context.Context, limit int32, offset int32) (Users, error)
 	Preferences(ctx context.Context, user domain.UUID) (*Preferences, error)
@@ -30,4 +30,7 @@ type Repository interface {
 	IsBanned(ctx context.Context, user domain.UUID) (bool, error)
 	Ban(ctx context.Context, user domain.UUID, caller domain.UUID, reason string, until *time.Time) error
 	Unban(ctx context.Context, user domain.UUID, caller domain.UUID) error
+	IsOauthExists(ctx context.Context, id string, service OauthService) (*domain.UUID, error)
+	IsUserOauthLinked(ctx context.Context, user domain.UUID, service OauthService) error
+	InsertOauth(ctx context.Context, user domain.UUID, id string, service OauthService) error
 }

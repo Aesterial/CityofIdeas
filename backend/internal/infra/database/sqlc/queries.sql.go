@@ -41,6 +41,25 @@ func (q *Queries) AcceptTicket(ctx context.Context, arg AcceptTicketParams) erro
 	return err
 }
 
+const ActionInfo = `-- name: ActionInfo :one
+select id, owner, purpose, hash, at, expires, used from users_actions where hash = $1 limit 1
+`
+
+func (q *Queries) ActionInfo(ctx context.Context, hash string) (UsersAction, error) {
+	row := q.db.QueryRow(ctx, ActionInfo, hash)
+	var i UsersAction
+	err := row.Scan(
+		&i.ID,
+		&i.Owner,
+		&i.Purpose,
+		&i.Hash,
+		&i.At,
+		&i.Expires,
+		&i.Used,
+	)
+	return i, err
+}
+
 const ActionsByOwner = `-- name: ActionsByOwner :many
 select id, owner, purpose, hash, at, expires, used from users_actions where owner = $1
 `
@@ -1202,10 +1221,36 @@ func (q *Queries) HasActiveMaintenance(ctx context.Context) (bool, error) {
 	return exists, err
 }
 
+const InsertOauth = `-- name: InsertOauth :exec
+insert into users_oauth (owner, service, id) values ($1, $2, $3)
+`
+
+type InsertOauthParams struct {
+	Owner   pgtype.UUID  `json:"owner"`
+	Service OauthService `json:"service"`
+	ID      string       `json:"id"`
+}
+
+func (q *Queries) InsertOauth(ctx context.Context, arg InsertOauthParams) error {
+	_, err := q.db.Exec(ctx, InsertOauth, arg.Owner, arg.Service, arg.ID)
+	return err
+}
+
 type InsertRecoveryCodesParams struct {
 	Owner    pgtype.UUID `json:"owner"`
 	Selector string      `json:"selector"`
 	Hash     string      `json:"hash"`
+}
+
+const IsActionExists = `-- name: IsActionExists :one
+select exists (select 1 from users_actions where hash = $1)
+`
+
+func (q *Queries) IsActionExists(ctx context.Context, hash string) (bool, error) {
+	row := q.db.QueryRow(ctx, IsActionExists, hash)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const IsActionValid = `-- name: IsActionValid :one
@@ -1222,6 +1267,22 @@ func (q *Queries) IsActionValid(ctx context.Context, arg IsActionValidParams) (b
 	var is_valid bool
 	err := row.Scan(&is_valid)
 	return is_valid, err
+}
+
+const IsOauthExists = `-- name: IsOauthExists :one
+select owner from users_oauth where id = $1 and service = $2 limit 1
+`
+
+type IsOauthExistsParams struct {
+	ID      string       `json:"id"`
+	Service OauthService `json:"service"`
+}
+
+func (q *Queries) IsOauthExists(ctx context.Context, arg IsOauthExistsParams) (pgtype.UUID, error) {
+	row := q.db.QueryRow(ctx, IsOauthExists, arg.ID, arg.Service)
+	var owner pgtype.UUID
+	err := row.Scan(&owner)
+	return owner, err
 }
 
 const IsProjectExists = `-- name: IsProjectExists :one
@@ -1342,6 +1403,22 @@ select exists (select 1 from users where username = $1 or email = $1)
 
 func (q *Queries) IsUserExists(ctx context.Context, username string) (bool, error) {
 	row := q.db.QueryRow(ctx, IsUserExists, username)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const IsUserOauthLinked = `-- name: IsUserOauthLinked :one
+select exists (select 1 from users_oauth where owner = $1 and service = $2)
+`
+
+type IsUserOauthLinkedParams struct {
+	Owner   pgtype.UUID  `json:"owner"`
+	Service OauthService `json:"service"`
+}
+
+func (q *Queries) IsUserOauthLinked(ctx context.Context, arg IsUserOauthLinkedParams) (bool, error) {
+	row := q.db.QueryRow(ctx, IsUserOauthLinked, arg.Owner, arg.Service)
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err

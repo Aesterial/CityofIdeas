@@ -89,7 +89,7 @@ func main() {
 	emailService := emailservice.NewService(userRepository)
 	userService := userservice.NewService(userRepository, appCache)
 	sessionService := sessionservice.NewService(sessionRepository)
-	loginService := loginservice.NewService(userRepository, sessionRepository, emailService, appCache)
+	loginService := loginservice.NewService(userRepository, sessionRepository, emailService, actionsRepository, appCache)
 	projectService := projectservice.NewService(projectRepository, appCache)
 	ticketService := ticketservice.NewService(ticketRepository, emailService, appCache)
 	rankService := rankservice.NewService(rankRepository, appCache)

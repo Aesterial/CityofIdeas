@@ -2,11 +2,14 @@ package loginservice
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"net/http"
 	"time"
 
 	emailservice "github.com/aesterial/cityideas/backend/internal/app/email"
 	"github.com/aesterial/cityideas/backend/internal/domain"
+	actionsdomain "github.com/aesterial/cityideas/backend/internal/domain/actions"
 	emaildomain "github.com/aesterial/cityideas/backend/internal/domain/email"
 	sessionsdomain "github.com/aesterial/cityideas/backend/internal/domain/sessions"
 	userdomain "github.com/aesterial/cityideas/backend/internal/domain/user"
@@ -20,22 +23,24 @@ import (
 )
 
 type Service struct {
-	usr   userdomain.Repository
-	ses   sessionsdomain.Repository
-	email *emailservice.Service
-	c     *cache.Store
+	usr     userdomain.Repository
+	ses     sessionsdomain.Repository
+	actions actionsdomain.Repository
+	email   *emailservice.Service
+	c       *cache.Store
 }
 
-func NewService(usr userdomain.Repository, ses sessionsdomain.Repository, email *emailservice.Service, store ...*cache.Store) *Service {
+func NewService(usr userdomain.Repository, ses sessionsdomain.Repository, email *emailservice.Service, acts actionsdomain.Repository, store ...*cache.Store) *Service {
 	var c *cache.Store
 	if len(store) > 0 {
 		c = store[0]
 	}
 	return &Service{
-		usr:   usr,
-		ses:   ses,
-		c:     c,
-		email: email,
+		usr:     usr,
+		ses:     ses,
+		c:       c,
+		actions: acts,
+		email:   email,
 	}
 }
 
@@ -56,6 +61,12 @@ func (s *Service) addCookie(ctx context.Context, username string, session domain
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   int(ttl.Seconds()),
 	}).String()
+	return s.addHeader(ctx, "set-cookie", cookie)
+}
+
+func (s *Service) addOauthCookie(ctx context.Context, token string) error {
+	var ttl = time.Minute * 20
+	cookie := (&http.Cookie{Name: config.Get().Oauth.Key, Value: token, Path: "/", HttpOnly: true, Secure: config.Get().IsProduction(), SameSite: http.SameSiteLaxMode, MaxAge: int(ttl.Seconds())}).String()
 	return s.addHeader(ctx, "set-cookie", cookie)
 }
 
@@ -108,13 +119,8 @@ func (s *Service) Register(ctx context.Context, username string, email string, p
 	if s.c != nil {
 		s.c.DeleteTags("users:list")
 	}
-	session, err := s.ses.Create(ctx, user.UID, time.Now().Add(7*24*time.Hour), device, hash)
-	if err != nil {
-		return nil, errors.Wrap(err)
-	}
-	if err = s.addCookie(ctx, user.Username, session.ID, user.Prefs.SessionLiveTime); err != nil {
-		logger.Error("login", "failed to add cookie to context", logger.F("error", err))
-		return nil, errors.Wrap(err)
+	if err = s.startSession(ctx, user, device, hash); err != nil {
+		return nil, err
 	}
 	if !config.Get().Email.Enabled {
 		if err = s.usr.VerifyEmail(ctx, user.UID); err != nil {
@@ -147,7 +153,7 @@ func (s *Service) Authorize(ctx context.Context, userMail string, password strin
 	if !exists {
 		return nil, errors.NotFound
 	}
-	user, err := s.usr.UserByUsername(ctx, userMail)
+	user, err := s.usr.UserByUserMail(ctx, userMail)
 	if err != nil {
 		logger.Error("login", "failed to get user by username or email", logger.F("error", err))
 		return nil, errors.Wrap(err)
@@ -163,22 +169,79 @@ func (s *Service) Authorize(ctx context.Context, userMail string, password strin
 		}
 		return nil, errors.Wrap(err)
 	}
-	session, err := s.ses.Create(ctx, user.UID, time.Now().Add(7*24*time.Hour), device, hash)
-	if err != nil {
-		return nil, errors.Wrap(err)
+	if err = s.loginUser(ctx, user); err != nil {
+		return nil, err
 	}
-	if err = s.addCookie(ctx, user.Username, session.ID, user.Prefs.SessionLiveTime); err != nil {
-		logger.Error("login", "failed to add cookie to context", logger.F("error", err))
-		return nil, errors.Wrap(err)
-	}
-	s.email.SendLoginNotificationEmail(emaildomain.UserInfo{
-		Username: user.Username,
-		Address:  user.Email,
-		Language: user.Prefs.Language,
-	}, loginNotificationData(ctx, user.Username, device))
 	return user, nil
 }
 
 func (s *Service) Logout(ctx context.Context, session domain.UUID) error {
 	return s.ses.Revoke(ctx, session)
+}
+
+func genToken(length int) string {
+	secretRaw := make([]byte, length)
+	if _, err := rand.Read(secretRaw); err != nil {
+		return ""
+	}
+	return hex.EncodeToString(secretRaw)
+}
+
+func (s *Service) startOauthAction(ctx context.Context, callbackType userdomain.VkCallbackType, user *domain.UUID, linkPurpose, authPurpose, registerPurpose actionsdomain.Purpose) (string, error) {
+	token := genToken(32)
+	if token == "" {
+		return "", errors.ServerError
+	}
+	expires := time.Now().Add(5 * time.Minute)
+	switch callbackType {
+	case userdomain.LinkCallback:
+		if user == nil {
+			return "", errors.InvalidArguments
+		}
+		if _, err := s.actions.Create(ctx, user, linkPurpose, token, expires); err != nil {
+			return "", err
+		}
+	case userdomain.AuthCallback:
+		if _, err := s.actions.Create(ctx, nil, authPurpose, token, expires); err != nil {
+			return "", err
+		}
+	case userdomain.RegisterCallback:
+		if _, err := s.actions.Create(ctx, nil, registerPurpose, token, expires); err != nil {
+			return "", err
+		}
+	default:
+		return "", errors.InvalidArguments
+	}
+	if err := s.addOauthCookie(ctx, token); err != nil {
+		return "", errors.Wrap(err)
+	}
+	return token, nil
+}
+
+func (s *Service) startSession(ctx context.Context, usr *userdomain.User, device domain.Device, hash string) error {
+	session, err := s.ses.Create(ctx, usr.UID, time.Now().Add(7*24*time.Hour), device, hash)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	if err = s.addCookie(ctx, usr.Username, session.ID, usr.Prefs.SessionLiveTime); err != nil {
+		logger.Error("login", "failed to add cookie to context", logger.F("error", err))
+		return errors.Wrap(err)
+	}
+	return nil
+}
+
+func (s *Service) loginUser(ctx context.Context, usr *userdomain.User) error {
+	device, hash := domain.UaFromContext(ctx)
+	if !device.IsValid() || hash == "" {
+		return errors.InvalidArguments
+	}
+	if err := s.startSession(ctx, usr, device, hash); err != nil {
+		return err
+	}
+	s.email.SendLoginNotificationEmail(emaildomain.UserInfo{
+		Username: usr.Username,
+		Address:  usr.Email,
+		Language: usr.Prefs.Language,
+	}, loginNotificationData(ctx, usr.Username, device))
+	return nil
 }

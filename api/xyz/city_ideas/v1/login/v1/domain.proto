@@ -40,3 +40,52 @@ message ResetTotpRequest {
   Reset kind = 1;
   string code = 2;
 }
+
+message VkStartRequest {
+  CallbackType type = 1;
+}
+
+message VkCallbackRequest {
+  string state = 1;
+  string code = 2;
+}
+
+enum CallbackType {
+    CallbackType_UNSPECIFIED = 0;
+    CallbackType_REGISTER = 1;
+    CallbackType_AUTH = 2;
+    CallbackType_LINK = 3;
+}
+
+message VkCallbackResponse {
+  CallbackType type = 1;
+  message RegisterInfo {
+    string username = 1;
+    string email = 2;
+    string description = 3;
+    string display_name = 4;
+    string avatarUrl = 5;
+  }
+  RegisterInfo register = 2;
+  xyz.city_ideas.v1.user.v1.PrivateUser auth = 3;
+}
+
+message TgStartRequest {
+  CallbackType type = 1;
+}
+
+message TgStartResponse {
+  string state = 1;
+  string bot_username = 2;
+}
+
+message TgCallbackRequest {
+  string state = 1;
+  int64 id = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string username = 5;
+  string photo_url = 6;
+  int64 auth_date = 7;
+  string hash = 8;
+}

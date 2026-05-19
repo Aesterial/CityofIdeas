@@ -55,7 +55,7 @@ func (s *SessionsRepository) Create(ctx context.Context, user domain.UUID, expir
 	session, err := s.conn.CreateSession(ctx, sqlc.CreateSessionParams{
 		Owner:   user.ToPG(),
 		Expires: pgtype.Timestamptz{Time: expires, Valid: true},
-		Device:  device.SQLC(),
+		Device:  device.SQL(),
 		Hash:    hash,
 	})
 	if err != nil {
@@ -99,7 +99,7 @@ func (s *SessionsRepository) IsValid(ctx context.Context, session domain.UUID, d
 		return false, errors.InvalidArguments
 	}
 	b, err := s.conn.IsSessionValid(ctx, sqlc.IsSessionValidParams{
-		Device: device.SQLC(),
+		Device: device.SQL(),
 		Hash:   hash,
 		ID:     session.ToPG(),
 	})

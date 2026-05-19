@@ -207,8 +207,7 @@ func (r *RankRepository) UserWithScope(ctx context.Context, user domain.UUID) ([
 			Permissions: perms,
 		}
 		if e.CityID.Valid {
-			id := domain.FromPG(e.CityID)
-			mr.CityID = &id
+			mr.CityID = new(domain.FromPG(e.CityID))
 		}
 		out[i] = mr
 	}
@@ -254,8 +253,7 @@ func (r *RankRepository) Users(ctx context.Context, name string) ([]*domain.UUID
 	}
 	var out = make([]*domain.UUID, len(ids))
 	for i, id := range ids {
-		v := domain.FromPG(id)
-		out[i] = &v
+		out[i] = new(domain.FromPG(id))
 	}
 	return out, nil
 }

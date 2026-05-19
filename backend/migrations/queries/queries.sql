@@ -662,11 +662,17 @@ update users_actions set used = now() where hash = $1 and purpose = $2;
 -- name: FindAction :one
 select id, owner, purpose, hash, at, expires, used from users_actions where hash = $1 and purpose = $2 limit 1;
 
+-- name: ActionInfo :one
+select id, owner, purpose, hash, at, expires, used from users_actions where hash = $1 limit 1;
+
 -- name: ActionsByOwner :many
 select id, owner, purpose, hash, at, expires, used from users_actions where owner = $1;
 
 -- name: IsActionValid :one
 select (used is null and expires > now())::boolean as is_valid from users_actions where hash = $1 and purpose = $2 limit 1;
+
+-- name: IsActionExists :one
+select exists (select 1 from users_actions where hash = $1);
 
 -- name: BanUser :exec
 insert into users_bans (executor, target, reason, expires) values ($1, $2, $3, $4);
@@ -710,3 +716,12 @@ from users_preferences up
          left join project_location pl on pl.id = $2
 where up.owner = $1
 limit 1;
+
+-- name: IsOauthExists :one
+select owner from users_oauth where id = $1 and service = $2 limit 1;
+
+-- name: IsUserOauthLinked :one
+select exists (select 1 from users_oauth where owner = $1 and service = $2);
+
+-- name: InsertOauth :exec
+insert into users_oauth (owner, service, id) values ($1, $2, $3);

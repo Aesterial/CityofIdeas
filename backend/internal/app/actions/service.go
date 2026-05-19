@@ -48,7 +48,7 @@ func (s *Service) Create(ctx context.Context, purp string, user domain.UUID) (*a
 		expires = time.Now().Add(24 * time.Hour)
 	}
 
-	return s.acts.Create(ctx, user, purpose, hash, expires)
+	return s.acts.Create(ctx, &user, purpose, hash, expires)
 }
 
 func (s *Service) Use(ctx context.Context, purp string, hash string) error {

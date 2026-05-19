@@ -62,7 +62,7 @@ func (d Device) String() string {
 	}
 }
 
-func (d Device) SQLC() sqlc.DeviceT {
+func (d Device) SQL() sqlc.DeviceT {
 	switch d {
 	case DeviceDesktop:
 		return sqlc.DeviceTDesktop

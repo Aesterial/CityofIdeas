@@ -50,6 +50,7 @@ generated/
 *.crt
 /certs
 .zed/
+.vscode/
 .agents/
 .codex/
 .claude/

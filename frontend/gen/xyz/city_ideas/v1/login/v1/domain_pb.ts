@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file xyz/city_ideas/v1/login/v1/domain.proto.
  */
 export const file_xyz_city_ideas_v1_login_v1_domain: GenFile = /*@__PURE__*/
-  fileDesc("Cid4eXovY2l0eV9pZGVhcy92MS9sb2dpbi92MS9kb21haW4ucHJvdG8SGnh5ei5jaXR5X2lkZWFzLnYxLmxvZ2luLnYxIkQKD1JlZ2lzdGVyUmVxdWVzdBIQCgh1c2VybmFtZRgBIAEoCRINCgVlbWFpbBgCIAEoCRIQCghwYXNzd29yZBgDIAEoCSI3ChBBdXRob3JpemVSZXF1ZXN0EhEKCXVzZXJfbWFpbBgBIAEoCRIQCghwYXNzd29yZBgCIAEoCSJFCg1Mb2dpblJlc3BvbnNlEjQKBGluZm8YASABKAsyJi54eXouY2l0eV9pZGVhcy52MS51c2VyLnYxLlByaXZhdGVVc2VyIi0KEkNyZWF0ZVRvdHBSZXNwb25zZRIKCgJxchgBIAEoCRILCgN1cmwYAiABKAkiJAoTQ29uZmlybVRvdHBSZXNwb25zZRINCgVjb2RlcxgBIAMoCSJRChBSZXNldFRvdHBSZXF1ZXN0Ei8KBGtpbmQYASABKA4yIS54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5SZXNldBIMCgRjb2RlGAIgASgJKkMKBVJlc2V0EhUKEVJFU0VUX1VOU1BFQ0lGSUVEEAASDwoLUkVTRVRfRU1BSUwQARISCg5SRVNFVF9SRUNPVkVSWRACQkRaQmdpdGh1Yi5jb20vYWVzdGVyaWFsL2NpdHlpZGVhcy9iYWNrZW5kL2ludGVybmFsL2FwaS92MS9sb2dpbi92MTt2MWIIZWRpdGlvbnNw6Ac", [file_xyz_city_ideas_v1_user_v1_domain]);
+  fileDesc("Cid4eXovY2l0eV9pZGVhcy92MS9sb2dpbi92MS9kb21haW4ucHJvdG8SGnh5ei5jaXR5X2lkZWFzLnYxLmxvZ2luLnYxIkQKD1JlZ2lzdGVyUmVxdWVzdBIQCgh1c2VybmFtZRgBIAEoCRINCgVlbWFpbBgCIAEoCRIQCghwYXNzd29yZBgDIAEoCSI3ChBBdXRob3JpemVSZXF1ZXN0EhEKCXVzZXJfbWFpbBgBIAEoCRIQCghwYXNzd29yZBgCIAEoCSJFCg1Mb2dpblJlc3BvbnNlEjQKBGluZm8YASABKAsyJi54eXouY2l0eV9pZGVhcy52MS51c2VyLnYxLlByaXZhdGVVc2VyIi0KEkNyZWF0ZVRvdHBSZXNwb25zZRIKCgJxchgBIAEoCRILCgN1cmwYAiABKAkiJAoTQ29uZmlybVRvdHBSZXNwb25zZRINCgVjb2RlcxgBIAMoCSJRChBSZXNldFRvdHBSZXF1ZXN0Ei8KBGtpbmQYASABKA4yIS54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5SZXNldBIMCgRjb2RlGAIgASgJIkgKDlZrU3RhcnRSZXF1ZXN0EjYKBHR5cGUYASABKA4yKC54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5DYWxsYmFja1R5cGUiMAoRVmtDYWxsYmFja1JlcXVlc3QSDQoFc3RhdGUYASABKAkSDAoEY29kZRgCIAEoCSLAAgoSVmtDYWxsYmFja1Jlc3BvbnNlEjYKBHR5cGUYASABKA4yKC54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5DYWxsYmFja1R5cGUSTQoIcmVnaXN0ZXIYAiABKAsyOy54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5Wa0NhbGxiYWNrUmVzcG9uc2UuUmVnaXN0ZXJJbmZvEjQKBGF1dGgYAyABKAsyJi54eXouY2l0eV9pZGVhcy52MS51c2VyLnYxLlByaXZhdGVVc2VyGm0KDFJlZ2lzdGVySW5mbxIQCgh1c2VybmFtZRgBIAEoCRINCgVlbWFpbBgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIUCgxkaXNwbGF5X25hbWUYBCABKAkSEQoJYXZhdGFyVXJsGAUgASgJIkgKDlRnU3RhcnRSZXF1ZXN0EjYKBHR5cGUYASABKA4yKC54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5DYWxsYmFja1R5cGUiNgoPVGdTdGFydFJlc3BvbnNlEg0KBXN0YXRlGAEgASgJEhQKDGJvdF91c2VybmFtZRgCIAEoCSKbAQoRVGdDYWxsYmFja1JlcXVlc3QSDQoFc3RhdGUYASABKAkSCgoCaWQYAiABKAMSEgoKZmlyc3RfbmFtZRgDIAEoCRIRCglsYXN0X25hbWUYBCABKAkSEAoIdXNlcm5hbWUYBSABKAkSEQoJcGhvdG9fdXJsGAYgASgJEhEKCWF1dGhfZGF0ZRgHIAEoAxIMCgRoYXNoGAggASgJKkMKBVJlc2V0EhUKEVJFU0VUX1VOU1BFQ0lGSUVEEAASDwoLUkVTRVRfRU1BSUwQARISCg5SRVNFVF9SRUNPVkVSWRACKnUKDENhbGxiYWNrVHlwZRIcChhDYWxsYmFja1R5cGVfVU5TUEVDSUZJRUQQABIZChVDYWxsYmFja1R5cGVfUkVHSVNURVIQARIVChFDYWxsYmFja1R5cGVfQVVUSBACEhUKEUNhbGxiYWNrVHlwZV9MSU5LEANCRFpCZ2l0aHViLmNvbS9hZXN0ZXJpYWwvY2l0eWlkZWFzL2JhY2tlbmQvaW50ZXJuYWwvYXBpL3YxL2xvZ2luL3YxO3YxYghlZGl0aW9uc3DoBw", [file_xyz_city_ideas_v1_user_v1_domain]);
 
 /**
  * @generated from message xyz.city_ideas.v1.login.v1.RegisterRequest
@@ -142,6 +142,200 @@ export const ResetTotpRequestSchema: GenMessage<ResetTotpRequest> = /*@__PURE__*
   messageDesc(file_xyz_city_ideas_v1_login_v1_domain, 5);
 
 /**
+ * @generated from message xyz.city_ideas.v1.login.v1.VkStartRequest
+ */
+export type VkStartRequest = Message<"xyz.city_ideas.v1.login.v1.VkStartRequest"> & {
+  /**
+   * @generated from field: xyz.city_ideas.v1.login.v1.CallbackType type = 1;
+   */
+  type: CallbackType;
+};
+
+/**
+ * Describes the message xyz.city_ideas.v1.login.v1.VkStartRequest.
+ * Use `create(VkStartRequestSchema)` to create a new message.
+ */
+export const VkStartRequestSchema: GenMessage<VkStartRequest> = /*@__PURE__*/
+  messageDesc(file_xyz_city_ideas_v1_login_v1_domain, 6);
+
+/**
+ * @generated from message xyz.city_ideas.v1.login.v1.VkCallbackRequest
+ */
+export type VkCallbackRequest = Message<"xyz.city_ideas.v1.login.v1.VkCallbackRequest"> & {
+  /**
+   * @generated from field: string state = 1;
+   */
+  state: string;
+
+  /**
+   * @generated from field: string code = 2;
+   */
+  code: string;
+};
+
+/**
+ * Describes the message xyz.city_ideas.v1.login.v1.VkCallbackRequest.
+ * Use `create(VkCallbackRequestSchema)` to create a new message.
+ */
+export const VkCallbackRequestSchema: GenMessage<VkCallbackRequest> = /*@__PURE__*/
+  messageDesc(file_xyz_city_ideas_v1_login_v1_domain, 7);
+
+/**
+ * @generated from message xyz.city_ideas.v1.login.v1.VkCallbackResponse
+ */
+export type VkCallbackResponse = Message<"xyz.city_ideas.v1.login.v1.VkCallbackResponse"> & {
+  /**
+   * @generated from field: xyz.city_ideas.v1.login.v1.CallbackType type = 1;
+   */
+  type: CallbackType;
+
+  /**
+   * @generated from field: xyz.city_ideas.v1.login.v1.VkCallbackResponse.RegisterInfo register = 2;
+   */
+  register?: VkCallbackResponse_RegisterInfo | undefined;
+
+  /**
+   * @generated from field: xyz.city_ideas.v1.user.v1.PrivateUser auth = 3;
+   */
+  auth?: PrivateUser | undefined;
+};
+
+/**
+ * Describes the message xyz.city_ideas.v1.login.v1.VkCallbackResponse.
+ * Use `create(VkCallbackResponseSchema)` to create a new message.
+ */
+export const VkCallbackResponseSchema: GenMessage<VkCallbackResponse> = /*@__PURE__*/
+  messageDesc(file_xyz_city_ideas_v1_login_v1_domain, 8);
+
+/**
+ * @generated from message xyz.city_ideas.v1.login.v1.VkCallbackResponse.RegisterInfo
+ */
+export type VkCallbackResponse_RegisterInfo = Message<"xyz.city_ideas.v1.login.v1.VkCallbackResponse.RegisterInfo"> & {
+  /**
+   * @generated from field: string username = 1;
+   */
+  username: string;
+
+  /**
+   * @generated from field: string email = 2;
+   */
+  email: string;
+
+  /**
+   * @generated from field: string description = 3;
+   */
+  description: string;
+
+  /**
+   * @generated from field: string display_name = 4;
+   */
+  displayName: string;
+
+  /**
+   * @generated from field: string avatarUrl = 5;
+   */
+  avatarUrl: string;
+};
+
+/**
+ * Describes the message xyz.city_ideas.v1.login.v1.VkCallbackResponse.RegisterInfo.
+ * Use `create(VkCallbackResponse_RegisterInfoSchema)` to create a new message.
+ */
+export const VkCallbackResponse_RegisterInfoSchema: GenMessage<VkCallbackResponse_RegisterInfo> = /*@__PURE__*/
+  messageDesc(file_xyz_city_ideas_v1_login_v1_domain, 8, 0);
+
+/**
+ * @generated from message xyz.city_ideas.v1.login.v1.TgStartRequest
+ */
+export type TgStartRequest = Message<"xyz.city_ideas.v1.login.v1.TgStartRequest"> & {
+  /**
+   * @generated from field: xyz.city_ideas.v1.login.v1.CallbackType type = 1;
+   */
+  type: CallbackType;
+};
+
+/**
+ * Describes the message xyz.city_ideas.v1.login.v1.TgStartRequest.
+ * Use `create(TgStartRequestSchema)` to create a new message.
+ */
+export const TgStartRequestSchema: GenMessage<TgStartRequest> = /*@__PURE__*/
+  messageDesc(file_xyz_city_ideas_v1_login_v1_domain, 9);
+
+/**
+ * @generated from message xyz.city_ideas.v1.login.v1.TgStartResponse
+ */
+export type TgStartResponse = Message<"xyz.city_ideas.v1.login.v1.TgStartResponse"> & {
+  /**
+   * @generated from field: string state = 1;
+   */
+  state: string;
+
+  /**
+   * @generated from field: string bot_username = 2;
+   */
+  botUsername: string;
+};
+
+/**
+ * Describes the message xyz.city_ideas.v1.login.v1.TgStartResponse.
+ * Use `create(TgStartResponseSchema)` to create a new message.
+ */
+export const TgStartResponseSchema: GenMessage<TgStartResponse> = /*@__PURE__*/
+  messageDesc(file_xyz_city_ideas_v1_login_v1_domain, 10);
+
+/**
+ * @generated from message xyz.city_ideas.v1.login.v1.TgCallbackRequest
+ */
+export type TgCallbackRequest = Message<"xyz.city_ideas.v1.login.v1.TgCallbackRequest"> & {
+  /**
+   * @generated from field: string state = 1;
+   */
+  state: string;
+
+  /**
+   * @generated from field: int64 id = 2;
+   */
+  id: bigint;
+
+  /**
+   * @generated from field: string first_name = 3;
+   */
+  firstName: string;
+
+  /**
+   * @generated from field: string last_name = 4;
+   */
+  lastName: string;
+
+  /**
+   * @generated from field: string username = 5;
+   */
+  username: string;
+
+  /**
+   * @generated from field: string photo_url = 6;
+   */
+  photoUrl: string;
+
+  /**
+   * @generated from field: int64 auth_date = 7;
+   */
+  authDate: bigint;
+
+  /**
+   * @generated from field: string hash = 8;
+   */
+  hash: string;
+};
+
+/**
+ * Describes the message xyz.city_ideas.v1.login.v1.TgCallbackRequest.
+ * Use `create(TgCallbackRequestSchema)` to create a new message.
+ */
+export const TgCallbackRequestSchema: GenMessage<TgCallbackRequest> = /*@__PURE__*/
+  messageDesc(file_xyz_city_ideas_v1_login_v1_domain, 11);
+
+/**
  * @generated from enum xyz.city_ideas.v1.login.v1.Reset
  */
 export enum Reset {
@@ -166,4 +360,35 @@ export enum Reset {
  */
 export const ResetSchema: GenEnum<Reset> = /*@__PURE__*/
   enumDesc(file_xyz_city_ideas_v1_login_v1_domain, 0);
+
+/**
+ * @generated from enum xyz.city_ideas.v1.login.v1.CallbackType
+ */
+export enum CallbackType {
+  /**
+   * @generated from enum value: CallbackType_UNSPECIFIED = 0;
+   */
+  CallbackType_UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: CallbackType_REGISTER = 1;
+   */
+  CallbackType_REGISTER = 1,
+
+  /**
+   * @generated from enum value: CallbackType_AUTH = 2;
+   */
+  CallbackType_AUTH = 2,
+
+  /**
+   * @generated from enum value: CallbackType_LINK = 3;
+   */
+  CallbackType_LINK = 3,
+}
+
+/**
+ * Describes the enum xyz.city_ideas.v1.login.v1.CallbackType.
+ */
+export const CallbackTypeSchema: GenEnum<CallbackType> = /*@__PURE__*/
+  enumDesc(file_xyz_city_ideas_v1_login_v1_domain, 1);
 

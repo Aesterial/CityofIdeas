@@ -421,8 +421,7 @@ func (p *ProjectRepository) ProjectAuthor(ctx context.Context, project domain.UU
 	if err != nil {
 		return nil, err
 	}
-	v := domain.FromPG(id)
-	return &v, nil
+	return new(domain.FromPG(id)), nil
 }
 
 func (p *ProjectRepository) MessageAuthor(ctx context.Context, message domain.UUID) (*domain.UUID, error) {
@@ -430,8 +429,7 @@ func (p *ProjectRepository) MessageAuthor(ctx context.Context, message domain.UU
 	if err != nil {
 		return nil, err
 	}
-	v := domain.FromPG(id)
-	return &v, nil
+	return new(domain.FromPG(id)), nil
 }
 
 func (p *ProjectRepository) isReviewed(ctx context.Context, project domain.UUID) error {

@@ -7,7 +7,7 @@ import (
 	"github.com/aesterial/cityideas/backend/internal/domain"
 	actionsdomain "github.com/aesterial/cityideas/backend/internal/domain/actions"
 	"github.com/aesterial/cityideas/backend/internal/infra/database/sqlc"
-	sharederrors "github.com/aesterial/cityideas/backend/internal/shared/errors"
+	"github.com/aesterial/cityideas/backend/internal/shared/errors"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -21,9 +21,14 @@ func NewActionsRepository(conn sqlc.Querier) *ActionsRepository {
 
 var _ actionsdomain.Repository = (*ActionsRepository)(nil)
 
-func (a *ActionsRepository) Create(ctx context.Context, user domain.UUID, purpose actionsdomain.Purpose, hash string, expires time.Time) (*actionsdomain.Action, error) {
+func (a *ActionsRepository) Create(ctx context.Context, user *domain.UUID, purpose actionsdomain.Purpose, hash string, expires time.Time) (*actionsdomain.Action, error) {
+	var usr = pgtype.UUID{Valid: false}
+	if user != nil {
+		usr.Valid = true
+		usr.Bytes = user.UUID
+	}
 	row, err := a.conn.CreateAction(ctx, sqlc.CreateActionParams{
-		Owner:   user.ToPG(),
+		Owner:   usr,
 		Purpose: purpose.String(),
 		Hash:    hash,
 		Expires: pgtype.Timestamptz{Time: expires, Valid: true},
@@ -39,7 +44,7 @@ func (a *ActionsRepository) Create(ctx context.Context, user domain.UUID, purpos
 
 	return &actionsdomain.Action{
 		ID:        domain.FromPG(row.ID),
-		Owner:     domain.FromPG(row.Owner),
+		Owner:     new(domain.FromPG(row.Owner)),
 		Purpose:   actionsdomain.Purpose(row.Purpose),
 		Hash:      row.Hash,
 		CreatedAt: row.At.Time,
@@ -71,7 +76,7 @@ func (a *ActionsRepository) Find(ctx context.Context, purpose actionsdomain.Purp
 
 	return &actionsdomain.Action{
 		ID:        domain.FromPG(row.ID),
-		Owner:     domain.FromPG(row.Owner),
+		Owner:     new(domain.FromPG(row.Owner)),
 		Purpose:   actionsdomain.Purpose(row.Purpose),
 		Hash:      row.Hash,
 		CreatedAt: row.At.Time,
@@ -94,7 +99,7 @@ func (a *ActionsRepository) ByOwner(ctx context.Context, user domain.UUID) (acti
 		}
 		actions = append(actions, &actionsdomain.Action{
 			ID:        domain.FromPG(row.ID),
-			Owner:     domain.FromPG(row.Owner),
+			Owner:     new(domain.FromPG(row.Owner)),
 			Purpose:   actionsdomain.Purpose(row.Purpose),
 			Hash:      row.Hash,
 			CreatedAt: row.At.Time,
@@ -107,6 +112,9 @@ func (a *ActionsRepository) ByOwner(ctx context.Context, user domain.UUID) (acti
 }
 
 func (a *ActionsRepository) IsValid(ctx context.Context, purpose actionsdomain.Purpose, hash string) error {
+	if hash == "" {
+		return errors.InvalidArguments
+	}
 	valid, err := a.conn.IsActionValid(ctx, sqlc.IsActionValidParams{
 		Hash:    hash,
 		Purpose: purpose.String(),
@@ -115,7 +123,44 @@ func (a *ActionsRepository) IsValid(ctx context.Context, purpose actionsdomain.P
 		return err
 	}
 	if !valid {
-		return sharederrors.DataExpired
+		return errors.DataExpired
 	}
 	return nil
+}
+
+func (a *ActionsRepository) IsExists(ctx context.Context, hash string) error {
+	if hash == "" {
+		return errors.InvalidArguments
+	}
+	exists, err := a.conn.IsActionExists(ctx, hash)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		return errors.NotFound
+	}
+	return nil
+}
+
+func (a *ActionsRepository) Info(ctx context.Context, hash string) (*actionsdomain.Action, error) {
+	if hash == "" {
+		return nil, errors.InvalidArguments
+	}
+	action, err := a.conn.ActionInfo(ctx, hash)
+	if err != nil {
+		return nil, err
+	}
+	var used *time.Time = nil
+	if action.Used.Valid {
+		used = new(action.Used.Time)
+	}
+	return &actionsdomain.Action{
+		ID:        domain.FromPG(action.ID),
+		Owner:     new(domain.FromPG(action.Owner)),
+		Purpose:   actionsdomain.Purpose(action.Purpose),
+		Hash:      action.Hash,
+		CreatedAt: action.At.Time,
+		ExpiresAt: action.Expires.Time,
+		Used:      used,
+	}, nil
 }

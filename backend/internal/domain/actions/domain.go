@@ -9,9 +9,15 @@ import (
 type Purpose string
 
 const (
-	PasswordReset Purpose = "password_reset"
-	TotpReset     Purpose = "totp_reset"
-	AccountDelete Purpose = "account_delete"
+	PasswordReset   Purpose = "password_reset"
+	TotpReset       Purpose = "totp_reset"
+	AccountDelete   Purpose = "account_delete"
+	OauthVkAuth     Purpose = "vk_auth"
+	OauthVkLink     Purpose = "vk_link"
+	OauthVkRegister Purpose = "vk_register"
+	OauthTgLink     Purpose = "tg_link"
+	OauthTgAuth     Purpose = "tg_auth"
+	OauthTgRegister Purpose = "tg_register"
 )
 
 func (p Purpose) String() string {
@@ -20,7 +26,7 @@ func (p Purpose) String() string {
 
 func (p Purpose) IsValid() bool {
 	switch p {
-	case PasswordReset, TotpReset, AccountDelete:
+	case PasswordReset, TotpReset, AccountDelete, OauthTgAuth, OauthVkAuth, OauthVkLink, OauthTgLink, OauthVkRegister, OauthTgRegister:
 		return true
 	default:
 		return false
@@ -29,7 +35,7 @@ func (p Purpose) IsValid() bool {
 
 type Action struct {
 	ID        domain.UUID
-	Owner     domain.UUID
+	Owner     *domain.UUID
 	Purpose   Purpose
 	Hash      string
 	CreatedAt time.Time

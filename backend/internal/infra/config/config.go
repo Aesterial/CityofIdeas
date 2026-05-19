@@ -77,6 +77,18 @@ func Ensure() error {
 			Bucket:    parseType("S3_BUCKET", "city-ideas"),
 			UseSSL:    parseType("S3_USE_SSL", false),
 		},
+		Oauth: configdomain.Oauth{
+			Key: parseType("OAUTH_KEY", "oauth_state"),
+			Vk: configdomain.VK{
+				ID:          parseType("VK_ID", ""),
+				Secret:      parseType("VK_SECRET", ""),
+				RedirectURL: parseType("VK_REDIRECT_URL", ""),
+			},
+			Tg: configdomain.Telegram{
+				BotToken:    parseType("TG_BOT_TOKEN", ""),
+				BotUsername: parseType("TG_BOT_USERNAME", ""),
+			},
+		},
 		Security:       configdomain.Security{ActionsDuration: parseType("SECURITY_DURATION", 20)},
 		AllowedOrigins: parseType("ALLOWED_ORIGINS", []string{"https://aesterial.xyz"}),
 		Domain:         parseType("DOMAIN", "https://aesterial.xyz"),
@@ -94,6 +106,8 @@ func Ensure() error {
 		return errors.InvalidArguments
 	}
 	cfg.Email.Enabled = strings.TrimSpace(cfg.Email.API) != ""
+	cfg.Oauth.Vk.Enabled = strings.TrimSpace(cfg.Oauth.Vk.Secret) != ""
+	cfg.Oauth.Tg.Enabled = strings.TrimSpace(cfg.Oauth.Tg.BotToken) != ""
 	return nil
 }
 

@@ -13,6 +13,7 @@ import (
 type Querier interface {
 	AcceptSubmission(ctx context.Context, arg AcceptSubmissionParams) error
 	AcceptTicket(ctx context.Context, arg AcceptTicketParams) error
+	ActionInfo(ctx context.Context, hash string) (UsersAction, error)
 	ActionsByOwner(ctx context.Context, owner pgtype.UUID) ([]UsersAction, error)
 	ActiveMaintenance(ctx context.Context) (Maintenance, error)
 	AssignRankToUser(ctx context.Context, arg AssignRankToUserParams) error
@@ -63,8 +64,11 @@ type Querier interface {
 	GetUsers(ctx context.Context, arg GetUsersParams) ([]User, error)
 	GlobalStats(ctx context.Context) (GlobalStatsRow, error)
 	HasActiveMaintenance(ctx context.Context) (bool, error)
+	InsertOauth(ctx context.Context, arg InsertOauthParams) error
 	InsertRecoveryCodes(ctx context.Context, arg []InsertRecoveryCodesParams) (int64, error)
+	IsActionExists(ctx context.Context, hash string) (bool, error)
 	IsActionValid(ctx context.Context, arg IsActionValidParams) (bool, error)
+	IsOauthExists(ctx context.Context, arg IsOauthExistsParams) (pgtype.UUID, error)
 	IsProjectExists(ctx context.Context, id pgtype.UUID) (bool, error)
 	IsProjectLikeExists(ctx context.Context, arg IsProjectLikeExistsParams) (bool, error)
 	IsRankExists(ctx context.Context, name string) (bool, error)
@@ -75,6 +79,7 @@ type Querier interface {
 	IsTicketClosed(ctx context.Context, id pgtype.UUID) (bool, error)
 	IsUserBanned(ctx context.Context, target pgtype.UUID) (bool, error)
 	IsUserExists(ctx context.Context, username string) (bool, error)
+	IsUserOauthLinked(ctx context.Context, arg IsUserOauthLinkedParams) (bool, error)
 	ListCities(ctx context.Context, arg ListCitiesParams) ([]City, error)
 	MaintenancesHistory(ctx context.Context, arg MaintenancesHistoryParams) ([]Maintenance, error)
 	MessageAuthor(ctx context.Context, id pgtype.UUID) (pgtype.UUID, error)

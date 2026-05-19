@@ -291,8 +291,7 @@ func (h *ProjectHandler) DenySubmission(ctx context.Context, req *typespb.Reques
 	if err = h.auth.CityPermissions(ctx, *meta, cityID, permissionsdomain.ProjectSubmissionReview); err != nil {
 		return nil, err
 	}
-	reason := req.GetValues()[1]
-	err = h.proj.SubmissionReview(ctx, *meta.UserID, req.GetValues()[0], false, &reason)
+	err = h.proj.SubmissionReview(ctx, *meta.UserID, req.GetValues()[0], false, new(req.GetValues()[1]))
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
