@@ -68,25 +68,25 @@ func (x Reset) Number() protoreflect.EnumNumber {
 type CallbackType int32
 
 const (
-	CallbackType_CallbackType_UNSPECIFIED CallbackType = 0
-	CallbackType_CallbackType_REGISTER    CallbackType = 1
-	CallbackType_CallbackType_AUTH        CallbackType = 2
-	CallbackType_CallbackType_LINK        CallbackType = 3
+	CallbackType_CALLBACK_TYPE_UNSPECIFIED CallbackType = 0
+	CallbackType_CALLBACK_TYPE_REGISTER    CallbackType = 1
+	CallbackType_CALLBACK_TYPE_AUTH        CallbackType = 2
+	CallbackType_CALLBACK_TYPE_LINK        CallbackType = 3
 )
 
 // Enum value maps for CallbackType.
 var (
 	CallbackType_name = map[int32]string{
-		0: "CallbackType_UNSPECIFIED",
-		1: "CallbackType_REGISTER",
-		2: "CallbackType_AUTH",
-		3: "CallbackType_LINK",
+		0: "CALLBACK_TYPE_UNSPECIFIED",
+		1: "CALLBACK_TYPE_REGISTER",
+		2: "CALLBACK_TYPE_AUTH",
+		3: "CALLBACK_TYPE_LINK",
 	}
 	CallbackType_value = map[string]int32{
-		"CallbackType_UNSPECIFIED": 0,
-		"CallbackType_REGISTER":    1,
-		"CallbackType_AUTH":        2,
-		"CallbackType_LINK":        3,
+		"CALLBACK_TYPE_UNSPECIFIED": 0,
+		"CALLBACK_TYPE_REGISTER":    1,
+		"CALLBACK_TYPE_AUTH":        2,
+		"CALLBACK_TYPE_LINK":        3,
 	}
 )
 
@@ -753,7 +753,7 @@ func (x *VkStartRequest) GetType() CallbackType {
 			return x.xxx_hidden_Type
 		}
 	}
-	return CallbackType_CallbackType_UNSPECIFIED
+	return CallbackType_CALLBACK_TYPE_UNSPECIFIED
 }
 
 func (x *VkStartRequest) SetType(v CallbackType) {
@@ -770,7 +770,7 @@ func (x *VkStartRequest) HasType() bool {
 
 func (x *VkStartRequest) ClearType() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
-	x.xxx_hidden_Type = CallbackType_CallbackType_UNSPECIFIED
+	x.xxx_hidden_Type = CallbackType_CALLBACK_TYPE_UNSPECIFIED
 }
 
 type VkStartRequest_builder struct {
@@ -943,7 +943,7 @@ func (x *VkCallbackResponse) GetType() CallbackType {
 			return x.xxx_hidden_Type
 		}
 	}
-	return CallbackType_CallbackType_UNSPECIFIED
+	return CallbackType_CALLBACK_TYPE_UNSPECIFIED
 }
 
 func (x *VkCallbackResponse) GetRegister() *VkCallbackResponse_RegisterInfo {
@@ -996,7 +996,7 @@ func (x *VkCallbackResponse) HasAuth() bool {
 
 func (x *VkCallbackResponse) ClearType() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
-	x.xxx_hidden_Type = CallbackType_CallbackType_UNSPECIFIED
+	x.xxx_hidden_Type = CallbackType_CALLBACK_TYPE_UNSPECIFIED
 }
 
 func (x *VkCallbackResponse) ClearRegister() {
@@ -1068,7 +1068,7 @@ func (x *TgStartRequest) GetType() CallbackType {
 			return x.xxx_hidden_Type
 		}
 	}
-	return CallbackType_CallbackType_UNSPECIFIED
+	return CallbackType_CALLBACK_TYPE_UNSPECIFIED
 }
 
 func (x *TgStartRequest) SetType(v CallbackType) {
@@ -1085,7 +1085,7 @@ func (x *TgStartRequest) HasType() bool {
 
 func (x *TgStartRequest) ClearType() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
-	x.xxx_hidden_Type = CallbackType_CallbackType_UNSPECIFIED
+	x.xxx_hidden_Type = CallbackType_CALLBACK_TYPE_UNSPECIFIED
 }
 
 type TgStartRequest_builder struct {
@@ -1189,7 +1189,7 @@ type VkCallbackResponse_RegisterInfo struct {
 	xxx_hidden_Email       *string                `protobuf:"bytes,2,opt,name=email"`
 	xxx_hidden_Description *string                `protobuf:"bytes,3,opt,name=description"`
 	xxx_hidden_DisplayName *string                `protobuf:"bytes,4,opt,name=display_name,json=displayName"`
-	xxx_hidden_AvatarUrl   *string                `protobuf:"bytes,5,opt,name=avatarUrl"`
+	xxx_hidden_AvatarUrl   *string                `protobuf:"bytes,5,opt,name=avatar_url,json=avatarUrl"`
 	XXX_raceDetectHookData protoimpl.RaceDetectHookData
 	XXX_presence           [1]uint32
 	unknownFields          protoimpl.UnknownFields
@@ -1419,17 +1419,18 @@ const file_xyz_city_ideas_v1_login_v1_domain_proto_rawDesc = "" +
 	"\x04type\x18\x01 \x01(\x0e2(.xyz.city_ideas.v1.login.v1.CallbackTypeR\x04type\"=\n" +
 	"\x11VkCallbackRequest\x12\x14\n" +
 	"\x05state\x18\x01 \x01(\tR\x05state\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\tR\x04code\"\x8d\x03\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\"\x8e\x03\n" +
 	"\x12VkCallbackResponse\x12<\n" +
 	"\x04type\x18\x01 \x01(\x0e2(.xyz.city_ideas.v1.login.v1.CallbackTypeR\x04type\x12W\n" +
 	"\bregister\x18\x02 \x01(\v2;.xyz.city_ideas.v1.login.v1.VkCallbackResponse.RegisterInfoR\bregister\x12:\n" +
-	"\x04auth\x18\x03 \x01(\v2&.xyz.city_ideas.v1.user.v1.PrivateUserR\x04auth\x1a\xa3\x01\n" +
+	"\x04auth\x18\x03 \x01(\v2&.xyz.city_ideas.v1.user.v1.PrivateUserR\x04auth\x1a\xa4\x01\n" +
 	"\fRegisterInfo\x12\x1a\n" +
 	"\busername\x18\x01 \x01(\tR\busername\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12!\n" +
-	"\fdisplay_name\x18\x04 \x01(\tR\vdisplayName\x12\x1c\n" +
-	"\tavatarUrl\x18\x05 \x01(\tR\tavatarUrl\"N\n" +
+	"\fdisplay_name\x18\x04 \x01(\tR\vdisplayName\x12\x1d\n" +
+	"\n" +
+	"avatar_url\x18\x05 \x01(\tR\tavatarUrl\"N\n" +
 	"\x0eTgStartRequest\x12<\n" +
 	"\x04type\x18\x01 \x01(\x0e2(.xyz.city_ideas.v1.login.v1.CallbackTypeR\x04type\"9\n" +
 	"\x11TgCallbackRequest\x12$\n" +
@@ -1437,12 +1438,12 @@ const file_xyz_city_ideas_v1_login_v1_domain_proto_rawDesc = "" +
 	"\x05Reset\x12\x15\n" +
 	"\x11RESET_UNSPECIFIED\x10\x00\x12\x0f\n" +
 	"\vRESET_EMAIL\x10\x01\x12\x12\n" +
-	"\x0eRESET_RECOVERY\x10\x02*u\n" +
-	"\fCallbackType\x12\x1c\n" +
-	"\x18CallbackType_UNSPECIFIED\x10\x00\x12\x19\n" +
-	"\x15CallbackType_REGISTER\x10\x01\x12\x15\n" +
-	"\x11CallbackType_AUTH\x10\x02\x12\x15\n" +
-	"\x11CallbackType_LINK\x10\x03BDZBgithub.com/aesterial/cityideas/backend/internal/api/v1/login/v1;v1b\beditionsp\xe8\a"
+	"\x0eRESET_RECOVERY\x10\x02*y\n" +
+	"\fCallbackType\x12\x1d\n" +
+	"\x19CALLBACK_TYPE_UNSPECIFIED\x10\x00\x12\x1a\n" +
+	"\x16CALLBACK_TYPE_REGISTER\x10\x01\x12\x16\n" +
+	"\x12CALLBACK_TYPE_AUTH\x10\x02\x12\x16\n" +
+	"\x12CALLBACK_TYPE_LINK\x10\x03BDZBgithub.com/aesterial/cityideas/backend/internal/api/v1/login/v1;v1b\beditionsp\xe8\a"
 
 var file_xyz_city_ideas_v1_login_v1_domain_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 12)

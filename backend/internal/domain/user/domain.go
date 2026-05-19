@@ -290,11 +290,11 @@ const (
 
 func CallbackFromProto(req loginpb.CallbackType) VkCallbackType {
 	switch req {
-	case loginpb.CallbackType_CallbackType_AUTH:
+	case loginpb.CallbackType_CALLBACK_TYPE_AUTH:
 		return AuthCallback
-	case loginpb.CallbackType_CallbackType_LINK:
+	case loginpb.CallbackType_CALLBACK_TYPE_LINK:
 		return LinkCallback
-	case loginpb.CallbackType_CallbackType_REGISTER:
+	case loginpb.CallbackType_CALLBACK_TYPE_REGISTER:
 		return RegisterCallback
 	default:
 		return UnknownCallback
@@ -340,7 +340,7 @@ func (v *VkCallbackResponse) Protobuf() *loginpb.VkCallbackResponse {
 	var out = &loginpb.VkCallbackResponse{}
 	switch v.Type {
 	case RegisterCallback:
-		out.SetType(loginpb.CallbackType_CallbackType_REGISTER)
+		out.SetType(loginpb.CallbackType_CALLBACK_TYPE_REGISTER)
 		if v.User != nil {
 			var info = &loginpb.VkCallbackResponse_RegisterInfo{}
 			info.SetUsername(v.User.Username)
@@ -355,12 +355,12 @@ func (v *VkCallbackResponse) Protobuf() *loginpb.VkCallbackResponse {
 			out.SetRegister(info)
 		}
 	case AuthCallback:
-		out.SetType(loginpb.CallbackType_CallbackType_AUTH)
+		out.SetType(loginpb.CallbackType_CALLBACK_TYPE_AUTH)
 		if v.User != nil {
 			out.SetAuth(v.User.PrivateProtobuf())
 		}
 	default:
-		out.SetType(loginpb.CallbackType_CallbackType_LINK)
+		out.SetType(loginpb.CallbackType_CALLBACK_TYPE_LINK)
 	}
 	return out
 }

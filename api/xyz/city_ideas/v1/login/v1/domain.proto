@@ -51,10 +51,10 @@ message VkCallbackRequest {
 }
 
 enum CallbackType {
-  CallbackType_UNSPECIFIED = 0;
-  CallbackType_REGISTER = 1;
-  CallbackType_AUTH = 2;
-  CallbackType_LINK = 3;
+  CALLBACK_TYPE_UNSPECIFIED = 0;
+  CALLBACK_TYPE_REGISTER = 1;
+  CALLBACK_TYPE_AUTH = 2;
+  CALLBACK_TYPE_LINK = 3;
 }
 
 message VkCallbackResponse {
@@ -64,7 +64,7 @@ message VkCallbackResponse {
     string email = 2;
     string description = 3;
     string display_name = 4;
-    string avatarUrl = 5;
+    string avatar_url = 5;
   }
   RegisterInfo register = 2;
   xyz.city_ideas.v1.user.v1.PrivateUser auth = 3;
