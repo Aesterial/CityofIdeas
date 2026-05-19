@@ -390,8 +390,3 @@ type TgAuthData struct {
 	AuthDate  int64
 	Hash      string
 }
-
-type TgStartData struct {
-	State       string
-	BotUsername string
-}

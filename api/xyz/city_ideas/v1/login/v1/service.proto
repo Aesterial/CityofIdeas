@@ -18,6 +18,6 @@ service LoginService {
   rpc ResetTotp(xyz.city_ideas.v1.login.v1.ResetTotpRequest) returns (google.protobuf.Empty);
   rpc VkStart(xyz.city_ideas.v1.login.v1.VkStartRequest) returns (xyz.city_ideas.v1.RequestWithValue);
   rpc VkCallback(xyz.city_ideas.v1.login.v1.VkCallbackRequest) returns (xyz.city_ideas.v1.login.v1.VkCallbackResponse);
-  rpc TgStart(xyz.city_ideas.v1.login.v1.TgStartRequest) returns (xyz.city_ideas.v1.login.v1.TgStartResponse);
+  rpc TgStart(xyz.city_ideas.v1.login.v1.TgStartRequest) returns (xyz.city_ideas.v1.RequestWithValue);
   rpc TgCallback(xyz.city_ideas.v1.login.v1.TgCallbackRequest) returns (xyz.city_ideas.v1.login.v1.VkCallbackResponse);
 }

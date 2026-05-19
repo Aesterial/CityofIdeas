@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file xyz/city_ideas/v1/login/v1/domain.proto.
  */
 export const file_xyz_city_ideas_v1_login_v1_domain: GenFile = /*@__PURE__*/
-  fileDesc("Cid4eXovY2l0eV9pZGVhcy92MS9sb2dpbi92MS9kb21haW4ucHJvdG8SGnh5ei5jaXR5X2lkZWFzLnYxLmxvZ2luLnYxIkQKD1JlZ2lzdGVyUmVxdWVzdBIQCgh1c2VybmFtZRgBIAEoCRINCgVlbWFpbBgCIAEoCRIQCghwYXNzd29yZBgDIAEoCSI3ChBBdXRob3JpemVSZXF1ZXN0EhEKCXVzZXJfbWFpbBgBIAEoCRIQCghwYXNzd29yZBgCIAEoCSJFCg1Mb2dpblJlc3BvbnNlEjQKBGluZm8YASABKAsyJi54eXouY2l0eV9pZGVhcy52MS51c2VyLnYxLlByaXZhdGVVc2VyIi0KEkNyZWF0ZVRvdHBSZXNwb25zZRIKCgJxchgBIAEoCRILCgN1cmwYAiABKAkiJAoTQ29uZmlybVRvdHBSZXNwb25zZRINCgVjb2RlcxgBIAMoCSJRChBSZXNldFRvdHBSZXF1ZXN0Ei8KBGtpbmQYASABKA4yIS54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5SZXNldBIMCgRjb2RlGAIgASgJIkgKDlZrU3RhcnRSZXF1ZXN0EjYKBHR5cGUYASABKA4yKC54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5DYWxsYmFja1R5cGUiMAoRVmtDYWxsYmFja1JlcXVlc3QSDQoFc3RhdGUYASABKAkSDAoEY29kZRgCIAEoCSLAAgoSVmtDYWxsYmFja1Jlc3BvbnNlEjYKBHR5cGUYASABKA4yKC54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5DYWxsYmFja1R5cGUSTQoIcmVnaXN0ZXIYAiABKAsyOy54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5Wa0NhbGxiYWNrUmVzcG9uc2UuUmVnaXN0ZXJJbmZvEjQKBGF1dGgYAyABKAsyJi54eXouY2l0eV9pZGVhcy52MS51c2VyLnYxLlByaXZhdGVVc2VyGm0KDFJlZ2lzdGVySW5mbxIQCgh1c2VybmFtZRgBIAEoCRINCgVlbWFpbBgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIUCgxkaXNwbGF5X25hbWUYBCABKAkSEQoJYXZhdGFyVXJsGAUgASgJIkgKDlRnU3RhcnRSZXF1ZXN0EjYKBHR5cGUYASABKA4yKC54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5DYWxsYmFja1R5cGUiNgoPVGdTdGFydFJlc3BvbnNlEg0KBXN0YXRlGAEgASgJEhQKDGJvdF91c2VybmFtZRgCIAEoCSKbAQoRVGdDYWxsYmFja1JlcXVlc3QSDQoFc3RhdGUYASABKAkSCgoCaWQYAiABKAMSEgoKZmlyc3RfbmFtZRgDIAEoCRIRCglsYXN0X25hbWUYBCABKAkSEAoIdXNlcm5hbWUYBSABKAkSEQoJcGhvdG9fdXJsGAYgASgJEhEKCWF1dGhfZGF0ZRgHIAEoAxIMCgRoYXNoGAggASgJKkMKBVJlc2V0EhUKEVJFU0VUX1VOU1BFQ0lGSUVEEAASDwoLUkVTRVRfRU1BSUwQARISCg5SRVNFVF9SRUNPVkVSWRACKnUKDENhbGxiYWNrVHlwZRIcChhDYWxsYmFja1R5cGVfVU5TUEVDSUZJRUQQABIZChVDYWxsYmFja1R5cGVfUkVHSVNURVIQARIVChFDYWxsYmFja1R5cGVfQVVUSBACEhUKEUNhbGxiYWNrVHlwZV9MSU5LEANCRFpCZ2l0aHViLmNvbS9hZXN0ZXJpYWwvY2l0eWlkZWFzL2JhY2tlbmQvaW50ZXJuYWwvYXBpL3YxL2xvZ2luL3YxO3YxYghlZGl0aW9uc3DoBw", [file_xyz_city_ideas_v1_user_v1_domain]);
+  fileDesc("Cid4eXovY2l0eV9pZGVhcy92MS9sb2dpbi92MS9kb21haW4ucHJvdG8SGnh5ei5jaXR5X2lkZWFzLnYxLmxvZ2luLnYxIkQKD1JlZ2lzdGVyUmVxdWVzdBIQCgh1c2VybmFtZRgBIAEoCRINCgVlbWFpbBgCIAEoCRIQCghwYXNzd29yZBgDIAEoCSI3ChBBdXRob3JpemVSZXF1ZXN0EhEKCXVzZXJfbWFpbBgBIAEoCRIQCghwYXNzd29yZBgCIAEoCSJFCg1Mb2dpblJlc3BvbnNlEjQKBGluZm8YASABKAsyJi54eXouY2l0eV9pZGVhcy52MS51c2VyLnYxLlByaXZhdGVVc2VyIi0KEkNyZWF0ZVRvdHBSZXNwb25zZRIKCgJxchgBIAEoCRILCgN1cmwYAiABKAkiJAoTQ29uZmlybVRvdHBSZXNwb25zZRINCgVjb2RlcxgBIAMoCSJRChBSZXNldFRvdHBSZXF1ZXN0Ei8KBGtpbmQYASABKA4yIS54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5SZXNldBIMCgRjb2RlGAIgASgJIkgKDlZrU3RhcnRSZXF1ZXN0EjYKBHR5cGUYASABKA4yKC54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5DYWxsYmFja1R5cGUiMAoRVmtDYWxsYmFja1JlcXVlc3QSDQoFc3RhdGUYASABKAkSDAoEY29kZRgCIAEoCSLAAgoSVmtDYWxsYmFja1Jlc3BvbnNlEjYKBHR5cGUYASABKA4yKC54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5DYWxsYmFja1R5cGUSTQoIcmVnaXN0ZXIYAiABKAsyOy54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5Wa0NhbGxiYWNrUmVzcG9uc2UuUmVnaXN0ZXJJbmZvEjQKBGF1dGgYAyABKAsyJi54eXouY2l0eV9pZGVhcy52MS51c2VyLnYxLlByaXZhdGVVc2VyGm0KDFJlZ2lzdGVySW5mbxIQCgh1c2VybmFtZRgBIAEoCRINCgVlbWFpbBgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRIUCgxkaXNwbGF5X25hbWUYBCABKAkSEQoJYXZhdGFyVXJsGAUgASgJIkgKDlRnU3RhcnRSZXF1ZXN0EjYKBHR5cGUYASABKA4yKC54eXouY2l0eV9pZGVhcy52MS5sb2dpbi52MS5DYWxsYmFja1R5cGUiKwoRVGdDYWxsYmFja1JlcXVlc3QSFgoOdGdfYXV0aF9yZXN1bHQYASABKAkqQwoFUmVzZXQSFQoRUkVTRVRfVU5TUEVDSUZJRUQQABIPCgtSRVNFVF9FTUFJTBABEhIKDlJFU0VUX1JFQ09WRVJZEAIqdQoMQ2FsbGJhY2tUeXBlEhwKGENhbGxiYWNrVHlwZV9VTlNQRUNJRklFRBAAEhkKFUNhbGxiYWNrVHlwZV9SRUdJU1RFUhABEhUKEUNhbGxiYWNrVHlwZV9BVVRIEAISFQoRQ2FsbGJhY2tUeXBlX0xJTksQA0JEWkJnaXRodWIuY29tL2Flc3RlcmlhbC9jaXR5aWRlYXMvYmFja2VuZC9pbnRlcm5hbC9hcGkvdjEvbG9naW4vdjE7djFiCGVkaXRpb25zcOgH", [file_xyz_city_ideas_v1_user_v1_domain]);
 
 /**
  * @generated from message xyz.city_ideas.v1.login.v1.RegisterRequest
@@ -262,70 +262,13 @@ export const TgStartRequestSchema: GenMessage<TgStartRequest> = /*@__PURE__*/
   messageDesc(file_xyz_city_ideas_v1_login_v1_domain, 9);
 
 /**
- * @generated from message xyz.city_ideas.v1.login.v1.TgStartResponse
- */
-export type TgStartResponse = Message<"xyz.city_ideas.v1.login.v1.TgStartResponse"> & {
-  /**
-   * @generated from field: string state = 1;
-   */
-  state: string;
-
-  /**
-   * @generated from field: string bot_username = 2;
-   */
-  botUsername: string;
-};
-
-/**
- * Describes the message xyz.city_ideas.v1.login.v1.TgStartResponse.
- * Use `create(TgStartResponseSchema)` to create a new message.
- */
-export const TgStartResponseSchema: GenMessage<TgStartResponse> = /*@__PURE__*/
-  messageDesc(file_xyz_city_ideas_v1_login_v1_domain, 10);
-
-/**
  * @generated from message xyz.city_ideas.v1.login.v1.TgCallbackRequest
  */
 export type TgCallbackRequest = Message<"xyz.city_ideas.v1.login.v1.TgCallbackRequest"> & {
   /**
-   * @generated from field: string state = 1;
+   * @generated from field: string tg_auth_result = 1;
    */
-  state: string;
-
-  /**
-   * @generated from field: int64 id = 2;
-   */
-  id: bigint;
-
-  /**
-   * @generated from field: string first_name = 3;
-   */
-  firstName: string;
-
-  /**
-   * @generated from field: string last_name = 4;
-   */
-  lastName: string;
-
-  /**
-   * @generated from field: string username = 5;
-   */
-  username: string;
-
-  /**
-   * @generated from field: string photo_url = 6;
-   */
-  photoUrl: string;
-
-  /**
-   * @generated from field: int64 auth_date = 7;
-   */
-  authDate: bigint;
-
-  /**
-   * @generated from field: string hash = 8;
-   */
-  hash: string;
+  tgAuthResult: string;
 };
 
 /**
@@ -333,7 +276,7 @@ export type TgCallbackRequest = Message<"xyz.city_ideas.v1.login.v1.TgCallbackRe
  * Use `create(TgCallbackRequestSchema)` to create a new message.
  */
 export const TgCallbackRequestSchema: GenMessage<TgCallbackRequest> = /*@__PURE__*/
-  messageDesc(file_xyz_city_ideas_v1_login_v1_domain, 11);
+  messageDesc(file_xyz_city_ideas_v1_login_v1_domain, 10);
 
 /**
  * @generated from enum xyz.city_ideas.v1.login.v1.Reset

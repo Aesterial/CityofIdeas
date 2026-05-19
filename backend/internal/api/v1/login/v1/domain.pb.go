@@ -1105,136 +1105,18 @@ func (b0 TgStartRequest_builder) Build() *TgStartRequest {
 	return m0
 }
 
-type TgStartResponse struct {
-	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_State       *string                `protobuf:"bytes,1,opt,name=state"`
-	xxx_hidden_BotUsername *string                `protobuf:"bytes,2,opt,name=bot_username,json=botUsername"`
-	XXX_raceDetectHookData protoimpl.RaceDetectHookData
-	XXX_presence           [1]uint32
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
-}
-
-func (x *TgStartResponse) Reset() {
-	*x = TgStartResponse{}
-	mi := &file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes[10]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *TgStartResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*TgStartResponse) ProtoMessage() {}
-
-func (x *TgStartResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes[10]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-func (x *TgStartResponse) GetState() string {
-	if x != nil {
-		if x.xxx_hidden_State != nil {
-			return *x.xxx_hidden_State
-		}
-		return ""
-	}
-	return ""
-}
-
-func (x *TgStartResponse) GetBotUsername() string {
-	if x != nil {
-		if x.xxx_hidden_BotUsername != nil {
-			return *x.xxx_hidden_BotUsername
-		}
-		return ""
-	}
-	return ""
-}
-
-func (x *TgStartResponse) SetState(v string) {
-	x.xxx_hidden_State = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 2)
-}
-
-func (x *TgStartResponse) SetBotUsername(v string) {
-	x.xxx_hidden_BotUsername = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 2)
-}
-
-func (x *TgStartResponse) HasState() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
-}
-
-func (x *TgStartResponse) HasBotUsername() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
-}
-
-func (x *TgStartResponse) ClearState() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
-	x.xxx_hidden_State = nil
-}
-
-func (x *TgStartResponse) ClearBotUsername() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
-	x.xxx_hidden_BotUsername = nil
-}
-
-type TgStartResponse_builder struct {
-	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
-
-	State       *string
-	BotUsername *string
-}
-
-func (b0 TgStartResponse_builder) Build() *TgStartResponse {
-	m0 := &TgStartResponse{}
-	b, x := &b0, m0
-	_, _ = b, x
-	if b.State != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 2)
-		x.xxx_hidden_State = b.State
-	}
-	if b.BotUsername != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 2)
-		x.xxx_hidden_BotUsername = b.BotUsername
-	}
-	return m0
-}
-
 type TgCallbackRequest struct {
-	state                  protoimpl.MessageState `protogen:"opaque.v1"`
-	xxx_hidden_State       *string                `protobuf:"bytes,1,opt,name=state"`
-	xxx_hidden_Id          int64                  `protobuf:"varint,2,opt,name=id"`
-	xxx_hidden_FirstName   *string                `protobuf:"bytes,3,opt,name=first_name,json=firstName"`
-	xxx_hidden_LastName    *string                `protobuf:"bytes,4,opt,name=last_name,json=lastName"`
-	xxx_hidden_Username    *string                `protobuf:"bytes,5,opt,name=username"`
-	xxx_hidden_PhotoUrl    *string                `protobuf:"bytes,6,opt,name=photo_url,json=photoUrl"`
-	xxx_hidden_AuthDate    int64                  `protobuf:"varint,7,opt,name=auth_date,json=authDate"`
-	xxx_hidden_Hash        *string                `protobuf:"bytes,8,opt,name=hash"`
-	XXX_raceDetectHookData protoimpl.RaceDetectHookData
-	XXX_presence           [1]uint32
-	unknownFields          protoimpl.UnknownFields
-	sizeCache              protoimpl.SizeCache
+	state                   protoimpl.MessageState `protogen:"opaque.v1"`
+	xxx_hidden_TgAuthResult *string                `protobuf:"bytes,1,opt,name=tg_auth_result,json=tgAuthResult"`
+	XXX_raceDetectHookData  protoimpl.RaceDetectHookData
+	XXX_presence            [1]uint32
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
 }
 
 func (x *TgCallbackRequest) Reset() {
 	*x = TgCallbackRequest{}
-	mi := &file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes[11]
+	mi := &file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1246,7 +1128,7 @@ func (x *TgCallbackRequest) String() string {
 func (*TgCallbackRequest) ProtoMessage() {}
 
 func (x *TgCallbackRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes[11]
+	mi := &file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1257,264 +1139,46 @@ func (x *TgCallbackRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-func (x *TgCallbackRequest) GetState() string {
+func (x *TgCallbackRequest) GetTgAuthResult() string {
 	if x != nil {
-		if x.xxx_hidden_State != nil {
-			return *x.xxx_hidden_State
+		if x.xxx_hidden_TgAuthResult != nil {
+			return *x.xxx_hidden_TgAuthResult
 		}
 		return ""
 	}
 	return ""
 }
 
-func (x *TgCallbackRequest) GetId() int64 {
-	if x != nil {
-		return x.xxx_hidden_Id
-	}
-	return 0
+func (x *TgCallbackRequest) SetTgAuthResult(v string) {
+	x.xxx_hidden_TgAuthResult = &v
+	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 1)
 }
 
-func (x *TgCallbackRequest) GetFirstName() string {
-	if x != nil {
-		if x.xxx_hidden_FirstName != nil {
-			return *x.xxx_hidden_FirstName
-		}
-		return ""
-	}
-	return ""
-}
-
-func (x *TgCallbackRequest) GetLastName() string {
-	if x != nil {
-		if x.xxx_hidden_LastName != nil {
-			return *x.xxx_hidden_LastName
-		}
-		return ""
-	}
-	return ""
-}
-
-func (x *TgCallbackRequest) GetUsername() string {
-	if x != nil {
-		if x.xxx_hidden_Username != nil {
-			return *x.xxx_hidden_Username
-		}
-		return ""
-	}
-	return ""
-}
-
-func (x *TgCallbackRequest) GetPhotoUrl() string {
-	if x != nil {
-		if x.xxx_hidden_PhotoUrl != nil {
-			return *x.xxx_hidden_PhotoUrl
-		}
-		return ""
-	}
-	return ""
-}
-
-func (x *TgCallbackRequest) GetAuthDate() int64 {
-	if x != nil {
-		return x.xxx_hidden_AuthDate
-	}
-	return 0
-}
-
-func (x *TgCallbackRequest) GetHash() string {
-	if x != nil {
-		if x.xxx_hidden_Hash != nil {
-			return *x.xxx_hidden_Hash
-		}
-		return ""
-	}
-	return ""
-}
-
-func (x *TgCallbackRequest) SetState(v string) {
-	x.xxx_hidden_State = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 0, 8)
-}
-
-func (x *TgCallbackRequest) SetId(v int64) {
-	x.xxx_hidden_Id = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 1, 8)
-}
-
-func (x *TgCallbackRequest) SetFirstName(v string) {
-	x.xxx_hidden_FirstName = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 2, 8)
-}
-
-func (x *TgCallbackRequest) SetLastName(v string) {
-	x.xxx_hidden_LastName = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 3, 8)
-}
-
-func (x *TgCallbackRequest) SetUsername(v string) {
-	x.xxx_hidden_Username = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 4, 8)
-}
-
-func (x *TgCallbackRequest) SetPhotoUrl(v string) {
-	x.xxx_hidden_PhotoUrl = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 5, 8)
-}
-
-func (x *TgCallbackRequest) SetAuthDate(v int64) {
-	x.xxx_hidden_AuthDate = v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 6, 8)
-}
-
-func (x *TgCallbackRequest) SetHash(v string) {
-	x.xxx_hidden_Hash = &v
-	protoimpl.X.SetPresent(&(x.XXX_presence[0]), 7, 8)
-}
-
-func (x *TgCallbackRequest) HasState() bool {
+func (x *TgCallbackRequest) HasTgAuthResult() bool {
 	if x == nil {
 		return false
 	}
 	return protoimpl.X.Present(&(x.XXX_presence[0]), 0)
 }
 
-func (x *TgCallbackRequest) HasId() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 1)
-}
-
-func (x *TgCallbackRequest) HasFirstName() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 2)
-}
-
-func (x *TgCallbackRequest) HasLastName() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 3)
-}
-
-func (x *TgCallbackRequest) HasUsername() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 4)
-}
-
-func (x *TgCallbackRequest) HasPhotoUrl() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 5)
-}
-
-func (x *TgCallbackRequest) HasAuthDate() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 6)
-}
-
-func (x *TgCallbackRequest) HasHash() bool {
-	if x == nil {
-		return false
-	}
-	return protoimpl.X.Present(&(x.XXX_presence[0]), 7)
-}
-
-func (x *TgCallbackRequest) ClearState() {
+func (x *TgCallbackRequest) ClearTgAuthResult() {
 	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 0)
-	x.xxx_hidden_State = nil
-}
-
-func (x *TgCallbackRequest) ClearId() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 1)
-	x.xxx_hidden_Id = 0
-}
-
-func (x *TgCallbackRequest) ClearFirstName() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 2)
-	x.xxx_hidden_FirstName = nil
-}
-
-func (x *TgCallbackRequest) ClearLastName() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 3)
-	x.xxx_hidden_LastName = nil
-}
-
-func (x *TgCallbackRequest) ClearUsername() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 4)
-	x.xxx_hidden_Username = nil
-}
-
-func (x *TgCallbackRequest) ClearPhotoUrl() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 5)
-	x.xxx_hidden_PhotoUrl = nil
-}
-
-func (x *TgCallbackRequest) ClearAuthDate() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 6)
-	x.xxx_hidden_AuthDate = 0
-}
-
-func (x *TgCallbackRequest) ClearHash() {
-	protoimpl.X.ClearPresent(&(x.XXX_presence[0]), 7)
-	x.xxx_hidden_Hash = nil
+	x.xxx_hidden_TgAuthResult = nil
 }
 
 type TgCallbackRequest_builder struct {
 	_ [0]func() // Prevents comparability and use of unkeyed literals for the builder.
 
-	State     *string
-	Id        *int64
-	FirstName *string
-	LastName  *string
-	Username  *string
-	PhotoUrl  *string
-	AuthDate  *int64
-	Hash      *string
+	TgAuthResult *string
 }
 
 func (b0 TgCallbackRequest_builder) Build() *TgCallbackRequest {
 	m0 := &TgCallbackRequest{}
 	b, x := &b0, m0
 	_, _ = b, x
-	if b.State != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 8)
-		x.xxx_hidden_State = b.State
-	}
-	if b.Id != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 1, 8)
-		x.xxx_hidden_Id = *b.Id
-	}
-	if b.FirstName != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 2, 8)
-		x.xxx_hidden_FirstName = b.FirstName
-	}
-	if b.LastName != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 3, 8)
-		x.xxx_hidden_LastName = b.LastName
-	}
-	if b.Username != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 4, 8)
-		x.xxx_hidden_Username = b.Username
-	}
-	if b.PhotoUrl != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 5, 8)
-		x.xxx_hidden_PhotoUrl = b.PhotoUrl
-	}
-	if b.AuthDate != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 6, 8)
-		x.xxx_hidden_AuthDate = *b.AuthDate
-	}
-	if b.Hash != nil {
-		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 7, 8)
-		x.xxx_hidden_Hash = b.Hash
+	if b.TgAuthResult != nil {
+		protoimpl.X.SetPresentNonAtomic(&(x.XXX_presence[0]), 0, 1)
+		x.xxx_hidden_TgAuthResult = b.TgAuthResult
 	}
 	return m0
 }
@@ -1534,7 +1198,7 @@ type VkCallbackResponse_RegisterInfo struct {
 
 func (x *VkCallbackResponse_RegisterInfo) Reset() {
 	*x = VkCallbackResponse_RegisterInfo{}
-	mi := &file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes[12]
+	mi := &file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1546,7 +1210,7 @@ func (x *VkCallbackResponse_RegisterInfo) String() string {
 func (*VkCallbackResponse_RegisterInfo) ProtoMessage() {}
 
 func (x *VkCallbackResponse_RegisterInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes[12]
+	mi := &file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1767,20 +1431,9 @@ const file_xyz_city_ideas_v1_login_v1_domain_proto_rawDesc = "" +
 	"\fdisplay_name\x18\x04 \x01(\tR\vdisplayName\x12\x1c\n" +
 	"\tavatarUrl\x18\x05 \x01(\tR\tavatarUrl\"N\n" +
 	"\x0eTgStartRequest\x12<\n" +
-	"\x04type\x18\x01 \x01(\x0e2(.xyz.city_ideas.v1.login.v1.CallbackTypeR\x04type\"J\n" +
-	"\x0fTgStartResponse\x12\x14\n" +
-	"\x05state\x18\x01 \x01(\tR\x05state\x12!\n" +
-	"\fbot_username\x18\x02 \x01(\tR\vbotUsername\"\xdf\x01\n" +
-	"\x11TgCallbackRequest\x12\x14\n" +
-	"\x05state\x18\x01 \x01(\tR\x05state\x12\x0e\n" +
-	"\x02id\x18\x02 \x01(\x03R\x02id\x12\x1d\n" +
-	"\n" +
-	"first_name\x18\x03 \x01(\tR\tfirstName\x12\x1b\n" +
-	"\tlast_name\x18\x04 \x01(\tR\blastName\x12\x1a\n" +
-	"\busername\x18\x05 \x01(\tR\busername\x12\x1b\n" +
-	"\tphoto_url\x18\x06 \x01(\tR\bphotoUrl\x12\x1b\n" +
-	"\tauth_date\x18\a \x01(\x03R\bauthDate\x12\x12\n" +
-	"\x04hash\x18\b \x01(\tR\x04hash*C\n" +
+	"\x04type\x18\x01 \x01(\x0e2(.xyz.city_ideas.v1.login.v1.CallbackTypeR\x04type\"9\n" +
+	"\x11TgCallbackRequest\x12$\n" +
+	"\x0etg_auth_result\x18\x01 \x01(\tR\ftgAuthResult*C\n" +
 	"\x05Reset\x12\x15\n" +
 	"\x11RESET_UNSPECIFIED\x10\x00\x12\x0f\n" +
 	"\vRESET_EMAIL\x10\x01\x12\x12\n" +
@@ -1792,7 +1445,7 @@ const file_xyz_city_ideas_v1_login_v1_domain_proto_rawDesc = "" +
 	"\x11CallbackType_LINK\x10\x03BDZBgithub.com/aesterial/cityideas/backend/internal/api/v1/login/v1;v1b\beditionsp\xe8\a"
 
 var file_xyz_city_ideas_v1_login_v1_domain_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_xyz_city_ideas_v1_login_v1_domain_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_xyz_city_ideas_v1_login_v1_domain_proto_goTypes = []any{
 	(Reset)(0),                              // 0: xyz.city_ideas.v1.login.v1.Reset
 	(CallbackType)(0),                       // 1: xyz.city_ideas.v1.login.v1.CallbackType
@@ -1806,18 +1459,17 @@ var file_xyz_city_ideas_v1_login_v1_domain_proto_goTypes = []any{
 	(*VkCallbackRequest)(nil),               // 9: xyz.city_ideas.v1.login.v1.VkCallbackRequest
 	(*VkCallbackResponse)(nil),              // 10: xyz.city_ideas.v1.login.v1.VkCallbackResponse
 	(*TgStartRequest)(nil),                  // 11: xyz.city_ideas.v1.login.v1.TgStartRequest
-	(*TgStartResponse)(nil),                 // 12: xyz.city_ideas.v1.login.v1.TgStartResponse
-	(*TgCallbackRequest)(nil),               // 13: xyz.city_ideas.v1.login.v1.TgCallbackRequest
-	(*VkCallbackResponse_RegisterInfo)(nil), // 14: xyz.city_ideas.v1.login.v1.VkCallbackResponse.RegisterInfo
-	(*v1.PrivateUser)(nil),                  // 15: xyz.city_ideas.v1.user.v1.PrivateUser
+	(*TgCallbackRequest)(nil),               // 12: xyz.city_ideas.v1.login.v1.TgCallbackRequest
+	(*VkCallbackResponse_RegisterInfo)(nil), // 13: xyz.city_ideas.v1.login.v1.VkCallbackResponse.RegisterInfo
+	(*v1.PrivateUser)(nil),                  // 14: xyz.city_ideas.v1.user.v1.PrivateUser
 }
 var file_xyz_city_ideas_v1_login_v1_domain_proto_depIdxs = []int32{
-	15, // 0: xyz.city_ideas.v1.login.v1.LoginResponse.info:type_name -> xyz.city_ideas.v1.user.v1.PrivateUser
+	14, // 0: xyz.city_ideas.v1.login.v1.LoginResponse.info:type_name -> xyz.city_ideas.v1.user.v1.PrivateUser
 	0,  // 1: xyz.city_ideas.v1.login.v1.ResetTotpRequest.kind:type_name -> xyz.city_ideas.v1.login.v1.Reset
 	1,  // 2: xyz.city_ideas.v1.login.v1.VkStartRequest.type:type_name -> xyz.city_ideas.v1.login.v1.CallbackType
 	1,  // 3: xyz.city_ideas.v1.login.v1.VkCallbackResponse.type:type_name -> xyz.city_ideas.v1.login.v1.CallbackType
-	14, // 4: xyz.city_ideas.v1.login.v1.VkCallbackResponse.register:type_name -> xyz.city_ideas.v1.login.v1.VkCallbackResponse.RegisterInfo
-	15, // 5: xyz.city_ideas.v1.login.v1.VkCallbackResponse.auth:type_name -> xyz.city_ideas.v1.user.v1.PrivateUser
+	13, // 4: xyz.city_ideas.v1.login.v1.VkCallbackResponse.register:type_name -> xyz.city_ideas.v1.login.v1.VkCallbackResponse.RegisterInfo
+	14, // 5: xyz.city_ideas.v1.login.v1.VkCallbackResponse.auth:type_name -> xyz.city_ideas.v1.user.v1.PrivateUser
 	1,  // 6: xyz.city_ideas.v1.login.v1.TgStartRequest.type:type_name -> xyz.city_ideas.v1.login.v1.CallbackType
 	7,  // [7:7] is the sub-list for method output_type
 	7,  // [7:7] is the sub-list for method input_type
@@ -1837,7 +1489,7 @@ func file_xyz_city_ideas_v1_login_v1_domain_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_xyz_city_ideas_v1_login_v1_domain_proto_rawDesc), len(file_xyz_city_ideas_v1_login_v1_domain_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   13,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -86,7 +86,8 @@ func Ensure() error {
 			},
 			Tg: configdomain.Telegram{
 				BotToken:    parseType("TG_BOT_TOKEN", ""),
-				BotUsername: parseType("TG_BOT_USERNAME", ""),
+				BotID:       parseType("TG_BOT_ID", ""),
+				RedirectURL: parseType("TG_REDIRECT_URL", ""),
 			},
 		},
 		Security:       configdomain.Security{ActionsDuration: parseType("SECURITY_DURATION", 20)},

@@ -26,7 +26,7 @@ var File_xyz_city_ideas_v1_projects_v1_service_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_projects_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"+xyz/city_ideas/v1/projects/v1/service.proto\x12\x1dxyz.city_ideas.v1.projects.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1dxyz/city_ideas/v1/types.proto\x1a*xyz/city_ideas/v1/projects/v1/domain.proto2\xf7\n" +
+	"+xyz/city_ideas/v1/projects/v1/service.proto\x12\x1dxyz.city_ideas.v1.projects.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a*xyz/city_ideas/v1/projects/v1/domain.proto\x1a\x1dxyz/city_ideas/v1/types.proto2\xf7\n" +
 	"\n" +
 	"\x0fProjectsService\x12l\n" +
 	"\rCreateProject\x123.xyz.city_ideas.v1.projects.v1.CreateProjectRequest\x1a&.xyz.city_ideas.v1.projects.v1.Project\x12l\n" +

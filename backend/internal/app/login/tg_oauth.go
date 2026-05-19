@@ -4,8 +4,11 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -18,6 +21,39 @@ import (
 	"github.com/aesterial/cityideas/backend/internal/infra/logger"
 	"github.com/aesterial/cityideas/backend/internal/shared/errors"
 )
+
+type tgAuthJSON struct {
+	ID        int64  `json:"id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Username  string `json:"username"`
+	PhotoURL  string `json:"photo_url"`
+	AuthDate  int64  `json:"auth_date"`
+	Hash      string `json:"hash"`
+}
+
+func parseTgAuthResult(raw string) (userdomain.TgAuthData, error) {
+	decoded, err := base64.StdEncoding.DecodeString(raw)
+	if err != nil {
+		decoded, err = base64.URLEncoding.DecodeString(raw)
+		if err != nil {
+			return userdomain.TgAuthData{}, errors.InvalidArguments
+		}
+	}
+	var v tgAuthJSON
+	if err = json.Unmarshal(decoded, &v); err != nil {
+		return userdomain.TgAuthData{}, errors.InvalidArguments
+	}
+	return userdomain.TgAuthData{
+		ID:        v.ID,
+		FirstName: v.FirstName,
+		LastName:  v.LastName,
+		Username:  v.Username,
+		PhotoURL:  v.PhotoURL,
+		AuthDate:  v.AuthDate,
+		Hash:      v.Hash,
+	}, nil
+}
 
 func verifyTgHash(data userdomain.TgAuthData, botToken string) error {
 	fields := map[string]string{
@@ -58,7 +94,7 @@ func verifyTgHash(data userdomain.TgAuthData, botToken string) error {
 	return nil
 }
 
-func (s *Service) TgStart(ctx context.Context, callbackType userdomain.VkCallbackType, user *domain.UUID) (*userdomain.TgStartData, error) {
+func (s *Service) TgStart(ctx context.Context, callbackType userdomain.VkCallbackType, user *domain.UUID) (*string, error) {
 	token, err := s.startOauthAction(ctx, callbackType, user,
 		actionsdomain.OauthTgLink,
 		actionsdomain.OauthTgAuth,
@@ -67,13 +103,17 @@ func (s *Service) TgStart(ctx context.Context, callbackType userdomain.VkCallbac
 	if err != nil {
 		return nil, err
 	}
-	return &userdomain.TgStartData{
-		State:       token,
-		BotUsername: config.Get().Oauth.Tg.BotUsername,
-	}, nil
+	cfg := config.Get()
+	returnTo := fmt.Sprintf("%s?state=%s", cfg.Oauth.Tg.RedirectURL, token)
+	params := url.Values{}
+	params.Set("bot_id", cfg.Oauth.Tg.BotID)
+	params.Set("origin", cfg.Domain)
+	params.Set("return_to", returnTo)
+	result := fmt.Sprintf("https://oauth.telegram.org/auth?%s", params.Encode())
+	return &result, nil
 }
 
-func (s *Service) TgCallback(ctx context.Context, state string, tgData userdomain.TgAuthData) (*userdomain.VkCallbackResponse, error) {
+func (s *Service) TgCallback(ctx context.Context, state string, tgAuthResult string) (*userdomain.VkCallbackResponse, error) {
 	if err := s.actions.IsExists(ctx, state); err != nil {
 		return nil, errors.Wrap(err)
 	}
@@ -84,7 +124,11 @@ func (s *Service) TgCallback(ctx context.Context, state string, tgData userdomai
 	if action.ExpiresAt.Before(time.Now()) {
 		return nil, errors.DataExpired
 	}
-	if err := verifyTgHash(tgData, config.Get().Oauth.Tg.BotToken); err != nil {
+	tgData, err := parseTgAuthResult(tgAuthResult)
+	if err != nil {
+		return nil, err
+	}
+	if err = verifyTgHash(tgData, config.Get().Oauth.Tg.BotToken); err != nil {
 		return nil, errors.InvalidArguments
 	}
 	if time.Now().Unix()-tgData.AuthDate > 86400 {

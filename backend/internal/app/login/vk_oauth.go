@@ -78,7 +78,8 @@ func (s *Service) VkStart(ctx context.Context, callbackType userdomain.VkCallbac
 	params.Add("response_type", "code")
 	params.Add("v", "5.131")
 	params.Add("state", token)
-	return new(fmt.Sprintf("%s?%s", "https://oauth.vk.com/authorize", params.Encode())), nil
+	result := fmt.Sprintf("%s?%s", "https://oauth.vk.com/authorize", params.Encode())
+	return &result, nil
 }
 
 func (s *Service) VkCallback(ctx context.Context, code string, state string) (*userdomain.VkCallbackResponse, error) {

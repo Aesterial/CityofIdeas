@@ -47,7 +47,7 @@ type LoginServiceClient interface {
 	ResetTotp(ctx context.Context, in *ResetTotpRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	VkStart(ctx context.Context, in *VkStartRequest, opts ...grpc.CallOption) (*v1.RequestWithValue, error)
 	VkCallback(ctx context.Context, in *VkCallbackRequest, opts ...grpc.CallOption) (*VkCallbackResponse, error)
-	TgStart(ctx context.Context, in *TgStartRequest, opts ...grpc.CallOption) (*TgStartResponse, error)
+	TgStart(ctx context.Context, in *TgStartRequest, opts ...grpc.CallOption) (*v1.RequestWithValue, error)
 	TgCallback(ctx context.Context, in *TgCallbackRequest, opts ...grpc.CallOption) (*VkCallbackResponse, error)
 }
 
@@ -149,9 +149,9 @@ func (c *loginServiceClient) VkCallback(ctx context.Context, in *VkCallbackReque
 	return out, nil
 }
 
-func (c *loginServiceClient) TgStart(ctx context.Context, in *TgStartRequest, opts ...grpc.CallOption) (*TgStartResponse, error) {
+func (c *loginServiceClient) TgStart(ctx context.Context, in *TgStartRequest, opts ...grpc.CallOption) (*v1.RequestWithValue, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(TgStartResponse)
+	out := new(v1.RequestWithValue)
 	err := c.cc.Invoke(ctx, LoginService_TgStart_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -182,7 +182,7 @@ type LoginServiceServer interface {
 	ResetTotp(context.Context, *ResetTotpRequest) (*emptypb.Empty, error)
 	VkStart(context.Context, *VkStartRequest) (*v1.RequestWithValue, error)
 	VkCallback(context.Context, *VkCallbackRequest) (*VkCallbackResponse, error)
-	TgStart(context.Context, *TgStartRequest) (*TgStartResponse, error)
+	TgStart(context.Context, *TgStartRequest) (*v1.RequestWithValue, error)
 	TgCallback(context.Context, *TgCallbackRequest) (*VkCallbackResponse, error)
 }
 
@@ -220,7 +220,7 @@ func (UnimplementedLoginServiceServer) VkStart(context.Context, *VkStartRequest)
 func (UnimplementedLoginServiceServer) VkCallback(context.Context, *VkCallbackRequest) (*VkCallbackResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method VkCallback not implemented")
 }
-func (UnimplementedLoginServiceServer) TgStart(context.Context, *TgStartRequest) (*TgStartResponse, error) {
+func (UnimplementedLoginServiceServer) TgStart(context.Context, *TgStartRequest) (*v1.RequestWithValue, error) {
 	return nil, status.Error(codes.Unimplemented, "method TgStart not implemented")
 }
 func (UnimplementedLoginServiceServer) TgCallback(context.Context, *TgCallbackRequest) (*VkCallbackResponse, error) {

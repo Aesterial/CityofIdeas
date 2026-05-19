@@ -51,10 +51,10 @@ message VkCallbackRequest {
 }
 
 enum CallbackType {
-    CallbackType_UNSPECIFIED = 0;
-    CallbackType_REGISTER = 1;
-    CallbackType_AUTH = 2;
-    CallbackType_LINK = 3;
+  CallbackType_UNSPECIFIED = 0;
+  CallbackType_REGISTER = 1;
+  CallbackType_AUTH = 2;
+  CallbackType_LINK = 3;
 }
 
 message VkCallbackResponse {
@@ -74,18 +74,6 @@ message TgStartRequest {
   CallbackType type = 1;
 }
 
-message TgStartResponse {
-  string state = 1;
-  string bot_username = 2;
-}
-
 message TgCallbackRequest {
-  string state = 1;
-  int64 id = 2;
-  string first_name = 3;
-  string last_name = 4;
-  string username = 5;
-  string photo_url = 6;
-  int64 auth_date = 7;
-  string hash = 8;
+  string tg_auth_result = 1;
 }

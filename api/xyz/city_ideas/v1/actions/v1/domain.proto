@@ -2,9 +2,9 @@ edition = "2023";
 
 package xyz.city_ideas.v1.actions.v1;
 
-option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/actions/v1;v1";
-
 import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/actions/v1;v1";
 
 message Action {
   string id = 1;

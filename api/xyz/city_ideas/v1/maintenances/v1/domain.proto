@@ -1,4 +1,4 @@
-edition="2023";
+edition = "2023";
 
 package xyz.city_ideas.v1.maintenances.v1;
 

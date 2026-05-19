@@ -86,7 +86,8 @@ type VK struct {
 type Telegram struct {
 	Enabled     bool
 	BotToken    string
-	BotUsername string
+	BotID       string
+	RedirectURL string
 }
 
 type Oauth struct {

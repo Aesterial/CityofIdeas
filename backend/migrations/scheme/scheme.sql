@@ -84,7 +84,7 @@ create index if not exists users_oauth_owner_idx on users_oauth (owner);
 
 create table if not exists users_actions (
     id uuid primary key default gen_random_uuid(),
-    owner uuid not null references users (uid),
+    owner uuid references users (uid),
     purpose varchar(64) not null,
     hash text not null,
     at timestamptz not null default now(),

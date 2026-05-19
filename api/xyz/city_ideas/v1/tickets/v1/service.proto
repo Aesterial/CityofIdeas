@@ -2,12 +2,11 @@ edition = "2023";
 
 package xyz.city_ideas.v1.tickets.v1;
 
+import "google/protobuf/empty.proto";
 import "xyz/city_ideas/v1/tickets/v1/domain.proto";
+import "xyz/city_ideas/v1/types.proto";
 
 option go_package = "github.com/aesterial/cityideas/backend/internal/api/v1/tickets/v1;v1";
-
-import "google/protobuf/empty.proto";
-import "xyz/city_ideas/v1/types.proto";
 
 service TicketService {
   rpc CreateTicket(xyz.city_ideas.v1.tickets.v1.CreateTicketRequest) returns (xyz.city_ideas.v1.tickets.v1.Ticket);

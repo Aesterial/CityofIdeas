@@ -181,7 +181,7 @@ func (h *LoginHandler) VkCallback(ctx context.Context, req *loginpb.VkCallbackRe
 	return callback.Protobuf(), nil
 }
 
-func (h *LoginHandler) TgStart(ctx context.Context, req *loginpb.TgStartRequest) (*loginpb.TgStartResponse, error) {
+func (h *LoginHandler) TgStart(ctx context.Context, req *loginpb.TgStartRequest) (*typespb.RequestWithValue, error) {
 	if err := h.isRequestValid(req); err != nil {
 		return nil, err
 	}
@@ -190,14 +190,11 @@ func (h *LoginHandler) TgStart(ctx context.Context, req *loginpb.TgStartRequest)
 	if meta != nil {
 		userID = meta.UserID
 	}
-	data, err := h.srv.TgStart(ctx, userdomain.CallbackFromProto(req.GetType()), userID)
+	link, err := h.srv.TgStart(ctx, userdomain.CallbackFromProto(req.GetType()), userID)
 	if err != nil {
 		return nil, err
 	}
-	out := &loginpb.TgStartResponse{}
-	out.SetState(data.State)
-	out.SetBotUsername(data.BotUsername)
-	return out, nil
+	return typespb.RequestWithValue_builder{Value: link}.Build(), nil
 }
 
 func (h *LoginHandler) TgCallback(ctx context.Context, req *loginpb.TgCallbackRequest) (*loginpb.VkCallbackResponse, error) {
@@ -208,19 +205,11 @@ func (h *LoginHandler) TgCallback(ctx context.Context, req *loginpb.TgCallbackRe
 	if !ok {
 		return nil, errors.InvalidArguments
 	}
-	token := h.auth.getToken(md, config.Get().Oauth.Key)
-	if token == "" {
+	state := h.auth.getToken(md, config.Get().Oauth.Key)
+	if state == "" {
 		return nil, errors.InvalidArguments
 	}
-	callback, err := h.srv.TgCallback(ctx, req.GetState(), userdomain.TgAuthData{
-		ID:        req.GetId(),
-		FirstName: req.GetFirstName(),
-		LastName:  req.GetLastName(),
-		Username:  req.GetUsername(),
-		PhotoURL:  req.GetPhotoUrl(),
-		AuthDate:  req.GetAuthDate(),
-		Hash:      req.GetHash(),
-	})
+	callback, err := h.srv.TgCallback(ctx, state, req.GetTgAuthResult())
 	if err != nil {
 		return nil, err
 	}

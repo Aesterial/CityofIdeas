@@ -26,7 +26,7 @@ var File_xyz_city_ideas_v1_login_v1_service_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_login_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"(xyz/city_ideas/v1/login/v1/service.proto\x12\x1axyz.city_ideas.v1.login.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a'xyz/city_ideas/v1/login/v1/domain.proto\x1a\x1dxyz/city_ideas/v1/types.proto2\x84\b\n" +
+	"(xyz/city_ideas/v1/login/v1/service.proto\x12\x1axyz.city_ideas.v1.login.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a'xyz/city_ideas/v1/login/v1/domain.proto\x1a\x1dxyz/city_ideas/v1/types.proto2\xfc\a\n" +
 	"\fLoginService\x12b\n" +
 	"\bRegister\x12+.xyz.city_ideas.v1.login.v1.RegisterRequest\x1a).xyz.city_ideas.v1.login.v1.LoginResponse\x12d\n" +
 	"\tAuthorize\x12,.xyz.city_ideas.v1.login.v1.AuthorizeRequest\x1a).xyz.city_ideas.v1.login.v1.LoginResponse\x128\n" +
@@ -38,8 +38,8 @@ const file_xyz_city_ideas_v1_login_v1_service_proto_rawDesc = "" +
 	"\tResetTotp\x12,.xyz.city_ideas.v1.login.v1.ResetTotpRequest\x1a\x16.google.protobuf.Empty\x12Z\n" +
 	"\aVkStart\x12*.xyz.city_ideas.v1.login.v1.VkStartRequest\x1a#.xyz.city_ideas.v1.RequestWithValue\x12k\n" +
 	"\n" +
-	"VkCallback\x12-.xyz.city_ideas.v1.login.v1.VkCallbackRequest\x1a..xyz.city_ideas.v1.login.v1.VkCallbackResponse\x12b\n" +
-	"\aTgStart\x12*.xyz.city_ideas.v1.login.v1.TgStartRequest\x1a+.xyz.city_ideas.v1.login.v1.TgStartResponse\x12k\n" +
+	"VkCallback\x12-.xyz.city_ideas.v1.login.v1.VkCallbackRequest\x1a..xyz.city_ideas.v1.login.v1.VkCallbackResponse\x12Z\n" +
+	"\aTgStart\x12*.xyz.city_ideas.v1.login.v1.TgStartRequest\x1a#.xyz.city_ideas.v1.RequestWithValue\x12k\n" +
 	"\n" +
 	"TgCallback\x12-.xyz.city_ideas.v1.login.v1.TgCallbackRequest\x1a..xyz.city_ideas.v1.login.v1.VkCallbackResponseBDZBgithub.com/aesterial/cityideas/backend/internal/api/v1/login/v1;v1b\beditionsp\xe8\a"
 
@@ -57,7 +57,6 @@ var file_xyz_city_ideas_v1_login_v1_service_proto_goTypes = []any{
 	(*CreateTotpResponse)(nil),  // 10: xyz.city_ideas.v1.login.v1.CreateTotpResponse
 	(*ConfirmTotpResponse)(nil), // 11: xyz.city_ideas.v1.login.v1.ConfirmTotpResponse
 	(*VkCallbackResponse)(nil),  // 12: xyz.city_ideas.v1.login.v1.VkCallbackResponse
-	(*TgStartResponse)(nil),     // 13: xyz.city_ideas.v1.login.v1.TgStartResponse
 }
 var file_xyz_city_ideas_v1_login_v1_service_proto_depIdxs = []int32{
 	0,  // 0: xyz.city_ideas.v1.login.v1.LoginService.Register:input_type -> xyz.city_ideas.v1.login.v1.RegisterRequest
@@ -80,7 +79,7 @@ var file_xyz_city_ideas_v1_login_v1_service_proto_depIdxs = []int32{
 	2,  // 17: xyz.city_ideas.v1.login.v1.LoginService.ResetTotp:output_type -> google.protobuf.Empty
 	3,  // 18: xyz.city_ideas.v1.login.v1.LoginService.VkStart:output_type -> xyz.city_ideas.v1.RequestWithValue
 	12, // 19: xyz.city_ideas.v1.login.v1.LoginService.VkCallback:output_type -> xyz.city_ideas.v1.login.v1.VkCallbackResponse
-	13, // 20: xyz.city_ideas.v1.login.v1.LoginService.TgStart:output_type -> xyz.city_ideas.v1.login.v1.TgStartResponse
+	3,  // 20: xyz.city_ideas.v1.login.v1.LoginService.TgStart:output_type -> xyz.city_ideas.v1.RequestWithValue
 	12, // 21: xyz.city_ideas.v1.login.v1.LoginService.TgCallback:output_type -> xyz.city_ideas.v1.login.v1.VkCallbackResponse
 	11, // [11:22] is the sub-list for method output_type
 	0,  // [0:11] is the sub-list for method input_type

@@ -26,7 +26,7 @@ var File_xyz_city_ideas_v1_tickets_v1_service_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_tickets_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"*xyz/city_ideas/v1/tickets/v1/service.proto\x12\x1cxyz.city_ideas.v1.tickets.v1\x1a)xyz/city_ideas/v1/tickets/v1/domain.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1dxyz/city_ideas/v1/types.proto2\x8a\x06\n" +
+	"*xyz/city_ideas/v1/tickets/v1/service.proto\x12\x1cxyz.city_ideas.v1.tickets.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a)xyz/city_ideas/v1/tickets/v1/domain.proto\x1a\x1dxyz/city_ideas/v1/types.proto2\x8a\x06\n" +
 	"\rTicketService\x12g\n" +
 	"\fCreateTicket\x121.xyz.city_ideas.v1.tickets.v1.CreateTicketRequest\x1a$.xyz.city_ideas.v1.tickets.v1.Ticket\x12Q\n" +
 	"\x04Info\x12#.xyz.city_ideas.v1.RequestWithValue\x1a$.xyz.city_ideas.v1.tickets.v1.Ticket\x12m\n" +
