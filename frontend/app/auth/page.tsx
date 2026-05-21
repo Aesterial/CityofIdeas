@@ -232,7 +232,7 @@ export default function AuthPage() {
     setErrorMessage(null);
     setVkLoading(true);
     try {
-      const { authUrl } = await startVkAuth();
+      const { authUrl } = await startVkAuth(mode === "register" ? "register" : "login");
       window.location.assign(authUrl);
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : t("vkAuthError"));
@@ -245,7 +245,7 @@ export default function AuthPage() {
     setErrorMessage(null);
     setTgLoading(true);
     try {
-      const { authUrl } = await startTgAuth();
+      const { authUrl } = await startTgAuth(mode === "register" ? "register" : "login");
       window.location.assign(authUrl);
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : t("tgAuthError"));

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Header } from "@/components/header";
 import { useLanguage } from "@/components/language-provider";
-import { completeTgAuth, setOAuthStateCookie } from "@/lib/api";
+import { ApiError, completeTgAuth, setOAuthStateCookie } from "@/lib/api";
 import { saveAuthChallenge } from "@/lib/auth-challenge";
 
 export default function TgCallbackPage() {
@@ -47,6 +47,10 @@ export default function TgCallbackPage() {
       })
       .catch((err) => {
         if (!active) return;
+        if (err instanceof ApiError && err.status === 404) {
+          setMessage(t("oauthNotLinkedTg"));
+          return;
+        }
         setMessage(err instanceof Error ? err.message : t("tgCallbackError"));
       });
 

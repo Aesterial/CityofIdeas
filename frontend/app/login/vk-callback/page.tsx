@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Header } from "@/components/header";
 import { useLanguage } from "@/components/language-provider";
-import { completeVkAuth } from "@/lib/api";
+import { ApiError, completeVkAuth } from "@/lib/api";
 import { saveAuthChallenge } from "@/lib/auth-challenge";
 
 export default function VkCallbackPage() {
@@ -44,6 +44,10 @@ export default function VkCallbackPage() {
         if (!active) {
           return;
         }
+        if (err instanceof ApiError && err.status === 404) {
+          setMessage(t("oauthNotLinkedVk"));
+          return;
+        }
         setMessage(err instanceof Error ? err.message : t("vkCallbackError"));
       });
     return () => {
@@ -60,6 +64,15 @@ export default function VkCallbackPage() {
           <p className="mt-3 text-sm text-muted-foreground">
             {message ?? t("vkCallbackPending")}
           </p>
+          {message ? (
+            <button
+              type="button"
+              onClick={() => router.replace("/auth")}
+              className="mt-5 rounded-full border border-border/70 px-5 py-2 text-sm font-medium transition-colors hover:bg-foreground hover:text-background"
+            >
+              {t("backToAuth")}
+            </button>
+          ) : null}
         </div>
       </main>
     </div>

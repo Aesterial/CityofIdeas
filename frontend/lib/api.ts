@@ -1883,13 +1883,15 @@ const toOAuthAuthResult = (response: GrpcOAuthCallbackResponse): AuthResult => {
 
 // ── VK OAuth ─────────────────────────────────────────────────────────────────
 
-export async function startVkAuth(): Promise<{
+export async function startVkAuth(mode: "login" | "register" = "login"): Promise<{
   authUrl: string;
   state?: string;
 }> {
   const payload = await grpcRequest(() =>
     loginClient.vkStart(
-      create(VkStartRequestSchema, { type: CallbackType.AUTH }),
+      create(VkStartRequestSchema, {
+        type: mode === "register" ? CallbackType.REGISTER : CallbackType.AUTH,
+      }),
     ),
   );
   const authUrl = payload.value.trim();
@@ -1914,13 +1916,15 @@ export async function completeVkAuth(
 
 // ── Telegram OAuth ────────────────────────────────────────────────────────────
 
-export async function startTgAuth(): Promise<{
+export async function startTgAuth(mode: "login" | "register" = "login"): Promise<{
   authUrl: string;
   state?: string;
 }> {
   const payload = await grpcRequest(() =>
     loginClient.tgStart(
-      create(TgStartRequestSchema, { type: CallbackType.AUTH }),
+      create(TgStartRequestSchema, {
+        type: mode === "register" ? CallbackType.REGISTER : CallbackType.AUTH,
+      }),
     ),
   );
   const authUrl = payload.value.trim();
