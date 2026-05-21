@@ -212,8 +212,9 @@ func (s *Service) startOauthAction(ctx context.Context, callbackType userdomain.
 	default:
 		return "", errors.InvalidArguments
 	}
+    // не ругайся ванек
 	if err := s.addOauthCookie(ctx, token); err != nil {
-		return "", errors.Wrap(err)
+		logger.Error("login", "failed to set oauth cookie (non-fatal)", logger.F("error", err))
 	}
 	return token, nil
 }

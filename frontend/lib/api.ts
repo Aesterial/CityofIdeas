@@ -2,7 +2,16 @@ import { create } from "@bufbuild/protobuf";
 import { Code, ConnectError } from "@connectrpc/connect";
 import { EmptySchema, timestampDate, timestampFromDate, } from "@bufbuild/protobuf/wkt";
 import { buildApiUrl } from "@/lib/api-base";
-import { AuthorizeRequestSchema, RegisterRequestSchema } from "@/gen/xyz/city_ideas/v1/login/v1/domain_pb";
+import {
+  AuthorizeRequestSchema,
+  CallbackType,
+  RegisterRequestSchema,
+  TgCallbackRequestSchema,
+  TgStartRequestSchema,
+  VkCallbackRequestSchema,
+  VkStartRequestSchema,
+  type VkCallbackResponse as GrpcOAuthCallbackResponse,
+} from "@/gen/xyz/city_ideas/v1/login/v1/domain_pb";
 import {
   CreateMessageRequestSchema as ProjectCreateMessageRequestSchema,
   CreateProjectRequestSchema,
@@ -1819,57 +1828,115 @@ export async function disableTotp(payload?: { code?: string }): Promise<void> {
   );
 }
 
-type VkStartResponse = {
-  authUrl?: string;
-  auth_url?: string;
-  state?: string;
+// ── OAuth helpers ────────────────────────────────────────────────────────────
+
+/** Extract the OAuth state token from the redirect URL returned by the backend. */
+const extractOAuthState = (url: string): string | null => {
+  try {
+    const parsed = new URL(url);
+    // VK: ?state=<token>
+    const direct = parsed.searchParams.get("state");
+    if (direct) return direct;
+    // Telegram: ?return_to=<url-with-?state=token>
+    const returnTo = parsed.searchParams.get("return_to");
+    if (returnTo) {
+      const rtUrl = new URL(returnTo);
+      const rtState = rtUrl.searchParams.get("state");
+      if (rtState) return rtState;
+    }
+  } catch { /* ignore */ }
+  return null;
 };
 
-type VkCallbackResponse = {
-  redirectUrl?: string;
-  redirect_url?: string;
-  tracing?: string;
+/** Persist the OAuth state in a short-lived cookie so gRPC handlers can read it. */
+export const setOAuthStateCookie = (state: string): void => {
+  if (typeof document === "undefined") return;
+  document.cookie = `oauth_state=${encodeURIComponent(state)}; path=/; SameSite=Lax; max-age=600`;
 };
+
+/** Map the gRPC VkCallbackResponse to the generic AuthResult used by callback pages. */
+const toOAuthAuthResult = (response: GrpcOAuthCallbackResponse): AuthResult => {
+  if (response.type === CallbackType.AUTH) {
+    return { status: "ok", redirectUrl: "/" };
+  }
+  if (response.type === CallbackType.REGISTER) {
+    // Store pre-filled info so the registration form can pick it up.
+    try {
+      const info = response.register;
+      sessionStorage.setItem(
+        "oauth_register",
+        JSON.stringify({
+          username: info?.username ?? "",
+          email: info?.email ?? "",
+          displayName: info?.displayName ?? "",
+          avatarUrl: info?.avatarUrl ?? "",
+        }),
+      );
+    } catch { /* ignore */ }
+    return { status: "ok", redirectUrl: "/auth?oauth=register" };
+  }
+  if (response.type === CallbackType.LINK) {
+    return { status: "ok", redirectUrl: "/" };
+  }
+  throw new Error("Unexpected OAuth response type.");
+};
+
+// ── VK OAuth ─────────────────────────────────────────────────────────────────
 
 export async function startVkAuth(): Promise<{
   authUrl: string;
   state?: string;
 }> {
-  const payload = await apiRequest<VkStartResponse>("/api/login/vk/start", {
-    method: "POST",
-  });
-  const authUrl = payload.authUrl ?? payload.auth_url ?? "";
-  if (!authUrl) {
-    throw new Error("VK auth URL is missing.");
-  }
-  return { authUrl, state: payload.state };
+  const payload = await grpcRequest(() =>
+    loginClient.vkStart(
+      create(VkStartRequestSchema, { type: CallbackType.AUTH }),
+    ),
+  );
+  const authUrl = payload.value.trim();
+  if (!authUrl) throw new Error("VK auth URL is missing.");
+  const state = extractOAuthState(authUrl) ?? undefined;
+  if (state) setOAuthStateCookie(state);
+  return { authUrl, state };
 }
 
 export async function completeVkAuth(
   code: string,
   state: string,
-  device_id: string,
+  _device_id?: string,
 ): Promise<AuthResult> {
-  const payload = await apiRequest<VkCallbackResponse>(
-    `/api/login/vk/callback`,
-    {
-      method: "POST",
-      body: JSON.stringify({
-        code,
-        state,
-        device_id,
-      }),
-    },
+  const response = await grpcRequest(() =>
+    loginClient.vkCallback(
+      create(VkCallbackRequestSchema, { code, state }),
+    ),
   );
-  const result = normalizeAuthResult(payload);
-  return {
-    ...result,
-    redirectUrl:
-      result.redirectUrl ??
-      payload.redirectUrl ??
-      payload.redirect_url ??
-      undefined,
-  };
+  return toOAuthAuthResult(response);
+}
+
+// ── Telegram OAuth ────────────────────────────────────────────────────────────
+
+export async function startTgAuth(): Promise<{
+  authUrl: string;
+  state?: string;
+}> {
+  const payload = await grpcRequest(() =>
+    loginClient.tgStart(
+      create(TgStartRequestSchema, { type: CallbackType.AUTH }),
+    ),
+  );
+  const authUrl = payload.value.trim();
+  if (!authUrl) throw new Error("Telegram auth URL is missing.");
+  const state = extractOAuthState(authUrl) ?? undefined;
+  if (state) setOAuthStateCookie(state);
+  return { authUrl, state };
+}
+
+export async function completeTgAuth(tgAuthResult: string): Promise<AuthResult> {
+  const response = await grpcRequest(() =>
+    loginClient.tgCallback(
+      create(TgCallbackRequestSchema, { tgAuthResult }),
+    ),
+  );
+  return toOAuthAuthResult(response);
 }
 
 function toUserListItem(payload: ApiUserPublic): UserListItem | null {
