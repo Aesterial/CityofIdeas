@@ -14,7 +14,8 @@ export default function TgCallbackPage() {
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    const tgAuthResult = params.get("tg_auth_result")?.trim() ?? "";
+    const hashParams = new URLSearchParams(window.location.hash.slice(1));
+    const tgAuthResult = hashParams.get("tgAuthResult")?.trim() ?? "";
     const state = params.get("state")?.trim() ?? "";
 
     if (!tgAuthResult) {
