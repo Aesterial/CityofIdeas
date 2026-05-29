@@ -64,9 +64,12 @@ func Ensure() error {
 			Issuer: parseType("COOKIE_ISSUER", "https://aesterial.xyz"),
 		},
 		Email: configdomain.Email{
-			API:    parseType("EMAIL_API_KEY", ""),
-			Name:   parseType("EMAIL_NAME", "Aesterial Support"),
-			Domain: parseType("EMAIL_DOMAIN", "support@aesterial.xyz"),
+			API:             parseType("EMAIL_API_KEY", ""),
+			Name:            parseType("EMAIL_NAME", "Aesterial Support"),
+			Domain:          parseType("EMAIL_DOMAIN", "support@aesterial.xyz"),
+			Password:        parseType("EMAIL_PASSWORD", ""),
+			Provider:        configdomain.ParseProvider(parseType("EMAIL_PROVIDER", "unknown")),
+			SmtpProviderUrl: parseType("EMAIL_SMTP_PROVIDER", "smtp.gmail.com"),
 		},
 		S3: configdomain.S3{
 			Enabled:   parseType("S3_ENABLED", false),
@@ -106,7 +109,8 @@ func Ensure() error {
 		logger.Error("config", "cookie secret is empty")
 		return errors.InvalidArguments
 	}
-	cfg.Email.Enabled = strings.TrimSpace(cfg.Email.API) != ""
+	cfg.Email.Enabled = cfg.Email.Provider != configdomain.UnknownProvider && ((cfg.Email.Provider == configdomain.SendGridProvider && strings.TrimSpace(cfg.Email.API) != "") ||
+		(cfg.Email.Provider == configdomain.SmtpProvider && (cfg.Email.Password != "" || cfg.Email.SmtpProviderUrl != "")))
 	cfg.Oauth.Vk.Enabled = strings.TrimSpace(cfg.Oauth.Vk.Secret) != ""
 	cfg.Oauth.Tg.Enabled = strings.TrimSpace(cfg.Oauth.Tg.BotToken) != ""
 	return nil

@@ -3,24 +3,20 @@ package emailservice
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/aesterial/cityideas/backend/internal/domain"
+	configdomain "github.com/aesterial/cityideas/backend/internal/domain/config"
 	emaildomain "github.com/aesterial/cityideas/backend/internal/domain/email"
 	userdomain "github.com/aesterial/cityideas/backend/internal/domain/user"
 	"github.com/aesterial/cityideas/backend/internal/infra/config"
 	"github.com/aesterial/cityideas/backend/internal/infra/logger"
-	"github.com/sendgrid/sendgrid-go"
-	gridmail "github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
 type Service struct {
-	from    *gridmail.Email
-	client  *sendgrid.Client
+	client  emaildomain.Repository
 	users   userdomain.Repository
 	enabled bool
-	mu      sync.Mutex
 }
 
 func NewService(users userdomain.Repository) *Service {
@@ -32,30 +28,21 @@ func NewService(users userdomain.Repository) *Service {
 	if !service.enabled {
 		return service
 	}
-	service.client = sendgrid.NewSendClient(cfg.Email.API)
-	service.from = gridmail.NewEmail(cfg.Email.Name, cfg.Email.Domain)
+	if cfg.Email.Provider == configdomain.SendGridProvider {
+		service.client = NewSendgrid()
+		return service
+	}
+	if cfg.Email.Provider == configdomain.SmtpProvider {
+		smtp := NewSmtp()
+		service.client = smtp
+		if service.client == nil {
+			service.enabled = false
+			return service
+		}
+		return service
+	}
+	service.enabled = false
 	return service
-}
-
-func (s *Service) send(ctx context.Context, userName string, userAddress string, subject string, plainText string, htmlText string) (int, error) {
-	if s == nil || !s.enabled || s.client == nil || s.from == nil {
-		return 0, fmt.Errorf("email service is not configured")
-	}
-
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	resp, err := s.client.SendWithContext(ctx, gridmail.NewSingleEmail(s.from, subject, gridmail.NewEmail(userName, userAddress), plainText, htmlText))
-	if err != nil {
-		return 0, err
-	}
-	if resp == nil {
-		return 0, fmt.Errorf("sendgrid returned empty response")
-	}
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return resp.StatusCode, fmt.Errorf("sendgrid rejected email: status=%d body=%s", resp.StatusCode, resp.Body)
-	}
-	return resp.StatusCode, nil
 }
 
 func (s *Service) isEnabled() bool {
@@ -115,7 +102,7 @@ func (s *Service) sendWelcomeEmail(ctx context.Context, user emaildomain.UserInf
 	if err != nil {
 		return err
 	}
-	_, err = s.send(ctx, user.Username, user.Address, subject(user.Language, "Welcome to City of Ideas", "Добро пожаловать в Город Идей"), text, html)
+	_, err = s.client.Send(ctx, user.Username, user.Address, subject(user.Language, "Welcome to City of Ideas", "Добро пожаловать в Город Идей"), text, html)
 	if err != nil {
 		return err
 	}
@@ -139,7 +126,7 @@ func (s *Service) sendLoginNotificationEmail(ctx context.Context, user emaildoma
 	if err != nil {
 		return err
 	}
-	_, err = s.send(ctx, user.Username, user.Address, subject(language, "New sign-in to your account", "Новый вход в аккаунт"), text, html)
+	_, err = s.client.Send(ctx, user.Username, user.Address, subject(language, "New sign-in to your account", "Новый вход в аккаунт"), text, html)
 	if err != nil {
 		return err
 	}
@@ -162,7 +149,7 @@ func (s *Service) sendTicketCreateEmail(ctx context.Context, user emaildomain.Us
 	if err != nil {
 		return err
 	}
-	_, err = s.send(ctx, user.Username, user.Address, subject(language, "Support ticket created", "Обращение в поддержку создано"), text, html)
+	_, err = s.client.Send(ctx, user.Username, user.Address, subject(language, "Support ticket created", "Обращение в поддержку создано"), text, html)
 	if err != nil {
 		return err
 	}
@@ -189,7 +176,7 @@ func (s *Service) sendTicketReplyEmail(ctx context.Context, user emaildomain.Use
 	if err != nil {
 		return err
 	}
-	_, err = s.send(ctx, user.Username, user.Address, subject(user.Language, "New message in your ticket", "Новое сообщение в обращении"), text, html)
+	_, err = s.client.Send(ctx, user.Username, user.Address, subject(user.Language, "New message in your ticket", "Новое сообщение в обращении"), text, html)
 	if err != nil {
 		return err
 	}

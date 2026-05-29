@@ -55,11 +55,40 @@ type Cookie struct {
 	Issuer string
 }
 
+type EmailProvider int32
+
+const (
+	UnknownProvider EmailProvider = iota
+	SmtpProvider
+	SendGridProvider
+)
+
+func ParseProvider(provider string) EmailProvider {
+	switch strings.ToLower(provider) {
+	case "smtp":
+		return SmtpProvider
+	case "sendgrid":
+		return SendGridProvider
+	default:
+		return UnknownProvider
+	}
+}
+
 type Email struct {
-	Enabled bool
-	API     string
-	Name    string
-	Domain  string
+	Enabled  bool
+	Provider EmailProvider
+	// should be not empty if selected provider is smtp
+	Password        string
+	SmtpProviderUrl string
+	// should be not empty if selected provider is sendgrid
+	API string
+	// global
+	Name   string
+	Domain string
+}
+
+func (e *Email) SetEnabled(state bool) {
+	e.Enabled = state
 }
 
 type S3 struct {
