@@ -2,10 +2,9 @@ Verify your account
 
 You requested email verification for your City of Ideas account.
 
-Verification code: {{.VerificationCode}}
 Verify account: {{.VerifyURL}}
 
-This link will expire in the next 24 hours.
+This link will expire in the next 40 minutes.
 
 Privacy Policy: {{.Public.PrivacyURL}}
 Support: {{.Public.SupportURL}}
