@@ -26,7 +26,7 @@ var File_xyz_city_ideas_v1_login_v1_service_proto protoreflect.FileDescriptor
 
 const file_xyz_city_ideas_v1_login_v1_service_proto_rawDesc = "" +
 	"\n" +
-	"(xyz/city_ideas/v1/login/v1/service.proto\x12\x1axyz.city_ideas.v1.login.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a'xyz/city_ideas/v1/login/v1/domain.proto\x1a\x1dxyz/city_ideas/v1/types.proto2\xfc\a\n" +
+	"(xyz/city_ideas/v1/login/v1/service.proto\x12\x1axyz.city_ideas.v1.login.v1\x1a\x1bgoogle/protobuf/empty.proto\x1a'xyz/city_ideas/v1/login/v1/domain.proto\x1a\x1dxyz/city_ideas/v1/types.proto2\x8b\t\n" +
 	"\fLoginService\x12b\n" +
 	"\bRegister\x12+.xyz.city_ideas.v1.login.v1.RegisterRequest\x1a).xyz.city_ideas.v1.login.v1.LoginResponse\x12d\n" +
 	"\tAuthorize\x12,.xyz.city_ideas.v1.login.v1.AuthorizeRequest\x1a).xyz.city_ideas.v1.login.v1.LoginResponse\x128\n" +
@@ -41,7 +41,9 @@ const file_xyz_city_ideas_v1_login_v1_service_proto_rawDesc = "" +
 	"VkCallback\x12-.xyz.city_ideas.v1.login.v1.VkCallbackRequest\x1a..xyz.city_ideas.v1.login.v1.VkCallbackResponse\x12Z\n" +
 	"\aTgStart\x12*.xyz.city_ideas.v1.login.v1.TgStartRequest\x1a#.xyz.city_ideas.v1.RequestWithValue\x12k\n" +
 	"\n" +
-	"TgCallback\x12-.xyz.city_ideas.v1.login.v1.TgCallbackRequest\x1a..xyz.city_ideas.v1.login.v1.VkCallbackResponseBDZBgithub.com/aesterial/cityideas/backend/internal/api/v1/login/v1;v1b\beditionsp\xe8\a"
+	"TgCallback\x12-.xyz.city_ideas.v1.login.v1.TgCallbackRequest\x1a..xyz.city_ideas.v1.login.v1.VkCallbackResponse\x12A\n" +
+	"\x0fSendVerifyEmail\x12\x16.google.protobuf.Empty\x1a\x16.google.protobuf.Empty\x12J\n" +
+	"\vVerifyEmail\x12#.xyz.city_ideas.v1.RequestWithValue\x1a\x16.google.protobuf.EmptyBDZBgithub.com/aesterial/cityideas/backend/internal/api/v1/login/v1;v1b\beditionsp\xe8\a"
 
 var file_xyz_city_ideas_v1_login_v1_service_proto_goTypes = []any{
 	(*RegisterRequest)(nil),     // 0: xyz.city_ideas.v1.login.v1.RegisterRequest
@@ -70,19 +72,23 @@ var file_xyz_city_ideas_v1_login_v1_service_proto_depIdxs = []int32{
 	6,  // 8: xyz.city_ideas.v1.login.v1.LoginService.VkCallback:input_type -> xyz.city_ideas.v1.login.v1.VkCallbackRequest
 	7,  // 9: xyz.city_ideas.v1.login.v1.LoginService.TgStart:input_type -> xyz.city_ideas.v1.login.v1.TgStartRequest
 	8,  // 10: xyz.city_ideas.v1.login.v1.LoginService.TgCallback:input_type -> xyz.city_ideas.v1.login.v1.TgCallbackRequest
-	9,  // 11: xyz.city_ideas.v1.login.v1.LoginService.Register:output_type -> xyz.city_ideas.v1.login.v1.LoginResponse
-	9,  // 12: xyz.city_ideas.v1.login.v1.LoginService.Authorize:output_type -> xyz.city_ideas.v1.login.v1.LoginResponse
-	2,  // 13: xyz.city_ideas.v1.login.v1.LoginService.Logout:output_type -> google.protobuf.Empty
-	10, // 14: xyz.city_ideas.v1.login.v1.LoginService.CreateTotp:output_type -> xyz.city_ideas.v1.login.v1.CreateTotpResponse
-	11, // 15: xyz.city_ideas.v1.login.v1.LoginService.ConfirmTotp:output_type -> xyz.city_ideas.v1.login.v1.ConfirmTotpResponse
-	2,  // 16: xyz.city_ideas.v1.login.v1.LoginService.CheckTotp:output_type -> google.protobuf.Empty
-	2,  // 17: xyz.city_ideas.v1.login.v1.LoginService.ResetTotp:output_type -> google.protobuf.Empty
-	3,  // 18: xyz.city_ideas.v1.login.v1.LoginService.VkStart:output_type -> xyz.city_ideas.v1.RequestWithValue
-	12, // 19: xyz.city_ideas.v1.login.v1.LoginService.VkCallback:output_type -> xyz.city_ideas.v1.login.v1.VkCallbackResponse
-	3,  // 20: xyz.city_ideas.v1.login.v1.LoginService.TgStart:output_type -> xyz.city_ideas.v1.RequestWithValue
-	12, // 21: xyz.city_ideas.v1.login.v1.LoginService.TgCallback:output_type -> xyz.city_ideas.v1.login.v1.VkCallbackResponse
-	11, // [11:22] is the sub-list for method output_type
-	0,  // [0:11] is the sub-list for method input_type
+	2,  // 11: xyz.city_ideas.v1.login.v1.LoginService.SendVerifyEmail:input_type -> google.protobuf.Empty
+	3,  // 12: xyz.city_ideas.v1.login.v1.LoginService.VerifyEmail:input_type -> xyz.city_ideas.v1.RequestWithValue
+	9,  // 13: xyz.city_ideas.v1.login.v1.LoginService.Register:output_type -> xyz.city_ideas.v1.login.v1.LoginResponse
+	9,  // 14: xyz.city_ideas.v1.login.v1.LoginService.Authorize:output_type -> xyz.city_ideas.v1.login.v1.LoginResponse
+	2,  // 15: xyz.city_ideas.v1.login.v1.LoginService.Logout:output_type -> google.protobuf.Empty
+	10, // 16: xyz.city_ideas.v1.login.v1.LoginService.CreateTotp:output_type -> xyz.city_ideas.v1.login.v1.CreateTotpResponse
+	11, // 17: xyz.city_ideas.v1.login.v1.LoginService.ConfirmTotp:output_type -> xyz.city_ideas.v1.login.v1.ConfirmTotpResponse
+	2,  // 18: xyz.city_ideas.v1.login.v1.LoginService.CheckTotp:output_type -> google.protobuf.Empty
+	2,  // 19: xyz.city_ideas.v1.login.v1.LoginService.ResetTotp:output_type -> google.protobuf.Empty
+	3,  // 20: xyz.city_ideas.v1.login.v1.LoginService.VkStart:output_type -> xyz.city_ideas.v1.RequestWithValue
+	12, // 21: xyz.city_ideas.v1.login.v1.LoginService.VkCallback:output_type -> xyz.city_ideas.v1.login.v1.VkCallbackResponse
+	3,  // 22: xyz.city_ideas.v1.login.v1.LoginService.TgStart:output_type -> xyz.city_ideas.v1.RequestWithValue
+	12, // 23: xyz.city_ideas.v1.login.v1.LoginService.TgCallback:output_type -> xyz.city_ideas.v1.login.v1.VkCallbackResponse
+	2,  // 24: xyz.city_ideas.v1.login.v1.LoginService.SendVerifyEmail:output_type -> google.protobuf.Empty
+	2,  // 25: xyz.city_ideas.v1.login.v1.LoginService.VerifyEmail:output_type -> google.protobuf.Empty
+	13, // [13:26] is the sub-list for method output_type
+	0,  // [0:13] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name

@@ -21,17 +21,19 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	LoginService_Register_FullMethodName    = "/xyz.city_ideas.v1.login.v1.LoginService/Register"
-	LoginService_Authorize_FullMethodName   = "/xyz.city_ideas.v1.login.v1.LoginService/Authorize"
-	LoginService_Logout_FullMethodName      = "/xyz.city_ideas.v1.login.v1.LoginService/Logout"
-	LoginService_CreateTotp_FullMethodName  = "/xyz.city_ideas.v1.login.v1.LoginService/CreateTotp"
-	LoginService_ConfirmTotp_FullMethodName = "/xyz.city_ideas.v1.login.v1.LoginService/ConfirmTotp"
-	LoginService_CheckTotp_FullMethodName   = "/xyz.city_ideas.v1.login.v1.LoginService/CheckTotp"
-	LoginService_ResetTotp_FullMethodName   = "/xyz.city_ideas.v1.login.v1.LoginService/ResetTotp"
-	LoginService_VkStart_FullMethodName     = "/xyz.city_ideas.v1.login.v1.LoginService/VkStart"
-	LoginService_VkCallback_FullMethodName  = "/xyz.city_ideas.v1.login.v1.LoginService/VkCallback"
-	LoginService_TgStart_FullMethodName     = "/xyz.city_ideas.v1.login.v1.LoginService/TgStart"
-	LoginService_TgCallback_FullMethodName  = "/xyz.city_ideas.v1.login.v1.LoginService/TgCallback"
+	LoginService_Register_FullMethodName        = "/xyz.city_ideas.v1.login.v1.LoginService/Register"
+	LoginService_Authorize_FullMethodName       = "/xyz.city_ideas.v1.login.v1.LoginService/Authorize"
+	LoginService_Logout_FullMethodName          = "/xyz.city_ideas.v1.login.v1.LoginService/Logout"
+	LoginService_CreateTotp_FullMethodName      = "/xyz.city_ideas.v1.login.v1.LoginService/CreateTotp"
+	LoginService_ConfirmTotp_FullMethodName     = "/xyz.city_ideas.v1.login.v1.LoginService/ConfirmTotp"
+	LoginService_CheckTotp_FullMethodName       = "/xyz.city_ideas.v1.login.v1.LoginService/CheckTotp"
+	LoginService_ResetTotp_FullMethodName       = "/xyz.city_ideas.v1.login.v1.LoginService/ResetTotp"
+	LoginService_VkStart_FullMethodName         = "/xyz.city_ideas.v1.login.v1.LoginService/VkStart"
+	LoginService_VkCallback_FullMethodName      = "/xyz.city_ideas.v1.login.v1.LoginService/VkCallback"
+	LoginService_TgStart_FullMethodName         = "/xyz.city_ideas.v1.login.v1.LoginService/TgStart"
+	LoginService_TgCallback_FullMethodName      = "/xyz.city_ideas.v1.login.v1.LoginService/TgCallback"
+	LoginService_SendVerifyEmail_FullMethodName = "/xyz.city_ideas.v1.login.v1.LoginService/SendVerifyEmail"
+	LoginService_VerifyEmail_FullMethodName     = "/xyz.city_ideas.v1.login.v1.LoginService/VerifyEmail"
 )
 
 // LoginServiceClient is the client API for LoginService service.
@@ -49,6 +51,8 @@ type LoginServiceClient interface {
 	VkCallback(ctx context.Context, in *VkCallbackRequest, opts ...grpc.CallOption) (*VkCallbackResponse, error)
 	TgStart(ctx context.Context, in *TgStartRequest, opts ...grpc.CallOption) (*v1.RequestWithValue, error)
 	TgCallback(ctx context.Context, in *TgCallbackRequest, opts ...grpc.CallOption) (*VkCallbackResponse, error)
+	SendVerifyEmail(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	VerifyEmail(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type loginServiceClient struct {
@@ -169,6 +173,26 @@ func (c *loginServiceClient) TgCallback(ctx context.Context, in *TgCallbackReque
 	return out, nil
 }
 
+func (c *loginServiceClient) SendVerifyEmail(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, LoginService_SendVerifyEmail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *loginServiceClient) VerifyEmail(ctx context.Context, in *v1.RequestWithValue, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, LoginService_VerifyEmail_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LoginServiceServer is the server API for LoginService service.
 // All implementations should embed UnimplementedLoginServiceServer
 // for forward compatibility.
@@ -184,6 +208,8 @@ type LoginServiceServer interface {
 	VkCallback(context.Context, *VkCallbackRequest) (*VkCallbackResponse, error)
 	TgStart(context.Context, *TgStartRequest) (*v1.RequestWithValue, error)
 	TgCallback(context.Context, *TgCallbackRequest) (*VkCallbackResponse, error)
+	SendVerifyEmail(context.Context, *emptypb.Empty) (*emptypb.Empty, error)
+	VerifyEmail(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error)
 }
 
 // UnimplementedLoginServiceServer should be embedded to have
@@ -225,6 +251,12 @@ func (UnimplementedLoginServiceServer) TgStart(context.Context, *TgStartRequest)
 }
 func (UnimplementedLoginServiceServer) TgCallback(context.Context, *TgCallbackRequest) (*VkCallbackResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method TgCallback not implemented")
+}
+func (UnimplementedLoginServiceServer) SendVerifyEmail(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method SendVerifyEmail not implemented")
+}
+func (UnimplementedLoginServiceServer) VerifyEmail(context.Context, *v1.RequestWithValue) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method VerifyEmail not implemented")
 }
 func (UnimplementedLoginServiceServer) testEmbeddedByValue() {}
 
@@ -444,6 +476,42 @@ func _LoginService_TgCallback_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LoginService_SendVerifyEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoginServiceServer).SendVerifyEmail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LoginService_SendVerifyEmail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoginServiceServer).SendVerifyEmail(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LoginService_VerifyEmail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(v1.RequestWithValue)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LoginServiceServer).VerifyEmail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LoginService_VerifyEmail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LoginServiceServer).VerifyEmail(ctx, req.(*v1.RequestWithValue))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LoginService_ServiceDesc is the grpc.ServiceDesc for LoginService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -494,6 +562,14 @@ var LoginService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "TgCallback",
 			Handler:    _LoginService_TgCallback_Handler,
+		},
+		{
+			MethodName: "SendVerifyEmail",
+			Handler:    _LoginService_SendVerifyEmail_Handler,
+		},
+		{
+			MethodName: "VerifyEmail",
+			Handler:    _LoginService_VerifyEmail_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

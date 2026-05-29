@@ -20,4 +20,6 @@ service LoginService {
   rpc VkCallback(xyz.city_ideas.v1.login.v1.VkCallbackRequest) returns (xyz.city_ideas.v1.login.v1.VkCallbackResponse);
   rpc TgStart(xyz.city_ideas.v1.login.v1.TgStartRequest) returns (xyz.city_ideas.v1.RequestWithValue);
   rpc TgCallback(xyz.city_ideas.v1.login.v1.TgCallbackRequest) returns (xyz.city_ideas.v1.login.v1.VkCallbackResponse);
+  rpc SendVerifyEmail(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc VerifyEmail(xyz.city_ideas.v1.RequestWithValue) returns (google.protobuf.Empty);
 }

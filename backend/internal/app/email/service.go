@@ -109,6 +109,27 @@ func (s *Service) sendWelcomeEmail(ctx context.Context, user emaildomain.UserInf
 	return nil
 }
 
+func (s *Service) sendVerifyEmail(ctx context.Context, user emaildomain.UserInfo, data emaildomain.VerifyEmail) error {
+	var d = config.Get().Domain
+	data.VerifyURL = d + "/verify-email?token=" + data.VerificationCode
+	data.Public = emaildomain.FillPublic(d)
+	html, text, err := emaildomain.RenderTemplates("verify_email", data, user.Language)
+	if err != nil {
+		return err
+	}
+	_, err = s.client.Send(ctx, user.Username, user.Address, subject(user.Language, "Verify your email address", "Подтвердите адрес электронной почты"), text, html)
+	return err
+}
+
+func (s *Service) SendVerifyEmail(user emaildomain.UserInfo, data emaildomain.VerifyEmail) {
+	if !s.isEnabled() {
+		return
+	}
+	s.sendInBackground("verify_email", user, func(ctx context.Context) error {
+		return s.sendVerifyEmail(ctx, user, data)
+	})
+}
+
 func (s *Service) SendWelcomeEmail(user emaildomain.UserInfo, data emaildomain.Welcome) {
 	if !s.isEnabled() {
 		return

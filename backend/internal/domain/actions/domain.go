@@ -12,6 +12,7 @@ const (
 	PasswordReset   Purpose = "password_reset"
 	TotpReset       Purpose = "totp_reset"
 	AccountDelete   Purpose = "account_delete"
+	EmailVerify     Purpose = "email_verify"
 	OauthVkAuth     Purpose = "vk_auth"
 	OauthVkLink     Purpose = "vk_link"
 	OauthVkRegister Purpose = "vk_register"
@@ -26,7 +27,7 @@ func (p Purpose) String() string {
 
 func (p Purpose) IsValid() bool {
 	switch p {
-	case PasswordReset, TotpReset, AccountDelete, OauthTgAuth, OauthVkAuth, OauthVkLink, OauthTgLink, OauthVkRegister, OauthTgRegister:
+	case PasswordReset, TotpReset, AccountDelete, EmailVerify, OauthTgAuth, OauthVkAuth, OauthVkLink, OauthTgLink, OauthVkRegister, OauthTgRegister:
 		return true
 	default:
 		return false

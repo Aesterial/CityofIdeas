@@ -197,6 +197,30 @@ func (h *LoginHandler) TgStart(ctx context.Context, req *loginpb.TgStartRequest)
 	return typespb.RequestWithValue_builder{Value: link}.Build(), nil
 }
 
+func (h *LoginHandler) SendVerifyEmail(ctx context.Context, _ *emptypb.Empty) (*emptypb.Empty, error) {
+	if err := h.isRequestValid("{}"); err != nil {
+		return nil, err
+	}
+	meta, err := h.auth.User(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if err = h.srv.SendEmailVerification(ctx, *meta.UserID); err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, nil
+}
+
+func (h *LoginHandler) VerifyEmail(ctx context.Context, req *typespb.RequestWithValue) (*emptypb.Empty, error) {
+	if err := h.isRequestValid(req); err != nil {
+		return nil, err
+	}
+	if err := h.srv.VerifyEmailByToken(ctx, req.GetValue()); err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, nil
+}
+
 func (h *LoginHandler) TgCallback(ctx context.Context, req *loginpb.TgCallbackRequest) (*loginpb.VkCallbackResponse, error) {
 	if err := h.isRequestValid(req); err != nil {
 		return nil, err
