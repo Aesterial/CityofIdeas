@@ -1679,10 +1679,7 @@ export async function requestEmailVerification(payload: {
   if (!email) {
     throw new Error("Email is required.");
   }
-  await apiRequest("/api/login/verify-email/start", {
-    method: "POST",
-    body: JSON.stringify({ email }),
-  });
+  await grpcRequest(() => loginClient.sendVerifyEmail(create(EmptySchema, {})));
 }
 
 export async function verifyEmail(payload: { token: string }): Promise<void> {
@@ -1690,10 +1687,9 @@ export async function verifyEmail(payload: { token: string }): Promise<void> {
   if (!token) {
     throw new Error("Token is required.");
   }
-  await apiRequest("/api/login/verify-email", {
-    method: "POST",
-    body: JSON.stringify({ token }),
-  });
+  await grpcRequest(() =>
+    loginClient.verifyEmail(create(RequestWithValueSchema, { value: token })),
+  );
 }
 
 export async function verifyAuthCode(payload: {

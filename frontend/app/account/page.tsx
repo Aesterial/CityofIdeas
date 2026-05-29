@@ -70,7 +70,6 @@ import {
   confirmTotpEnrollment,
   disableTotp,
   revokeUserSession,
-  requestEmailVerification,
   startTotpEnrollment,
   type TotpEnrollment,
   type UserSession,
@@ -150,7 +149,6 @@ export default function AccountPage() {
     null,
   );
   const [deleteProfileLoading, setDeleteProfileLoading] = useState(false);
-  const [emailVerifyLoading, setEmailVerifyLoading] = useState(false);
   const [emailVerifyError, setEmailVerifyError] = useState<string | null>(null);
   const [emailVerifySuccess, setEmailVerifySuccess] = useState<string | null>(
     null,
@@ -491,17 +489,7 @@ export default function AccountPage() {
     }
     setEmailVerifyError(null);
     setEmailVerifySuccess(null);
-    setEmailVerifyLoading(true);
-    try {
-      await requestEmailVerification({ email: user.email });
-      setEmailVerifySuccess(t("accountEmailVerifySent"));
-    } catch (err) {
-      setEmailVerifyError(
-        err instanceof Error ? err.message : t("emailVerifyError"),
-      );
-    } finally {
-      setEmailVerifyLoading(false);
-    }
+    router.push("/verify-email");
   };
 
   const handleTotpStart = async () => {
@@ -1022,11 +1010,8 @@ export default function AccountPage() {
                       type="button"
                       className="px-5 py-2 text-xs sm:text-sm"
                       onClick={() => void handleSendVerificationEmail()}
-                      disabled={emailVerifyLoading}
                     >
-                      {emailVerifyLoading
-                        ? t("accountEmailVerifySending")
-                        : t("accountEmailVerifyAction")}
+                      {t("emailVerifyAction")}
                     </GradientButton>
                   </div>
                 ) : null}
