@@ -738,10 +738,6 @@ export default function AccountPage() {
           >
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(620px_circle_at_12%_0%,hsl(var(--foreground)/0.12),transparent_48%)]" />
             <div className="relative">
-              <span className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/76 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                <Sparkles className="h-3.5 w-3.5" />
-                Account control
-              </span>
               <h1 className="mt-5 max-w-3xl text-5xl font-semibold leading-[0.9] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
                 {t("accountSettings")}
               </h1>
