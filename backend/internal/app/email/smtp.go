@@ -43,7 +43,7 @@ func NewSmtp() *Smtp {
 	var err error
 	service.From = cfg.Email.Domain
 	service.Password = cfg.Email.Password
-	service.Client, err = mail.NewClient(cfg.Email.SmtpProviderUrl, mail.WithPort(587), mail.WithSMTPAuth(mail.SMTPAuthPlain), mail.WithUsername(cfg.Email.Domain), mail.WithPassword(cfg.Email.Password))
+	service.Client, err = mail.NewClient(cfg.Email.SmtpProviderUrl, mail.WithTLSPortPolicy(mail.TLSMandatory), mail.WithSMTPAuth(mail.SMTPAuthPlain), mail.WithUsername(cfg.Email.Domain), mail.WithPassword(cfg.Email.Password))
 	if err != nil {
 		cfg.Email.SetEnabled(false)
 		return service
