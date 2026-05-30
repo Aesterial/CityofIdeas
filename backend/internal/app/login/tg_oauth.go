@@ -162,10 +162,7 @@ func (s *Service) TgCallback(ctx context.Context, state string, tgAuthResult str
 		if tgData.LastName != "" {
 			displayName += " " + tgData.LastName
 		}
-		if err = s.actions.Use(ctx, action.Purpose, state); err != nil {
-			logger.Error("login", "failed to use action", logger.F("error", err))
-			return nil, errors.Wrap(err)
-		}
+		s.storePendingOAuth(state, userdomain.ServiceTelegram, tgIDStr, action.Purpose)
 		return &userdomain.VkCallbackResponse{
 			User: &userdomain.User{
 				Username: tgData.Username,

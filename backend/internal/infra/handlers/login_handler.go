@@ -48,7 +48,11 @@ func (h *LoginHandler) Register(ctx context.Context, req *loginpb.RegisterReques
 	if err := h.isRequestValid(req); err != nil {
 		return nil, err
 	}
-	usr, err := h.srv.Register(ctx, req.GetUsername(), req.GetEmail(), req.GetPassword())
+	var oauthState string
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		oauthState = h.auth.getToken(md, config.Get().Oauth.Key)
+	}
+	usr, err := h.srv.Register(ctx, req.GetUsername(), req.GetEmail(), req.GetPassword(), oauthState)
 	if err != nil {
 		logger.Error("login", "failed to register user", logger.F("error", err))
 		return nil, errors.Wrap(err)

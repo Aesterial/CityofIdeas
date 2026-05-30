@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"net/http"
+	"sync"
 	"time"
 
 	emailservice "github.com/aesterial/cityideas/backend/internal/app/email"
@@ -22,12 +23,21 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
+type pendingOAuthEntry struct {
+	Service userdomain.OauthService
+	ID      string
+	Purpose actionsdomain.Purpose
+	Expires time.Time
+}
+
 type Service struct {
-	usr     userdomain.Repository
-	ses     sessionsdomain.Repository
-	actions actionsdomain.Repository
-	email   *emailservice.Service
-	c       *cache.Store
+	usr          userdomain.Repository
+	ses          sessionsdomain.Repository
+	actions      actionsdomain.Repository
+	email        *emailservice.Service
+	c            *cache.Store
+	pendingMu    sync.Mutex
+	pendingAuths map[string]*pendingOAuthEntry
 }
 
 func NewService(usr userdomain.Repository, ses sessionsdomain.Repository, email *emailservice.Service, acts actionsdomain.Repository, store ...*cache.Store) *Service {
@@ -36,12 +46,38 @@ func NewService(usr userdomain.Repository, ses sessionsdomain.Repository, email 
 		c = store[0]
 	}
 	return &Service{
-		usr:     usr,
-		ses:     ses,
-		c:       c,
-		actions: acts,
-		email:   email,
+		usr:          usr,
+		ses:          ses,
+		c:            c,
+		actions:      acts,
+		email:        email,
+		pendingAuths: make(map[string]*pendingOAuthEntry),
 	}
+}
+
+func (s *Service) storePendingOAuth(state string, svc userdomain.OauthService, id string, purpose actionsdomain.Purpose) {
+	s.pendingMu.Lock()
+	defer s.pendingMu.Unlock()
+	s.pendingAuths[state] = &pendingOAuthEntry{
+		Service: svc,
+		ID:      id,
+		Purpose: purpose,
+		Expires: time.Now().Add(15 * time.Minute),
+	}
+}
+
+func (s *Service) consumePendingOAuth(state string) *pendingOAuthEntry {
+	s.pendingMu.Lock()
+	defer s.pendingMu.Unlock()
+	entry, ok := s.pendingAuths[state]
+	if !ok {
+		return nil
+	}
+	delete(s.pendingAuths, state)
+	if time.Now().After(entry.Expires) {
+		return nil
+	}
+	return entry
 }
 
 func (s *Service) addCookie(ctx context.Context, username string, session domain.UUID, sessionLiveTime int32) error {
@@ -85,7 +121,7 @@ func loginNotificationData(ctx context.Context, username string, device domain.D
 	}
 }
 
-func (s *Service) Register(ctx context.Context, username string, email string, password string) (*userdomain.User, error) {
+func (s *Service) Register(ctx context.Context, username string, email string, password string, oauthState string) (*userdomain.User, error) {
 	if username == "" || email == "" || password == "" {
 		return nil, errors.InvalidArguments
 	}
@@ -118,6 +154,15 @@ func (s *Service) Register(ctx context.Context, username string, email string, p
 	}
 	if s.c != nil {
 		s.c.DeleteTags("users:list")
+	}
+	if oauthState != "" {
+		if pending := s.consumePendingOAuth(oauthState); pending != nil {
+			if err = s.usr.InsertOauth(ctx, user.UID, pending.ID, pending.Service); err != nil {
+				logger.Error("login", "failed to link oauth on register", logger.F("error", err))
+			} else if err = s.actions.Use(ctx, pending.Purpose, oauthState); err != nil {
+				logger.Error("login", "failed to consume oauth action on register", logger.F("error", err))
+			}
+		}
 	}
 	if err = s.startSession(ctx, user, device, hash); err != nil {
 		return nil, err

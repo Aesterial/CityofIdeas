@@ -108,10 +108,7 @@ func (s *Service) VkCallback(ctx context.Context, code string, state string) (*u
 		if err != nil {
 			return nil, errors.Wrap(err)
 		}
-		if err = s.actions.Use(ctx, action.Purpose, state); err != nil {
-			logger.Error("login", "failed to use action", logger.F("error", err))
-			return nil, errors.Wrap(err)
-		}
+		s.storePendingOAuth(state, userdomain.ServiceVkontakte, strconv.Itoa(info.UserID), action.Purpose)
 		return &userdomain.VkCallbackResponse{
 			User: &userdomain.User{
 				Username: vkuser.Username,
