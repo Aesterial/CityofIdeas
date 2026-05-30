@@ -337,7 +337,7 @@ export type AuthChallenge = {
   expiresAt?: string;
   length?: number;
   redirectUrl?: string;
-  loginMethod?: "password" | "vk";
+  loginMethod?: "password" | "vk" | "telegram";
 };
 
 export type AuthResult = {
@@ -1900,7 +1900,6 @@ export async function startVkAuth(mode: "login" | "register" = "login"): Promise
 export async function completeVkAuth(
   code: string,
   state: string,
-  _device_id?: string,
 ): Promise<AuthResult> {
   const response = await grpcRequest(() =>
     loginClient.vkCallback(

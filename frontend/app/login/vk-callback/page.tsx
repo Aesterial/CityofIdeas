@@ -16,13 +16,12 @@ export default function VkCallbackPage() {
   useEffect(() => {
     const code = params.get("code")?.trim() ?? "";
     const state = params.get("state")?.trim() ?? "";
-    const device_id = params.get("device_id")?.trim() ?? "";
-    if (!code || !state || !device_id) {
+    if (!code || !state) {
       setMessage(t("vkCallbackMissing"));
       return;
     }
     let active = true;
-    completeVkAuth(code, state, device_id)
+    completeVkAuth(code, state)
       .then((response) => {
         if (!active) {
           return;

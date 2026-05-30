@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type AuthMode = "login" | "register" | "forgot"; // | "forgot-password"
 
@@ -47,6 +47,7 @@ const maskEmail = (value: string) => {
 
 export default function AuthPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, register, status } = useAuth();
   const minWelcomeMs = 700;
   const [mode, setMode] = useState<AuthMode>("login");
@@ -127,6 +128,39 @@ export default function AuthPage() {
       router.replace("/");
     }
   }, [status, router]);
+
+  useEffect(() => {
+    if (searchParams.get("oauth") !== "register") {
+      return;
+    }
+    setMode("register");
+    try {
+      const raw = window.sessionStorage.getItem("oauth_register");
+      if (!raw) {
+        return;
+      }
+      const payload = JSON.parse(raw) as {
+        username?: unknown;
+        email?: unknown;
+        displayName?: unknown;
+      };
+      const username =
+        typeof payload.username === "string" ? payload.username.trim() : "";
+      const email =
+        typeof payload.email === "string" ? payload.email.trim() : "";
+      const displayName =
+        typeof payload.displayName === "string"
+          ? payload.displayName.trim()
+          : "";
+      setFormData((current) => ({
+        ...current,
+        name: current.name || username || displayName,
+        email: current.email || email,
+      }));
+    } catch {
+      window.sessionStorage.removeItem("oauth_register");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     setErrorMessage(null);

@@ -15,7 +15,10 @@ export default function TgCallbackPage() {
 
   useEffect(() => {
     const hashParams = new URLSearchParams(window.location.hash.slice(1));
-    const tgAuthResult = hashParams.get("tgAuthResult")?.trim() ?? "";
+    const tgAuthResult =
+      hashParams.get("tgAuthResult")?.trim() ||
+      params.get("tgAuthResult")?.trim() ||
+      "";
     const state = params.get("state")?.trim() ?? "";
 
     if (!tgAuthResult) {
@@ -36,7 +39,7 @@ export default function TgCallbackPage() {
           const baseChallenge = response.challenge ?? { type: "unknown" };
           saveAuthChallenge({
             ...baseChallenge,
-            loginMethod: "vk",
+            loginMethod: "telegram",
             redirectUrl: response.redirectUrl ?? baseChallenge.redirectUrl,
           });
           router.replace("/login/verify");
